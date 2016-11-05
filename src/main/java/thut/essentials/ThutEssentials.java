@@ -7,7 +7,6 @@ import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
-import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
@@ -49,20 +48,6 @@ public class ThutEssentials
         LandEventsHandler teams = new LandEventsHandler();
         MinecraftForge.EVENT_BUS.register(teams);
         new ItemControl();
-    }
-
-    @Optional.Method(modid = "pokecube")
-    @EventHandler
-    public void pokecubeCompat(FMLPreInitializationEvent e)
-    {
-        new thut.essentials.compat.PokecubeCompat();
-    }
-
-    @Optional.Method(modid = "thutperms")
-    @EventHandler
-    public void thutpermsCompat(FMLPreInitializationEvent e)
-    {
-        new thut.essentials.compat.ThutPermsCompat();
     }
 
     @EventHandler
