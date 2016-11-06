@@ -54,6 +54,8 @@ public class ConfigManager extends ConfigBase
 
     @Configure(category = MISC)
     public int                  maxHomes           = 2;
+    @Configure(category = MISC)
+    public int                  rtpdistance        = 1000;
 
     @Configure(category = MISC)
     public String[]             disabledCommands   = {};

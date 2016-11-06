@@ -6,7 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import thut.essentials.commands.misc.Spawn.PlayerMover;
 import net.minecraft.server.MinecraftServer;
 import thut.essentials.util.BaseCommand;
-
+import thut.essentials.util.ConfigManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.BlockLiquid;
@@ -34,9 +34,8 @@ public class RTP extends BaseCommand {
 	private BlockPos calculatePos()
 	{
 		Random rand = new Random();
-		// This variable 1000 can and should be set in the config.
-		int x = rand.nextInt(1000);
-		int z = rand.nextInt(1000);
+		int x = rand.nextInt(ConfigManager.INSTANCE.rtpdistance);
+		int z = rand.nextInt(ConfigManager.INSTANCE.rtpdistance);
 		int y = 64;
 		return new BlockPos(x, y, z);
 	}
