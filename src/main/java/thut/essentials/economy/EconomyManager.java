@@ -47,17 +47,29 @@ public class EconomyManager
         UUID       frameId;
         boolean    infinite  = false;
         boolean    ignoreTag = false;
+        boolean    recycle   = false;
         boolean    sell;
         int        cost;
         int        number;
 
-        public boolean transact(EntityPlayer player, Account shopAccount)
+        public boolean transact(EntityPlayer player, ItemStack heldStack, Account shopAccount)
         {
             ItemStack stack = null;
             Entity ent = player.getServer().worldServerForDimension(player.dimension).getEntityFromUuid(frameId);
             if (ent instanceof EntityItemFrame) stack = ((EntityItemFrame) ent).getDisplayedItem();
             TileEntity tile = player.worldObj.getTileEntity(new BlockPos(location.x, location.y, location.z));
-            if (stack == null || !(tile instanceof TileEntitySign))
+            if (!(tile instanceof TileEntitySign))
+            {
+                removeShop(location);
+                return false;
+            }
+            if (recycle && heldStack == null)
+            {
+                player.addChatMessage(
+                        new TextComponentString(TextFormatting.RED + "You need to hold the item you want to recycle"));
+                return false;
+            }
+            else if ((stack == null))
             {
                 removeShop(location);
                 return false;
@@ -170,22 +182,35 @@ public class EconomyManager
                     player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Funds"));
                     return false;
                 }
-                stack = stack.copy();
-                stack.stackSize = number;
                 int count = 0;
-                for (ItemStack item : player.inventory.mainInventory)
+                if (recycle)
                 {
-                    if (item != null)
+                    count = heldStack.stackSize;
+                    if (count < number)
                     {
-                        ItemStack test = item.copy();
-                        test.stackSize = number;
-                        if (ItemStack.areItemStacksEqual(test, stack)) count += item.stackSize;
+                        player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
+                        return false;
                     }
+                    stack = heldStack;
                 }
-                if (count < number)
+                else
                 {
-                    player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
-                    return false;
+                    stack = stack.copy();
+                    stack.stackSize = number;
+                    for (ItemStack item : player.inventory.mainInventory)
+                    {
+                        if (item != null)
+                        {
+                            ItemStack test = item.copy();
+                            test.stackSize = number;
+                            if (ItemStack.areItemStacksEqual(test, stack)) count += item.stackSize;
+                        }
+                    }
+                    if (count < number)
+                    {
+                        player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
+                        return false;
+                    }
                 }
                 if (!infinite)
                 {
@@ -221,7 +246,6 @@ public class EconomyManager
                         }
                     }
                 }
-
                 player.inventory.clearMatchingItems(stack.getItem(), stack.getItemDamage(), number,
                         stack.getTagCompound());
                 addBalance(player, cost);
@@ -284,6 +308,7 @@ public class EconomyManager
                 }
                 shop = addShop(evt.getEntityPlayer(), (EntityItemFrame) evt.getTarget(), c, infinite);
                 shop.ignoreTag = evt.getItemStack().getDisplayName().contains("noTag");
+                shop.recycle = evt.getItemStack().getDisplayName().contains("Recycle");
             }
             if (shop != null)
             {
@@ -315,11 +340,7 @@ public class EconomyManager
         Shop shop = getShop(c);
         if (shop != null)
         {
-            boolean interact = shop.transact(evt.getEntityPlayer(), shopMap.get(c));
-            if (interact)
-            {
-
-            }
+            shop.transact(evt.getEntityPlayer(), evt.getItemStack(), shopMap.get(c));
         }
     }
 
@@ -341,6 +362,7 @@ public class EconomyManager
         Shop shop = new Shop();
         shop.infinite = infinite;
         shop.frameId = frame.getUniqueID();
+        shop.location = location;
         account.shops.add(shop);
         account.shopMap.put(location, shop);
         getInstance().shopMap.put(location, account);
