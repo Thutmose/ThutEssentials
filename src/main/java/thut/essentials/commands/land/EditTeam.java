@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
+import thut.essentials.ThutEssentials;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -53,11 +54,19 @@ public class EditTeam extends BaseCommand
             sender.addChatMessage(new TextComponentString(TextFormatting.GREEN + "Set Deny Message to " + message));
             return;
         }
-        if (arg.equalsIgnoreCase("reserve"))
+        if (arg.equalsIgnoreCase("reserve") && ThutEssentials.perms.hasPermission(player, "land.team.reserve"))
         {
             landTeam.reserved = Boolean.parseBoolean(message);
             sender.addChatMessage(
                     new TextComponentString(TextFormatting.GREEN + "Reserved set to " + landTeam.reserved));
+            return;
+        }
+        if (arg.equalsIgnoreCase("noPlayerDamage")
+                && ThutEssentials.perms.hasPermission(player, "land.team.noplayerdamage"))
+        {
+            landTeam.noPlayerDamage = Boolean.parseBoolean(message);
+            sender.addChatMessage(
+                    new TextComponentString(TextFormatting.GREEN + "Reserved set to " + landTeam.noPlayerDamage));
             return;
         }
     }

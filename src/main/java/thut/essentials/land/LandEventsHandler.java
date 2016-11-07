@@ -20,6 +20,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -211,6 +212,19 @@ public class LandEventsHandler
                 evt.setCanceled(true);
                 return;
             }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void interactLeftClickEntity(LivingAttackEvent evt)
+    {
+        Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(), evt.getEntity().dimension);
+        LandTeam owner = LandManager.getInstance().getLandOwner(c);
+        if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
+        if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
+        {
+            evt.setCanceled(true);
+            return;
         }
     }
 

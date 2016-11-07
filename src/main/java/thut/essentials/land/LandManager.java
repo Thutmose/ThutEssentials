@@ -27,15 +27,16 @@ public class LandManager
 
     public static class LandTeam
     {
-        public TeamLand  land         = new TeamLand();
+        public TeamLand  land           = new TeamLand();
         public String    teamName;
-        Set<UUID>        admin        = Sets.newHashSet();
-        public Set<UUID> member       = Sets.newHashSet();
-        public String    exitMessage  = "";
-        public String    enterMessage = "";
-        public String    denyMessage  = "";
-        public boolean   reserved     = false;
-        public boolean   players      = false;
+        Set<UUID>        admin          = Sets.newHashSet();
+        public Set<UUID> member         = Sets.newHashSet();
+        public String    exitMessage    = "";
+        public String    enterMessage   = "";
+        public String    denyMessage    = "";
+        public boolean   reserved       = false;
+        public boolean   players        = false;
+        public boolean   noPlayerDamage = false;
 
         public LandTeam()
         {
