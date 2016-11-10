@@ -63,19 +63,9 @@ public class EconomyManager
                 removeShop(location);
                 return false;
             }
-            if (recycle && heldStack == null)
-            {
-                player.addChatMessage(
-                        new TextComponentString(TextFormatting.RED + "You need to hold the item you want to recycle"));
-                return false;
-            }
-            else if ((stack == null))
-            {
-                removeShop(location);
-                return false;
-            }
             TileEntitySign sign = (TileEntitySign) tile;
             sell = sign.signText[0].getUnformattedText().contains("Sell");
+            recycle = sign.signText[0].getUnformattedText().contains("Recycle");
             try
             {
                 number = Integer.parseInt(sign.signText[1].getUnformattedText());
@@ -92,6 +82,18 @@ public class EconomyManager
             catch (NumberFormatException e)
             {
                 e.printStackTrace();
+                return false;
+            }
+
+            if (recycle && heldStack == null)
+            {
+                player.addChatMessage(
+                        new TextComponentString(TextFormatting.RED + "You need to hold the item you want to recycle"));
+                return false;
+            }
+            else if ((stack == null))
+            {
+                removeShop(location);
                 return false;
             }
             if (sell)
@@ -308,7 +310,6 @@ public class EconomyManager
                 }
                 shop = addShop(evt.getEntityPlayer(), (EntityItemFrame) evt.getTarget(), c, infinite);
                 shop.ignoreTag = evt.getItemStack().getDisplayName().contains("noTag");
-                shop.recycle = evt.getItemStack().getDisplayName().contains("Recycle");
             }
             if (shop != null)
             {
