@@ -69,5 +69,12 @@ public class EditTeam extends BaseCommand
                     new TextComponentString(TextFormatting.GREEN + "Reserved set to " + landTeam.noPlayerDamage));
             return;
         }
+        if (arg.equalsIgnoreCase("noMobSpawn") && ThutEssentials.perms.hasPermission(player, "land.team.nomobspawn"))
+        {
+            landTeam.noMobSpawn = Boolean.parseBoolean(message);
+            sender.addChatMessage(
+                    new TextComponentString(TextFormatting.GREEN + "Reserved set to " + landTeam.noMobSpawn));
+            return;
+        }
     }
 }

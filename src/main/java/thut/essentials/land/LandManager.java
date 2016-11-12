@@ -37,6 +37,7 @@ public class LandManager
         public boolean   reserved       = false;
         public boolean   players        = false;
         public boolean   noPlayerDamage = false;
+        public boolean   noMobSpawn     = false;
 
         public LandTeam()
         {

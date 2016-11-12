@@ -44,26 +44,31 @@ public class Claim extends BaseCommand
         boolean up = false;
         boolean all = false;
         int num = 1;
+        int radius = 0;
 
-        if (args.length > 2)
+        if (args.length > 1)
         {
             try
             {
                 if (args[1].equalsIgnoreCase("up") || args[1].equalsIgnoreCase("down"))
                 {
-                    num = Integer.parseInt(args[2]);
+                    num = Integer.parseInt(args[0]);
                     up = args[1].equalsIgnoreCase("up");
                 }
-                if (args[1].equalsIgnoreCase("all"))
+                if (args[1].equalsIgnoreCase("all") || args[0].equalsIgnoreCase("all"))
                 {
                     all = true;
                     up = true;
                     num = 16;
                 }
+                if (args.length > 3 || all)
+                {
+                    radius = all ? Integer.parseInt(args[1]) : Integer.parseInt(args[2]);
+                }
             }
             catch (NumberFormatException e)
             {
-                // e.printStackTrace();
+                throw new CommandException("Error in formating number of chunks");
             }
         }
         else if (args.length > 0)
@@ -75,38 +80,41 @@ public class Claim extends BaseCommand
                 num = 16;
             }
         }
-        for (int i = 0; i < num; i++)
-        {
-            if (count < teamCount * ConfigManager.INSTANCE.teamLandPerPlayer || isOp)
-            {
-                int dir = up ? 1 : -1;
-                teamCount = team.member.size();
-                count = LandManager.getInstance().countLand(team.teamName);
-                int x = MathHelper.floor_double(sender.getPosition().getX() / 16f);
-                int y = MathHelper.floor_double(sender.getPosition().getY() / 16f) + i * dir;
-                if (all) y = i * dir;
-                int z = MathHelper.floor_double(sender.getPosition().getZ() / 16f);
-                int dim = sender.getEntityWorld().provider.getDimension();
-                if (y < 0 || y > 15) continue;
-                Coordinate chunk = new Coordinate(x, y, z, dim);
-                LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-                ClaimLandEvent event = new ClaimLandEvent(new BlockPos(x, y, z), dim, player, team.teamName);
-                MinecraftForge.EVENT_BUS.post(event);
-                if (event.isCanceled()) continue;
-                if (owner != null)
+        int x = MathHelper.floor_double(sender.getPosition().getX() / 16f);
+        int z = MathHelper.floor_double(sender.getPosition().getZ() / 16f);
+        for (int dx = -radius; dx <= radius; dx++)
+            for (int dz = -radius; dz <= radius; dz++)
+                for (int i = 0; i < num; i++)
                 {
-                    if (owner.equals(team)) continue;
-                    sender.addChatMessage(new TextComponentString("This land is already claimed by " + owner));
-                    continue;
+                    if (count < teamCount * ConfigManager.INSTANCE.teamLandPerPlayer || isOp)
+                    {
+                        int dir = up ? 1 : -1;
+                        teamCount = team.member.size();
+                        count = LandManager.getInstance().countLand(team.teamName);
+                        int y = MathHelper.floor_double(sender.getPosition().getY() / 16f) + i * dir;
+                        if (all) y = i * dir;
+                        int dim = sender.getEntityWorld().provider.getDimension();
+                        if (y < 0 || y > 15) continue;
+                        Coordinate chunk = new Coordinate(x + dx, y, z + dz, dim);
+                        LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
+                        ClaimLandEvent event = new ClaimLandEvent(new BlockPos(x + dx, y, z + dz), dim, player,
+                                team.teamName);
+                        MinecraftForge.EVENT_BUS.post(event);
+                        if (event.isCanceled()) continue;
+                        if (owner != null)
+                        {
+                            if (owner.equals(team)) continue;
+                            sender.addChatMessage(new TextComponentString("This land is already claimed by " + owner));
+                            continue;
+                        }
+                        sender.addChatMessage(new TextComponentString("Claimed This land for Team" + team.teamName));
+                        LandManager.getInstance().addTeamLand(team.teamName, chunk, true);
+                    }
+                    else
+                    {
+                        return;
+                    }
                 }
-                sender.addChatMessage(new TextComponentString("Claimed This land for Team" + team.teamName));
-                LandManager.getInstance().addTeamLand(team.teamName, chunk, true);
-            }
-            else
-            {
-                break;
-            }
-        }
     }
 
 }
