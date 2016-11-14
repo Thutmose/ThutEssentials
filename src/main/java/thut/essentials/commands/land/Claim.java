@@ -82,6 +82,7 @@ public class Claim extends BaseCommand
         }
         int x = MathHelper.floor_double(sender.getPosition().getX() / 16f);
         int z = MathHelper.floor_double(sender.getPosition().getZ() / 16f);
+        int n = 0;
         for (int dx = -radius; dx <= radius; dx++)
             for (int dz = -radius; dz <= radius; dz++)
                 for (int i = 0; i < num; i++)
@@ -107,14 +108,18 @@ public class Claim extends BaseCommand
                             sender.addChatMessage(new TextComponentString("This land is already claimed by " + owner));
                             continue;
                         }
-                        sender.addChatMessage(new TextComponentString("Claimed This land for Team" + team.teamName));
+                        n++;
                         LandManager.getInstance().addTeamLand(team.teamName, chunk, true);
                     }
                     else
                     {
+                        sender.addChatMessage(
+                                new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
                         return;
                     }
                 }
+        sender.addChatMessage(new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
+        return;
     }
 
 }
