@@ -58,7 +58,7 @@ public class EditTeam extends BaseCommand
         {
             landTeam.reserved = Boolean.parseBoolean(message);
             sender.addChatMessage(
-                    new TextComponentString(TextFormatting.GREEN + "Reserved set to " + landTeam.reserved));
+                    new TextComponentString(TextFormatting.GREEN + "reserved set to " + landTeam.reserved));
             return;
         }
         if (arg.equalsIgnoreCase("noPlayerDamage")
@@ -66,14 +66,22 @@ public class EditTeam extends BaseCommand
         {
             landTeam.noPlayerDamage = Boolean.parseBoolean(message);
             sender.addChatMessage(
-                    new TextComponentString(TextFormatting.GREEN + "Reserved set to " + landTeam.noPlayerDamage));
+                    new TextComponentString(TextFormatting.GREEN + "noPlayerDamage set to " + landTeam.noPlayerDamage));
             return;
         }
         if (arg.equalsIgnoreCase("noMobSpawn") && ThutEssentials.perms.hasPermission(player, "land.team.nomobspawn"))
         {
             landTeam.noMobSpawn = Boolean.parseBoolean(message);
             sender.addChatMessage(
-                    new TextComponentString(TextFormatting.GREEN + "Reserved set to " + landTeam.noMobSpawn));
+                    new TextComponentString(TextFormatting.GREEN + "noMobSpawn set to " + landTeam.noMobSpawn));
+            return;
+        }
+        if (arg.equalsIgnoreCase("noExplosions")
+                && ThutEssentials.perms.hasPermission(player, "land.team.noexplosions"))
+        {
+            landTeam.noExplosions = Boolean.parseBoolean(message);
+            sender.addChatMessage(
+                    new TextComponentString(TextFormatting.GREEN + "noExplosions set to " + landTeam.noExplosions));
             return;
         }
     }

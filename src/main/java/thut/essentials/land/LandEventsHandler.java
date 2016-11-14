@@ -12,7 +12,6 @@ import com.google.common.collect.Sets;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemFood;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -151,27 +150,18 @@ public class LandEventsHandler
     public void ExplosionEvent(ExplosionEvent.Detonate evt)
     {
         List<BlockPos> toRemove = Lists.newArrayList();
-        if (ConfigManager.INSTANCE.denyExplosions && ConfigManager.INSTANCE.landEnabled)
+        boolean denyBlasts = ConfigManager.INSTANCE.denyExplosions;
+        if (ConfigManager.INSTANCE.landEnabled)
         {
             int dimension = evt.getWorld().provider.getDimension();
             for (BlockPos pos : evt.getAffectedBlocks())
             {
                 Coordinate c = Coordinate.getChunkCoordFromWorldCoord(pos, dimension);
                 LandTeam owner = LandManager.getInstance().getLandOwner(c);
+                boolean deny = denyBlasts;
                 if (owner == null) continue;
-                if (evt.getExplosion().getExplosivePlacedBy() instanceof EntityPlayerMP)
-                {
-                    LandTeam playerTeam = LandManager.getTeam((EntityPlayer) evt.getExplosion().getExplosivePlacedBy());
-                    if (playerTeam != null)
-                    {
-                        String team = playerTeam.teamName;
-                        if (owner.equals(team))
-                        {
-                            owner = null;
-                        }
-                    }
-                }
-                if (owner == null) continue;
+                deny = deny || owner.noExplosions;
+                if (!deny) continue;
                 toRemove.add(pos);
             }
         }

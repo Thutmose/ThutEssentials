@@ -38,6 +38,7 @@ public class LandManager
         public boolean   players        = false;
         public boolean   noPlayerDamage = false;
         public boolean   noMobSpawn     = false;
+        public boolean   noExplosions   = false;
 
         public LandTeam()
         {
