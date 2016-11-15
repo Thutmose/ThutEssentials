@@ -318,7 +318,7 @@ public class LandEventsHandler
                     else
                     {
                         evt.getEntityPlayer().addChatMessage(new TextComponentString("Set Block to Public Use"));
-                        LandManager.getInstance().setPublic(blockLoc);
+                        LandManager.getInstance().setPublic(blockLoc, owner);
                     }
                     evt.setCanceled(true);
                 }

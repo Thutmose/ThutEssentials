@@ -27,18 +27,19 @@ public class LandManager
 
     public static class LandTeam
     {
-        public TeamLand  land           = new TeamLand();
-        public String    teamName;
-        Set<UUID>        admin          = Sets.newHashSet();
-        public Set<UUID> member         = Sets.newHashSet();
-        public String    exitMessage    = "";
-        public String    enterMessage   = "";
-        public String    denyMessage    = "";
-        public boolean   reserved       = false;
-        public boolean   players        = false;
-        public boolean   noPlayerDamage = false;
-        public boolean   noMobSpawn     = false;
-        public boolean   noExplosions   = false;
+        public TeamLand        land           = new TeamLand();
+        public String          teamName;
+        Set<UUID>              admin          = Sets.newHashSet();
+        public Set<UUID>       member         = Sets.newHashSet();
+        public Set<Coordinate> anyUse         = Sets.newHashSet();
+        public String          exitMessage    = "";
+        public String          enterMessage   = "";
+        public String          denyMessage    = "";
+        public boolean         reserved       = false;
+        public boolean         players        = false;
+        public boolean         noPlayerDamage = false;
+        public boolean         noMobSpawn     = false;
+        public boolean         noExplosions   = false;
 
         public LandTeam()
         {
@@ -62,9 +63,12 @@ public class LandManager
         public void init(MinecraftServer server)
         {
             Set<UUID> members = Sets.newHashSet(member);
-            if (!teamName.equals(ConfigManager.INSTANCE.defaultTeamName)) for (UUID id : members)
+            if (!teamName.equals(ConfigManager.INSTANCE.defaultTeamName))
             {
-                LandManager.instance.playerTeams.put(id, this);
+                for (UUID id : members)
+                    LandManager.instance.playerTeams.put(id, this);
+                for (Coordinate c : anyUse)
+                    LandManager.instance.publicBlocks.put(c, this);
             }
         }
 
@@ -160,7 +164,7 @@ public class LandManager
     protected HashMap<Coordinate, LandTeam> landMap      = Maps.newHashMap();
     protected HashMap<UUID, LandTeam>       playerTeams  = Maps.newHashMap();
     protected HashMap<UUID, Invites>        invites      = Maps.newHashMap();
-    protected HashSet<Coordinate>           publicBlocks = Sets.newHashSet();
+    protected HashMap<Coordinate, LandTeam> publicBlocks = Maps.newHashMap();
     public int                              version      = VERSION;
 
     private LandManager()
@@ -343,7 +347,7 @@ public class LandManager
 
     public boolean isPublic(Coordinate c)
     {
-        return publicBlocks.contains(c);
+        return publicBlocks.containsKey(c);
     }
 
     public boolean isTeamLand(Coordinate chunk, String team)
@@ -393,17 +397,19 @@ public class LandManager
         }
     }
 
-    public void setPublic(Coordinate c)
+    public void setPublic(Coordinate c, LandTeam owner)
     {
-        publicBlocks.add(c);
+        publicBlocks.put(c, owner);
+        owner.anyUse.add(c);
         LandSaveHandler.saveGlobalData();
     }
 
     public void unsetPublic(Coordinate c)
     {
-        if (!publicBlocks.contains(c)) return;
-        publicBlocks.remove(c);
-        LandSaveHandler.saveGlobalData();
+        if (!publicBlocks.containsKey(c)) return;
+        LandTeam team;
+        (team = publicBlocks.remove(c)).anyUse.remove(c);
+        LandSaveHandler.saveTeam(team.teamName);
     }
 
 }

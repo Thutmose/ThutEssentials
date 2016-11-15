@@ -23,7 +23,8 @@ public class LandSaveHandler
         public boolean shouldSkipField(FieldAttributes f)
         {
             String name = f.getName();
-            return name.equals("landMap") || name.equals("teamMap") || name.equals("playerTeams");
+            return name.equals("landMap") || name.equals("teamMap") || name.equals("playerTeams")
+                    || name.equals("publicBlocks");
         }
 
         @Override
