@@ -4,10 +4,12 @@ import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.CommandEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -53,7 +55,17 @@ public class ThutEssentials
     @EventHandler
     public void serverLoad(FMLServerStartingEvent event)
     {
-        CommandHandler ch = (CommandHandler) event.getServer().getCommandManager();
+        manager = new CommandManager(event);
+        MinecraftForge.EVENT_BUS.register(this);
+        LandSaveHandler.loadGlobalData();
+        EconomySaveHandler.loadGlobalData();
+    }
+
+    @EventHandler
+    public void serverStarted(FMLServerStartedEvent evt)
+    {
+        CommandHandler ch = (CommandHandler) FMLCommonHandler.instance().getMinecraftServerInstance()
+                .getCommandManager();
         for (String s : ConfigManager.INSTANCE.alternateCommands)
         {
             String[] args = s.split(":");
@@ -68,10 +80,6 @@ public class ThutEssentials
                 ch.getCommands().put(args[i], command);
             }
         }
-        manager = new CommandManager(event);
-        MinecraftForge.EVENT_BUS.register(this);
-        LandSaveHandler.loadGlobalData();
-        EconomySaveHandler.loadGlobalData();
     }
 
     @EventHandler
