@@ -26,19 +26,17 @@ import thut.essentials.util.DefaultPermissions;
 import thut.essentials.util.IPermissionHandler;
 import thut.essentials.util.PlayerDataHandler;
 
-@Mod(modid = ThutEssentials.MODID, name = "Thut Essentials", version = ThutEssentials.VERSION, dependencies = "", updateJSON = ThutEssentials.UPDATEURL, acceptableRemoteVersions = "*", acceptedMinecraftVersions = ThutEssentials.MCVERSIONS)
+@Mod(modid = ThutEssentials.MODID, name = "Thut Essentials", version = ThutEssentials.VERSION, dependencies = "", updateJSON = ThutEssentials.UPDATEURL, acceptableRemoteVersions = "*")
 public class ThutEssentials
 {
-    public static final String       MODID      = "thutessentials";
-    public static final String       VERSION    = "1.3.1";
-    public static final String       UPDATEURL  = "";
-
-    public final static String       MCVERSIONS = "[1.9.4]";
+    public static final String       MODID     = Reference.MODID;
+    public static final String       VERSION   = Reference.VERSION;
+    public static final String       UPDATEURL = "";
 
     @Instance(MODID)
     public static ThutEssentials     instance;
 
-    public static IPermissionHandler perms      = new DefaultPermissions();
+    public static IPermissionHandler perms     = new DefaultPermissions();
 
     public ConfigManager             config;
     private CommandManager           manager;
