@@ -61,7 +61,7 @@ public class CompatWrapper
     }
 
     public static void sendChatMessage(ICommandSender to, ITextComponent message)
-    {
+    {//
         to.addChatMessage(message);
     }
 
@@ -155,5 +155,4 @@ public class CompatWrapper
     {
         return new EntityEggInfo(new ResourceLocation(name), colour1, colour2);
     }
-
 }
