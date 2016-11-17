@@ -7,7 +7,6 @@ import com.google.common.collect.Sets;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.PlayerNotFoundException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
@@ -46,7 +45,7 @@ public class Spy extends BaseCommand
                 target = getPlayer(event.getSender().getServer(), event.getSender(), event.getParameters()[0]);
                 sayer = getCommandSenderAsPlayer(event.getSender());
             }
-            catch (PlayerNotFoundException e)
+            catch (CommandException e)
             {
                 return;
             }

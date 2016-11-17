@@ -9,7 +9,6 @@ import javax.vecmath.Vector3f;
 import com.google.common.collect.Lists;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityTracker;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -269,7 +268,7 @@ public class Transporter
             teleporter.placeInExistingPortal(entityIn, f);
             worldserver.updateEntityWithOptionalForce(entityIn, false);
             entityIn.worldObj.theProfiler.endStartSection("reloading");
-            Entity entity = EntityList.createEntityByName(EntityList.getEntityString(entityIn), worldserver1);
+            Entity entity = CompatWrapper.createEntity(worldserver1, entityIn);
             if (entity != null)
             {
 

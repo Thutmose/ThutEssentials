@@ -36,6 +36,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import thut.essentials.events.DenyItemUseEvent;
 import thut.essentials.events.DenyItemUseEvent.UseType;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.CompatWrapper;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.Coordinate;
 
@@ -344,9 +345,9 @@ public class LandEventsHandler
             shouldPass = MinecraftForge.EVENT_BUS
                     .post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(), UseType.RIGHTCLICKBLOCK));
 
-            if (shouldPass) b = block.onBlockActivated(evt.getWorld(), evt.getPos(), state, evt.getEntityPlayer(),
-                    evt.getHand(), null, evt.getFace(), (float) evt.getHitVec().xCoord, (float) evt.getHitVec().yCoord,
-                    (float) evt.getHitVec().zCoord);
+            if (shouldPass) b = CompatWrapper.interactWithBlock(block, evt.getWorld(), evt.getPos(), state,
+                    evt.getEntityPlayer(), evt.getHand(), null, evt.getFace(), (float) evt.getHitVec().xCoord,
+                    (float) evt.getHitVec().yCoord, (float) evt.getHitVec().zCoord);
         }
         if (!b && shouldPass) return;
         Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);

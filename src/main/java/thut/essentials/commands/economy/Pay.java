@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.util.BaseCommand;
+import thut.essentials.util.CompatWrapper;
 
 public class Pay extends BaseCommand
 {
@@ -40,12 +41,13 @@ public class Pay extends BaseCommand
         if (toSend <= senderBalance)
         {
             EconomyManager.addBalance(payee, toSend);
-            payee.addChatComponentMessage(
+            CompatWrapper.sendChatMessage(payee,
                     new TextComponentString("You recieved " + toSend + " from " + sender.getName()));
             if (payer != null)
             {
                 EconomyManager.addBalance(payer, -toSend);
-                payee.addChatComponentMessage(new TextComponentString("You sent " + toSend + " to " + payee.getName()));
+                CompatWrapper.sendChatMessage(payer,
+                        new TextComponentString("You sent " + toSend + " to " + payee.getName()));
             }
         }
         else

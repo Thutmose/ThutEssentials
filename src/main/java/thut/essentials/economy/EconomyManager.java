@@ -29,6 +29,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import thut.essentials.ThutEssentials;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.util.CompatWrapper;
 import thut.essentials.util.Coordinate;
 
 public class EconomyManager
@@ -105,7 +106,7 @@ public class EconomyManager
                     return false;
                 }
                 stack = stack.copy();
-                stack.stackSize = number;
+                CompatWrapper.setStackSize(stack, number);
                 if (!infinite)
                 {
                     int count = 0;
@@ -126,8 +127,9 @@ public class EconomyManager
                                 {
                                     ItemStack test = item.copy();
                                     if (ignoreTag) test.setTagCompound(new NBTTagCompound());
-                                    test.stackSize = number;
-                                    if (ItemStack.areItemStacksEqual(test, test2)) count += item.stackSize;
+                                    CompatWrapper.setStackSize(test, number);
+                                    if (ItemStack.areItemStacksEqual(test, stack))
+                                        count += CompatWrapper.getStackSize(item);
                                 }
                             }
                         }
@@ -150,17 +152,16 @@ public class EconomyManager
                                 && (metadataIn <= -1 || itemstack.getMetadata() == metadataIn)
                                 && (itemNBT == null || NBTUtil.areNBTEquals(itemNBT, itemstack.getTagCompound(), true)))
                         {
-                            int k = removeCount <= 0 ? itemstack.stackSize
-                                    : Math.min(removeCount - i, itemstack.stackSize);
+                            int k = removeCount <= 0 ? CompatWrapper.getStackSize(itemstack)
+                                    : Math.min(removeCount - i, CompatWrapper.getStackSize(itemstack));
                             i += k;
 
                             if (removeCount != 0)
                             {
-                                itemstack.stackSize -= k;
-
-                                if (itemstack.stackSize == 0)
+                                CompatWrapper.increment(itemstack, -k);
+                                if (!CompatWrapper.isValid(itemstack))
                                 {
-                                    inv.setInventorySlotContents(j, (ItemStack) null);
+                                    inv.setInventorySlotContents(j, CompatWrapper.nullStack);
                                 }
                                 if (removeCount > 0 && i >= removeCount)
                                 {
@@ -187,7 +188,7 @@ public class EconomyManager
                 int count = 0;
                 if (recycle)
                 {
-                    count = heldStack.stackSize;
+                    count = CompatWrapper.getStackSize(heldStack);
                     if (count < number)
                     {
                         player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
@@ -198,14 +199,14 @@ public class EconomyManager
                 else
                 {
                     stack = stack.copy();
-                    stack.stackSize = number;
+                    CompatWrapper.setStackSize(stack, number);
                     for (ItemStack item : player.inventory.mainInventory)
                     {
                         if (item != null)
                         {
                             ItemStack test = item.copy();
-                            test.stackSize = number;
-                            if (ItemStack.areItemStacksEqual(test, stack)) count += item.stackSize;
+                            CompatWrapper.setStackSize(test, number);
+                            if (ItemStack.areItemStacksEqual(test, stack)) count += CompatWrapper.getStackSize(item);
                         }
                     }
                     if (count < number)
@@ -227,18 +228,21 @@ public class EconomyManager
                         IInventory inv = (IInventory) te;
                         count = 0;
                         ItemStack a = stack;
-                        count = a.stackSize;
+                        count = CompatWrapper.getStackSize(a);
                         for (int i = 0; i < inv.getSizeInventory(); i++)
                         {
-                            if (inv.getStackInSlot(i) == null || a.isItemEqual(inv.getStackInSlot(i)))
+                            if (!CompatWrapper.isValid(inv.getStackInSlot(i)) || a.isItemEqual(inv.getStackInSlot(i)))
                             {
-                                if (inv.getStackInSlot(i) != null && inv.getStackInSlot(i).stackSize + a.stackSize < 65)
+                                int n = 0;
+                                if (CompatWrapper.isValid(inv.getStackInSlot(i))
+                                        && (n = CompatWrapper.getStackSize(inv.getStackInSlot(i))
+                                                + CompatWrapper.getStackSize(a)) < 65)
                                 {
-                                    a.stackSize = inv.getStackInSlot(i).stackSize + a.stackSize;
+                                    CompatWrapper.setStackSize(a, n);
                                     count = 0;
                                     inv.setInventorySlotContents(i, a.copy());
                                 }
-                                else if (inv.getStackInSlot(i) == null)
+                                else if (!CompatWrapper.isValid(inv.getStackInSlot(i)))
                                 {
                                     count = 0;
                                     inv.setInventorySlotContents(i, a.copy());
