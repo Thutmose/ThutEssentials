@@ -91,7 +91,7 @@ public class LandEventsHandler
     public void PlayerLoggin(PlayerLoggedInEvent evt)
     {
         EntityPlayer entityPlayer = evt.player;
-        lastLeaveMessage.put(entityPlayer.getUniqueID(), System.currentTimeMillis() + 5);
+        lastLeaveMessage.put(entityPlayer.getUniqueID(), System.currentTimeMillis() + 100);
         LandManager.getTeam(entityPlayer);
     }
 

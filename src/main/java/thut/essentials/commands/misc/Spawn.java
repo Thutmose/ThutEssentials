@@ -23,7 +23,7 @@ public class Spawn extends BaseCommand
 {
     public static class PlayerMover
     {
-        private static Vector3 offset = new Vector3(0.5, 0.5, 0.5);
+        private static Vector3 offset = new Vector3(0.25, 0.5, 0.25);
 
         public static void setMove(final EntityPlayer player, final int dimension, final BlockPos moveTo,
                 final ITextComponent message)
