@@ -23,6 +23,8 @@ public class Spawn extends BaseCommand
 {
     public static class PlayerMover
     {
+        private static Vector3 offset = new Vector3(0.25, 0.5, 0.25);
+
         public static void setMove(final EntityPlayer player, final int dimension, final BlockPos moveTo,
                 final ITextComponent message)
         {
@@ -32,7 +34,9 @@ public class Spawn extends BaseCommand
                 public void run()
                 {
                     MinecraftForge.EVENT_BUS.post(new MoveEvent(player));
-                    Entity player1 = Transporter.teleportEntity(player, new Vector3(moveTo), dimension);
+                    Vector3 dest = new Vector3(moveTo);
+                    dest.add(offset);
+                    Entity player1 = Transporter.teleportEntity(player, dest, dimension);
                     if (message != null) player1.addChatMessage(message);
                 }
             });

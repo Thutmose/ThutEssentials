@@ -30,6 +30,8 @@ public class DefaultPermissions implements IPermissionHandler
     @Override
     public boolean hasPermission(EntityPlayer player, String permission)
     {
+        if (!perms.containsKey(permission))
+            return player.getServer().getPlayerList().canSendCommands(player.getGameProfile());
         int perm = perms.get(permission);
         if (perm <= 0) return true;
         return player.getServer().getPlayerList().canSendCommands(player.getGameProfile());
