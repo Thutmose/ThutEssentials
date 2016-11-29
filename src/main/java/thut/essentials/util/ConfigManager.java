@@ -8,85 +8,88 @@ import thut.essentials.land.LandEventsHandler;
 
 public class ConfigManager extends ConfigBase
 {
-    private static final String SPAWN              = "spawn";
-    private static final String RULES              = "rules";
-    private static final String WARPS              = "warps";
-    private static final String STAFF              = "staff";
-    private static final String NAMES              = "names";
-    private static final String LAND               = "land";
-    private static final String ITEM               = "itemcontrol";
-    private static final String MISC               = "misc";
-    private static final String ECON               = "economy";
+    private static final String SPAWN                   = "spawn";
+    private static final String RULES                   = "rules";
+    private static final String WARPS                   = "warps";
+    private static final String STAFF                   = "staff";
+    private static final String NAMES                   = "names";
+    private static final String LAND                    = "land";
+    private static final String ITEM                    = "itemcontrol";
+    private static final String MISC                    = "misc";
+    private static final String ECON                    = "economy";
 
     public static ConfigManager INSTANCE;
 
     @Configure(category = SPAWN)
-    public int                  spawnDimension     = 0;
+    public int                  spawnDimension          = 0;
     @Configure(category = SPAWN)
-    public boolean              spawnDefuzz        = true;
+    public boolean              spawnDefuzz             = true;
 
     @Configure(category = RULES)
-    public String[]             rules              = {};
+    public String[]             rules                   = {};
     @Configure(category = RULES)
-    public String               ruleHeader         = "List of Rules:";
+    public String               ruleHeader              = "List of Rules:";
 
     @Configure(category = WARPS)
-    public String[]             warps              = {};
+    public String[]             warps                   = {};
     @Configure(category = WARPS)
-    public int                  backDelay          = 10;
+    public int                  backDelay               = 10;
     @Configure(category = WARPS)
-    public int                  warpDelay          = 10;
+    public int                  warpDelay               = 10;
     @Configure(category = WARPS)
-    public int                  spawnDelay         = 10;
+    public int                  spawnDelay              = 10;
     @Configure(category = WARPS)
-    public int                  homeDelay          = 10;
+    public int                  homeDelay               = 10;
 
     @Configure(category = STAFF)
-    public String[]             staff              = {};
+    public String[]             staff                   = {};
 
     @Configure(category = ITEM)
-    public String[]             itemBlacklist      = {};
+    public String[]             itemBlacklist           = {};
     @Configure(category = ITEM)
-    public boolean              itemControlEnabled = false;
+    public boolean              itemControlEnabled      = false;
     @Configure(category = ITEM)
-    public double               blacklistDamage    = 5;
+    public double               blacklistDamage         = 5;
 
     @Configure(category = MISC)
-    public double               speedCap           = 10;
+    public double               speedCap                = 10;
 
     @Configure(category = MISC)
-    public int                  maxHomes           = 2;
+    public int                  maxHomes                = 2;
     @Configure(category = MISC)
-    public int                  rtpdistance        = 1000;
+    public int                  rtpdistance             = 1000;
 
     @Configure(category = MISC)
-    public String[]             disabledCommands   = {};
+    public String[]             disabledCommands        = {};
 
     @Configure(category = MISC)
-    public String[]             alternateCommands  = { "gamemode:gm" };
+    public String[]             alternateCommands       = { "gamemode:gm" };
+
+    @Configure(category = MISC)
+    public String[]             commandPermissionLevels = { "heal:2" };
 
     @Configure(category = ECON)
-    public String[]             economyPermLvls    = { "make_shop:-1", "make_infinite_shop:4" };
+    public String[]             economyPermLvls         = { "make_shop:-1", "make_infinite_shop:4" };
 
     @Configure(category = NAMES)
-    public boolean              name               = true;
+    public boolean              name                    = true;
     @Configure(category = NAMES)
-    public boolean              suffix             = true;
+    public boolean              suffix                  = true;
     @Configure(category = NAMES)
-    public boolean              prefix             = true;
+    public boolean              prefix                  = true;
 
     @Configure(category = LAND)
-    public boolean              landEnabled        = false;
+    public boolean              landEnabled             = false;
     @Configure(category = LAND)
-    public boolean              denyExplosions     = false;
+    public boolean              denyExplosions          = false;
     @Configure(category = LAND)
-    public int                  teamLandPerPlayer  = 125;
+    public int                  teamLandPerPlayer       = 125;
     @Configure(category = LAND)
-    public int                  playerLand         = 1;
+    public int                  playerLand              = 1;
     @Configure(category = LAND)
-    public String               defaultTeamName    = "Plebs";
+    public String               defaultTeamName         = "Plebs";
     @Configure(category = LAND)
-    public String[]             protectedEntities  = { "net.minecraft.entity.EntityHanging",
+    public String[]             protectedEntities       = { "net.minecraft.entity.EntityHanging",
             "net.minecraft.entity.item.EntityArmorStand", "net.minecraft.entity.item.EntityMinecart" };
 
     public ConfigManager()
@@ -111,6 +114,21 @@ public class ConfigManager extends ConfigBase
         ItemControl.init();
         LandEventsHandler.init();
         DefaultPermissions.init();
+        BaseCommand.permsMap.clear();
+        for (String s : commandPermissionLevels)
+        {
+            try
+            {
+                String[] args = s.split(":");
+                String key = args[0];
+                int value = Integer.parseInt(args[1]);
+                BaseCommand.permsMap.put(key, value);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
