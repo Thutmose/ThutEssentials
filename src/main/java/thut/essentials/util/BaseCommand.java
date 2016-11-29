@@ -3,10 +3,12 @@ package thut.essentials.util;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -20,18 +22,28 @@ import thut.essentials.commands.CommandManager;
 
 public abstract class BaseCommand extends CommandBase
 {
-    final String key;
-    final int    perm;
+    static final Map<String, Integer> permsMap = Maps.newHashMap();
+
+    final String                      key;
+    final int                         perm;
 
     public BaseCommand(String key, int perms, String... aliases)
     {
         this.key = key;
-        perm = perms;
         List<String> alii = CommandManager.commands.get(key);
         if (alii == null) CommandManager.commands.put(key, alii = Lists.newArrayList(key));
         for (String s : aliases)
             alii.add(s);
         if (!alii.contains(key.toLowerCase(Locale.ENGLISH))) alii.add(key.toLowerCase(Locale.ENGLISH));
+        perm = getPermissionLevel(perms);
+    }
+
+    private int getPermissionLevel(int deault_)
+    {
+        if (permsMap.containsKey(key)) return permsMap.get(key);
+        for (String s : getCommandAliases())
+            return permsMap.get(s);
+        return deault_;
     }
 
     @Override
