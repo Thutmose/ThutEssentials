@@ -23,7 +23,6 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
-import thut.lib.CompatWrapper;
 
 public class KitManager
 {
