@@ -130,7 +130,6 @@ public class LandEventsHandler
                         }
                     }
                     long last = lastEnterMessage.get(evt.getEntity().getUniqueID());
-                    System.out.println("last1 " + last);
                     if (last < System.currentTimeMillis())
                     {
                         evt.getEntity().addChatMessage(getEnterMessage(team));

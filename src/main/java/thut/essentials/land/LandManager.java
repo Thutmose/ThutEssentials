@@ -390,9 +390,9 @@ public class LandManager
     public void removeTeamLand(String team, Coordinate land)
     {
         LandTeam t = teamMap.get(team);
+        landMap.remove(land);
         if (t != null && t.land.removeLand(land))
         {
-            landMap.remove(land);
             LandSaveHandler.saveTeam(team);
         }
     }
