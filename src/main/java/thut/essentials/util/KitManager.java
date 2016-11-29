@@ -43,7 +43,7 @@ public class KitManager
         public String             tag;
     }
 
-    static List<ItemStack> kit = Lists.newArrayList();
+    public static List<ItemStack> kit = Lists.newArrayList();
 
     public static void init()
     {

@@ -50,6 +50,8 @@ public class ConfigManager extends ConfigBase
     public boolean              itemControlEnabled      = false;
     @Configure(category = ITEM)
     public double               blacklistDamage         = 5;
+    @Configure(category = ITEM)
+    public int                  kitReuseDelay           = -1;
 
     @Configure(category = MISC)
     public double               speedCap                = 10;
