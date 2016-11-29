@@ -42,7 +42,7 @@ public abstract class BaseCommand extends CommandBase
     {
         if (permsMap.containsKey(key)) return permsMap.get(key);
         for (String s : getCommandAliases())
-            return permsMap.get(s);
+            if (permsMap.containsKey(s)) return permsMap.get(s);
         return deault_;
     }
 
