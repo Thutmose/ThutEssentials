@@ -68,6 +68,9 @@ public class ConfigManager extends ConfigBase
     @Configure(category = MISC)
     public String[]             commandPermissionLevels = { "heal:2" };
 
+    @Configure(category = MISC)
+    public String               motd                    = "";
+
     @Configure(category = ECON)
     public String[]             economyPermLvls         = { "make_shop:-1", "make_infinite_shop:4" };
 
