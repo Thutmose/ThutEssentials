@@ -91,7 +91,6 @@ public class LandEventsHandler
     public void PlayerLoggin(PlayerLoggedInEvent evt)
     {
         EntityPlayer entityPlayer = evt.player;
-        lastLeaveMessage.put(entityPlayer.getUniqueID(), System.currentTimeMillis() + 100);
         LandManager.getTeam(entityPlayer);
     }
 
@@ -99,7 +98,8 @@ public class LandEventsHandler
     public void EntityUpdate(LivingUpdateEvent evt)
     {
         if (evt.getEntityLiving() instanceof EntityPlayer
-                && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER)
+                && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER
+                && evt.getEntityLiving().ticksExisted > 10)
         {
             EntityPlayer player = (EntityPlayer) evt.getEntityLiving();
             BlockPos here;
@@ -130,6 +130,7 @@ public class LandEventsHandler
                         }
                     }
                     long last = lastEnterMessage.get(evt.getEntity().getUniqueID());
+                    System.out.println("last1 " + last);
                     if (last < System.currentTimeMillis())
                     {
                         evt.getEntity().addChatMessage(getEnterMessage(team));
