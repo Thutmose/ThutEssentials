@@ -15,6 +15,7 @@ import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.economy.EconomySaveHandler;
 import thut.essentials.itemcontrol.ItemControl;
@@ -47,6 +48,7 @@ public class ThutEssentials
         config = new ConfigManager(e.getSuggestedConfigurationFile());
         LandEventsHandler teams = new LandEventsHandler();
         MinecraftForge.EVENT_BUS.register(teams);
+        if (config.spawnDefuzz) MinecraftForge.EVENT_BUS.register(new SpawnDefuzzer());
         new ItemControl();
     }
 
