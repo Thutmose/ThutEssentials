@@ -23,6 +23,8 @@ public class TpAccept extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
+        if (args.length == 0)
+            throw new CommandException("CLICK THE LINK TO ACCEPT, DO NOT SEND THIS COMMAND DIRECTLY!");
         String id = args[1];
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
