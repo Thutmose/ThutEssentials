@@ -17,7 +17,9 @@ import thut.essentials.commands.misc.Spawn.PlayerMover;
 
 public class SpawnDefuzzer
 {
-    final static Set<UUID> logins = Sets.newHashSet();
+    public static int      DEFUZZSENS = 10000;
+
+    final static Set<UUID> logins     = Sets.newHashSet();
 
     @SubscribeEvent
     public void deFuzzRespawn(PlayerRespawnEvent event)
@@ -28,7 +30,6 @@ public class SpawnDefuzzer
         if (playerSpawn == null)
         {
             PlayerMover.setMove(event.player, event.player.getEntityWorld().provider.getDimension(), worldSpawn, null);
-            System.out.println("mover");
         }
     }
 
@@ -43,10 +44,9 @@ public class SpawnDefuzzer
                     + player.getStatFile().readStat(StatList.FALL_ONE_CM)
                     + player.getStatFile().readStat(StatList.SWIM_ONE_CM);
             logins.remove(evt.getEntity().getUniqueID());
-            System.out.println(num);
-            if (num > 0) return;
             BlockPos worldSpawn = player.getEntityWorld().getSpawnPoint();
             BlockPos playerSpawn = player.getBedLocation();
+            if (num > DEFUZZSENS) return;
             if (playerSpawn == null)
             {
                 PlayerMover.setMove(player, player.getEntityWorld().provider.getDimension(), worldSpawn, null);
