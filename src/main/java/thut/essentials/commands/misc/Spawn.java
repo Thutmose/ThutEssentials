@@ -79,7 +79,7 @@ public class Spawn extends BaseCommand
                     if (!toMove.containsKey(player.getUniqueID()))
                     {
                         player.addChatMessage(new TextComponentString(
-                                TextFormatting.GREEN + "Initialting Teleport, please remain still."));
+                                TextFormatting.GREEN + "Initiating Teleport, please remain still."));
                         toMove.put(player.getUniqueID(),
                                 new Mover(player, moveTime + player.getEntityWorld().getTotalWorldTime(), dimension,
                                         moveTo, message, failMess));
@@ -90,6 +90,11 @@ public class Spawn extends BaseCommand
 
         static Map<UUID, Mover> toMove = Maps.newHashMap();
 
+        static
+        {
+            MinecraftForge.EVENT_BUS.register(new PlayerMover());
+        }
+
         @SubscribeEvent
         public void playerTick(LivingUpdateEvent tick)
         {
@@ -99,7 +104,7 @@ public class Spawn extends BaseCommand
                 Vector3 loc = new Vector3(mover.player.posX, mover.player.posY, mover.player.posZ);
                 Vector3 diff = new Vector3(mover.start.x, mover.start.y, mover.start.z);
                 diff.sub(loc);
-                if (diff.lengthSquared() > 0.2)
+                if (diff.lengthSquared() > 0.0)
                 {
                     if (mover.failMess != null)
                     {
