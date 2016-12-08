@@ -8,7 +8,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
+import thut.essentials.ThutEssentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.commands.misc.Spawn;
 import thut.essentials.commands.misc.Spawn.PlayerMover;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
@@ -53,8 +55,9 @@ public class Warp extends BaseCommand
         {
             ITextComponent teleMess = CommandManager.makeFormattedComponent("Warped to " + warpName,
                     TextFormatting.GREEN);
-            PlayerMover.setMove(player, warp[3], new BlockPos(warp[0], warp[1], warp[2]), teleMess);
-            tptag.setLong("warpDelay", time + ConfigManager.INSTANCE.warpDelay);
+            PlayerMover.setMove(player, ThutEssentials.instance.config.warpActivateDelay, warp[3],
+                    new BlockPos(warp[0], warp[1], warp[2]), teleMess, Spawn.INTERUPTED);
+            tptag.setLong("warpDelay", time + ConfigManager.INSTANCE.warpReUseDelay);
             tag.setTag("tp", tptag);
             PlayerDataHandler.saveCustomData(player);
         }

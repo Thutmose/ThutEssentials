@@ -8,7 +8,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextFormatting;
+import thut.essentials.ThutEssentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.commands.misc.Spawn;
 import thut.essentials.commands.misc.Spawn.PlayerMover;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.PlayerDataHandler;
@@ -23,6 +25,8 @@ public class TpAccept extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
+        if (args.length == 0)
+            throw new CommandException("CLICK THE LINK TO ACCEPT, DO NOT SEND THIS COMMAND DIRECTLY!");
         String id = args[1];
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
@@ -37,7 +41,8 @@ public class TpAccept extends BaseCommand
         {
             target.addChatMessage(
                     CommandManager.makeFormattedComponent("Your TPA request was accepted", TextFormatting.GREEN, true));
-            PlayerMover.setMove(target, player.dimension, player.getPosition(), null);
+            PlayerMover.setMove(target, ThutEssentials.instance.config.tpaActivateDelay, player.dimension,
+                    player.getPosition(), null, Spawn.INTERUPTED);
         }
         else if (args[0].equals("deny"))
         {

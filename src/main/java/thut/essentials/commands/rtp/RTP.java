@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.ThutEssentials;
+import thut.essentials.commands.misc.Spawn;
 import thut.essentials.commands.misc.Spawn.PlayerMover;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
@@ -50,7 +51,8 @@ public class RTP extends BaseCommand
         int n = 100;
         while ((position = checkSpot(player)) == null && n-- > 0)
             ;
-        if (position != null) PlayerMover.setMove(player, player.dimension, position, null);
+        if (position != null) PlayerMover.setMove(player, ThutEssentials.instance.config.rtpActivateDelay,
+                player.dimension, position, null, Spawn.INTERUPTED);
         else sender.addChatMessage(new TextComponentString("No spot found."));
     }
 

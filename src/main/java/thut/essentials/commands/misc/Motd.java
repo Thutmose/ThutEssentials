@@ -29,7 +29,6 @@ public class Motd extends BaseCommand
         {
             motd = entityPlayer.getServer().getMOTD();
         }
-        System.out.println("test");
         entityPlayer.addChatMessage(new TextComponentString(motd));
     }
 
