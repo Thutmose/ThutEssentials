@@ -1,5 +1,10 @@
 package thut.essentials.commands.misc;
 
+import java.util.Map;
+import java.util.UUID;
+
+import com.google.common.collect.Maps;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -8,8 +13,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import thut.essentials.ThutEssentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.MoveEvent;
@@ -21,26 +29,93 @@ import thut.essentials.util.Transporter.Vector3;
 
 public class Spawn extends BaseCommand
 {
+    public static final ITextComponent INTERUPTED = new TextComponentString(
+            TextFormatting.RED + "" + TextFormatting.ITALIC + "You must remain still to do that");
+
     public static class PlayerMover
     {
         private static Vector3 offset = new Vector3(0.25, 0.5, 0.25);
 
-        public static void setMove(final EntityPlayer player, final int dimension, final BlockPos moveTo,
-                final ITextComponent message)
+        private static class Mover
+        {
+            final long           moveTime;
+            final EntityPlayer   player;
+            final int            dimension;
+            final BlockPos       moveTo;
+            final Vector3        start;
+            final ITextComponent message;
+            final ITextComponent failMess;
+
+            public Mover(EntityPlayer player, long moveTime, int dimension, BlockPos moveTo, ITextComponent message,
+                    ITextComponent failMess)
+            {
+                this.player = player;
+                this.dimension = dimension;
+                this.moveTime = moveTime;
+                this.moveTo = moveTo;
+                this.message = message;
+                this.failMess = failMess;
+                start = new Vector3(player.posX, player.posY, player.posZ);
+            }
+
+            private void move()
+            {
+                MinecraftForge.EVENT_BUS.post(new MoveEvent(player));
+                Vector3 dest = new Vector3(moveTo);
+                dest.add(offset);
+                Entity player1 = Transporter.teleportEntity(player, dest, dimension);
+                if (message != null) player1.addChatMessage(message);
+            }
+        }
+
+        public static void setMove(final EntityPlayer player, final int moveTime, final int dimension,
+                final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess)
         {
             player.getServer().addScheduledTask(new Runnable()
             {
                 @Override
                 public void run()
                 {
-                    MinecraftForge.EVENT_BUS.post(new MoveEvent(player));
-                    Vector3 dest = new Vector3(moveTo);
-                    dest.add(offset);
-                    Entity player1 = Transporter.teleportEntity(player, dest, dimension);
-                    if (message != null) player1.addChatMessage(message);
+                    if (!toMove.containsKey(player.getUniqueID()))
+                    {
+                        player.addChatMessage(new TextComponentString(
+                                TextFormatting.GREEN + "Initialting Teleport, please remain still."));
+                        toMove.put(player.getUniqueID(),
+                                new Mover(player, moveTime + player.getEntityWorld().getTotalWorldTime(), dimension,
+                                        moveTo, message, failMess));
+                    }
                 }
             });
         }
+
+        static Map<UUID, Mover> toMove = Maps.newHashMap();
+
+        @SubscribeEvent
+        public void playerTick(LivingUpdateEvent tick)
+        {
+            if (toMove.containsKey(tick.getEntity().getUniqueID()))
+            {
+                Mover mover = toMove.get(tick.getEntity().getUniqueID());
+                Vector3 loc = new Vector3(mover.player.posX, mover.player.posY, mover.player.posZ);
+                Vector3 diff = new Vector3(mover.start.x, mover.start.y, mover.start.z);
+                diff.sub(loc);
+                if (diff.lengthSquared() > 0.2)
+                {
+                    if (mover.failMess != null)
+                    {
+                        tick.getEntity().addChatMessage(mover.failMess);
+                    }
+                    toMove.remove(tick.getEntity().getUniqueID());
+                    return;
+                }
+                if (tick.getEntity().getEntityWorld().getTotalWorldTime() > mover.moveTime)
+                {
+                    mover.move();
+                    toMove.remove(tick.getEntity().getUniqueID());
+                }
+            }
+        }
+
     }
 
     public Spawn()
@@ -73,8 +148,9 @@ public class Spawn extends BaseCommand
             BlockPos spawn = server.worldServerForDimension(ThutEssentials.instance.config.spawnDimension)
                     .getSpawnPoint();
             ITextComponent teleMess = CommandManager.makeFormattedComponent("Warped to Spawn", TextFormatting.GREEN);
-            PlayerMover.setMove(player, ThutEssentials.instance.config.spawnDimension, spawn, teleMess);
-            tptag.setLong("spawnDelay", time + ConfigManager.INSTANCE.spawnDelay);
+            PlayerMover.setMove(player, ThutEssentials.instance.config.spawnActivateDelay,
+                    ThutEssentials.instance.config.spawnDimension, spawn, teleMess, Spawn.INTERUPTED);
+            tptag.setLong("spawnDelay", time + ConfigManager.INSTANCE.spawnReUseDelay);
             tag.setTag("tp", tptag);
             PlayerDataHandler.saveCustomData(player);
         }
@@ -85,8 +161,9 @@ public class Spawn extends BaseCommand
             {
                 ITextComponent teleMess = CommandManager.makeFormattedComponent("Warped to Bed location",
                         TextFormatting.GREEN);
-                PlayerMover.setMove(player, player.dimension, spawn, teleMess);
-                tptag.setLong("spawnDelay", time + ConfigManager.INSTANCE.spawnDelay);
+                PlayerMover.setMove(player, ThutEssentials.instance.config.spawnActivateDelay, player.dimension, spawn,
+                        teleMess, Spawn.INTERUPTED);
+                tptag.setLong("spawnDelay", time + ConfigManager.INSTANCE.spawnReUseDelay);
                 tag.setTag("tp", tptag);
             }
             else

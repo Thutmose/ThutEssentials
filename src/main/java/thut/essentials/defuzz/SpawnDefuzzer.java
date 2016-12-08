@@ -29,7 +29,8 @@ public class SpawnDefuzzer
         BlockPos playerSpawn = event.player.getBedLocation();
         if (playerSpawn == null)
         {
-            PlayerMover.setMove(event.player, event.player.getEntityWorld().provider.getDimension(), worldSpawn, null);
+            PlayerMover.setMove(event.player, 0, event.player.getEntityWorld().provider.getDimension(), worldSpawn,
+                    null, null);
         }
     }
 
@@ -49,7 +50,7 @@ public class SpawnDefuzzer
             if (num > DEFUZZSENS) return;
             if (playerSpawn == null)
             {
-                PlayerMover.setMove(player, player.getEntityWorld().provider.getDimension(), worldSpawn, null);
+                PlayerMover.setMove(player, 0, player.getEntityWorld().provider.getDimension(), worldSpawn, null, null);
             }
         }
     }

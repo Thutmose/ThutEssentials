@@ -66,7 +66,7 @@ public class Back extends BaseCommand
             int[] pos = PlayerDataHandler.getCustomDataTag(player).getIntArray("prevPos");
             Transporter.teleportEntity(player, new Vector3(pos[0], pos[1], pos[2]), pos[3]);
             PlayerDataHandler.getCustomDataTag(player).removeTag("prevPos");
-            tptag.setLong("backDelay", time + ConfigManager.INSTANCE.backDelay);
+            tptag.setLong("backDelay", time + ConfigManager.INSTANCE.backReUseDelay);
             tag.setTag("tp", tptag);
             PlayerDataHandler.saveCustomData(player);
         }
