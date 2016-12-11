@@ -108,6 +108,8 @@ public class ConfigManager extends ConfigBase
     @Configure(category = LAND)
     public String[]             protectedEntities       = { "net.minecraft.entity.EntityHanging",
             "net.minecraft.entity.item.EntityArmorStand", "net.minecraft.entity.item.EntityMinecart" };
+    @Configure(category = LAND)
+    public boolean              logTeamChat             = false;
 
     public ConfigManager()
     {

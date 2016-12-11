@@ -45,9 +45,10 @@ public class Spawn extends BaseCommand
             final Vector3        start;
             final ITextComponent message;
             final ITextComponent failMess;
+            final boolean        event;
 
             public Mover(EntityPlayer player, long moveTime, int dimension, BlockPos moveTo, ITextComponent message,
-                    ITextComponent failMess)
+                    ITextComponent failMess, boolean event)
             {
                 this.player = player;
                 this.dimension = dimension;
@@ -55,12 +56,13 @@ public class Spawn extends BaseCommand
                 this.moveTo = moveTo;
                 this.message = message;
                 this.failMess = failMess;
+                this.event = event;
                 start = new Vector3(player.posX, player.posY, player.posZ);
             }
 
             private void move()
             {
-                MinecraftForge.EVENT_BUS.post(new MoveEvent(player));
+                if (event) MinecraftForge.EVENT_BUS.post(new MoveEvent(player));
                 Vector3 dest = new Vector3(moveTo);
                 dest.add(offset);
                 Entity player1 = Transporter.teleportEntity(player, dest, dimension);
@@ -71,6 +73,12 @@ public class Spawn extends BaseCommand
         public static void setMove(final EntityPlayer player, final int moveTime, final int dimension,
                 final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess)
         {
+            setMove(player, moveTime, dimension, moveTo, message, failMess, true);
+        }
+
+        public static void setMove(final EntityPlayer player, final int moveTime, final int dimension,
+                final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess, final boolean event)
+        {
             player.getServer().addScheduledTask(new Runnable()
             {
                 @Override
@@ -78,11 +86,11 @@ public class Spawn extends BaseCommand
                 {
                     if (!toMove.containsKey(player.getUniqueID()))
                     {
-                        player.addChatMessage(new TextComponentString(
+                        if (moveTime > 0) player.addChatMessage(new TextComponentString(
                                 TextFormatting.GREEN + "Initiating Teleport, please remain still."));
                         toMove.put(player.getUniqueID(),
                                 new Mover(player, moveTime + player.getEntityWorld().getTotalWorldTime(), dimension,
-                                        moveTo, message, failMess));
+                                        moveTo, message, failMess, event));
                     }
                 }
             });

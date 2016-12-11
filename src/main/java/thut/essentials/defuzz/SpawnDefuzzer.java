@@ -30,7 +30,7 @@ public class SpawnDefuzzer
         if (playerSpawn == null)
         {
             PlayerMover.setMove(event.player, 0, event.player.getEntityWorld().provider.getDimension(), worldSpawn,
-                    null, null);
+                    null, null, false);
         }
     }
 
@@ -50,7 +50,8 @@ public class SpawnDefuzzer
             if (num > DEFUZZSENS) return;
             if (playerSpawn == null)
             {
-                PlayerMover.setMove(player, 0, player.getEntityWorld().provider.getDimension(), worldSpawn, null, null);
+                PlayerMover.setMove(player, 0, player.getEntityWorld().provider.getDimension(), worldSpawn, null, null,
+                        false);
             }
         }
     }

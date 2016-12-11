@@ -9,6 +9,8 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import thut.essentials.events.NameEvent;
+import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.PlayerDataHandler;
@@ -78,6 +80,11 @@ public class Nick extends BaseCommand
         {
             if (!nametag.getString("suffix").trim().isEmpty())
                 displayName = displayName + " " + nametag.getString("suffix");
+        }
+        if (ConfigManager.INSTANCE.landEnabled)
+        {
+            LandTeam team = LandManager.getTeam(event.getEntity());
+            if (!team.prefix.isEmpty()) displayName = team.prefix + " " + displayName;
         }
         NameEvent event1 = new NameEvent(event.getEntityPlayer(), displayName);
         MinecraftForge.EVENT_BUS.post(event1);

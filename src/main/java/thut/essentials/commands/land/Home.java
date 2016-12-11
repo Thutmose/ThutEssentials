@@ -1,4 +1,4 @@
-package thut.essentials.commands.homes;
+package thut.essentials.commands.land;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -12,30 +12,30 @@ import thut.essentials.ThutEssentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.commands.misc.Spawn;
 import thut.essentials.commands.misc.Spawn.PlayerMover;
+import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
-import thut.essentials.util.HomeManager;
 import thut.essentials.util.PlayerDataHandler;
 
 public class Home extends BaseCommand
 {
+
     public Home()
     {
-        super("home", 0);
-    }
-
-    @Override
-    public String getCommandUsage(ICommandSender sender)
-    {
-        return "/" + getCommandName() + " <optional|homeName>";
+        super("thome", 0);
     }
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
-        String homeName = args.length > 0 ? args[0] : null;
-        int[] home = HomeManager.getHome(player, homeName);
+        LandTeam team = LandManager.getTeam(player);
+
+        if (team.home == null)
+            throw new CommandException("No Home is set for your team, use /editteam home to set one.");
+
+        int[] home = { team.home.x, team.home.y, team.home.z, team.home.dim };
 
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tptag = tag.getCompoundTag("tp");
@@ -48,21 +48,13 @@ public class Home extends BaseCommand
             return;
         }
 
-        if (home != null)
-        {
-            if (homeName == null) homeName = "Home";
-            ITextComponent teleMess = CommandManager.makeFormattedComponent("Warping to " + homeName,
-                    TextFormatting.GREEN);
-            tptag.setLong("homeDelay", time + ConfigManager.INSTANCE.homeReUseDelay);
-            tag.setTag("tp", tptag);
-            PlayerDataHandler.saveCustomData(player);
-            PlayerMover.setMove(player, ThutEssentials.instance.config.homeActivateDelay, home[3],
-                    new BlockPos(home[0], home[1], home[2]), teleMess, Spawn.INTERUPTED);
-        }
-        else
-        {
-            throw new CommandException("You have no Home");
-        }
+        ITextComponent teleMess = CommandManager.makeFormattedComponent("Warping to your Team's Home",
+                TextFormatting.GREEN);
+        tptag.setLong("homeDelay", time + ConfigManager.INSTANCE.homeReUseDelay);
+        tag.setTag("tp", tptag);
+        PlayerDataHandler.saveCustomData(player);
+        PlayerMover.setMove(player, ThutEssentials.instance.config.homeActivateDelay, home[3],
+                new BlockPos(home[0], home[1], home[2]), teleMess, Spawn.INTERUPTED);
     }
 
 }

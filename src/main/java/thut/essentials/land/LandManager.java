@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import net.minecraft.command.CommandException;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import thut.essentials.util.ConfigManager;
@@ -32,13 +33,16 @@ public class LandManager
         Set<UUID>              admin          = Sets.newHashSet();
         public Set<UUID>       member         = Sets.newHashSet();
         public Set<Coordinate> anyUse         = Sets.newHashSet();
+        public Coordinate      home;
         public String          exitMessage    = "";
         public String          enterMessage   = "";
         public String          denyMessage    = "";
+        public String          prefix         = "";
         public boolean         reserved       = false;
         public boolean         players        = false;
         public boolean         noPlayerDamage = false;
         public boolean         noMobSpawn     = false;
+        public boolean         friendlyFire   = true;
         public boolean         noExplosions   = false;
 
         public LandTeam()
@@ -50,12 +54,12 @@ public class LandManager
             teamName = name;
         }
 
-        public boolean isMember(EntityPlayer player)
+        public boolean isMember(Entity player)
         {
             return member.contains(player.getUniqueID());
         }
 
-        public boolean isAdmin(EntityPlayer player)
+        public boolean isAdmin(Entity player)
         {
             return admin.contains(player.getUniqueID());
         }
@@ -127,7 +131,7 @@ public class LandManager
         return instance;
     }
 
-    public static LandTeam getTeam(EntityPlayer player)
+    public static LandTeam getTeam(Entity player)
     {
         LandTeam playerTeam = getInstance().playerTeams.get(player.getUniqueID());
         if (playerTeam == null)
@@ -141,7 +145,7 @@ public class LandManager
                     break;
                 }
             }
-            if (playerTeam == null)
+            if (playerTeam == null && player instanceof EntityPlayer)
             {
                 getInstance().addToTeam(player.getUniqueID(), ConfigManager.INSTANCE.defaultTeamName);
                 playerTeam = getInstance().getTeam(ConfigManager.INSTANCE.defaultTeamName, false);
@@ -155,7 +159,7 @@ public class LandManager
         return getInstance().getTeam(ConfigManager.INSTANCE.defaultTeamName, true);
     }
 
-    public static boolean owns(EntityPlayer player, Coordinate chunk)
+    public static boolean owns(Entity player, Coordinate chunk)
     {
         return getTeam(player).equals(getInstance().getLandOwner(chunk));
     }

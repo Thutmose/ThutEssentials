@@ -10,6 +10,7 @@ import thut.essentials.ThutEssentials;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
+import thut.essentials.util.Coordinate;
 import thut.essentials.util.RuleManager;
 
 public class EditTeam extends BaseCommand
@@ -54,6 +55,18 @@ public class EditTeam extends BaseCommand
             sender.addChatMessage(new TextComponentString(TextFormatting.GREEN + "Set Deny Message to " + message));
             return;
         }
+        if (arg.equalsIgnoreCase("prefix"))
+        {
+            landTeam.prefix = message;
+            sender.addChatMessage(new TextComponentString(TextFormatting.GREEN + "Set Prefix to " + message));
+            return;
+        }
+        if (arg.equalsIgnoreCase("home"))
+        {
+            landTeam.home = new Coordinate(player.getPosition(), player.dimension);
+            sender.addChatMessage(new TextComponentString(TextFormatting.GREEN + "Set Team Home to " + landTeam.home));
+            return;
+        }
         if (arg.equalsIgnoreCase("reserve") && ThutEssentials.perms.hasPermission(player, "land.team.reserve"))
         {
             landTeam.reserved = Boolean.parseBoolean(message);
@@ -67,6 +80,14 @@ public class EditTeam extends BaseCommand
             landTeam.noPlayerDamage = Boolean.parseBoolean(message);
             sender.addChatMessage(
                     new TextComponentString(TextFormatting.GREEN + "noPlayerDamage set to " + landTeam.noPlayerDamage));
+            return;
+        }
+        if (arg.equalsIgnoreCase("friendlyFire")
+                && ThutEssentials.perms.hasPermission(player, "land.team.friendlyfire"))
+        {
+            landTeam.friendlyFire = Boolean.parseBoolean(message);
+            sender.addChatMessage(
+                    new TextComponentString(TextFormatting.GREEN + "friendlyFire set to " + landTeam.friendlyFire));
             return;
         }
         if (arg.equalsIgnoreCase("noMobSpawn") && ThutEssentials.perms.hasPermission(player, "land.team.nomobspawn"))
