@@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemFood;
 import net.minecraft.util.EnumHand;
@@ -59,6 +60,11 @@ public class LandEventsHandler
                 t.printStackTrace();
             }
         }
+    }
+
+    public static boolean sameTeam(Entity a, Entity b)
+    {
+        return LandManager.getTeam(a) == LandManager.getTeam(b);
     }
 
     Map<UUID, Long> lastLeaveMessage = Maps.newHashMap();
@@ -212,9 +218,20 @@ public class LandEventsHandler
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void interactLeftClickEntity(LivingAttackEvent evt)
     {
+        if (!ConfigManager.INSTANCE.landEnabled) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(), evt.getEntity().dimension);
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
+        LandTeam players = LandManager.getTeam(evt.getEntity());
+        if (players != null && !players.friendlyFire && evt.getEntity() instanceof EntityPlayer)
+        {
+            Entity damageSource = evt.getSource().getSourceOfDamage();
+            if (damageSource instanceof EntityPlayer && sameTeam(damageSource, evt.getEntity()))
+            {
+                evt.setCanceled(true);
+                return;
+            }
+        }
+        if (owner == null) return;
         if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
         {
             evt.setCanceled(true);

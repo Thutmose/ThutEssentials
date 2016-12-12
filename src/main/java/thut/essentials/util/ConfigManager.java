@@ -35,6 +35,8 @@ public class ConfigManager extends ConfigBase
     @Configure(category = WARPS)
     public int                  backReUseDelay          = 10;
     @Configure(category = WARPS)
+    public float                backYOffset             = 0;
+    @Configure(category = WARPS)
     public int                  warpReUseDelay          = 10;
     @Configure(category = WARPS)
     public int                  spawnReUseDelay         = 10;
@@ -64,6 +66,10 @@ public class ConfigManager extends ConfigBase
     public double               blacklistDamage         = 5;
     @Configure(category = ITEM)
     public int                  kitReuseDelay           = -1;
+    @Configure(category = ITEM)
+    public boolean              itemLifeTweak           = false;
+    @Configure(category = ITEM)
+    public int                  itemLifeSpan            = 6000;
 
     @Configure(category = MISC)
     public double               speedCap                = 10;
@@ -108,6 +114,10 @@ public class ConfigManager extends ConfigBase
     @Configure(category = LAND)
     public String[]             protectedEntities       = { "net.minecraft.entity.EntityHanging",
             "net.minecraft.entity.item.EntityArmorStand", "net.minecraft.entity.item.EntityMinecart" };
+    @Configure(category = LAND)
+    public boolean              logTeamChat             = false;
+    @Configure(category = LAND)
+    public int                  prefixLength            = 10;
 
     public ConfigManager()
     {
