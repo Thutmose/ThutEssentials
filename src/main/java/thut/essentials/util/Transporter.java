@@ -60,6 +60,8 @@ public class Transporter
         }
     }
 
+    private static Method copyDataFromOld;
+
     // From RFTools.
     public static class TTeleporter extends Teleporter
     {
@@ -128,8 +130,7 @@ public class Transporter
         {
             if (evt.phase != TickEvent.Phase.END) return;
             if (theEntity.isDead) MinecraftForge.EVENT_BUS.unregister(this);
-            int dt = dim != theEntity.dimension ? 0 : 10;
-            if (theEntity.worldObj.getTotalWorldTime() >= time + dt)
+            if (theEntity.worldObj.getTotalWorldTime() >= time)
             {
                 if (dim != theEntity.dimension)
                 {
@@ -147,11 +148,6 @@ public class Transporter
                 MinecraftForge.EVENT_BUS.unregister(this);
             }
         }
-    }
-
-    public static Entity teleportEntity(Entity entity, Vector3 t2, int dimension)
-    {
-        return teleportEntity(entity, t2, dimension, false);
     }
 
     public static Entity teleportEntity(Entity entity, Vector3 t2, int dimension, boolean destBlocked)
@@ -178,7 +174,6 @@ public class Transporter
                 entity.worldObj.getChunkFromChunkCoords(x, z);
             }
         entity.setPositionAndUpdate(t2.x, t2.y, t2.z);
-
         List<Entity> passengers = Lists.newArrayList(entity.getPassengers());
         for (Entity e : passengers)
         {
@@ -186,7 +181,6 @@ public class Transporter
             e.setPositionAndUpdate(t2.x, t2.y, t2.z);
             MinecraftForge.EVENT_BUS.register(new ReMounter(e, entity, dimension));
         }
-
         WorldServer world = entity.getServer().worldServerForDimension(dimension);
         EntityTracker tracker = world.getEntityTracker();
         if (tracker.getTrackingPlayers(entity).getClass().getSimpleName().equals("EmptySet"))
@@ -205,13 +199,11 @@ public class Transporter
     private static Entity transferToDimension(Entity entity, Vector3 t2, int dimension)
     {
         int oldDimension = entity.worldObj.provider.getDimension();
-
         if (oldDimension == dimension) return entity;
-
+        if (!(entity instanceof EntityPlayerMP)) { return changeDimension(entity, t2, dimension); }
         MinecraftServer server = entity.worldObj.getMinecraftServer();
         WorldServer worldServer = server.worldServerForDimension(dimension);
         Teleporter teleporter = new TTeleporter(worldServer, t2.x, t2.y, t2.z);
-        if (!(entity instanceof EntityPlayerMP)) { return changeDimension(entity, t2, dimension); }
         EntityPlayerMP entityPlayerMP = (EntityPlayerMP) entity;
         entityPlayerMP.addExperienceLevel(0);
         worldServer.getMinecraftServer().getPlayerList().transferPlayerToDimension(entityPlayerMP, dimension,
@@ -271,7 +263,6 @@ public class Transporter
             Entity entity = CompatWrapper.createEntity(worldserver1, entityIn);
             if (entity != null)
             {
-
                 if (copyDataFromOld == null)
                 {
                     copyDataFromOld = ReflectionHelper.findMethod(Entity.class, entity,
@@ -290,7 +281,6 @@ public class Transporter
                 worldserver1.updateEntityWithOptionalForce(entity, true);
                 for (Entity e : passengers)
                 {
-                    e.setPositionAndUpdate(t2.x, t2.y, t2.z);
                     // Fix that darn random crash?
                     worldserver.resetUpdateEntityTick();
                     worldserver1.resetUpdateEntityTick();
@@ -310,6 +300,4 @@ public class Transporter
         }
         return null;
     }
-
-    private static Method copyDataFromOld;
 }

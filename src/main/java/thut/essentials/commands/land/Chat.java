@@ -52,7 +52,6 @@ public class Chat extends BaseCommand
             {
                 e.printStackTrace();
             }
-
         }
     }
 }

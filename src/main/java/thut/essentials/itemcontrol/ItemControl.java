@@ -10,6 +10,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import thut.essentials.util.ConfigManager;
@@ -28,6 +29,16 @@ public class ItemControl
     public ItemControl()
     {
         MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @SubscribeEvent
+    public void itemLife(EntityJoinWorldEvent event)
+    {
+        if (!ConfigManager.INSTANCE.itemLifeTweak || event.getEntity().worldObj.isRemote
+                || !(event.getEntity() instanceof EntityItem))
+            return;
+        EntityItem item = (EntityItem) event.getEntity();
+        item.lifespan = ConfigManager.INSTANCE.itemLifeSpan;
     }
 
     @SubscribeEvent

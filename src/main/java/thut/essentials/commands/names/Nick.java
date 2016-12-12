@@ -5,6 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -84,7 +85,7 @@ public class Nick extends BaseCommand
         if (ConfigManager.INSTANCE.landEnabled)
         {
             LandTeam team = LandManager.getTeam(event.getEntity());
-            if (!team.prefix.isEmpty()) displayName = team.prefix + " " + displayName;
+            if (!team.prefix.isEmpty()) displayName = team.prefix + TextFormatting.RESET + " " + displayName;
         }
         NameEvent event1 = new NameEvent(event.getEntityPlayer(), displayName);
         MinecraftForge.EVENT_BUS.post(event1);

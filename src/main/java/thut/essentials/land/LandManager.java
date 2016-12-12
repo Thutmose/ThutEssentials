@@ -15,6 +15,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.Coordinate;
 
@@ -266,6 +267,19 @@ public class LandManager
             invite.teams.remove(team);
         }
         LandSaveHandler.saveTeam(team);
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        try
+        {
+            EntityPlayer player = server.getPlayerList().getPlayerByUUID(member);
+            if (player != null)
+            {
+                player.refreshDisplayName();
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public int countLand(String team)

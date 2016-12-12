@@ -65,7 +65,7 @@ public class Spawn extends BaseCommand
                 if (event) MinecraftForge.EVENT_BUS.post(new MoveEvent(player));
                 Vector3 dest = new Vector3(moveTo);
                 dest.add(offset);
-                Entity player1 = Transporter.teleportEntity(player, dest, dimension);
+                Entity player1 = Transporter.teleportEntity(player, dest, dimension, false);
                 if (message != null) player1.addChatMessage(message);
             }
         }
