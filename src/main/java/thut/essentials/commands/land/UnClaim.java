@@ -23,11 +23,9 @@ public class UnClaim extends BaseCommand
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         EntityPlayer player = getCommandSenderAsPlayer(sender);
-        if (!LandManager.getInstance().isAdmin(player.getUniqueID()))
-        {
-            sender.addChatMessage(new TextComponentString("You are not Authorized to unclaim land for your team"));
-            return;
-        }
+        LandTeam team = LandManager.getTeam(player);
+        if (!team.hasPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
+            throw new CommandException("You are not allowed to do that.");
         boolean up = false;
         int num = 1;
         if (args.length > 1)
@@ -45,7 +43,6 @@ public class UnClaim extends BaseCommand
                 // e.printStackTrace();
             }
         }
-        LandTeam team = LandManager.getTeam(player);
         if (args.length > 1 && args[0].equalsIgnoreCase("all"))
         {
             team.land.land.clear();

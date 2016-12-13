@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,22 +30,32 @@ public class LandManager
 
     public static class LandTeam
     {
-        public TeamLand        land           = new TeamLand();
-        public String          teamName;
-        Set<UUID>              admin          = Sets.newHashSet();
-        public Set<UUID>       member         = Sets.newHashSet();
-        public Set<Coordinate> anyUse         = Sets.newHashSet();
-        public Coordinate      home;
-        public String          exitMessage    = "";
-        public String          enterMessage   = "";
-        public String          denyMessage    = "";
-        public String          prefix         = "";
-        public boolean         reserved       = false;
-        public boolean         players        = false;
-        public boolean         noPlayerDamage = false;
-        public boolean         noMobSpawn     = false;
-        public boolean         friendlyFire   = true;
-        public boolean         noExplosions   = false;
+        public static final String EDITMESSAGES   = "editMessages";
+        public static final String CLAIMPERM      = "claim";
+        public static final String UNCLAIMPERM    = "unclaim";
+        public static final String SETPREFIX      = "prefix";
+        public static final String SETHOME        = "sethome";
+        public static final String INVITE         = "invite";
+        public static final String KICK           = "kick";
+
+        public TeamLand            land           = new TeamLand();
+        public String              teamName;
+        public Set<UUID>           admin          = Sets.newHashSet();
+        public Set<UUID>           member         = Sets.newHashSet();
+        public Map<UUID, Rank>     ranksMembers   = Maps.newHashMap();
+        public Map<String, Rank>   rankMap        = Maps.newHashMap();
+        public Set<Coordinate>     anyUse         = Sets.newHashSet();
+        public Coordinate          home;
+        public String              exitMessage    = "";
+        public String              enterMessage   = "";
+        public String              denyMessage    = "";
+        public String              prefix         = "";
+        public boolean             reserved       = false;
+        public boolean             players        = false;
+        public boolean             noPlayerDamage = false;
+        public boolean             noMobSpawn     = false;
+        public boolean             friendlyFire   = true;
+        public boolean             noExplosions   = false;
 
         public LandTeam()
         {
@@ -63,6 +74,26 @@ public class LandManager
         public boolean isAdmin(Entity player)
         {
             return admin.contains(player.getUniqueID());
+        }
+
+        public boolean hasPerm(UUID player, String perm)
+        {
+            if (admin.contains(player)) return true;
+            Rank rank = ranksMembers.get(player);
+            if (rank == null) return false;
+            return rank.perms.contains(perm);
+        }
+
+        public void setPerm(String rankName, String perm)
+        {
+            Rank rank = rankMap.get(rankName);
+            if (rank != null) rank.perms.add(perm);
+        }
+
+        public void unsetPerm(String rankName, String perm)
+        {
+            Rank rank = rankMap.get(rankName);
+            if (rank != null) rank.perms.remove(perm);
         }
 
         public void init(MinecraftServer server)
@@ -88,6 +119,13 @@ public class LandManager
         public int hashCode()
         {
             return teamName.hashCode();
+        }
+
+        public static class Rank
+        {
+            public Set<UUID>   members = Sets.newHashSet();
+            public String      prefix;
+            public Set<String> perms   = Sets.newHashSet();
         }
     }
 

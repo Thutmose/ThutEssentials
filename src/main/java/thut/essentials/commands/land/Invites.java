@@ -24,7 +24,6 @@ public class Invites extends BaseCommand
     {
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         List<String> c = LandManager.getInstance().getInvites(player.getUniqueID());
-
         if (c.isEmpty())
         {
             sender.addChatMessage(new TextComponentString("You have no team invites"));

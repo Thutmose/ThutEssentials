@@ -12,6 +12,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import thut.essentials.events.NameEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.land.LandManager.LandTeam.Rank;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.PlayerDataHandler;
@@ -85,6 +86,15 @@ public class Nick extends BaseCommand
         if (ConfigManager.INSTANCE.landEnabled)
         {
             LandTeam team = LandManager.getTeam(event.getEntity());
+            Rank rank = team.ranksMembers.get(event.getEntity().getUniqueID());
+            if (rank != null)
+            {
+                String rankPrefix = rank.prefix;
+                if (rankPrefix != null)
+                {
+                    displayName = rankPrefix + TextFormatting.RESET + " " + displayName;
+                }
+            }
             if (!team.prefix.isEmpty()) displayName = team.prefix + TextFormatting.RESET + " " + displayName;
         }
         NameEvent event1 = new NameEvent(event.getEntityPlayer(), displayName);

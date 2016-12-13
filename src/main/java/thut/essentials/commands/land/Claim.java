@@ -29,22 +29,18 @@ public class Claim extends BaseCommand
     {
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         LandTeam team = LandManager.getTeam(player);
-        if (team == null) throw new CommandException("You are not in a team.");
+        if (team == LandManager.getDefaultTeam())
+            throw new CommandException("You are not in a team that can claim land.");
         boolean isOp = CommandManager.isOp(sender);
-        if (!LandManager.getInstance().isAdmin(player.getUniqueID())
-                || team.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName))
-        {
-            sender.addChatMessage(new TextComponentString("You are not Authorized to claim land for your team"));
-            return;
-        }
         int teamCount = team.member.size();
-
         int count = LandManager.getInstance().countLand(team.teamName);
-
         boolean up = false;
         boolean all = false;
         int num = 1;
         int radius = 0;
+
+        if (!team.hasPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+            throw new CommandException("You are not allowed to do that.");
 
         if (args.length > 1)
         {
