@@ -13,6 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemFood;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -44,6 +45,7 @@ import thut.essentials.util.Coordinate;
 public class LandEventsHandler
 {
     public static Set<Class<?>> protectedEntities = Sets.newHashSet();
+    public static Set<String>   whitelist         = Sets.newHashSet();
 
     public static void init()
     {
@@ -59,6 +61,11 @@ public class LandEventsHandler
             {
                 t.printStackTrace();
             }
+        }
+        whitelist.clear();
+        for (String s : ConfigManager.INSTANCE.itemWhitelist)
+        {
+            whitelist.add(s);
         }
     }
 
@@ -301,8 +308,12 @@ public class LandEventsHandler
     {
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getEntityPlayer().dimension);
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        if (owner == null || evt.getItemStack().getItem() instanceof ItemFood || !ConfigManager.INSTANCE.landEnabled)
+        if (owner == null || evt.getItemStack().getItem() instanceof ItemFood
+                || evt.getItemStack().getItem() == Items.WRITTEN_BOOK
+                || evt.getItemStack().getItem() == Items.WRITABLE_BOOK || !ConfigManager.INSTANCE.landEnabled)
             return;
+        String name = evt.getItemStack().getItem().getRegistryName().toString();
+        if (whitelist.contains(name)) { return; }
         if (LandManager.owns(evt.getEntityPlayer(), c))
         {
             return;
