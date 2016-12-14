@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
 
 public class Kick extends BaseCommand
@@ -22,7 +23,10 @@ public class Kick extends BaseCommand
         EntityPlayer kicker = getCommandSenderAsPlayer(sender);
         String toKick = args[0];
         EntityPlayer kickee = getPlayer(server, sender, toKick);
-        if (toKick.equalsIgnoreCase(sender.getName()) || LandManager.getInstance().isAdmin(kicker.getUniqueID()))
+        LandTeam team = LandManager.getTeam(kickee);
+        LandTeam team1 = LandManager.getTeam(kicker);
+        if (team != team1 || team == LandManager.getDefaultTeam()) throw new CommandException("You cannot do that.");
+        if (toKick.equalsIgnoreCase(sender.getName()) || team1.hasPerm(kicker.getUniqueID(), LandTeam.KICK))
         {
             LandManager.getInstance().removeFromTeam(kickee.getUniqueID());
             sender.addChatMessage(new TextComponentString("Removed " + toKick + " From Team."));

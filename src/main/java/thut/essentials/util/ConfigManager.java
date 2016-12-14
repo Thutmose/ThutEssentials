@@ -118,6 +118,8 @@ public class ConfigManager extends ConfigBase
     public boolean              logTeamChat             = false;
     @Configure(category = LAND)
     public int                  prefixLength            = 10;
+    @Configure(category = LAND)
+    public String[]             itemWhitelist           = {};
 
     public ConfigManager()
     {

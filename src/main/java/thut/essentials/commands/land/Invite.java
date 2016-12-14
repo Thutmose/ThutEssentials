@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
 
 public class Invite extends BaseCommand
@@ -23,9 +24,12 @@ public class Invite extends BaseCommand
         String player = args[0];
         EntityPlayer inviter = getCommandSenderAsPlayer(sender);
         EntityPlayer invitee = getPlayer(server, sender, player);
+        LandTeam landTeam = LandManager.getTeam(inviter);
+        if (!landTeam.hasPerm(inviter.getUniqueID(), LandTeam.INVITE))
+            throw new CommandException("You are not allowed to do that.");
+        String team = landTeam.teamName;
         boolean invite = LandManager.getInstance().invite(inviter.getUniqueID(), invitee.getUniqueID());
         if (!invite) throw new CommandException("Invite not successful.");
-        String team = LandManager.getTeam(inviter).teamName;
         String links = "";
         String cmd = "joinTeam";
         String command = "/" + cmd + " " + team;

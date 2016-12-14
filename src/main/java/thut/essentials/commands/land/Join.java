@@ -3,11 +3,11 @@ package thut.essentials.commands.land;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
 
@@ -25,14 +25,13 @@ public class Join extends BaseCommand
         boolean isOp = CommandManager.isOp(sender);
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         String teamname = args[0];
-        ScorePlayerTeam teamtojoin = sender.getEntityWorld().getScoreboard().getTeam(teamname);
+        LandTeam teamtojoin = LandManager.getInstance().getTeam(teamname, false);
         if (teamtojoin != null)
         {
-            boolean empty = teamtojoin.getRegisteredName().equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName);
+            boolean empty = teamtojoin.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName);
             if (empty)
             {
-                empty = teamtojoin.getMembershipCollection() == null
-                        || teamtojoin.getMembershipCollection().size() == 0;
+                empty = teamtojoin.member.size() == 0;
                 empty = empty && !LandManager.getInstance().getTeam(teamname, false).reserved;
             }
             if (empty || isOp)

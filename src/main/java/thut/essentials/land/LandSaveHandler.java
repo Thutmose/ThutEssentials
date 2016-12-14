@@ -24,7 +24,7 @@ public class LandSaveHandler
         {
             String name = f.getName();
             return name.equals("landMap") || name.equals("teamMap") || name.equals("playerTeams")
-                    || name.equals("publicBlocks");
+                    || name.equals("publicBlocks") || name.equals("ranksMembers");
         }
 
         @Override
