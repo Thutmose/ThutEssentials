@@ -466,6 +466,7 @@ public class LandManager
         LandTeam team;
         (team = publicBlocks.remove(c)).anyUse.remove(c);
         LandSaveHandler.saveTeam(team.teamName);
+        LandSaveHandler.saveGlobalData();
     }
 
 }

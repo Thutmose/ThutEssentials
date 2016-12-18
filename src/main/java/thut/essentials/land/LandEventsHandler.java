@@ -45,7 +45,8 @@ import thut.essentials.util.Coordinate;
 public class LandEventsHandler
 {
     public static Set<Class<?>> protectedEntities = Sets.newHashSet();
-    public static Set<String>   whitelist         = Sets.newHashSet();
+    public static Set<String>   itemUseWhitelist  = Sets.newHashSet();
+    public static Set<String>   blockUseWhiteList = Sets.newHashSet();
 
     public static void init()
     {
@@ -62,10 +63,15 @@ public class LandEventsHandler
                 t.printStackTrace();
             }
         }
-        whitelist.clear();
+        itemUseWhitelist.clear();
         for (String s : ConfigManager.INSTANCE.itemWhitelist)
         {
-            whitelist.add(s);
+            itemUseWhitelist.add(s);
+        }
+        blockUseWhiteList.clear();
+        for (String s : ConfigManager.INSTANCE.blockWhitelist)
+        {
+            blockUseWhiteList.add(s);
         }
     }
 
@@ -310,10 +316,11 @@ public class LandEventsHandler
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
         if (owner == null || evt.getItemStack().getItem() instanceof ItemFood
                 || evt.getItemStack().getItem() == Items.WRITTEN_BOOK
-                || evt.getItemStack().getItem() == Items.WRITABLE_BOOK || !ConfigManager.INSTANCE.landEnabled)
+                || evt.getItemStack().getItem() == Items.WRITABLE_BOOK || !ConfigManager.INSTANCE.landEnabled
+                || evt.getEntity().worldObj.isRemote)
             return;
         String name = evt.getItemStack().getItem().getRegistryName().toString();
-        if (whitelist.contains(name)) { return; }
+        if (itemUseWhitelist.contains(name)) { return; }
         if (LandManager.owns(evt.getEntityPlayer(), c))
         {
             return;
@@ -343,6 +350,8 @@ public class LandEventsHandler
         Block block = null;
         IBlockState state = evt.getWorld().getBlockState(evt.getPos());
         block = evt.getWorld().getBlockState(evt.getPos()).getBlock();
+        String name = block.getRegistryName().toString();
+        if (blockUseWhiteList.contains(name)) { return; }
         boolean b = true;
         boolean shouldPass = true;
         if (LandManager.owns(evt.getEntityPlayer(), c))
@@ -369,11 +378,12 @@ public class LandEventsHandler
             }
             return;
         }
-        else if (block != null && !(block.hasTileEntity(state)) && evt.getWorld().isRemote)
+        else if (block != null && !(block.hasTileEntity(state)) && !evt.getWorld().isRemote)
         {
             shouldPass = MinecraftForge.EVENT_BUS
                     .post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(), UseType.RIGHTCLICKBLOCK));
-
+            name = evt.getItemStack().getItem().getRegistryName().toString();
+            shouldPass = shouldPass || itemUseWhitelist.contains(name);
             if (shouldPass) b = CompatWrapper.interactWithBlock(block, evt.getWorld(), evt.getPos(), state,
                     evt.getEntityPlayer(), evt.getHand(), null, evt.getFace(), (float) evt.getHitVec().xCoord,
                     (float) evt.getHitVec().yCoord, (float) evt.getHitVec().zCoord);

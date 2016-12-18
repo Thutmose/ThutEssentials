@@ -120,6 +120,8 @@ public class ConfigManager extends ConfigBase
     public int                  prefixLength            = 10;
     @Configure(category = LAND)
     public String[]             itemWhitelist           = {};
+    @Configure(category = LAND)
+    public String[]             blockWhitelist          = {};
 
     public ConfigManager()
     {
