@@ -44,9 +44,10 @@ import thut.essentials.util.Coordinate;
 
 public class LandEventsHandler
 {
-    public static Set<Class<?>> protectedEntities = Sets.newHashSet();
-    public static Set<String>   itemUseWhitelist  = Sets.newHashSet();
-    public static Set<String>   blockUseWhiteList = Sets.newHashSet();
+    public static Set<Class<?>> protectedEntities   = Sets.newHashSet();
+    public static Set<String>   itemUseWhitelist    = Sets.newHashSet();
+    public static Set<String>   blockUseWhiteList   = Sets.newHashSet();
+    public static Set<String>   blockBreakWhiteList = Sets.newHashSet();
 
     public static void init()
     {
@@ -64,14 +65,19 @@ public class LandEventsHandler
             }
         }
         itemUseWhitelist.clear();
-        for (String s : ConfigManager.INSTANCE.itemWhitelist)
+        for (String s : ConfigManager.INSTANCE.itemUseWhitelist)
         {
             itemUseWhitelist.add(s);
         }
         blockUseWhiteList.clear();
-        for (String s : ConfigManager.INSTANCE.blockWhitelist)
+        for (String s : ConfigManager.INSTANCE.blockUseWhitelist)
         {
             blockUseWhiteList.add(s);
+        }
+        blockBreakWhiteList.clear();
+        for (String s : ConfigManager.INSTANCE.blockBreakWhitelist)
+        {
+            blockBreakWhiteList.add(s);
         }
     }
 
@@ -199,6 +205,9 @@ public class LandEventsHandler
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getEntityPlayer().dimension);
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
         if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
+        Block block = evt.getWorld().getBlockState(evt.getPos()).getBlock();
+        String name = block.getRegistryName().toString();
+        if (blockBreakWhiteList.contains(name)) { return; }
         if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
         Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);
         LandManager.getInstance().isPublic(blockLoc);
