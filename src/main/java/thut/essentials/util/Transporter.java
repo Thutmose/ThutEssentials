@@ -135,8 +135,12 @@ public class Transporter
                 if (dim != theEntity.dimension)
                 {
                     if (theEntity instanceof EntityPlayerMP)
+                    {
+                        ReflectionHelper.setPrivateValue(EntityPlayerMP.class, (EntityPlayerMP) theEntity, true,
+                                "invulnerableDimensionChange");
                         theEntity.getServer().getPlayerList().transferPlayerToDimension((EntityPlayerMP) theEntity, dim,
                                 new TTeleporter(theEntity.getServer().worldServerForDimension(dim)));
+                    }
                     else
                     {
                         // Handle moving non players.
@@ -163,7 +167,7 @@ public class Transporter
             entity = transferToDimension(entity, t2, dimension);
             for (Entity e : entity.getRecursivePassengers())
             {
-                transferToDimension(e, t2, dimension);
+                e = transferToDimension(e, t2, dimension);
             }
         }
         int x = t2.intX() >> 4;
@@ -196,15 +200,16 @@ public class Transporter
     }
 
     // From RFTools.
-    private static Entity transferToDimension(Entity entity, Vector3 t2, int dimension)
+    private static Entity transferToDimension(Entity entityIn, Vector3 t2, int dimension)
     {
-        int oldDimension = entity.worldObj.provider.getDimension();
-        if (oldDimension == dimension) return entity;
-        if (!(entity instanceof EntityPlayerMP)) { return changeDimension(entity, t2, dimension); }
-        MinecraftServer server = entity.worldObj.getMinecraftServer();
+        int oldDimension = entityIn.worldObj.provider.getDimension();
+        if (oldDimension == dimension) return entityIn;
+        if (!(entityIn instanceof EntityPlayerMP)) { return changeDimension(entityIn, t2, dimension); }
+        MinecraftServer server = entityIn.worldObj.getMinecraftServer();
         WorldServer worldServer = server.worldServerForDimension(dimension);
         Teleporter teleporter = new TTeleporter(worldServer, t2.x, t2.y, t2.z);
-        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) entity;
+        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) entityIn;
+        ReflectionHelper.setPrivateValue(EntityPlayerMP.class, entityPlayerMP, true, "invulnerableDimensionChange");
         entityPlayerMP.addExperienceLevel(0);
         worldServer.getMinecraftServer().getPlayerList().transferPlayerToDimension(entityPlayerMP, dimension,
                 teleporter);
@@ -248,12 +253,12 @@ public class Transporter
 
             double d0 = entityIn.posX;
             double d1 = entityIn.posZ;
-            d0 = MathHelper.clamp_double(d0 * 8.0D, worldserver1.getWorldBorder().minX() + 16.0D,
-                    worldserver1.getWorldBorder().maxX() - 16.0D);
-            d1 = MathHelper.clamp_double(d1 * 8.0D, worldserver1.getWorldBorder().minZ() + 16.0D,
-                    worldserver1.getWorldBorder().maxZ() - 16.0D);
             d0 = MathHelper.clamp_int((int) d0, -29999872, 29999872);
             d1 = MathHelper.clamp_int((int) d1, -29999872, 29999872);
+            d0 = MathHelper.clamp_double(d0, worldserver1.getWorldBorder().minX(),
+                    worldserver1.getWorldBorder().maxX());
+            d1 = MathHelper.clamp_double(d1, worldserver1.getWorldBorder().minZ(),
+                    worldserver1.getWorldBorder().maxZ());
             float f = entityIn.rotationYaw;
             entityIn.setLocationAndAngles(d0, entityIn.posY, d1, 90.0F, 0.0F);
             Teleporter teleporter = new TTeleporter(worldserver1, t2.x, t2.y, t2.z);
