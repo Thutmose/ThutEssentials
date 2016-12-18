@@ -35,7 +35,7 @@ public class ConfigManager extends ConfigBase
     @Configure(category = WARPS)
     public int                  backReUseDelay          = 10;
     @Configure(category = WARPS)
-    public float                backYOffset             = 0;
+    public int                  backRangeCheck          = 3;
     @Configure(category = WARPS)
     public int                  warpReUseDelay          = 10;
     @Configure(category = WARPS)

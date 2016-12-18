@@ -2,6 +2,7 @@ package thut.essentials.commands.misc;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import com.google.common.collect.Maps;
 
@@ -38,17 +39,18 @@ public class Spawn extends BaseCommand
 
         private static class Mover
         {
-            final long           moveTime;
-            final EntityPlayer   player;
-            final int            dimension;
-            final BlockPos       moveTo;
-            final Vector3        start;
-            final ITextComponent message;
-            final ITextComponent failMess;
-            final boolean        event;
+            final long              moveTime;
+            final EntityPlayer      player;
+            final int               dimension;
+            final BlockPos          moveTo;
+            final Vector3           start;
+            final ITextComponent    message;
+            final ITextComponent    failMess;
+            final boolean           event;
+            final Predicate<Entity> callback;
 
             public Mover(EntityPlayer player, long moveTime, int dimension, BlockPos moveTo, ITextComponent message,
-                    ITextComponent failMess, boolean event)
+                    ITextComponent failMess, Predicate<Entity> callback, boolean event)
             {
                 this.player = player;
                 this.dimension = dimension;
@@ -57,6 +59,7 @@ public class Spawn extends BaseCommand
                 this.message = message;
                 this.failMess = failMess;
                 this.event = event;
+                this.callback = callback;
                 start = new Vector3(player.posX, player.posY, player.posZ);
             }
 
@@ -66,6 +69,7 @@ public class Spawn extends BaseCommand
                 Vector3 dest = new Vector3(moveTo);
                 dest.add(offset);
                 Entity player1 = Transporter.teleportEntity(player, dest, dimension, false);
+                if (callback != null) callback.test(player1);
                 if (message != null) player1.addChatMessage(message);
             }
         }
@@ -79,6 +83,13 @@ public class Spawn extends BaseCommand
         public static void setMove(final EntityPlayer player, final int moveTime, final int dimension,
                 final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess, final boolean event)
         {
+            setMove(player, moveTime, dimension, moveTo, message, failMess, null, event);
+        }
+
+        public static void setMove(final EntityPlayer player, final int moveTime, final int dimension,
+                final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess,
+                final Predicate<Entity> callback, final boolean event)
+        {
             player.getServer().addScheduledTask(new Runnable()
             {
                 @Override
@@ -90,7 +101,7 @@ public class Spawn extends BaseCommand
                                 TextFormatting.GREEN + "Initiating Teleport, please remain still."));
                         toMove.put(player.getUniqueID(),
                                 new Mover(player, moveTime + player.getEntityWorld().getTotalWorldTime(), dimension,
-                                        moveTo, message, failMess, event));
+                                        moveTo, message, failMess, callback, event));
                     }
                 }
             });
