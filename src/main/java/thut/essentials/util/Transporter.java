@@ -137,7 +137,7 @@ public class Transporter
                     if (theEntity instanceof EntityPlayerMP)
                     {
                         ReflectionHelper.setPrivateValue(EntityPlayerMP.class, (EntityPlayerMP) theEntity, true,
-                                "invulnerableDimensionChange");
+                                "invulnerableDimensionChange", "field_184851_cj", "ck");
                         theEntity.getServer().getPlayerList().transferPlayerToDimension((EntityPlayerMP) theEntity, dim,
                                 new TTeleporter(theEntity.getServer().worldServerForDimension(dim)));
                     }

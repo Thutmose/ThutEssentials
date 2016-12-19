@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
+import thut.essentials.util.RuleManager;
 
 public class Motd extends BaseCommand
 {
@@ -29,6 +30,10 @@ public class Motd extends BaseCommand
         {
             motd = entityPlayer.getServer().getMOTD();
         }
+        else
+        {
+            motd = RuleManager.format(motd);
+        }
         entityPlayer.addChatMessage(new TextComponentString(motd));
     }
 
@@ -39,6 +44,10 @@ public class Motd extends BaseCommand
         if (motd.isEmpty())
         {
             motd = server.getMOTD();
+        }
+        else
+        {
+            motd = RuleManager.format(motd);
         }
         sender.addChatMessage(new TextComponentString(motd));
     }
