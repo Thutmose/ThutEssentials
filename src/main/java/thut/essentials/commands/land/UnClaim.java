@@ -45,7 +45,10 @@ public class UnClaim extends BaseCommand
         }
         if (args.length > 1 && args[0].equalsIgnoreCase("all"))
         {
-            team.land.land.clear();
+            for (Coordinate c : team.land.land)
+            {
+                LandManager.getInstance().removeTeamLand(team.teamName, c);
+            }
             sender.addChatMessage(new TextComponentString("Unclaimed all land for Team" + team.teamName));
             return;
         }

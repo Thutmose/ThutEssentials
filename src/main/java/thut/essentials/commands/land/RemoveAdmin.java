@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
 
 public class RemoveAdmin extends BaseCommand
@@ -19,9 +20,13 @@ public class RemoveAdmin extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayer(server, sender, args[1]);
-        String teamName = getCommandSenderAsPlayer(server).getTeam().getRegisteredName();
-        if (LandManager.getInstance().isAdmin(player.getUniqueID()))
+        EntityPlayer user = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayer(server, sender, args[0]);
+        LandTeam teamA = LandManager.getTeam(user);
+        LandTeam teamB = LandManager.getTeam(player);
+        if (teamA != teamB) throw new CommandException("You must be in the same team to do that.");
+        String teamName = teamA.teamName;
+        if (LandManager.getInstance().isAdmin(user.getUniqueID()))
         {
             LandManager.getInstance().removeAdmin(player.getUniqueID());
             sender.addChatMessage(new TextComponentString(player + " removed as an Admin for Team " + teamName));
