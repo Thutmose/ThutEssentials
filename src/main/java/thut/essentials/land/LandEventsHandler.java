@@ -358,7 +358,7 @@ public class LandEventsHandler
         if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
         Block block = null;
         IBlockState state = evt.getWorld().getBlockState(evt.getPos());
-        block = evt.getWorld().getBlockState(evt.getPos()).getBlock();
+        block = state.getBlock();
         String name = block.getRegistryName().toString();
         if (blockUseWhiteList.contains(name)) { return; }
         boolean b = true;

@@ -50,6 +50,8 @@ public class RuleManager
     {
         boolean done = false;
         int index = 0;
+        String arg = "\\n";
+        rule = rule.replace(arg, System.getProperty("line.separator"));
         index = rule.indexOf('&', index);
         while (!done && index < rule.length() && index >= 0)
         {
