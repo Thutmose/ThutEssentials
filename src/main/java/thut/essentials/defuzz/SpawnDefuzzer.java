@@ -10,6 +10,7 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerConnectionFromClientEvent;
@@ -24,7 +25,7 @@ public class SpawnDefuzzer
     @SubscribeEvent
     public void deFuzzRespawn(PlayerRespawnEvent event)
     {
-        if (event.player.getEntityWorld().isRemote) return;
+        if (event.player.getEntityWorld().isRemote || !event.player.getServer().isDedicatedServer()) return;
         BlockPos worldSpawn = event.player.getEntityWorld().getSpawnPoint();
         BlockPos playerSpawn = event.player.getBedLocation();
         if (playerSpawn == null)
@@ -59,7 +60,8 @@ public class SpawnDefuzzer
     @SubscribeEvent
     public void deFuzzSpawn(ServerConnectionFromClientEvent event)
     {
-        if (event.getHandler() instanceof NetHandlerPlayServer)
+        if (event.getHandler() instanceof NetHandlerPlayServer
+                && FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer())
         {
             EntityPlayerMP player = ((NetHandlerPlayServer) event.getHandler()).playerEntity;
             logins.add(player.getUniqueID());

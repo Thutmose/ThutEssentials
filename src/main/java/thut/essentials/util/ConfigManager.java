@@ -23,7 +23,7 @@ public class ConfigManager extends ConfigBase
     @Configure(category = SPAWN)
     public int                  spawnDimension          = 0;
     @Configure(category = SPAWN)
-    public boolean              spawnDefuzz             = true;
+    public boolean              spawnDefuzz             = false;
 
     @Configure(category = RULES)
     public String[]             rules                   = {};
