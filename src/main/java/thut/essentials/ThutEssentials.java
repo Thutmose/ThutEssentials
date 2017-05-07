@@ -41,6 +41,7 @@ public class ThutEssentials
 
     public ConfigManager             config;
     private CommandManager           manager;
+    private SpawnDefuzzer            defuzzer  = new SpawnDefuzzer();
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent e)
@@ -48,7 +49,6 @@ public class ThutEssentials
         config = new ConfigManager(e.getSuggestedConfigurationFile());
         LandEventsHandler teams = new LandEventsHandler();
         MinecraftForge.EVENT_BUS.register(teams);
-        if (config.spawnDefuzz) MinecraftForge.EVENT_BUS.register(new SpawnDefuzzer());
         new ItemControl();
     }
 
@@ -66,6 +66,7 @@ public class ThutEssentials
     {
         CommandHandler ch = (CommandHandler) FMLCommonHandler.instance().getMinecraftServerInstance()
                 .getCommandManager();
+        if (config.spawnDefuzz) MinecraftForge.EVENT_BUS.register(defuzzer);
         for (String s : ConfigManager.INSTANCE.alternateCommands)
         {
             String[] args = s.split(":");
@@ -89,6 +90,7 @@ public class ThutEssentials
         PlayerDataHandler.clear();
         LandManager.clearInstance();
         EconomyManager.clearInstance();
+        if (config.spawnDefuzz) MinecraftForge.EVENT_BUS.unregister(defuzzer);
         manager.clear();
     }
 
