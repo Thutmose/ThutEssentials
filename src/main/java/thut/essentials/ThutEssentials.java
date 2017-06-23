@@ -41,6 +41,7 @@ public class ThutEssentials
 
     public ConfigManager             config;
     private CommandManager           manager;
+    private SpawnDefuzzer            defuz     = new SpawnDefuzzer();
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent e)
@@ -48,7 +49,6 @@ public class ThutEssentials
         config = new ConfigManager(e.getSuggestedConfigurationFile());
         LandEventsHandler teams = new LandEventsHandler();
         MinecraftForge.EVENT_BUS.register(teams);
-        if (config.spawnDefuzz) MinecraftForge.EVENT_BUS.register(new SpawnDefuzzer());
         new ItemControl();
     }
 
@@ -59,6 +59,8 @@ public class ThutEssentials
         MinecraftForge.EVENT_BUS.register(this);
         LandSaveHandler.loadGlobalData();
         EconomySaveHandler.loadGlobalData();
+        if (config.spawnDefuzz && FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer())
+            MinecraftForge.EVENT_BUS.register(defuz);
     }
 
     @EventHandler
@@ -90,6 +92,8 @@ public class ThutEssentials
         LandManager.clearInstance();
         EconomyManager.clearInstance();
         manager.clear();
+        if (config.spawnDefuzz && FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer())
+            MinecraftForge.EVENT_BUS.unregister(defuz);
     }
 
     @SubscribeEvent
