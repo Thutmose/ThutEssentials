@@ -13,9 +13,9 @@ public class Coordinate implements Comparable<Coordinate>
 
     public static Coordinate getChunkCoordFromWorldCoord(int x, int y, int z, int dim)
     {
-        int i = MathHelper.floor_double(x / 16.0D);
-        int j = MathHelper.floor_double(y / 16.0D);
-        int k = MathHelper.floor_double(z / 16.0D);
+        int i = MathHelper.floor(x / 16.0D);
+        int j = MathHelper.floor(y / 16.0D);
+        int k = MathHelper.floor(z / 16.0D);
         return new Coordinate(i, j, k, dim);
     }
 
@@ -40,10 +40,7 @@ public class Coordinate implements Comparable<Coordinate>
     @Override
     public boolean equals(Object obj)
     {
-        if (!(obj instanceof Coordinate))
-        {
-            return false;
-        }
+        if (!(obj instanceof Coordinate)) { return false; }
         Coordinate BlockPos = (Coordinate) obj;
         return x == BlockPos.x && y == BlockPos.y && this.z == BlockPos.z && this.dim == BlockPos.dim;
     }

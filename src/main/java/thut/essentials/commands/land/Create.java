@@ -21,7 +21,7 @@ public class Create extends BaseCommand
         String teamname = args[0];
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         LandManager.getInstance().createTeam(player.getUniqueID(), teamname);
-        player.addChatMessage(new TextComponentString("You created Team " + teamname));
+        player.sendMessage(new TextComponentString("You created Team " + teamname));
         return;
     }
 }

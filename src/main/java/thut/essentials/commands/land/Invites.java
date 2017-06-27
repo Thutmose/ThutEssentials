@@ -26,10 +26,10 @@ public class Invites extends BaseCommand
         List<String> c = LandManager.getInstance().getInvites(player.getUniqueID());
         if (c.isEmpty())
         {
-            sender.addChatMessage(new TextComponentString("You have no team invites"));
+            sender.sendMessage(new TextComponentString("You have no team invites"));
             return;
         }
-        sender.addChatMessage(new TextComponentString("List of Team Invites, You can click one to join."));
+        sender.sendMessage(new TextComponentString("List of Team Invites, You can click one to join."));
         String links = "";
         String cmd = "joinTeam";
         String command = "/" + cmd + " " + c.get(0);
@@ -46,7 +46,7 @@ public class Invites extends BaseCommand
             links = links + ",\"]\"" + ",\"[\"," + abilityJson2;
         }
         ITextComponent message = ITextComponent.Serializer.jsonToComponent("[\" [\"," + links + ",\"]\"]");
-        sender.addChatMessage(message);
+        sender.sendMessage(message);
     }
 
 }

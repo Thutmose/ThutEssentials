@@ -29,7 +29,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class CompatWrapper
 {
-    public static final ItemStack nullStack = ItemStack.field_190927_a;
+    public static final ItemStack nullStack = ItemStack.EMPTY;
 
     public static ItemStack fromTag(NBTTagCompound tag)
     {
@@ -53,17 +53,17 @@ public class CompatWrapper
 
     public static Entity createEntity(World world, Entity in)
     {
-        return EntityList.createEntityByIDFromName(EntityList.func_191301_a(in), world);
+        return EntityList.createEntityByIDFromName(EntityList.getKey(in), world);
     }
 
     public static void moveEntitySelf(Entity in, double x, double y, double z)
     {
-        in.moveEntity(MoverType.SELF, x, y, z);
+        in.move(MoverType.SELF, x, y, z);
     }
 
     public static void sendChatMessage(ICommandSender to, ITextComponent message)
     {//
-        to.addChatMessage(message);
+        to.sendMessage(message);
     }
 
     public static void registerTileEntity(Class<? extends TileEntity> tileClass, String id)
@@ -84,14 +84,13 @@ public class CompatWrapper
 
     public static ItemStack setStackSize(ItemStack stack, int amount)
     {
-        if (amount <= 0) { return nullStack; }
-        stack.func_190920_e(amount);
+        stack.setCount(amount);
         return stack;
     }
 
     public static int getStackSize(ItemStack stack)
     {
-        return stack.func_190916_E();
+        return stack.getCount();
     }
 
     public static boolean isValid(ItemStack stack)
@@ -113,25 +112,25 @@ public class CompatWrapper
 
     public static void setAnimationToGo(ItemStack stack, int num)
     {
-        stack.func_190915_d(num);
+        stack.setAnimationsToGo(num);
     }
 
     public static int increment(ItemStack in, int amt)
     {
-        in.func_190917_f(amt);
-        return in.func_190916_E();
+        in.grow(amt);
+        return in.getCount();
     }
 
     public static List<ItemStack> makeList(int size)
     {
-        return NonNullList.<ItemStack> func_191197_a(size, ItemStack.field_190927_a);
+        return NonNullList.<ItemStack> withSize(size, ItemStack.EMPTY);
     }
 
     public static void rightClickWith(ItemStack stack, EntityPlayer player, EnumHand hand)
     {
         ItemStack old = player.getHeldItem(hand);
         player.setHeldItem(hand, stack);
-        stack.getItem().onItemRightClick(player.worldObj, player, hand);
+        stack.getItem().onItemRightClick(player.world, player, hand);
         player.setHeldItem(hand, old);
     }
 

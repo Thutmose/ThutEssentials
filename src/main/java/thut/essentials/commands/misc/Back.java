@@ -62,10 +62,10 @@ public class Back extends BaseCommand
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tptag = tag.getCompoundTag("tp");
         long last = tptag.getLong("backDelay");
-        long time = player.getServer().worldServerForDimension(0).getTotalWorldTime();
+        long time = player.getServer().getWorld(0).getTotalWorldTime();
         if (last > time)
         {
-            player.addChatMessage(
+            player.sendMessage(
                     CommandManager.makeFormattedComponent("Too Soon between Warp attempt", TextFormatting.RED, false));
             return;
         }
@@ -101,7 +101,7 @@ public class Back extends BaseCommand
     private Coordinate getBackSpot(int[] pos)
     {
         Coordinate spot = new Coordinate(pos[0], pos[1], pos[2], pos[3]);
-        WorldServer world = FMLCommonHandler.instance().getMinecraftServerInstance().worldServerForDimension(pos[3]);
+        WorldServer world = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(pos[3]);
         if (world == null) return null;
         BlockPos check = new BlockPos(spot.x, spot.y, spot.z);
         if (valid(check, world)) return spot;

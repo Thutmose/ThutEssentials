@@ -16,9 +16,9 @@ public class Warps extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName();
+        return "/" + getName();
     }
 
     @Override

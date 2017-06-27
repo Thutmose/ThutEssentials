@@ -20,9 +20,9 @@ public class SetWarp extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName() + " <warpName>";
+        return "/" + getName() + " <warpName>";
     }
 
     @Override
@@ -67,7 +67,7 @@ public class SetWarp extends BaseCommand
         {
             e.printStackTrace();
         }
-        sender.addChatMessage(
+        sender.sendMessage(
                 new TextComponentString("Set " + warpName + " to " + Arrays.toString(WarpManager.getWarp(warpName))));
     }
 

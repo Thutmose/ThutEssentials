@@ -27,14 +27,14 @@ public class Blacklist extends BaseCommand
 
         if (arg.equalsIgnoreCase("list"))
         {
-            sender.addChatMessage(
+            sender.sendMessage(
                     new TextComponentString("Current Blackist State: " + ConfigManager.INSTANCE.itemControlEnabled));
             if (ConfigManager.INSTANCE.itemControlEnabled)
             {
-                sender.addChatMessage(new TextComponentString("Current Item Blacklist:"));
+                sender.sendMessage(new TextComponentString("Current Item Blacklist:"));
                 for (String s : ItemControl.blacklist)
                 {
-                    sender.addChatMessage(new TextComponentString(s));
+                    sender.sendMessage(new TextComponentString(s));
                 }
             }
         }
@@ -60,7 +60,7 @@ public class Blacklist extends BaseCommand
             {
                 ConfigManager.INSTANCE.updateField(ConfigManager.class.getDeclaredField("itemBlacklist"),
                         blacklist.toArray(new String[0]));
-                sender.addChatMessage(new TextComponentString(message));
+                sender.sendMessage(new TextComponentString(message));
             }
             catch (Exception e)
             {

@@ -27,7 +27,7 @@ public class TpToggle extends BaseCommand
         tpaTag.setBoolean("ignore", ignore);
         tag.setTag("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(player);
-        player.addChatMessage(CommandManager.makeFormattedComponent("Set ignoring TPA to " + ignore,
+        player.sendMessage(CommandManager.makeFormattedComponent("Set ignoring TPA to " + ignore,
                 TextFormatting.DARK_GREEN, true));
     }
 

@@ -15,9 +15,9 @@ public class DelRule extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName() + " <rule index, first is 0>";
+        return "/" + getName() + " <rule index, first is 0>";
     }
 
     @Override

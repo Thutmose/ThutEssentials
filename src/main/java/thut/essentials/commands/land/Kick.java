@@ -29,7 +29,7 @@ public class Kick extends BaseCommand
         if (toKick.equalsIgnoreCase(sender.getName()) || team1.hasPerm(kicker.getUniqueID(), LandTeam.KICK))
         {
             LandManager.getInstance().removeFromTeam(kickee.getUniqueID());
-            sender.addChatMessage(new TextComponentString("Removed " + toKick + " From Team."));
+            sender.sendMessage(new TextComponentString("Removed " + toKick + " From Team."));
         }
         else
         {

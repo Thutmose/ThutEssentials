@@ -61,7 +61,7 @@ public class SpawnDefuzzer
     {
         if (event.getHandler() instanceof NetHandlerPlayServer)
         {
-            EntityPlayerMP player = ((NetHandlerPlayServer) event.getHandler()).playerEntity;
+            EntityPlayerMP player = ((NetHandlerPlayServer) event.getHandler()).player;
             logins.add(player.getUniqueID());
         }
     }

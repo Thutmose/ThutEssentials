@@ -18,14 +18,14 @@ public class ListItems extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        sender.addChatMessage(
+        sender.sendMessage(
                 new TextComponentString("Current Blackist State: " + ConfigManager.INSTANCE.itemControlEnabled));
         if (ConfigManager.INSTANCE.itemControlEnabled)
         {
-            sender.addChatMessage(new TextComponentString("Current Item Blacklist:"));
+            sender.sendMessage(new TextComponentString("Current Item Blacklist:"));
             for (String s : ItemControl.blacklist)
             {
-                sender.addChatMessage(new TextComponentString(s));
+                sender.sendMessage(new TextComponentString(s));
             }
         }
     }

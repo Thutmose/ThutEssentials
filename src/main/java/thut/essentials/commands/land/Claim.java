@@ -76,8 +76,8 @@ public class Claim extends BaseCommand
                 num = 16;
             }
         }
-        int x = MathHelper.floor_double(sender.getPosition().getX() / 16f);
-        int z = MathHelper.floor_double(sender.getPosition().getZ() / 16f);
+        int x = MathHelper.floor(sender.getPosition().getX() / 16f);
+        int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
         int n = 0;
         for (int dx = -radius; dx <= radius; dx++)
             for (int dz = -radius; dz <= radius; dz++)
@@ -88,7 +88,7 @@ public class Claim extends BaseCommand
                         int dir = up ? 1 : -1;
                         teamCount = team.member.size();
                         count = LandManager.getInstance().countLand(team.teamName);
-                        int y = MathHelper.floor_double(sender.getPosition().getY() / 16f) + i * dir;
+                        int y = MathHelper.floor(sender.getPosition().getY() / 16f) + i * dir;
                         if (all) y = i * dir;
                         int dim = sender.getEntityWorld().provider.getDimension();
                         if (y < 0 || y > 15) continue;
@@ -101,7 +101,7 @@ public class Claim extends BaseCommand
                         if (owner != null)
                         {
                             if (owner.equals(team)) continue;
-                            sender.addChatMessage(new TextComponentString("This land is already claimed by " + owner));
+                            sender.sendMessage(new TextComponentString("This land is already claimed by " + owner));
                             continue;
                         }
                         n++;
@@ -109,12 +109,12 @@ public class Claim extends BaseCommand
                     }
                     else
                     {
-                        sender.addChatMessage(
+                        sender.sendMessage(
                                 new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
                         return;
                     }
                 }
-        sender.addChatMessage(new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
+        sender.sendMessage(new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
         return;
     }
 

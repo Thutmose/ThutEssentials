@@ -56,9 +56,9 @@ public class EconomyManager
         public boolean transact(EntityPlayer player, ItemStack heldStack, Account shopAccount)
         {
             ItemStack stack = null;
-            Entity ent = player.getServer().worldServerForDimension(player.dimension).getEntityFromUuid(frameId);
+            Entity ent = player.getServer().getWorld(player.dimension).getEntityFromUuid(frameId);
             if (ent instanceof EntityItemFrame) stack = ((EntityItemFrame) ent).getDisplayedItem();
-            TileEntity tile = player.worldObj.getTileEntity(new BlockPos(location.x, location.y, location.z));
+            TileEntity tile = player.world.getTileEntity(new BlockPos(location.x, location.y, location.z));
             if (!(tile instanceof TileEntitySign))
             {
                 removeShop(location);
@@ -88,7 +88,7 @@ public class EconomyManager
 
             if (recycle && heldStack == null)
             {
-                player.addChatMessage(
+                player.sendMessage(
                         new TextComponentString(TextFormatting.RED + "You need to hold the item you want to recycle"));
                 return false;
             }
@@ -102,7 +102,7 @@ public class EconomyManager
                 int balance = getBalance(player);
                 if (balance < cost)
                 {
-                    player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Funds"));
+                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Funds"));
                     return false;
                 }
                 stack = stack.copy();
@@ -114,7 +114,7 @@ public class EconomyManager
                     ItemStack test2 = stack.copy();
                     if (storage != null)
                     {
-                        TileEntity inventory = player.worldObj
+                        TileEntity inventory = player.world
                                 .getTileEntity(new BlockPos(storage.x, storage.y, storage.z));
                         if (inventory instanceof IInventory)
                         {
@@ -136,7 +136,7 @@ public class EconomyManager
                     }
                     if (count < number || inv == null)
                     {
-                        player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
+                        player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
                         return false;
                     }
                     int i = 0;
@@ -174,7 +174,7 @@ public class EconomyManager
                 giveItem(player, stack);
                 addBalance(player, -cost);
                 if (!infinite) shopAccount.balance += cost;
-                player.addChatMessage(new TextComponentString(
+                player.sendMessage(new TextComponentString(
                         TextFormatting.GREEN + "Remaining Balance: " + TextFormatting.GOLD + getBalance(player)));
             }
             else
@@ -182,7 +182,7 @@ public class EconomyManager
                 int balance = shopAccount.balance;
                 if (balance < cost)
                 {
-                    player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Funds"));
+                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Funds"));
                     return false;
                 }
                 int count = 0;
@@ -191,7 +191,7 @@ public class EconomyManager
                     count = CompatWrapper.getStackSize(heldStack);
                     if (count < number)
                     {
-                        player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
+                        player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
                         return false;
                     }
                     stack = heldStack;
@@ -211,7 +211,7 @@ public class EconomyManager
                     }
                     if (count < number)
                     {
-                        player.addChatMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
+                        player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
                         return false;
                     }
                 }
@@ -219,10 +219,10 @@ public class EconomyManager
                 {
                     if (storage == null)
                     {
-                        player.addChatMessage(new TextComponentString(TextFormatting.RED + "No Storage"));
+                        player.sendMessage(new TextComponentString(TextFormatting.RED + "No Storage"));
                         return false;
                     }
-                    TileEntity te = player.worldObj.getTileEntity(new BlockPos(storage.x, storage.y, storage.z));
+                    TileEntity te = player.world.getTileEntity(new BlockPos(storage.x, storage.y, storage.z));
                     if (te instanceof IInventory)
                     {
                         IInventory inv = (IInventory) te;
@@ -256,7 +256,7 @@ public class EconomyManager
                         stack.getTagCompound());
                 addBalance(player, cost);
                 if (!infinite) shopAccount.balance -= cost;
-                player.addChatMessage(new TextComponentString(
+                player.sendMessage(new TextComponentString(
                         TextFormatting.GREEN + "Remaining Balance: " + TextFormatting.GOLD + getBalance(player)));
             }
             return false;
@@ -308,7 +308,7 @@ public class EconomyManager
                 String permission = infinite ? "make_infinite_shop" : "make_shop";
                 if (!ThutEssentials.perms.hasPermission(evt.getEntityPlayer(), permission))
                 {
-                    evt.getEntityPlayer().addChatMessage(
+                    evt.getEntityPlayer().sendMessage(
                             new TextComponentString(TextFormatting.RED + "You are not allowed to make that shop."));
                     return;
                 }
@@ -420,7 +420,7 @@ public class EconomyManager
         boolean flag = entityplayer.inventory.addItemStackToInventory(itemstack);
         if (flag)
         {
-            entityplayer.worldObj.playSound((EntityPlayer) null, entityplayer.posX, entityplayer.posY,
+            entityplayer.world.playSound((EntityPlayer) null, entityplayer.posX, entityplayer.posY,
                     entityplayer.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F,
                     ((entityplayer.getRNG().nextFloat() - entityplayer.getRNG().nextFloat()) * 0.7F + 1.0F) * 2.0F);
             entityplayer.inventoryContainer.detectAndSendChanges();

@@ -29,7 +29,7 @@ public class SetAdmin extends BaseCommand
         if (LandManager.getInstance().isAdmin(user.getUniqueID()))
         {
             LandManager.getInstance().addAdmin(player.getUniqueID(), teamName);
-            sender.addChatMessage(new TextComponentString(player + " added as an Admin for Team " + teamName));
+            sender.sendMessage(new TextComponentString(player + " added as an Admin for Team " + teamName));
         }
         else
         {

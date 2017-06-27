@@ -44,7 +44,7 @@ public class EditRanks extends BaseCommand
             rank = landTeam.rankMap.get(rankName);
             if (rank != null) throw new CommandException("Rank " + rankName + " already exists.");
             landTeam.rankMap.put(rankName, new Rank());
-            player.addChatMessage(new TextComponentString("Added Rank " + rankName));
+            player.sendMessage(new TextComponentString("Added Rank " + rankName));
             LandSaveHandler.saveTeam(landTeam.teamName);
             break;
         case "setRank":
@@ -55,7 +55,7 @@ public class EditRanks extends BaseCommand
             rank.members.add(target.getUniqueID());
             landTeam.ranksMembers.put(target.getUniqueID(), rank);
             target.refreshDisplayName();
-            player.addChatMessage(new TextComponentString("Added " + target.getName() + " to Rank " + rankName));
+            player.sendMessage(new TextComponentString("Added " + target.getName() + " to Rank " + rankName));
             LandSaveHandler.saveTeam(landTeam.teamName);
             break;
         case "setPerm":
@@ -64,8 +64,8 @@ public class EditRanks extends BaseCommand
             if (rank == null) throw new CommandException("Rank " + rankName + " does not exist.");
             perm = args[2];
             added = rank.perms.add(perm);
-            if (added) player.addChatMessage(new TextComponentString("Allowed " + perm));
-            else player.addChatMessage(new TextComponentString("Already has " + perm));
+            if (added) player.sendMessage(new TextComponentString("Allowed " + perm));
+            else player.sendMessage(new TextComponentString("Already has " + perm));
             break;
         case "delPerm":
             rankName = args[1];
@@ -73,8 +73,8 @@ public class EditRanks extends BaseCommand
             if (rank == null) throw new CommandException("Rank " + rankName + " does not exist.");
             perm = args[2];
             added = rank.perms.remove(perm);
-            if (added) player.addChatMessage(new TextComponentString("Removed " + perm));
-            else player.addChatMessage(new TextComponentString("Did not have " + perm));
+            if (added) player.sendMessage(new TextComponentString("Removed " + perm));
+            else player.sendMessage(new TextComponentString("Did not have " + perm));
             break;
         case "setPrefix":
             rankName = args[1];
@@ -84,15 +84,15 @@ public class EditRanks extends BaseCommand
             rank.prefix = perm;
             if (perm.trim().isEmpty()) rank.prefix = null;
             added = rank.prefix != null;
-            if (added) player.addChatMessage(new TextComponentString("Set Prefix to " + rank.prefix));
-            else player.addChatMessage(new TextComponentString("Removed Rank Prefix"));
+            if (added) player.sendMessage(new TextComponentString("Set Prefix to " + rank.prefix));
+            else player.sendMessage(new TextComponentString("Removed Rank Prefix"));
             break;
         case "listRanks":
             Set<String> ranks = landTeam.rankMap.keySet();
-            player.addChatMessage(new TextComponentString("Ranks in your team:"));
+            player.sendMessage(new TextComponentString("Ranks in your team:"));
             for (String s : ranks)
             {
-                player.addChatMessage(new TextComponentString("  " + s));
+                player.sendMessage(new TextComponentString("  " + s));
             }
             break;
         case "listMembers":
@@ -100,12 +100,12 @@ public class EditRanks extends BaseCommand
             rank = landTeam.rankMap.get(rankName);
             if (rank == null) throw new CommandException("Rank " + rankName + " does not exist.");
             Collection<?> c = rank.members;
-            player.addChatMessage(new TextComponentString("Members of " + rankName));
+            player.sendMessage(new TextComponentString("Members of " + rankName));
             for (Object o : c)
             {
                 GameProfile profile = server.getMinecraftSessionService()
                         .fillProfileProperties(new GameProfile((UUID) o, null), true);
-                sender.addChatMessage(new TextComponentString("  " + profile.getName()));
+                sender.sendMessage(new TextComponentString("  " + profile.getName()));
             }
             break;
         }

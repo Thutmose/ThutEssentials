@@ -44,7 +44,7 @@ public class RAM extends BaseCommand
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         String ramString = memInfo();
-        sender.addChatMessage(new TextComponentString(ramString));
+        sender.sendMessage(new TextComponentString(ramString));
     }
 
 }

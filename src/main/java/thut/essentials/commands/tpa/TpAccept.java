@@ -39,18 +39,18 @@ public class TpAccept extends BaseCommand
         EntityPlayer target = server.getPlayerList().getPlayerByUUID(UUID.fromString(id));
         if (args[0].equals("accept"))
         {
-            target.addChatMessage(CommandManager.makeFormattedComponent("Your TPA request was accepted.",
+            target.sendMessage(CommandManager.makeFormattedComponent("Your TPA request was accepted.",
                     TextFormatting.GREEN, true));
-            player.addChatMessage(
+            player.sendMessage(
                     CommandManager.makeFormattedComponent("Accepted the TPA request.", TextFormatting.GREEN, true));
             PlayerMover.setMove(target, ThutEssentials.instance.config.tpaActivateDelay, player.dimension,
                     player.getPosition(), null, Spawn.INTERUPTED);
         }
         else if (args[0].equals("deny"))
         {
-            target.addChatMessage(
+            target.sendMessage(
                     CommandManager.makeFormattedComponent("Your TPA request was denied.", TextFormatting.RED, true));
-            player.addChatMessage(
+            player.sendMessage(
                     CommandManager.makeFormattedComponent("Denied the TPA request.", TextFormatting.RED, true));
         }
     }

@@ -32,7 +32,7 @@ public class HomeManager
             ITextComponent message = new TextComponentString(
                     "You may not have more than " + ConfigManager.INSTANCE.maxHomes + " homes!");
             message.getStyle().setColor(TextFormatting.DARK_RED);
-            player.addChatMessage(message);
+            player.sendMessage(message);
             return;
         }
         if (homes.hasKey(home))
@@ -40,13 +40,13 @@ public class HomeManager
             ITextComponent message = new TextComponentString(
                     "Already have " + home + " use /delhome to remove it first!");
             message.getStyle().setColor(TextFormatting.DARK_RED);
-            player.addChatMessage(message);
+            player.sendMessage(message);
             return;
         }
         int[] loc = new int[] { pos.getX(), pos.getY(), pos.getZ(), player.dimension };
         homes.setIntArray(home, loc);
         tag.setTag("homes", homes);
-        player.addChatMessage(new TextComponentString("set " + home));
+        player.sendMessage(new TextComponentString("set " + home));
         PlayerDataHandler.saveCustomData(player);
     }
 
@@ -57,7 +57,7 @@ public class HomeManager
         NBTTagCompound homes = tag.getCompoundTag("homes");
         homes.removeTag(home);
         tag.setTag("homes", homes);
-        player.addChatMessage(new TextComponentString("Removed " + home));
+        player.sendMessage(new TextComponentString("Removed " + home));
         PlayerDataHandler.saveCustomData(player);
     }
     
@@ -65,15 +65,15 @@ public class HomeManager
     {
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound homes = tag.getCompoundTag("homes");
-        player.addChatMessage(new TextComponentString("================"));
-        player.addChatMessage(new TextComponentString("      Homes     "));
-        player.addChatMessage(new TextComponentString("================"));
+        player.sendMessage(new TextComponentString("================"));
+        player.sendMessage(new TextComponentString("      Homes     "));
+        player.sendMessage(new TextComponentString("================"));
         for(String s: homes.getKeySet())
         {
             Style style = new Style();
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home "+s));
-            player.addChatMessage(new TextComponentString(s).setStyle(style));
+            player.sendMessage(new TextComponentString(s).setStyle(style));
         }
-        player.addChatMessage(new TextComponentString("================"));
+        player.sendMessage(new TextComponentString("================"));
     }
 }

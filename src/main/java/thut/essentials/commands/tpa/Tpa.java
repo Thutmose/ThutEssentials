@@ -40,18 +40,18 @@ public class Tpa extends BaseCommand
         ITextComponent header = player.getDisplayName().appendSibling(
                 CommandManager.makeFormattedComponent(" has Requested to tp to you", TextFormatting.YELLOW, true));
 
-        target.addChatMessage(header);
+        target.sendMessage(header);
         ITextComponent tpMessage;
         ITextComponent accept = CommandManager.makeFormattedCommandLink("Accept",
                 "/tpaccept accept " + player.getCachedUniqueIdString(), TextFormatting.GREEN, true);
         ITextComponent deny = CommandManager.makeFormattedCommandLink("Deny",
                 "/tpaccept deny " + player.getCachedUniqueIdString(), TextFormatting.RED, true);
         tpMessage = accept.appendSibling(new TextComponentString("      /      ")).appendSibling(deny);
-        target.addChatMessage(tpMessage);
+        target.sendMessage(tpMessage);
         tpaTag.setString("R", player.getCachedUniqueIdString());
         tag.setTag("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(target);
-        player.addChatMessage(CommandManager.makeFormattedComponent(
+        player.sendMessage(CommandManager.makeFormattedComponent(
                 target.getDisplayName().getFormattedText() + " has been sent a TPA request", TextFormatting.DARK_GREEN,
                 true));
     }

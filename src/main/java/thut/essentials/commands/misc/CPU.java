@@ -22,7 +22,7 @@ public class CPU extends BaseCommand
         val = (int) (100 * meanTickTime / 50);
         val = Math.min(val, 100);
         String mess = "World Threads Load: " + val + "%";
-        sender.addChatMessage(new TextComponentString(mess));
+        sender.sendMessage(new TextComponentString(mess));
     }
 
     private static long mean(long[] values)

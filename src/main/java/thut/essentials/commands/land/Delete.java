@@ -26,7 +26,7 @@ public class Delete extends BaseCommand
         if (!LandManager.getInstance().isAdmin(player.getUniqueID())
                 || team.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName))
         {
-            sender.addChatMessage(new TextComponentString("You are not Authorized to delete your team"));
+            sender.sendMessage(new TextComponentString("You are not Authorized to delete your team"));
             return;
         }
         LandManager.getInstance().removeTeam(team.teamName);

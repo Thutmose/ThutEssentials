@@ -42,7 +42,7 @@ public class EditTeam extends BaseCommand
             if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.exitMessage = message;
-            sender.addChatMessage(new TextComponentString(TextFormatting.GREEN + "Set Exit Message to " + message));
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Exit Message to " + message));
             return;
         }
         if (arg.equalsIgnoreCase("enter"))
@@ -50,7 +50,7 @@ public class EditTeam extends BaseCommand
             if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.enterMessage = message;
-            sender.addChatMessage(new TextComponentString(TextFormatting.GREEN + "Set Enter Message to " + message));
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Enter Message to " + message));
             return;
         }
         if (arg.equalsIgnoreCase("deny"))
@@ -58,7 +58,7 @@ public class EditTeam extends BaseCommand
             if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.denyMessage = message;
-            sender.addChatMessage(new TextComponentString(TextFormatting.GREEN + "Set Deny Message to " + message));
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Deny Message to " + message));
             return;
         }
         if (arg.equalsIgnoreCase("prefix"))
@@ -68,7 +68,7 @@ public class EditTeam extends BaseCommand
             if (message.length() > ConfigManager.INSTANCE.prefixLength)
                 message = message.substring(0, ConfigManager.INSTANCE.prefixLength);
             landTeam.prefix = message;
-            sender.addChatMessage(
+            sender.sendMessage(
                     new TextComponentString(TextFormatting.GREEN + "Set Prefix to " + TextFormatting.RESET + message));
             refreshTeam(landTeam, server);
             return;
@@ -78,13 +78,13 @@ public class EditTeam extends BaseCommand
             if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.SETHOME))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.home = new Coordinate(player.getPosition(), player.dimension);
-            sender.addChatMessage(new TextComponentString(TextFormatting.GREEN + "Set Team Home to " + landTeam.home));
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Team Home to " + landTeam.home));
             return;
         }
         if (arg.equalsIgnoreCase("reserve") && ThutEssentials.perms.hasPermission(player, "land.team.reserve"))
         {
             landTeam.reserved = Boolean.parseBoolean(message);
-            sender.addChatMessage(
+            sender.sendMessage(
                     new TextComponentString(TextFormatting.GREEN + "reserved set to " + landTeam.reserved));
             return;
         }
@@ -92,7 +92,7 @@ public class EditTeam extends BaseCommand
                 && ThutEssentials.perms.hasPermission(player, "land.team.noplayerdamage"))
         {
             landTeam.noPlayerDamage = Boolean.parseBoolean(message);
-            sender.addChatMessage(
+            sender.sendMessage(
                     new TextComponentString(TextFormatting.GREEN + "noPlayerDamage set to " + landTeam.noPlayerDamage));
             return;
         }
@@ -100,14 +100,14 @@ public class EditTeam extends BaseCommand
                 && ThutEssentials.perms.hasPermission(player, "land.team.friendlyfire"))
         {
             landTeam.friendlyFire = Boolean.parseBoolean(message);
-            sender.addChatMessage(
+            sender.sendMessage(
                     new TextComponentString(TextFormatting.GREEN + "friendlyFire set to " + landTeam.friendlyFire));
             return;
         }
         if (arg.equalsIgnoreCase("noMobSpawn") && ThutEssentials.perms.hasPermission(player, "land.team.nomobspawn"))
         {
             landTeam.noMobSpawn = Boolean.parseBoolean(message);
-            sender.addChatMessage(
+            sender.sendMessage(
                     new TextComponentString(TextFormatting.GREEN + "noMobSpawn set to " + landTeam.noMobSpawn));
             return;
         }
@@ -115,7 +115,7 @@ public class EditTeam extends BaseCommand
                 && ThutEssentials.perms.hasPermission(player, "land.team.noexplosions"))
         {
             landTeam.noExplosions = Boolean.parseBoolean(message);
-            sender.addChatMessage(
+            sender.sendMessage(
                     new TextComponentString(TextFormatting.GREEN + "noExplosions set to " + landTeam.noExplosions));
             return;
         }

@@ -15,9 +15,9 @@ public class DelWarp extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName() + " <warpName>";
+        return "/" + getName() + " <warpName>";
     }
 
     @Override

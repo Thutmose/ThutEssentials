@@ -34,7 +34,7 @@ public class ItemControl
     @SubscribeEvent
     public void itemLife(EntityJoinWorldEvent event)
     {
-        if (!ConfigManager.INSTANCE.itemLifeTweak || event.getEntity().worldObj.isRemote
+        if (!ConfigManager.INSTANCE.itemLifeTweak || event.getEntity().world.isRemote
                 || !(event.getEntity() instanceof EntityItem))
             return;
         EntityItem item = (EntityItem) event.getEntity();
@@ -44,7 +44,7 @@ public class ItemControl
     @SubscribeEvent
     public void denyPlayerHeldEvent(LivingUpdateEvent event)
     {
-        if (!ConfigManager.INSTANCE.itemControlEnabled || event.getEntity().worldObj.isRemote) return;
+        if (!ConfigManager.INSTANCE.itemControlEnabled || event.getEntity().world.isRemote) return;
         for (EnumHand hand : EnumHand.values())
         {
             Item item;
@@ -58,10 +58,9 @@ public class ItemControl
                             0);
                     drop.setPickupDelay(40);
                     event.getEntityLiving().setHeldItem(EnumHand.MAIN_HAND, null);
-                    event.getEntityLiving().attackEntityFrom(DamageSource.generic,
+                    event.getEntityLiving().attackEntityFrom(DamageSource.GENERIC,
                             (float) ConfigManager.INSTANCE.blacklistDamage);
-                    event.getEntityLiving()
-                            .addChatMessage(new TextComponentString("That item is not allowed to be held"));
+                    event.getEntityLiving().sendMessage(new TextComponentString("That item is not allowed to be held"));
                 }
             }
         }

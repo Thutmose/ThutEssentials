@@ -213,7 +213,7 @@ public class CommandManager
                     {
                         System.out.println("Error with " + candidateClass);
                     }
-                    if (move != null && move.getCommandName() != null)
+                    if (move != null && move.getName() != null)
                     {
                         if (blacklist.contains(candidateClass.getName()))
                         {

@@ -35,7 +35,7 @@ public class Spy extends BaseCommand
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = false)
     public void chat(CommandEvent event)
     {
-        if (event.getCommand().getCommandName().equals("tell") && event.getParameters().length > 1)
+        if (event.getCommand().getName().equals("tell") && event.getParameters().length > 1)
         {
             ITextComponent message;
             EntityPlayer target = null;
@@ -65,12 +65,12 @@ public class Spy extends BaseCommand
                 if (id == serverID)
                 {
                     for (ICommandSender sender2 : customSenders)
-                        sender2.addChatMessage(message);
+                        sender2.sendMessage(message);
                 }
                 else if (!(id.equals(target.getUniqueID()) || id.equals(sayer.getUniqueID())))
                 {
                     EntityPlayerMP spy = event.getSender().getServer().getPlayerList().getPlayerByUUID(id);
-                    spy.addChatMessage(message);
+                    spy.sendMessage(message);
                 }
             }
         }
@@ -91,13 +91,13 @@ public class Spy extends BaseCommand
         if (spies.remove(id))
         {
             customSenders.remove(sender);
-            sender.addChatMessage(new TextComponentString("Spying turned off."));
+            sender.sendMessage(new TextComponentString("Spying turned off."));
         }
         else
         {
             spies.add(id);
             if (id == serverID) customSenders.add(sender);
-            sender.addChatMessage(new TextComponentString("Spying turned on."));
+            sender.sendMessage(new TextComponentString("Spying turned on."));
         }
     }
 

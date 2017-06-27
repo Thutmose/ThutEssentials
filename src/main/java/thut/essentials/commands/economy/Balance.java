@@ -21,7 +21,7 @@ public class Balance extends BaseCommand
     {
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         int amount = EconomyManager.getBalance(player);
-        player.addChatMessage(new TextComponentString("Your Balance is " + amount));
+        player.sendMessage(new TextComponentString("Your Balance is " + amount));
     }
 
 }

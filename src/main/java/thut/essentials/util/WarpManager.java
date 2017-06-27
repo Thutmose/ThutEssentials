@@ -90,15 +90,15 @@ public class WarpManager
 
     public static void sendWarpsList(EntityPlayer player)
     {
-        player.addChatMessage(new TextComponentString("================"));
-        player.addChatMessage(new TextComponentString("      Warps     "));
-        player.addChatMessage(new TextComponentString("================"));
+        player.sendMessage(new TextComponentString("================"));
+        player.sendMessage(new TextComponentString("      Warps     "));
+        player.sendMessage(new TextComponentString("================"));
         for (String s : warpLocs.keySet())
         {
             Style style = new Style();
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
-            player.addChatMessage(new TextComponentString(s).setStyle(style));
+            player.sendMessage(new TextComponentString(s).setStyle(style));
         }
-        player.addChatMessage(new TextComponentString("================"));
+        player.sendMessage(new TextComponentString("================"));
     }
 }

@@ -25,9 +25,9 @@ public class Home extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName() + " <optional|homeName>";
+        return "/" + getName() + " <optional|homeName>";
     }
 
     @Override
@@ -40,10 +40,10 @@ public class Home extends BaseCommand
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tptag = tag.getCompoundTag("tp");
         long last = tptag.getLong("homeDelay");
-        long time = player.getServer().worldServerForDimension(0).getTotalWorldTime();
+        long time = player.getServer().getWorld(0).getTotalWorldTime();
         if (last > time)
         {
-            player.addChatMessage(
+            player.sendMessage(
                     CommandManager.makeFormattedComponent("Too Soon between Warp attempt", TextFormatting.RED, false));
             return;
         }

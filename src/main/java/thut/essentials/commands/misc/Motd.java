@@ -34,7 +34,7 @@ public class Motd extends BaseCommand
         {
             motd = RuleManager.format(motd);
         }
-        entityPlayer.addChatMessage(new TextComponentString(motd));
+        entityPlayer.sendMessage(new TextComponentString(motd));
     }
 
     @Override
@@ -49,7 +49,7 @@ public class Motd extends BaseCommand
         {
             motd = RuleManager.format(motd);
         }
-        sender.addChatMessage(new TextComponentString(motd));
+        sender.sendMessage(new TextComponentString(motd));
     }
 
 }

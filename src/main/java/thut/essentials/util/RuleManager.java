@@ -86,7 +86,7 @@ public class RuleManager
         List<String> rulesList = getRules();
         rule = format(rule);
         rulesList.add(rule);
-        sender.addChatMessage(new TextComponentString("Added rule: " + rule));
+        sender.sendMessage(new TextComponentString("Added rule: " + rule));
         ConfigManager.INSTANCE.updateField(rulesField, rulesList.toArray(new String[0]));
     }
 
@@ -94,7 +94,7 @@ public class RuleManager
     {
         List<String> rulesList = getRules();
         String r = rulesList.remove(rule);
-        sender.addChatMessage(new TextComponentString("Removed rule: " + r));
+        sender.sendMessage(new TextComponentString("Removed rule: " + r));
         ConfigManager.INSTANCE.updateField(rulesField, rulesList.toArray(new String[0]));
     }
 

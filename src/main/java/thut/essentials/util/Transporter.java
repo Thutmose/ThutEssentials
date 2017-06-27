@@ -41,17 +41,17 @@ public class Transporter
 
         public int intY()
         {
-            return MathHelper.floor_double(y);
+            return MathHelper.floor(y);
         }
 
         public int intX()
         {
-            return MathHelper.floor_double(x);
+            return MathHelper.floor(x);
         }
 
         public int intZ()
         {
-            return MathHelper.floor_double(z);
+            return MathHelper.floor(z);
         }
 
         public AxisAlignedBB getAABB()
@@ -121,7 +121,7 @@ public class Transporter
         {
             theEntity = entity;
             theMount = mount;
-            time = entity.worldObj.getTotalWorldTime();
+            time = entity.world.getTotalWorldTime();
             this.dim = dim;
         }
 
@@ -130,7 +130,7 @@ public class Transporter
         {
             if (evt.phase != TickEvent.Phase.END) return;
             if (theEntity.isDead) MinecraftForge.EVENT_BUS.unregister(this);
-            if (theEntity.worldObj.getTotalWorldTime() >= time)
+            if (theEntity.world.getTotalWorldTime() >= time)
             {
                 if (dim != theEntity.dimension)
                 {
@@ -139,7 +139,7 @@ public class Transporter
                         ReflectionHelper.setPrivateValue(EntityPlayerMP.class, (EntityPlayerMP) theEntity, true,
                                 "invulnerableDimensionChange", "field_184851_cj", "ck");
                         theEntity.getServer().getPlayerList().transferPlayerToDimension((EntityPlayerMP) theEntity, dim,
-                                new TTeleporter(theEntity.getServer().worldServerForDimension(dim)));
+                                new TTeleporter(theEntity.getServer().getWorld(dim)));
                     }
                     else
                     {
@@ -175,7 +175,7 @@ public class Transporter
         for (int i = x - 1; i <= x + 1; i++)
             for (int j = z - 1; j <= z + 1; j++)
             {
-                entity.worldObj.getChunkFromChunkCoords(x, z);
+                entity.world.getChunkFromChunkCoords(x, z);
             }
         entity.setPositionAndUpdate(t2.x, t2.y, t2.z);
         List<Entity> passengers = Lists.newArrayList(entity.getPassengers());
@@ -185,11 +185,11 @@ public class Transporter
             e.setPositionAndUpdate(t2.x, t2.y, t2.z);
             MinecraftForge.EVENT_BUS.register(new ReMounter(e, entity, dimension));
         }
-        WorldServer world = entity.getServer().worldServerForDimension(dimension);
+        WorldServer world = entity.getServer().getWorld(dimension);
         EntityTracker tracker = world.getEntityTracker();
         if (tracker.getTrackingPlayers(entity).getClass().getSimpleName().equals("EmptySet"))
         {
-            tracker.trackEntity(entity);
+            tracker.track(entity);
             if (entity instanceof EntityPlayerMP)
             {
                 EntityPlayerMP playerIn = (EntityPlayerMP) entity;
@@ -202,11 +202,11 @@ public class Transporter
     // From RFTools.
     private static Entity transferToDimension(Entity entityIn, Vector3 t2, int dimension)
     {
-        int oldDimension = entityIn.worldObj.provider.getDimension();
+        int oldDimension = entityIn.world.provider.getDimension();
         if (oldDimension == dimension) return entityIn;
         if (!(entityIn instanceof EntityPlayerMP)) { return changeDimension(entityIn, t2, dimension); }
-        MinecraftServer server = entityIn.worldObj.getMinecraftServer();
-        WorldServer worldServer = server.worldServerForDimension(dimension);
+        MinecraftServer server = entityIn.world.getMinecraftServer();
+        WorldServer worldServer = server.getWorld(dimension);
         Teleporter teleporter = new TTeleporter(worldServer, t2.x, t2.y, t2.z);
         EntityPlayerMP entityPlayerMP = (EntityPlayerMP) entityIn;
         ReflectionHelper.setPrivateValue(EntityPlayerMP.class, entityPlayerMP, true, "invulnerableDimensionChange",
@@ -217,7 +217,7 @@ public class Transporter
         if (oldDimension == 1)
         {
             // For some reason teleporting out of the end does weird things.
-            worldServer.spawnEntityInWorld(entityPlayerMP);
+            worldServer.spawnEntity(entityPlayerMP);
             worldServer.updateEntityWithOptionalForce(entityPlayerMP, false);
         }
         return entityPlayerMP;
@@ -228,51 +228,49 @@ public class Transporter
     public static Entity changeDimension(Entity entityIn, Vector3 t2, int dimensionIn)
     {
         if (entityIn.dimension == dimensionIn) return entityIn;
-        if (!entityIn.worldObj.isRemote && !entityIn.isDead)
+        if (!entityIn.world.isRemote && !entityIn.isDead)
         {
             List<Entity> passengers = entityIn.getPassengers();
 
             if (!net.minecraftforge.common.ForgeHooks.onTravelToDimension(entityIn, dimensionIn)) return null;
-            entityIn.worldObj.theProfiler.startSection("changeDimension");
+            entityIn.world.profiler.startSection("changeDimension");
             MinecraftServer minecraftserver = entityIn.getServer();
             int i = entityIn.dimension;
-            WorldServer worldserver = minecraftserver.worldServerForDimension(i);
-            WorldServer worldserver1 = minecraftserver.worldServerForDimension(dimensionIn);
+            WorldServer worldserver = minecraftserver.getWorld(i);
+            WorldServer worldserver1 = minecraftserver.getWorld(dimensionIn);
             entityIn.dimension = dimensionIn;
 
             if (i == 1 && dimensionIn == 1)
             {
-                worldserver1 = minecraftserver.worldServerForDimension(0);
+                worldserver1 = minecraftserver.getWorld(0);
                 entityIn.dimension = 0;
             }
             NBTTagCompound tag = new NBTTagCompound();
             entityIn.writeToNBT(tag);
-            entityIn.worldObj.removeEntity(entityIn);
+            entityIn.world.removeEntity(entityIn);
             entityIn.readFromNBT(tag);
             entityIn.isDead = false;
-            entityIn.worldObj.theProfiler.startSection("reposition");
+            entityIn.world.profiler.startSection("reposition");
 
             double d0 = entityIn.posX;
             double d1 = entityIn.posZ;
-            d0 = MathHelper.clamp_int((int) d0, -29999872, 29999872);
-            d1 = MathHelper.clamp_int((int) d1, -29999872, 29999872);
-            d0 = MathHelper.clamp_double(d0, worldserver1.getWorldBorder().minX(),
-                    worldserver1.getWorldBorder().maxX());
-            d1 = MathHelper.clamp_double(d1, worldserver1.getWorldBorder().minZ(),
-                    worldserver1.getWorldBorder().maxZ());
+            d0 = MathHelper.clamp((int) d0, -29999872, 29999872);
+            d1 = MathHelper.clamp((int) d1, -29999872, 29999872);
+            d0 = MathHelper.clamp(d0, worldserver1.getWorldBorder().minX(), worldserver1.getWorldBorder().maxX());
+            d1 = MathHelper.clamp(d1, worldserver1.getWorldBorder().minZ(), worldserver1.getWorldBorder().maxZ());
             float f = entityIn.rotationYaw;
             entityIn.setLocationAndAngles(d0, entityIn.posY, d1, 90.0F, 0.0F);
             Teleporter teleporter = new TTeleporter(worldserver1, t2.x, t2.y, t2.z);
             teleporter.placeInExistingPortal(entityIn, f);
             worldserver.updateEntityWithOptionalForce(entityIn, false);
-            entityIn.worldObj.theProfiler.endStartSection("reloading");
+            entityIn.world.profiler.endStartSection("reloading");
             Entity entity = CompatWrapper.createEntity(worldserver1, entityIn);
             if (entity != null)
             {
                 if (copyDataFromOld == null)
                 {
-                    copyDataFromOld = ReflectionHelper.findMethod(Entity.class, entity,
-                            new String[] { "a", "func_180432_n", "copyDataFromOld" }, Entity.class);
+                    copyDataFromOld = ReflectionHelper.findMethod(Entity.class, "copyDataFromOld", "func_180432_n",
+                            Entity.class);
                 }
                 try
                 {
@@ -283,7 +281,7 @@ public class Transporter
                     e1.printStackTrace();
                 }
                 entity.forceSpawn = true;
-                worldserver1.spawnEntityInWorld(entity);
+                worldserver1.spawnEntity(entity);
                 worldserver1.updateEntityWithOptionalForce(entity, true);
                 for (Entity e : passengers)
                 {
@@ -298,10 +296,10 @@ public class Transporter
                 }
             }
             entityIn.isDead = true;
-            entityIn.worldObj.theProfiler.endSection();
+            entityIn.world.profiler.endSection();
             worldserver.resetUpdateEntityTick();
             worldserver1.resetUpdateEntityTick();
-            entityIn.worldObj.theProfiler.endSection();
+            entityIn.world.profiler.endSection();
             return entity;
         }
         return null;

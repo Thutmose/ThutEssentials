@@ -38,13 +38,13 @@ public class Join extends BaseCommand
             {
                 LandManager.getInstance().addToTeam(player.getUniqueID(), teamname);
                 LandManager.getInstance().addAdmin(player.getUniqueID(), teamname);
-                player.addChatMessage(new TextComponentString("You joined Team " + teamname));
+                player.sendMessage(new TextComponentString("You joined Team " + teamname));
                 return;
             }
         }
         if (LandManager.getInstance().hasInvite(player.getUniqueID(), teamname) || isOp)
             LandManager.getInstance().addToTeam(player.getUniqueID(), teamname);
-        else sender.addChatMessage(new TextComponentString("You do not have an invite for Team " + teamname));
+        else sender.sendMessage(new TextComponentString("You do not have an invite for Team " + teamname));
     }
 
 }

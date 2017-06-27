@@ -25,7 +25,7 @@ public class Leave extends BaseCommand
         LandTeam def = LandManager.getDefaultTeam();
         if (team == def) throw new CommandException("You cannot leave the default team");
         LandManager.getInstance().removeFromTeam(player.getUniqueID());
-        sender.addChatMessage(new TextComponentString("Left Team " + team.teamName));
+        sender.sendMessage(new TextComponentString("Left Team " + team.teamName));
 
     }
 

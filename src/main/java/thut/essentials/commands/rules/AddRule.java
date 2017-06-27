@@ -15,9 +15,9 @@ public class AddRule extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName() + " <rule>";
+        return "/" + getName() + " <rule>";
     }
 
     @Override

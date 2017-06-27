@@ -41,7 +41,7 @@ public abstract class BaseCommand extends CommandBase
     private int getPermissionLevel(int deault_)
     {
         if (permsMap.containsKey(key)) return permsMap.get(key);
-        for (String s : getCommandAliases())
+        for (String s : getAliases())
             if (permsMap.containsKey(s)) return permsMap.get(s);
         return deault_;
     }
@@ -73,32 +73,32 @@ public abstract class BaseCommand extends CommandBase
     }
 
     @Override
-    public String getCommandName()
+    public String getName()
     {
         if (CommandManager.commands.get(key) == null) { return key; }
         return CommandManager.commands.get(key).get(0);
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName();
+        return "/" + getName();
     }
 
     @Override
-    public List<String> getCommandAliases()
+    public List<String> getAliases()
     {
         if (CommandManager.commands.get(key) != null) { return CommandManager.commands.get(key); }
         return Collections.<String> emptyList();
     }
 
     @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
             @Nullable BlockPos pos)
     {
         int last = args.length - 1;
         if (last >= 0 && isUsernameIndex(args,
-                last)) { return getListOfStringsMatchingLastWord(args, server.getAllUsernames()); }
+                last)) { return getListOfStringsMatchingLastWord(args, server.getOnlinePlayerNames()); }
         return Collections.<String> emptyList();
     }
 

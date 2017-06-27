@@ -29,7 +29,7 @@ public class Mute extends BaseCommand
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(talker);
         if (tag.getLong("muted") > talker.getServer().getEntityWorld().getTotalWorldTime())
         {
-            talker.addChatMessage(new TextComponentString("You are muted"));
+            talker.sendMessage(new TextComponentString("You are muted"));
             System.out.println(event.getUsername() + ": " + event.getMessage());
             event.setCanceled(true);
         }
@@ -46,7 +46,7 @@ public class Mute extends BaseCommand
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         tag.setLong("muted", server.getEntityWorld().getTotalWorldTime() + (time * 20 * 60));
         System.out.println("Muted " + player.getDisplayNameString() + " for " + reason + " for " + time + " minutes");
-        player.addChatMessage(
+        player.sendMessage(
                 new TextComponentString("You have been muted for " + reason + " for " + time + " minutes"));
         PlayerDataHandler.saveCustomData(player);
     }

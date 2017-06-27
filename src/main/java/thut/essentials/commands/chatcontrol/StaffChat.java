@@ -65,11 +65,11 @@ public class StaffChat extends BaseCommand
             try
             {
                 ConfigManager.INSTANCE.updateField(staffField, rulesList.toArray(new String[0]));
-                sender.addChatMessage(new TextComponentString("Added to Staff: " + args[1]));
+                sender.sendMessage(new TextComponentString("Added to Staff: " + args[1]));
             }
             catch (Exception e)
             {
-                sender.addChatMessage(new TextComponentString("Error adding to Staff"));
+                sender.sendMessage(new TextComponentString("Error adding to Staff"));
                 e.printStackTrace();
             }
         }
@@ -84,11 +84,11 @@ public class StaffChat extends BaseCommand
             try
             {
                 ConfigManager.INSTANCE.updateField(staffField, rulesList.toArray(new String[0]));
-                sender.addChatMessage(new TextComponentString("Removed from Staff: " + args[1]));
+                sender.sendMessage(new TextComponentString("Removed from Staff: " + args[1]));
             }
             catch (Exception e)
             {
-                sender.addChatMessage(new TextComponentString("Error remvoing from Staff"));
+                sender.sendMessage(new TextComponentString("Error remvoing from Staff"));
                 e.printStackTrace();
             }
         }
@@ -104,7 +104,7 @@ public class StaffChat extends BaseCommand
                     "[Staff]" + sender.getDisplayName().getFormattedText() + ": ");
             mess.getStyle().setColor(TextFormatting.YELLOW);
             mess.appendSibling(CommandManager.makeFormattedComponent(message, TextFormatting.AQUA, false));
-            server.addChatMessage(mess);
+            server.sendMessage(mess);
             for (String s : ConfigManager.INSTANCE.staff)
             {
                 try
@@ -113,7 +113,7 @@ public class StaffChat extends BaseCommand
                     EntityPlayer player = server.getPlayerList().getPlayerByUUID(id);
                     if (player != null)
                     {
-                        player.addChatMessage(mess);
+                        player.sendMessage(mess);
                     }
                 }
                 catch (Exception e)

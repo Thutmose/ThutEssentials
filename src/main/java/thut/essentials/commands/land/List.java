@@ -26,13 +26,13 @@ public class List extends BaseCommand
     {
         LandTeam team = LandManager.getTeam(getCommandSenderAsPlayer(sender));
         String teamName = team.teamName;
-        sender.addChatMessage(new TextComponentString("Members of Team " + teamName));
+        sender.sendMessage(new TextComponentString("Members of Team " + teamName));
         Collection<?> c = team.member;
         for (Object o : c)
         {
             GameProfile profile = server.getMinecraftSessionService()
                     .fillProfileProperties(new GameProfile((UUID) o, null), true);
-            sender.addChatMessage(new TextComponentString("" + profile.getName()));
+            sender.sendMessage(new TextComponentString("" + profile.getName()));
         }
     }
 

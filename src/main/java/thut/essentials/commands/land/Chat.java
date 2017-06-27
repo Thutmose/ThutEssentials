@@ -37,7 +37,7 @@ public class Chat extends BaseCommand
         mess.getStyle().setColor(TextFormatting.YELLOW);
         mess.appendSibling(CommandManager.makeFormattedComponent(message, TextFormatting.AQUA, false));
         LandTeam team = LandManager.getTeam(getCommandSenderAsPlayer(sender));
-        if (ConfigManager.INSTANCE.logTeamChat) server.addChatMessage(mess);
+        if (ConfigManager.INSTANCE.logTeamChat) server.sendMessage(mess);
         for (UUID id : team.member)
         {
             try
@@ -45,7 +45,7 @@ public class Chat extends BaseCommand
                 EntityPlayer player = server.getPlayerList().getPlayerByUUID(id);
                 if (player != null)
                 {
-                    player.addChatMessage(mess);
+                    player.sendMessage(mess);
                 }
             }
             catch (Exception e)

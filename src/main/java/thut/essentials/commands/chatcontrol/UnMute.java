@@ -27,12 +27,12 @@ public class UnMute extends BaseCommand
         {
             tag.removeTag("muted");
             PlayerDataHandler.saveCustomData(player);
-            player.addChatMessage(new TextComponentString("You have been unmuted"));
-            sender.addChatMessage(new TextComponentString(args[0] + " has been unmuted"));
+            player.sendMessage(new TextComponentString("You have been unmuted"));
+            sender.sendMessage(new TextComponentString(args[0] + " has been unmuted"));
         }
         else
         {
-            sender.addChatMessage(new TextComponentString(args[0] + " was not muted."));
+            sender.sendMessage(new TextComponentString(args[0] + " was not muted."));
         }
     }
 

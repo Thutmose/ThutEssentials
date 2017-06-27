@@ -25,7 +25,7 @@ public class God extends BaseCommand
             player.capabilities.disableDamage = false;
         }
         player.sendPlayerAbilities();
-        player.addChatMessage(new TextComponentString(
+        player.sendMessage(new TextComponentString(
                 TextFormatting.GREEN + "God set to: " + TextFormatting.GOLD + player.capabilities.disableDamage));
     }
 }

@@ -21,13 +21,13 @@ public class Owner extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        int x = MathHelper.floor_double(sender.getPosition().getX() / 16f);
-        int y = MathHelper.floor_double(sender.getPosition().getY() / 16f);
-        int z = MathHelper.floor_double(sender.getPosition().getZ() / 16f);
+        int x = MathHelper.floor(sender.getPosition().getX() / 16f);
+        int y = MathHelper.floor(sender.getPosition().getY() / 16f);
+        int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
         int dim = sender.getEntityWorld().provider.getDimension();
         LandTeam owner = LandManager.getInstance().getLandOwner(new Coordinate(x, y, z, dim));
-        if (owner == null) sender.addChatMessage(new TextComponentString("This Land is not owned"));
-        else sender.addChatMessage(new TextComponentString("This Land is owned by Team " + owner.teamName));
+        if (owner == null) sender.sendMessage(new TextComponentString("This Land is not owned"));
+        else sender.sendMessage(new TextComponentString("This Land is owned by Team " + owner.teamName));
     }
 
 }

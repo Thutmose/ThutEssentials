@@ -53,7 +53,7 @@ public class RTP extends BaseCommand
             ;
         if (position != null) PlayerMover.setMove(player, ThutEssentials.instance.config.rtpActivateDelay,
                 player.dimension, position, null, Spawn.INTERUPTED);
-        else sender.addChatMessage(new TextComponentString("No spot found."));
+        else sender.sendMessage(new TextComponentString("No spot found."));
     }
 
     private boolean isValid(IBlockState ground, IBlockState lower, IBlockState upper)

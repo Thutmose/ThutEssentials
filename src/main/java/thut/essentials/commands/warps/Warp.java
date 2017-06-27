@@ -26,9 +26,9 @@ public class Warp extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName() + " <warpName>";
+        return "/" + getName() + " <warpName>";
     }
 
     @Override
@@ -44,10 +44,10 @@ public class Warp extends BaseCommand
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tptag = tag.getCompoundTag("tp");
         long last = tptag.getLong("warpDelay");
-        long time = player.getServer().worldServerForDimension(0).getTotalWorldTime();
+        long time = player.getServer().getWorld(0).getTotalWorldTime();
         if (last > time)
         {
-            player.addChatMessage(
+            player.sendMessage(
                     CommandManager.makeFormattedComponent("Too Soon between Warp attempt", TextFormatting.RED, false));
             return;
         }

@@ -103,7 +103,7 @@ public class LandEventsHandler
             if (!LandManager.getInstance().isOwned(c)) return;
             if (!LandManager.owns(player, c))
             {
-                player.addChatMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
+                player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
                 evt.setCanceled(true);
                 return;
             }
@@ -150,14 +150,14 @@ public class LandEventsHandler
                         long last = lastLeaveMessage.get(evt.getEntity().getUniqueID());
                         if (last < System.currentTimeMillis())
                         {
-                            evt.getEntity().addChatMessage(getExitMessage(team1));
+                            evt.getEntity().sendMessage(getExitMessage(team1));
                             lastLeaveMessage.put(evt.getEntity().getUniqueID(), System.currentTimeMillis() + 100);
                         }
                     }
                     long last = lastEnterMessage.get(evt.getEntity().getUniqueID());
                     if (last < System.currentTimeMillis())
                     {
-                        evt.getEntity().addChatMessage(getEnterMessage(team));
+                        evt.getEntity().sendMessage(getEnterMessage(team));
                         lastLeaveMessage.put(evt.getEntity().getUniqueID(), System.currentTimeMillis() + 100);
                     }
                 }
@@ -166,7 +166,7 @@ public class LandEventsHandler
                     long last = lastLeaveMessage.get(evt.getEntity().getUniqueID());
                     if (last < System.currentTimeMillis())
                     {
-                        evt.getEntity().addChatMessage(getExitMessage(team1));
+                        evt.getEntity().sendMessage(getExitMessage(team1));
                         lastLeaveMessage.put(evt.getEntity().getUniqueID(), System.currentTimeMillis() + 100);
                     }
                 }
@@ -215,7 +215,7 @@ public class LandEventsHandler
         {
             evt.setUseBlock(Result.DENY);
             evt.setCanceled(true);
-            if (!evt.getWorld().isRemote) evt.getEntity().addChatMessage(getDenyMessage(owner));
+            if (!evt.getWorld().isRemote) evt.getEntity().sendMessage(getDenyMessage(owner));
         }
         evt.setUseItem(Result.DENY);
     }
@@ -246,7 +246,7 @@ public class LandEventsHandler
         LandTeam players = LandManager.getTeam(evt.getEntity());
         if (players != null && !players.friendlyFire && evt.getEntity() instanceof EntityPlayer)
         {
-            Entity damageSource = evt.getSource().getSourceOfDamage();
+            Entity damageSource = evt.getSource().getTrueSource();
             if (damageSource instanceof EntityPlayer && sameTeam(damageSource, evt.getEntity()))
             {
                 evt.setCanceled(true);
@@ -326,7 +326,7 @@ public class LandEventsHandler
         if (owner == null || evt.getItemStack().getItem() instanceof ItemFood
                 || evt.getItemStack().getItem() == Items.WRITTEN_BOOK
                 || evt.getItemStack().getItem() == Items.WRITABLE_BOOK || !ConfigManager.INSTANCE.landEnabled
-                || evt.getEntity().worldObj.isRemote)
+                || evt.getEntity().world.isRemote)
             return;
         String name = evt.getItemStack().getItem().getRegistryName().toString();
         if (itemUseWhitelist.contains(name)) { return; }
@@ -374,12 +374,12 @@ public class LandEventsHandler
                     Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);
                     if (LandManager.getInstance().isPublic(blockLoc))
                     {
-                        evt.getEntityPlayer().addChatMessage(new TextComponentString("Set Block to Team Only"));
+                        evt.getEntityPlayer().sendMessage(new TextComponentString("Set Block to Team Only"));
                         LandManager.getInstance().unsetPublic(blockLoc);
                     }
                     else
                     {
-                        evt.getEntityPlayer().addChatMessage(new TextComponentString("Set Block to Public Use"));
+                        evt.getEntityPlayer().sendMessage(new TextComponentString("Set Block to Public Use"));
                         LandManager.getInstance().setPublic(blockLoc, owner);
                     }
                     evt.setCanceled(true);
@@ -394,8 +394,8 @@ public class LandEventsHandler
             name = evt.getItemStack().getItem().getRegistryName().toString();
             shouldPass = shouldPass || itemUseWhitelist.contains(name);
             if (shouldPass) b = CompatWrapper.interactWithBlock(block, evt.getWorld(), evt.getPos(), state,
-                    evt.getEntityPlayer(), evt.getHand(), null, evt.getFace(), (float) evt.getHitVec().xCoord,
-                    (float) evt.getHitVec().yCoord, (float) evt.getHitVec().zCoord);
+                    evt.getEntityPlayer(), evt.getHand(), null, evt.getFace(), (float) evt.getHitVec().x,
+                    (float) evt.getHitVec().y, (float) evt.getHitVec().z);
         }
         if (!b && shouldPass) return;
         Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);
@@ -406,7 +406,7 @@ public class LandEventsHandler
             evt.setCanceled(true);
             if (!evt.getWorld().isRemote && evt.getHand() == EnumHand.MAIN_HAND)
             {
-                evt.getEntity().addChatMessage(getDenyMessage(owner));
+                evt.getEntity().sendMessage(getDenyMessage(owner));
             }
         }
         evt.setUseItem(Result.DENY);

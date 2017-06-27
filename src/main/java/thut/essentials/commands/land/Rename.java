@@ -26,7 +26,7 @@ public class Rename extends BaseCommand
         if (!LandManager.getInstance().isAdmin(player.getUniqueID())
                 || team.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName))
         {
-            sender.addChatMessage(new TextComponentString("You are not Authorized to rename your team"));
+            sender.sendMessage(new TextComponentString("You are not Authorized to rename your team"));
             return;
         }
         String newName = args[0];

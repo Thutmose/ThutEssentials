@@ -26,13 +26,13 @@ public class Admins extends BaseCommand
     {
         LandTeam team = LandManager.getTeam(getCommandSenderAsPlayer(sender));
         String teamName = team.teamName;
-        sender.addChatMessage(new TextComponentString("Admins of Team " + teamName));
+        sender.sendMessage(new TextComponentString("Admins of Team " + teamName));
         Collection<?> c = team.admin;
         for (Object o : c)
         {
             GameProfile profile = server.getMinecraftSessionService()
                     .fillProfileProperties(new GameProfile((UUID) o, null), true);
-            sender.addChatMessage(new TextComponentString("" + profile.getName()));
+            sender.sendMessage(new TextComponentString("" + profile.getName()));
         }
     }
 

@@ -20,7 +20,7 @@ public class Team extends BaseCommand
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         EntityPlayer player = getCommandSenderAsPlayer(sender);
-        sender.addChatMessage(
+        sender.sendMessage(
                 new TextComponentString("Currently a member of Team " + LandManager.getTeam(player).teamName));
     }
 

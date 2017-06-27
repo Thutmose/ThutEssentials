@@ -37,9 +37,9 @@ public class Invite extends BaseCommand
                 + "\",\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"" + command + ""
                 + "\"}}";
         links = abilityJson;
-        invitee.addChatMessage(new TextComponentString("New Invite to Team " + team));
+        invitee.sendMessage(new TextComponentString("New Invite to Team " + team));
         ITextComponent message = ITextComponent.Serializer.jsonToComponent("[\" [\"," + links + ",\"]\"]");
-        inviter.addChatMessage(new TextComponentString("Invite sent"));
-        invitee.addChatMessage(message);
+        inviter.sendMessage(new TextComponentString("Invite sent"));
+        invitee.sendMessage(message);
     }
 }

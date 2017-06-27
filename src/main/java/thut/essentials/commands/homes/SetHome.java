@@ -15,9 +15,9 @@ public class SetHome extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName()+" <optional|homeName>";
+        return "/" + getName()+" <optional|homeName>";
     }
 
     @Override

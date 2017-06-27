@@ -25,7 +25,7 @@ public class Fly extends BaseCommand
             player.capabilities.isFlying = false;
         }
         player.sendPlayerAbilities();
-        player.addChatMessage(new TextComponentString(
+        player.sendMessage(new TextComponentString(
                 TextFormatting.GREEN + "Fly set to: " + TextFormatting.GOLD + player.capabilities.allowFlying));
     }
 }

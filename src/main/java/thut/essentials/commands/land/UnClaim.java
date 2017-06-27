@@ -49,16 +49,16 @@ public class UnClaim extends BaseCommand
             {
                 LandManager.getInstance().removeTeamLand(team.teamName, c);
             }
-            sender.addChatMessage(new TextComponentString("Unclaimed all land for Team" + team.teamName));
+            sender.sendMessage(new TextComponentString("Unclaimed all land for Team" + team.teamName));
             return;
         }
         int n = 0;
         for (int i = 0; i < num; i++)
         {
             int dir = up ? -1 : 1;
-            int x = MathHelper.floor_double(sender.getPosition().getX() / 16f);
-            int y = MathHelper.floor_double(sender.getPosition().getY() / 16f) + dir * i;
-            int z = MathHelper.floor_double(sender.getPosition().getZ() / 16f);
+            int x = MathHelper.floor(sender.getPosition().getX() / 16f);
+            int y = MathHelper.floor(sender.getPosition().getY() / 16f) + dir * i;
+            int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
             int dim = sender.getEntityWorld().provider.getDimension();
             Coordinate c = new Coordinate(x, y, z, dim);
             LandTeam owner = LandManager.getInstance().getLandOwner(c);
@@ -67,7 +67,7 @@ public class UnClaim extends BaseCommand
             n++;
             LandManager.getInstance().removeTeamLand(team.teamName, c);
         }
-        if (n > 0) sender.addChatMessage(new TextComponentString("Unclaimed This land for Team" + team.teamName));
+        if (n > 0) sender.sendMessage(new TextComponentString("Unclaimed This land for Team" + team.teamName));
     }
 
 }

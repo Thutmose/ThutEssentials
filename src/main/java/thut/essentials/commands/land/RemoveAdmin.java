@@ -29,7 +29,7 @@ public class RemoveAdmin extends BaseCommand
         if (LandManager.getInstance().isAdmin(user.getUniqueID()))
         {
             LandManager.getInstance().removeAdmin(player.getUniqueID());
-            sender.addChatMessage(new TextComponentString(player + " removed as an Admin for Team " + teamName));
+            sender.sendMessage(new TextComponentString(player + " removed as an Admin for Team " + teamName));
         }
         else
         {

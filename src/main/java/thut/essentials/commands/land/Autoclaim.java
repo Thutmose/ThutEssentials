@@ -39,12 +39,12 @@ public class Autoclaim extends BaseCommand
         if (claimers.containsKey(sender))
         {
             claimers.remove(sender);
-            sender.addChatMessage(new TextComponentString("Set Autoclaiming off"));
+            sender.sendMessage(new TextComponentString("Set Autoclaiming off"));
         }
         else
         {
             claimers.put((EntityPlayer) sender, all);
-            sender.addChatMessage(new TextComponentString("Set Autoclaiming on"));
+            sender.sendMessage(new TextComponentString("Set Autoclaiming on"));
         }
     }
 
@@ -66,10 +66,10 @@ public class Autoclaim extends BaseCommand
             int n = 0;
             for (int i = 0; i < num; i++)
             {
-                int x = MathHelper.floor_double(evt.getEntityLiving().getPosition().getX() / 16f);
-                int y = MathHelper.floor_double(evt.getEntityLiving().getPosition().getY() / 16f) + i;
+                int x = MathHelper.floor(evt.getEntityLiving().getPosition().getX() / 16f);
+                int y = MathHelper.floor(evt.getEntityLiving().getPosition().getY() / 16f) + i;
                 if (all) y = i;
-                int z = MathHelper.floor_double(evt.getEntityLiving().getPosition().getZ() / 16f);
+                int z = MathHelper.floor(evt.getEntityLiving().getPosition().getZ() / 16f);
                 int dim = evt.getEntityLiving().getEntityWorld().provider.getDimension();
                 if (y < 0 || y > 15) continue;
                 if (LandManager.getInstance().getLandOwner(new Coordinate(x, y, z, dim)) != null)
@@ -82,7 +82,7 @@ public class Autoclaim extends BaseCommand
             if (n > 0)
             {
                 evt.getEntityLiving()
-                        .addChatMessage(new TextComponentString("Claimed This land for Team" + team.teamName));
+                        .sendMessage(new TextComponentString("Claimed This land for Team" + team.teamName));
             }
         }
     }

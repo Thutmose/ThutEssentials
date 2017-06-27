@@ -70,7 +70,7 @@ public class Spawn extends BaseCommand
                 dest.add(offset);
                 Entity player1 = Transporter.teleportEntity(player, dest, dimension, false);
                 if (callback != null) callback.test(player1);
-                if (message != null) player1.addChatMessage(message);
+                if (message != null) player1.sendMessage(message);
             }
         }
 
@@ -97,7 +97,7 @@ public class Spawn extends BaseCommand
                 {
                     if (!toMove.containsKey(player.getUniqueID()))
                     {
-                        if (moveTime > 0) player.addChatMessage(new TextComponentString(
+                        if (moveTime > 0) player.sendMessage(new TextComponentString(
                                 TextFormatting.GREEN + "Initiating Teleport, please remain still."));
                         toMove.put(player.getUniqueID(),
                                 new Mover(player, moveTime + player.getEntityWorld().getTotalWorldTime(), dimension,
@@ -127,7 +127,7 @@ public class Spawn extends BaseCommand
                 {
                     if (mover.failMess != null)
                     {
-                        tick.getEntity().addChatMessage(mover.failMess);
+                        tick.getEntity().sendMessage(mover.failMess);
                     }
                     toMove.remove(tick.getEntity().getUniqueID());
                     return;
@@ -148,9 +148,9 @@ public class Spawn extends BaseCommand
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
-        return "/" + getCommandName();
+        return "/" + getName();
     }
 
     @Override
@@ -160,17 +160,16 @@ public class Spawn extends BaseCommand
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tptag = tag.getCompoundTag("tp");
         long last = tptag.getLong("spawnDelay");
-        long time = player.getServer().worldServerForDimension(0).getTotalWorldTime();
+        long time = player.getServer().getWorld(0).getTotalWorldTime();
         if (last > time)
         {
-            player.addChatMessage(
+            player.sendMessage(
                     CommandManager.makeFormattedComponent("Too Soon between Warp attempt", TextFormatting.RED, false));
             return;
         }
         if (args.length == 0)
         {
-            BlockPos spawn = server.worldServerForDimension(ThutEssentials.instance.config.spawnDimension)
-                    .getSpawnPoint();
+            BlockPos spawn = server.getWorld(ThutEssentials.instance.config.spawnDimension).getSpawnPoint();
             ITextComponent teleMess = CommandManager.makeFormattedComponent("Warped to Spawn", TextFormatting.GREEN);
             PlayerMover.setMove(player, ThutEssentials.instance.config.spawnActivateDelay,
                     ThutEssentials.instance.config.spawnDimension, spawn, teleMess, Spawn.INTERUPTED);
