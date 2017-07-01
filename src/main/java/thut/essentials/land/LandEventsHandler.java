@@ -97,7 +97,7 @@ public class LandEventsHandler
     public void BreakBlock(BreakEvent evt)
     {
         EntityPlayer player = evt.getPlayer();
-        if (ConfigManager.INSTANCE.landEnabled && player != null && player.getTeam() != null)
+        if (ConfigManager.INSTANCE.landEnabled && player != null)
         {
             Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), player.dimension);
             if (!LandManager.getInstance().isOwned(c)) return;
