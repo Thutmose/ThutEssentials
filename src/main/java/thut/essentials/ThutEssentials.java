@@ -38,6 +38,7 @@ public class ThutEssentials
     public SpawnDefuzzer             defuz     = new SpawnDefuzzer();
     public ItemControl               items     = new ItemControl();
     public LandEventsHandler         teams     = new LandEventsHandler();
+    public boolean                   loaded    = false;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent e)
@@ -48,6 +49,7 @@ public class ThutEssentials
     @EventHandler
     public void serverLoad(FMLServerStartingEvent event)
     {
+        loaded = true;
         manager = new CommandManager(event);
         if (config.landEnabled) LandManager.getInstance();
         if (config.economyEnabled) EconomyManager.getInstance();

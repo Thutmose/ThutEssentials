@@ -3,6 +3,7 @@ package thut.essentials.util;
 import java.io.File;
 
 import net.minecraftforge.common.MinecraftForge;
+import thut.essentials.ThutEssentials;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.itemcontrol.ItemControl;
 import thut.essentials.land.LandEventsHandler;
@@ -10,124 +11,130 @@ import thut.essentials.land.LandManager;
 
 public class ConfigManager extends ConfigBase
 {
-    private static final String SPAWN                   = "spawn";
-    private static final String RULES                   = "rules";
-    private static final String WARPS                   = "warps";
-    private static final String STAFF                   = "staff";
-    private static final String NAMES                   = "names";
-    private static final String LAND                    = "land";
-    private static final String ITEM                    = "itemcontrol";
-    private static final String MISC                    = "misc";
-    private static final String ECON                    = "economy";
+    private static final String SPAWN                     = "spawn";
+    private static final String RULES                     = "rules";
+    private static final String WARPS                     = "warps";
+    private static final String STAFF                     = "staff";
+    private static final String NAMES                     = "names";
+    private static final String LAND                      = "land";
+    private static final String ITEM                      = "itemcontrol";
+    private static final String MISC                      = "misc";
+    private static final String ECON                      = "economy";
 
     public static ConfigManager INSTANCE;
 
     @Configure(category = SPAWN)
-    public int                  spawnDimension          = 0;
+    public int                  spawnDimension            = 0;
     @Configure(category = SPAWN)
-    public boolean              spawnDefuzz             = false;
+    public boolean              spawnDefuzz               = false;
 
     @Configure(category = RULES)
-    public String[]             rules                   = {};
+    public String[]             rules                     = {};
     @Configure(category = RULES)
-    public String               ruleHeader              = "List of Rules:";
+    public String               ruleHeader                = "List of Rules:";
 
     @Configure(category = WARPS)
-    public String[]             warps                   = {};
+    public String[]             warps                     = {};
     @Configure(category = WARPS)
-    public int                  backReUseDelay          = 10;
+    public int                  backReUseDelay            = 10;
     @Configure(category = WARPS)
-    public int                  backRangeCheck          = 3;
+    public int                  backRangeCheck            = 3;
     @Configure(category = WARPS)
-    public int                  warpReUseDelay          = 10;
+    public int                  warpReUseDelay            = 10;
     @Configure(category = WARPS)
-    public int                  spawnReUseDelay         = 10;
+    public int                  spawnReUseDelay           = 10;
     @Configure(category = WARPS)
-    public int                  homeReUseDelay          = 10;
+    public int                  homeReUseDelay            = 10;
     @Configure(category = WARPS)
-    public int                  backActivateDelay       = 10;
+    public int                  backActivateDelay         = 10;
     @Configure(category = WARPS)
-    public int                  warpActivateDelay       = 10;
+    public int                  warpActivateDelay         = 10;
     @Configure(category = WARPS)
-    public int                  spawnActivateDelay      = 10;
+    public int                  spawnActivateDelay        = 10;
     @Configure(category = WARPS)
-    public int                  homeActivateDelay       = 10;
+    public int                  homeActivateDelay         = 10;
     @Configure(category = WARPS)
-    public int                  rtpActivateDelay        = 10;
+    public int                  rtpActivateDelay          = 10;
     @Configure(category = WARPS)
-    public int                  tpaActivateDelay        = 10;
+    public int                  tpaActivateDelay          = 10;
 
     @Configure(category = STAFF)
-    public String[]             staff                   = {};
+    public String[]             staff                     = {};
 
     @Configure(category = ITEM)
-    public String[]             itemBlacklist           = {};
+    public String[]             itemBlacklist             = {};
     @Configure(category = ITEM)
-    public boolean              itemControlEnabled      = false;
+    public boolean              itemControlEnabled        = false;
     @Configure(category = ITEM)
-    public double               blacklistDamage         = 5;
+    public double               blacklistDamage           = 5;
     @Configure(category = ITEM)
-    public int                  kitReuseDelay           = -1;
+    public int                  kitReuseDelay             = -1;
     @Configure(category = ITEM)
-    public boolean              itemLifeTweak           = false;
+    public boolean              itemLifeTweak             = false;
     @Configure(category = ITEM)
-    public int                  itemLifeSpan            = 6000;
+    public int                  itemLifeSpan              = 6000;
 
     @Configure(category = MISC)
-    public double               speedCap                = 10;
+    public double               speedCap                  = 10;
 
     @Configure(category = MISC)
-    public int                  maxHomes                = 2;
+    public int                  maxHomes                  = 2;
     @Configure(category = MISC)
-    public int                  rtpdistance             = 1000;
+    public int                  rtpdistance               = 1000;
 
     @Configure(category = MISC)
-    public String[]             disabledCommands        = {};
+    public String[]             disabledCommands          = {};
 
     @Configure(category = MISC)
-    public String[]             alternateCommands       = { "gamemode:gm" };
+    public String[]             alternateCommands         = { "gamemode:gm" };
 
     @Configure(category = MISC)
-    public String[]             commandPermissionLevels = { "heal:2" };
+    public String[]             commandPermissionLevels   = { "heal:2" };
 
     @Configure(category = MISC)
-    public String               motd                    = "";
+    public String               motd                      = "";
+
+    @Configure(category = MISC)
+    public boolean              comandDisableSpam         = false;
+
+    @Configure(category = MISC)
+    public String[]             allThutEssentialsCommands = {};
 
     @Configure(category = ECON)
-    public boolean              economyEnabled          = true;
+    public boolean              economyEnabled            = true;
     @Configure(category = ECON)
-    public String[]             economyPermLvls         = { "make_shop:-1", "make_infinite_shop:4" };
+    public String[]             economyPermLvls           = { "make_shop:-1", "make_infinite_shop:4" };
 
     @Configure(category = NAMES)
-    public boolean              name                    = true;
+    public boolean              name                      = true;
     @Configure(category = NAMES)
-    public boolean              suffix                  = true;
+    public boolean              suffix                    = true;
     @Configure(category = NAMES)
-    public boolean              prefix                  = true;
+    public boolean              prefix                    = true;
 
     @Configure(category = LAND)
-    public boolean              landEnabled             = false;
+    public boolean              landEnabled               = false;
     @Configure(category = LAND)
-    public boolean              denyExplosions          = false;
+    public boolean              denyExplosions            = false;
     @Configure(category = LAND)
-    public int                  teamLandPerPlayer       = 125;
+    public int                  teamLandPerPlayer         = 125;
     @Configure(category = LAND)
-    public int                  playerLand              = 1;
+    public int                  playerLand                = 1;
     @Configure(category = LAND)
-    public String               defaultTeamName         = "Plebs";
+    public String               defaultTeamName           = "Plebs";
     @Configure(category = LAND)
-    public String[]             protectedEntities       = { "net.minecraft.entity.EntityHanging",
+    public String[]             protectedEntities         = { "net.minecraft.entity.EntityHanging",
             "net.minecraft.entity.item.EntityArmorStand", "net.minecraft.entity.item.EntityMinecart" };
     @Configure(category = LAND)
-    public boolean              logTeamChat             = false;
+    public boolean              logTeamChat               = false;
     @Configure(category = LAND)
-    public int                  prefixLength            = 10;
+    public int                  prefixLength              = 10;
     @Configure(category = LAND)
-    public String[]             itemUseWhitelist        = {};
+    public String[]             itemUseWhitelist          = {};
     @Configure(category = LAND)
-    public String[]             blockUseWhitelist       = {};
+    public String[]             blockUseWhitelist         = {};
     @Configure(category = LAND)
-    public String[]             blockBreakWhitelist     = {};
+    public String[]             blockBreakWhitelist       = {};
 
     public ConfigManager()
     {
@@ -151,7 +158,7 @@ public class ConfigManager extends ConfigBase
         if (itemControlEnabled) ItemControl.init();
         if (landEnabled) LandEventsHandler.init();
         else LandManager.clearInstance();
-        if (economyEnabled) EconomyManager.getInstance();
+        if (economyEnabled && ThutEssentials.instance.loaded) EconomyManager.getInstance();
         else EconomyManager.clearInstance();
         DefaultPermissions.init();
         BaseCommand.permsMap.clear();

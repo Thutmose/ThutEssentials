@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -196,14 +197,31 @@ public class CommandManager
     {
         Set<String> blacklist = Sets.newHashSet(ConfigManager.INSTANCE.disabledCommands);
         List<Class<?>> foundClasses;
-        // Register moves.
+        // Register commands.
         try
         {
             foundClasses = ClassFinder.find(CommandManager.class.getPackage().getName());
+            List<String> classNames = Lists.newArrayList();
             for (Class<?> candidateClass : foundClasses)
             {
                 if (CommandBase.class.isAssignableFrom(candidateClass) && candidateClass.getEnclosingClass() == null)
                 {
+                    classNames.add(candidateClass.getName());
+                    // Skip blacklisted commands.
+                    if (blacklist.contains(candidateClass.getName()))
+                    {
+                        if (ConfigManager.INSTANCE.comandDisableSpam)
+                            System.out.println("Skipping Blacklisted " + candidateClass);
+                        continue;
+                    }
+                    // Skip disabled land commands.
+                    if (!ConfigManager.INSTANCE.landEnabled
+                            && candidateClass.getName().startsWith("thut.essentials.commands.land"))
+                    {
+                        if (ConfigManager.INSTANCE.comandDisableSpam)
+                            System.out.println("Skipping Disabled " + candidateClass);
+                        continue;
+                    }
                     CommandBase move = null;
                     try
                     {
@@ -211,22 +229,11 @@ public class CommandManager
                     }
                     catch (Exception e)
                     {
-                        System.out.println("Error with " + candidateClass);
+                        if (ConfigManager.INSTANCE.comandDisableSpam)
+                            System.out.println("Error with " + candidateClass);
                     }
                     if (move != null && move.getName() != null)
                     {
-                        if (blacklist.contains(candidateClass.getName()))
-                        {
-                            System.out.println("Skipping Blacklisted " + candidateClass);
-                            continue;
-                        }
-                        if (!ConfigManager.INSTANCE.landEnabled
-                                && candidateClass.getName().startsWith("thut.essentials.commands.land"))
-                        {
-                            System.out.println("Skipping Disabled " + candidateClass);
-                            continue;
-                        }
-
                         event.registerServerCommand(move);
                         if (move instanceof BaseCommand)
                         {
@@ -235,10 +242,15 @@ public class CommandManager
                     }
                     else
                     {
-                        System.err.println(candidateClass + " is not completed.");
+                        if (ConfigManager.INSTANCE.comandDisableSpam)
+                            System.err.println(candidateClass + " is not completed.");
                     }
                 }
             }
+            Collections.sort(classNames);
+            ConfigManager.INSTANCE.updateField(ConfigManager.class.getDeclaredField("allThutEssentialsCommands"),
+                    classNames.toArray(new String[0]));
+            ConfigManager.INSTANCE.save();
         }
         catch (Exception e)
         {
