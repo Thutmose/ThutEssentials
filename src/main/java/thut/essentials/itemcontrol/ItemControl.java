@@ -13,6 +13,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import thut.essentials.ThutEssentials;
 import thut.essentials.util.ConfigManager;
 
 public class ItemControl
@@ -21,14 +22,15 @@ public class ItemControl
 
     public static void init()
     {
+        MinecraftForge.EVENT_BUS.unregister(ThutEssentials.instance.items);
         blacklist = Sets.newHashSet();
         for (String s : ConfigManager.INSTANCE.itemBlacklist)
             blacklist.add(s);
+        MinecraftForge.EVENT_BUS.register(ThutEssentials.instance.items);
     }
 
     public ItemControl()
     {
-        MinecraftForge.EVENT_BUS.register(this);
     }
 
     @SubscribeEvent

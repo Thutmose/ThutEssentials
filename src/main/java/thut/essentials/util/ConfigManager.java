@@ -3,8 +3,10 @@ package thut.essentials.util;
 import java.io.File;
 
 import net.minecraftforge.common.MinecraftForge;
+import thut.essentials.economy.EconomyManager;
 import thut.essentials.itemcontrol.ItemControl;
 import thut.essentials.land.LandEventsHandler;
+import thut.essentials.land.LandManager;
 
 public class ConfigManager extends ConfigBase
 {
@@ -92,6 +94,8 @@ public class ConfigManager extends ConfigBase
     public String               motd                    = "";
 
     @Configure(category = ECON)
+    public boolean              economyEnabled          = true;
+    @Configure(category = ECON)
     public String[]             economyPermLvls         = { "make_shop:-1", "make_infinite_shop:4" };
 
     @Configure(category = NAMES)
@@ -144,8 +148,11 @@ public class ConfigManager extends ConfigBase
     protected void applySettings()
     {
         WarpManager.init();
-        ItemControl.init();
-        LandEventsHandler.init();
+        if (itemControlEnabled) ItemControl.init();
+        if (landEnabled) LandEventsHandler.init();
+        else LandManager.clearInstance();
+        if (economyEnabled) EconomyManager.getInstance();
+        else EconomyManager.clearInstance();
         DefaultPermissions.init();
         BaseCommand.permsMap.clear();
         for (String s : commandPermissionLevels)

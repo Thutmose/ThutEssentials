@@ -102,9 +102,9 @@ public class LandManager
             if (!teamName.equals(ConfigManager.INSTANCE.defaultTeamName))
             {
                 for (UUID id : members)
-                    LandManager.instance.playerTeams.put(id, this);
+                    LandManager.getInstance().playerTeams.put(id, this);
                 for (Coordinate c : anyUse)
-                    LandManager.instance.publicBlocks.put(c, this);
+                    LandManager.getInstance().publicBlocks.put(c, this);
             }
         }
 
@@ -166,7 +166,10 @@ public class LandManager
 
     public static LandManager getInstance()
     {
-        if (instance == null) instance = new LandManager();
+        if (instance == null)
+        {
+            LandSaveHandler.loadGlobalData();
+        }
         return instance;
     }
 
@@ -210,7 +213,7 @@ public class LandManager
     protected HashMap<Coordinate, LandTeam> publicBlocks = Maps.newHashMap();
     public int                              version      = VERSION;
 
-    private LandManager()
+    LandManager()
     {
     }
 

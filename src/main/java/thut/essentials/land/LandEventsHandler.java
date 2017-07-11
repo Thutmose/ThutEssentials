@@ -22,8 +22,8 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -35,6 +35,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import thut.essentials.ThutEssentials;
 import thut.essentials.events.DenyItemUseEvent;
 import thut.essentials.events.DenyItemUseEvent.UseType;
 import thut.essentials.land.LandManager.LandTeam;
@@ -51,6 +52,7 @@ public class LandEventsHandler
 
     public static void init()
     {
+        MinecraftForge.EVENT_BUS.unregister(ThutEssentials.instance.teams);
         protectedEntities.clear();
         for (String s : ConfigManager.INSTANCE.protectedEntities)
         {
@@ -79,6 +81,7 @@ public class LandEventsHandler
         {
             blockBreakWhiteList.add(s);
         }
+        MinecraftForge.EVENT_BUS.register(ThutEssentials.instance.teams);
     }
 
     public static boolean sameTeam(Entity a, Entity b)

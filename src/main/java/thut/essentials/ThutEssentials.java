@@ -2,8 +2,6 @@ package thut.essentials;
 
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -12,16 +10,12 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
-import thut.essentials.economy.EconomySaveHandler;
 import thut.essentials.itemcontrol.ItemControl;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
-import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.DefaultPermissions;
 import thut.essentials.util.IPermissionHandler;
@@ -41,26 +35,22 @@ public class ThutEssentials
 
     public ConfigManager             config;
     private CommandManager           manager;
-    private SpawnDefuzzer            defuz     = new SpawnDefuzzer();
+    public SpawnDefuzzer             defuz     = new SpawnDefuzzer();
+    public ItemControl               items     = new ItemControl();
+    public LandEventsHandler         teams     = new LandEventsHandler();
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent e)
     {
         config = new ConfigManager(e.getSuggestedConfigurationFile());
-        LandEventsHandler teams = new LandEventsHandler();
-        MinecraftForge.EVENT_BUS.register(teams);
-        new ItemControl();
     }
 
     @EventHandler
     public void serverLoad(FMLServerStartingEvent event)
     {
         manager = new CommandManager(event);
-        MinecraftForge.EVENT_BUS.register(this);
-        LandSaveHandler.loadGlobalData();
-        EconomySaveHandler.loadGlobalData();
-        if (config.spawnDefuzz && FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer())
-            MinecraftForge.EVENT_BUS.register(defuz);
+        if (config.landEnabled) LandManager.getInstance();
+        if (config.economyEnabled) EconomyManager.getInstance();
     }
 
     @EventHandler
@@ -92,19 +82,5 @@ public class ThutEssentials
         LandManager.clearInstance();
         EconomyManager.clearInstance();
         manager.clear();
-        if (config.spawnDefuzz && FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer())
-            MinecraftForge.EVENT_BUS.unregister(defuz);
-    }
-
-    @SubscribeEvent
-    void commandUseEvent(CommandEvent event)
-    {
-
-    }
-
-    @SubscribeEvent
-    public void PlayerLoggin(PlayerLoggedInEvent evt)
-    {
-
     }
 }

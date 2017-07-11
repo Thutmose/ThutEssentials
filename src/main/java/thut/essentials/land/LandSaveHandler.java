@@ -83,10 +83,12 @@ public class LandSaveHandler
             {
                 e.printStackTrace();
             }
+            if (LandManager.instance == null) LandManager.instance = new LandManager();
             loadTeams();
         }
         else
         {
+            if (LandManager.instance == null) LandManager.instance = new LandManager();
             saveGlobalData();
         }
     }

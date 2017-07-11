@@ -85,6 +85,7 @@ public class EconomySaveHandler
         }
         else
         {
+            if (EconomyManager.instance == null) EconomyManager.instance = new EconomyManager();
             saveGlobalData();
         }
     }
