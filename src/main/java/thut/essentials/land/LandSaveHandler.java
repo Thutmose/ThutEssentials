@@ -53,6 +53,7 @@ public class LandSaveHandler
 
     public static void saveGlobalData()
     {
+        if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
         Gson gson = new GsonBuilder().addSerializationExclusionStrategy(exclusion).setPrettyPrinting().create();
         LandManager.getInstance().version = LandManager.VERSION;
         String json = gson.toJson(LandManager.getInstance());
@@ -69,6 +70,7 @@ public class LandSaveHandler
 
     public static void loadGlobalData()
     {
+        if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
         File teamsFile = new File(getGlobalFolder(), "landData.json");
         if (teamsFile.exists())
         {
@@ -95,6 +97,7 @@ public class LandSaveHandler
 
     private static void loadTeams()
     {
+        if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
         File folder = getTeamFolder();
         for (File file : folder.listFiles())
         {
@@ -117,6 +120,7 @@ public class LandSaveHandler
 
     public static void saveTeam(String team)
     {
+        if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
         File folder = getTeamFolder();
         File teamFile = new File(folder, team + ".json");
         LandTeam land;

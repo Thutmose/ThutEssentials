@@ -44,6 +44,7 @@ public class EconomySaveHandler
 
     public static void saveGlobalData()
     {
+        if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
         Gson gson = new GsonBuilder().addSerializationExclusionStrategy(exclusion).setPrettyPrinting().create();
         EconomyManager.getInstance().version = EconomyManager.VERSION;
         String json = gson.toJson(EconomyManager.getInstance());
@@ -60,6 +61,7 @@ public class EconomySaveHandler
 
     public static void loadGlobalData()
     {
+        if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
         File teamsFile = new File(getGlobalFolder(), "economy.json");
         if (teamsFile.exists())
         {

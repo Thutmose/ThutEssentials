@@ -2,6 +2,7 @@ package thut.essentials.commands.misc;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -22,7 +23,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.fml.common.FMLCommonHandler;
-import scala.actors.threadpool.Arrays;
 import thut.essentials.ThutEssentials;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.Configure;
