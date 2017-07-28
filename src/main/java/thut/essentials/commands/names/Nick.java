@@ -57,7 +57,14 @@ public class Nick extends BaseCommand
             arg = arg + " " + args[i];
         }
         arg = RuleManager.format(arg);
-        nametag.setString("name", arg);
+        if (arg.isEmpty())
+        {
+            nametag.removeTag("name");
+        }
+        else
+        {
+            nametag.setString("name", arg);
+        }
         tag.setTag("name", nametag);
         PlayerDataHandler.saveCustomData(player);
         player.refreshDisplayName();
