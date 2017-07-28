@@ -34,7 +34,7 @@ public class RealName extends BaseCommand
         {
             player = getCommandSenderAsPlayer(sender);
         }
-        sender.addChatMessage(new TextComponentString(
+        sender.sendMessage(new TextComponentString(
                 "The real name of " + player.getDisplayNameString() + " is " + player.getGameProfile().getName()));
     }
 }
