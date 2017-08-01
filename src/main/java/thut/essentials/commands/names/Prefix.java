@@ -5,6 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.TextComponentString;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.RuleManager;
@@ -48,6 +49,15 @@ public class Prefix extends BaseCommand
             arg = arg + " " + args[i];
         }
         arg = RuleManager.format(arg);
+        if (!arg.isEmpty())
+        {
+            sender.sendMessage(
+                    new TextComponentString("Set Prefix for " + player.getDisplayNameString() + " to " + arg));
+        }
+        else
+        {
+            sender.sendMessage(new TextComponentString("Reset Set Prefix for " + player.getDisplayNameString()));
+        }
         nametag.setString("prefix", arg);
         tag.setTag("name", nametag);
         PlayerDataHandler.saveCustomData(player);

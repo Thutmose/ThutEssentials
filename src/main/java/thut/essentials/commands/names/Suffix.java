@@ -5,6 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.TextComponentString;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.RuleManager;
@@ -48,6 +49,15 @@ public class Suffix extends BaseCommand
             arg = arg + " " + args[i];
         }
         arg = RuleManager.format(arg);
+        if (!arg.isEmpty())
+        {
+            sender.sendMessage(
+                    new TextComponentString("Set Suffix for " + player.getDisplayNameString() + " to " + arg));
+        }
+        else
+        {
+            sender.sendMessage(new TextComponentString("Reset Set Suffix for " + player.getDisplayNameString()));
+        }
         nametag.setString("suffix", arg);
         tag.setTag("name", nametag);
         PlayerDataHandler.saveCustomData(player);

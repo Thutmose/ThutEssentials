@@ -5,6 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -60,13 +61,16 @@ public class Nick extends BaseCommand
         if (arg.isEmpty())
         {
             nametag.removeTag("name");
+            sender.sendMessage(new TextComponentString("Reset name of " + player.getDisplayNameString()));
         }
         else
         {
             nametag.setString("name", arg);
+            sender.sendMessage(new TextComponentString("Set name of " + player.getDisplayNameString() + " to " + arg));
         }
         tag.setTag("name", nametag);
         PlayerDataHandler.saveCustomData(player);
+
         player.refreshDisplayName();
     }
 
