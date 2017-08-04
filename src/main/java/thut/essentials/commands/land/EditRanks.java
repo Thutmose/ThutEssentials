@@ -25,6 +25,14 @@ public class EditRanks extends BaseCommand
         super("teamranks", 0);
     }
 
+    /** Return whether the specified command parameter index is a username
+     * parameter. */
+    @Override
+    public boolean isUsernameIndex(String[] args, int index)
+    {
+        return index == 2;
+    }
+
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {

@@ -17,6 +17,14 @@ public class SetAdmin extends BaseCommand
         super("setTeamAdmin", 0);
     }
 
+    /** Return whether the specified command parameter index is a username
+     * parameter. */
+    @Override
+    public boolean isUsernameIndex(String[] args, int index)
+    {
+        return index == 0;
+    }
+
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {

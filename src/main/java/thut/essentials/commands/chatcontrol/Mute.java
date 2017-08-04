@@ -22,6 +22,14 @@ public class Mute extends BaseCommand
         MinecraftForge.EVENT_BUS.register(this);
     }
 
+    /** Return whether the specified command parameter index is a username
+     * parameter. */
+    @Override
+    public boolean isUsernameIndex(String[] args, int index)
+    {
+        return index == 0;
+    }
+
     @SubscribeEvent
     public void mute(ServerChatEvent event)
     {
