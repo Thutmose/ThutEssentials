@@ -28,6 +28,7 @@ import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
+import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
@@ -199,21 +200,36 @@ public class LandEventsHandler
         evt.getAffectedBlocks().removeAll(toRemove);
     }
 
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void interactLeftClickBlock(PlaceEvent evt)
+    {
+        if (!ConfigManager.INSTANCE.landEnabled) return;
+        Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension);
+        LandTeam owner = LandManager.getInstance().getLandOwner(c);
+        if (owner == null) return;
+        Block block = evt.getWorld().getBlockState(evt.getPos()).getBlock();
+        String name = block.getRegistryName().toString();
+        if (blockBreakWhiteList.contains(name)) { return; }
+        if (LandManager.owns(evt.getPlayer(), c)) { return; }
+        evt.setCanceled(true);
+        if (!evt.getWorld().isRemote) evt.getPlayer().sendMessage(getDenyMessage(owner));
+    }
+
     /** Uses player interact here to also prevent opening of inventories.
      * 
      * @param evt */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void interactLeftClickBlock(PlayerInteractEvent.LeftClickBlock evt)
     {
+        if (!ConfigManager.INSTANCE.landEnabled) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getEntityPlayer().dimension);
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
+        if (owner == null) return;
         Block block = evt.getWorld().getBlockState(evt.getPos()).getBlock();
         String name = block.getRegistryName().toString();
         if (blockBreakWhiteList.contains(name)) { return; }
         if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
         Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);
-        LandManager.getInstance().isPublic(blockLoc);
         if (!LandManager.getInstance().isPublic(blockLoc))
         {
             evt.setUseBlock(Result.DENY);
@@ -226,9 +242,10 @@ public class LandEventsHandler
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void interactRightClickEntity(PlayerInteractEvent.EntityInteract evt)
     {
+        if (!ConfigManager.INSTANCE.landEnabled) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getEntityPlayer().dimension);
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
+        if (owner == null) return;
         if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
         for (Class<?> clas : protectedEntities)
         {
@@ -267,9 +284,10 @@ public class LandEventsHandler
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void interactLeftClickEntity(LivingHurtEvent evt)
     {
+        if (!ConfigManager.INSTANCE.landEnabled) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(), evt.getEntity().dimension);
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
+        if (owner == null) return;
         if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
         {
             evt.setCanceled(true);
@@ -280,9 +298,10 @@ public class LandEventsHandler
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void mobSpawnEvent(LivingSpawnEvent.SpecialSpawn evt)
     {
+        if (!ConfigManager.INSTANCE.landEnabled) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(), evt.getEntity().dimension);
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
+        if (owner == null) return;
         if (owner.noMobSpawn)
         {
             evt.setResult(Result.DENY);
@@ -341,7 +360,6 @@ public class LandEventsHandler
                 .post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(), UseType.RIGHTCLICKBLOCK))) { return; }
         if (evt.getItemStack() == null) return;
         Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);
-        LandManager.getInstance().isPublic(blockLoc);
         if (!LandManager.getInstance().isPublic(blockLoc))
         {
             evt.setResult(Result.DENY);
@@ -402,7 +420,6 @@ public class LandEventsHandler
         }
         if (!b && shouldPass) return;
         Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);
-        LandManager.getInstance().isPublic(blockLoc);
         if (!LandManager.getInstance().isPublic(blockLoc))
         {
             evt.setUseBlock(Result.DENY);
