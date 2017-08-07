@@ -13,6 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemFood;
 import net.minecraft.util.EnumHand;
@@ -206,13 +207,14 @@ public class LandEventsHandler
         if (!ConfigManager.INSTANCE.landEnabled) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension);
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        if (owner == null) return;
+        if (owner == null || !(evt.getPlayer() instanceof EntityPlayerMP)) return;
         Block block = evt.getWorld().getBlockState(evt.getPos()).getBlock();
         String name = block.getRegistryName().toString();
         if (blockBreakWhiteList.contains(name)) { return; }
         if (LandManager.owns(evt.getPlayer(), c)) { return; }
         evt.setCanceled(true);
         if (!evt.getWorld().isRemote) evt.getPlayer().sendMessage(getDenyMessage(owner));
+        evt.getPlayer().inventory.markDirty();
     }
 
     /** Uses player interact here to also prevent opening of inventories.
