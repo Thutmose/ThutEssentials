@@ -1,9 +1,7 @@
 package thut.essentials.util;
 
 import java.lang.reflect.Method;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.vecmath.Vector3f;
@@ -14,7 +12,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityTracker;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -23,7 +20,9 @@ import net.minecraft.world.Teleporter;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 public class Transporter
@@ -116,24 +115,47 @@ public class Transporter
     public static class DeSticker
     {
         final EntityPlayerMP player;
-        final long           tick;
+        final float          x0;
+        final float          y0;
+        final float          z0;
+        final float          yaw;
         final int            dimension;
 
-        public DeSticker(EntityPlayerMP player, int delay)
+        public DeSticker(EntityPlayerMP player)
         {
             this.player = player;
-            this.tick = player.getEntityWorld().getTotalWorldTime() + delay;
             this.dimension = player.dimension;
+            this.x0 = (float) player.posX;
+            this.y0 = (float) player.posY;
+            this.z0 = (float) player.posZ;
+            this.yaw = player.rotationYaw;
+        }
+
+        @SubscribeEvent
+        public void logout(PlayerLoggedOutEvent evt)
+        {
+            if (evt.player.getUniqueID().equals(player.getUniqueID()))
+            {
+                MinecraftForge.EVENT_BUS.unregister(this);
+            }
         }
 
         @SubscribeEvent
         public void tick(TickEvent.ServerTickEvent evt)
         {
-            boolean done = dimension != player.dimension || tick < player.getEntityWorld().getTotalWorldTime();
+            if (evt.phase == Phase.START) return;
+            boolean done = dimension != player.dimension;
+            float dx = (float) player.posX - x0;
+            float dz = (float) player.posZ - z0;
+            float dyaw = player.rotationYaw - yaw;
+            done = done || dx != 0 || dz != 0 || dyaw != 0;
             if (done)
             {
                 MinecraftForge.EVENT_BUS.unregister(this);
-                player.connection.setPlayerLocation(player.posX, player.posY, player.posZ, player.rotationYaw,
+            }
+            else if (player.ticksExisted % 20 == 0)
+            {
+                player.connection.setPlayerLocation(player.posX, y0, player.posZ, player.rotationYaw,
                         player.rotationPitch);
             }
         }
@@ -189,7 +211,7 @@ public class Transporter
         {
             theEntity.dismountRidingEntity();
             ((EntityPlayerMP) theEntity).connection.setPlayerLocation(x, y, z, yaw, pitch);
-            MinecraftForge.EVENT_BUS.register(new DeSticker((EntityPlayerMP) theEntity, 10));
+            MinecraftForge.EVENT_BUS.register(new DeSticker((EntityPlayerMP) theEntity));
         }
         else theEntity.setLocationAndAngles(x, y, z, yaw, pitch);
     }

@@ -2,6 +2,7 @@ package thut.essentials.commands.misc;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.PlayerNotFoundException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
@@ -18,7 +19,16 @@ public class God extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player;
+        try
+        {
+            player = getCommandSenderAsPlayer(sender);
+        }
+        catch (PlayerNotFoundException e)
+        {
+            if (args.length != 1) throw new CommandException("Invalid Arguments, /god <target>");
+            player = getPlayer(server, sender, args[0]);
+        }
         player.capabilities.disableDamage = !player.capabilities.disableDamage;
         if (!player.capabilities.disableDamage)
         {
