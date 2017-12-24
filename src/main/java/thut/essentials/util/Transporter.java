@@ -151,6 +151,8 @@ public class Transporter
             done = done || dx != 0 || dz != 0 || dyaw != 0;
             if (done)
             {
+                EntityTracker tracker = player.getServerWorld().getEntityTracker();
+                tracker.updateVisibility(player);
                 MinecraftForge.EVENT_BUS.unregister(this);
             }
             else if (player.ticksExisted % 20 == 0)
