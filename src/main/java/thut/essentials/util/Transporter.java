@@ -1,6 +1,5 @@
 package thut.essentials.util;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -18,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.Teleporter;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
@@ -61,8 +61,6 @@ public class Transporter
             return new AxisAlignedBB(x, y, z, x, y, z);
         }
     }
-
-    private static Method copyDataFromOld;
 
     // From RFTools.
     public static class TTeleporter extends Teleporter
@@ -120,6 +118,7 @@ public class Transporter
         final float          z0;
         final float          yaw;
         final int            dimension;
+        int                  tick = 0;
 
         public DeSticker(EntityPlayerMP player)
         {
@@ -155,26 +154,27 @@ public class Transporter
                 tracker.updateVisibility(player);
                 MinecraftForge.EVENT_BUS.unregister(this);
             }
-            else if (player.ticksExisted % 20 == 0)
+            else if (tick % 20 == 0)
             {
                 player.connection.setPlayerLocation(player.posX, y0 + 0.5, player.posZ, player.rotationYaw,
                         player.rotationPitch);
             }
+            tick++;
         }
     }
 
     public static class ReMounter
     {
-        final Entity theEntity;
-        final Entity theMount;
-        final int    dim;
-        final long   time;
+        final Entity[] riders;
+        final Entity   theMount;
+        final int      dim;
+        final long     time;
 
-        public ReMounter(Entity entity, Entity mount, int dim)
+        public ReMounter(Entity mount, int dim, Entity... entities)
         {
-            theEntity = entity;
+            riders = entities;
             theMount = mount;
-            time = entity.world.getTotalWorldTime();
+            time = mount.getEntityWorld().getTotalWorldTime();
             this.dim = dim;
         }
 
@@ -182,11 +182,15 @@ public class Transporter
         public void tick(TickEvent.ServerTickEvent evt)
         {
             if (evt.phase != TickEvent.Phase.END) return;
-            if (theEntity.isDead) MinecraftForge.EVENT_BUS.unregister(this);
-            if (theEntity.world.getTotalWorldTime() >= time)
+            if (theMount.isDead) MinecraftForge.EVENT_BUS.unregister(this);
+            boolean doneAll = theMount.getEntityWorld().getTotalWorldTime() > time;
+            for (int i = riders.length - 1; i >= 0; i--)
             {
+                Entity theEntity = riders[i];
+                if (theEntity == null) continue;
                 if (dim != theEntity.dimension)
                 {
+                    doneAll = false;
                     if (theEntity instanceof EntityPlayerMP)
                     {
                         ReflectionHelper.setPrivateValue(EntityPlayerMP.class, (EntityPlayerMP) theEntity, true,
@@ -199,11 +203,31 @@ public class Transporter
                         // Handle moving non players.
                     }
                 }
+                else
+                {
+
+                }
+            }
+            int num = 0;
+            if (doneAll) for (int i = riders.length - 1; i >= 0; i--)
+            {
+                Entity theEntity = riders[i];
+                if (theEntity == null)
+                {
+                    num++;
+                    continue;
+                }
                 doMoveEntity(theEntity, theMount.posX, theMount.posY, theMount.posZ, theEntity.rotationYaw,
                         theEntity.rotationPitch);
-                theEntity.startRiding(theMount);
-                MinecraftForge.EVENT_BUS.unregister(this);
+                boolean mounted = theEntity.startRiding(theMount);
+                doneAll = doneAll && mounted;
+                if (mounted)
+                {
+                    riders[i] = null;
+                    num++;
+                }
             }
+            if (doneAll || riders.length == num) MinecraftForge.EVENT_BUS.unregister(this);
         }
     }
 
@@ -220,6 +244,7 @@ public class Transporter
 
     public static Entity teleportEntity(Entity entity, Vector3 t2, int dimension, boolean destBlocked)
     {
+        if (!DimensionManager.isDimensionRegistered(dimension)) return entity;
         if (entity.isRiding())
         {
             Entity mount = entity.getRidingEntity();
@@ -247,8 +272,9 @@ public class Transporter
         {
             e.dismountRidingEntity();
             doMoveEntity(e, t2.x, t2.y, t2.z, e.rotationYaw, e.rotationPitch);
-            MinecraftForge.EVENT_BUS.register(new ReMounter(e, entity, dimension));
         }
+        if (!passengers.isEmpty()) MinecraftForge.EVENT_BUS
+                .register(new ReMounter(entity, dimension, passengers.toArray(new Entity[passengers.size()])));
         WorldServer world = entity.getServer().getWorld(dimension);
         EntityTracker tracker = world.getEntityTracker();
         if (tracker.getTrackingPlayers(entity).getClass().getSimpleName().equals("EmptySet"))
@@ -331,33 +357,19 @@ public class Transporter
             Entity entity = CompatWrapper.createEntity(worldserver1, entityIn);
             if (entity != null)
             {
-                if (copyDataFromOld == null)
-                {
-                    copyDataFromOld = ReflectionHelper.findMethod(Entity.class, "copyDataFromOld", "func_180432_n",
-                            Entity.class);
-                }
-                try
-                {
-                    copyDataFromOld.invoke(entity, entityIn);
-                }
-                catch (Exception e1)
-                {
-                    e1.printStackTrace();
-                }
+                entity.copyDataFromOld(entityIn);
                 entity.forceSpawn = true;
                 worldserver1.spawnEntity(entity);
                 worldserver1.updateEntityWithOptionalForce(entity, true);
-                for (Entity e : passengers)
-                {
-                    // Fix that darn random crash?
-                    worldserver.resetUpdateEntityTick();
-                    worldserver1.resetUpdateEntityTick();
-                    // Transfer the player if applicable
-                    // Need to handle our own removal to avoid race condition
-                    // where player is mounted on client on the old entity but
-                    // is already mounted to the new one on server
-                    MinecraftForge.EVENT_BUS.register(new ReMounter(e, entity, dimensionIn));
-                }
+                // Fix that darn random crash?
+                worldserver.resetUpdateEntityTick();
+                worldserver1.resetUpdateEntityTick();
+                // Transfer the player if applicable
+                // Need to handle our own removal to avoid race condition
+                // where player is mounted on client on the old entity but
+                // is already mounted to the new one on server
+                MinecraftForge.EVENT_BUS.register(
+                        new ReMounter(entity, dimensionIn, passengers.toArray(new Entity[passengers.size()])));
             }
             entityIn.isDead = true;
             entityIn.world.profiler.endSection();
