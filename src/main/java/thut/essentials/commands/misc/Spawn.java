@@ -90,6 +90,12 @@ public class Spawn extends BaseCommand
                 final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess,
                 final Predicate<Entity> callback, final boolean event)
         {
+            if (player.isRiding() || player.isBeingRidden())
+            {
+                player.sendMessage(new TextComponentString(TextFormatting.RED + "Please Dismount then try again."));
+                return;
+            }
+
             player.getServer().addScheduledTask(new Runnable()
             {
                 @Override
