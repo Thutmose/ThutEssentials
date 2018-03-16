@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.text.TextComponentString;
@@ -50,7 +51,7 @@ public class ItemControl
         for (EnumHand hand : EnumHand.values())
         {
             Item item;
-            if (event.getEntityLiving().getHeldItem(hand) != null
+            if (!event.getEntityLiving().getHeldItem(hand).isEmpty()
                     && (item = event.getEntityLiving().getHeldItem(hand).getItem()) != null)
             {
                 String name = item.getRegistryName().toString();
@@ -59,7 +60,7 @@ public class ItemControl
                     EntityItem drop = event.getEntityLiving().entityDropItem(event.getEntityLiving().getHeldItem(hand),
                             0);
                     drop.setPickupDelay(40);
-                    event.getEntityLiving().setHeldItem(EnumHand.MAIN_HAND, null);
+                    event.getEntityLiving().setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
                     event.getEntityLiving().attackEntityFrom(DamageSource.GENERIC,
                             (float) ConfigManager.INSTANCE.blacklistDamage);
                     event.getEntityLiving().sendMessage(new TextComponentString("That item is not allowed to be held"));
