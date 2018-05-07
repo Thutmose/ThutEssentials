@@ -103,11 +103,15 @@ public class Spawn extends BaseCommand
                 {
                     if (!toMove.containsKey(player.getUniqueID()))
                     {
-                        if (moveTime > 0) player.sendMessage(new TextComponentString(
-                                TextFormatting.GREEN + "Initiating Teleport, please remain still."));
+                        long time = moveTime;
+                        if (time > 0)
+                        {
+                            player.sendMessage(new TextComponentString(
+                                    TextFormatting.GREEN + "Initiating Teleport, please remain still."));
+                            time += player.getEntityWorld().getTotalWorldTime();
+                        }
                         toMove.put(player.getUniqueID(),
-                                new Mover(player, moveTime + player.getEntityWorld().getTotalWorldTime(), dimension,
-                                        moveTo, message, failMess, callback, event));
+                                new Mover(player, time, dimension, moveTo, message, failMess, callback, event));
                     }
                 }
             });
@@ -129,7 +133,7 @@ public class Spawn extends BaseCommand
                 Vector3 loc = new Vector3(mover.player.posX, mover.player.posY, mover.player.posZ);
                 Vector3 diff = new Vector3(mover.start.x, mover.start.y, mover.start.z);
                 diff.sub(loc);
-                if (diff.lengthSquared() > 0.0)
+                if (diff.lengthSquared() > 0.0 && mover.moveTime > 0)
                 {
                     if (mover.failMess != null)
                     {
