@@ -16,12 +16,18 @@ public class Create extends BaseCommand
     }
 
     @Override
+    public String getUsage(ICommandSender sender)
+    {
+        return "/" + getName() + " <team name>";
+    }
+
+    @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
+        if (args.length != 1) throw new CommandException(getUsage(sender));
         String teamname = args[0];
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         LandManager.getInstance().createTeam(player.getUniqueID(), teamname);
         player.sendMessage(new TextComponentString("You created Team " + teamname));
-        return;
     }
 }
