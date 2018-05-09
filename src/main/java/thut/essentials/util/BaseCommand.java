@@ -33,7 +33,7 @@ public abstract class BaseCommand extends CommandBase
         List<String> alii = CommandManager.commands.get(key);
         if (alii == null) CommandManager.commands.put(key, alii = Lists.newArrayList(key));
         for (String s : aliases)
-            alii.add(s);
+            if (!alii.contains(s)) alii.add(s);
         if (!alii.contains(key.toLowerCase(Locale.ENGLISH))) alii.add(key.toLowerCase(Locale.ENGLISH));
         perm = getPermissionLevel(perms);
     }
