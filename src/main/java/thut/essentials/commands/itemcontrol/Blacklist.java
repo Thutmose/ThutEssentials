@@ -21,8 +21,15 @@ public class Blacklist extends BaseCommand
     }
 
     @Override
+    public String getUsage(ICommandSender sender)
+    {
+        return "/" + getName() + " list|add|remove <items>";
+    }
+
+    @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
+        if (args.length == 0) throw new CommandException(getUsage(sender));
         String arg = args[0];
 
         if (arg.equalsIgnoreCase("list"))
@@ -40,6 +47,7 @@ public class Blacklist extends BaseCommand
         }
         else
         {
+            if (args.length == 1) throw new CommandException(getUsage(sender));
             String itemname = args[1];
             String message = "";
             if (arg.equalsIgnoreCase("add"))
