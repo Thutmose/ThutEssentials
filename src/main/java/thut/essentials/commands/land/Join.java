@@ -5,7 +5,10 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
-import thut.essentials.commands.CommandManager;
+import net.minecraftforge.server.permission.IPermissionHandler;
+import net.minecraftforge.server.permission.PermissionAPI;
+import net.minecraftforge.server.permission.context.PlayerContext;
+import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -22,19 +25,24 @@ public class Join extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        boolean isOp = CommandManager.isOp(sender);
         EntityPlayer player = getCommandSenderAsPlayer(sender);
+        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+        PlayerContext context = new PlayerContext(player);
         String teamname = args[0];
         LandTeam teamtojoin = LandManager.getInstance().getTeam(teamname, false);
         if (teamtojoin != null)
         {
-            boolean empty = teamtojoin.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName);
-            if (empty)
+            boolean canJoinInvite = manager.hasPermission(player.getGameProfile(),
+                    LandEventsHandler.PERMJOINTEAMINVITED, context);
+            boolean canJoinNoInvite = manager.hasPermission(player.getGameProfile(),
+                    LandEventsHandler.PERMJOINTEAMNOINVITE, context);
+            canJoinInvite = teamtojoin.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName);
+            if (canJoinInvite)
             {
-                empty = teamtojoin.member.size() == 0;
-                empty = empty && !LandManager.getInstance().getTeam(teamname, false).reserved;
+                canJoinInvite = teamtojoin.member.size() == 0;
+                canJoinInvite = canJoinInvite && !LandManager.getInstance().getTeam(teamname, false).reserved;
             }
-            if (empty || isOp)
+            if (canJoinInvite || canJoinNoInvite)
             {
                 LandManager.getInstance().addToTeam(player.getUniqueID(), teamname);
                 LandManager.getInstance().addAdmin(player.getUniqueID(), teamname);
@@ -42,12 +50,8 @@ public class Join extends BaseCommand
                 return;
             }
         }
-        if (LandManager.getInstance().hasInvite(player.getUniqueID(), teamname) || isOp)
-        {
-            LandManager.getInstance().addToTeam(player.getUniqueID(), teamname);
-            player.sendMessage(new TextComponentString("You joined Team " + teamname));
-        }
-        else sender.sendMessage(new TextComponentString("You do not have an invite for Team " + teamname));
+        else throw new CommandException("No team found by name " + teamname);
+        sender.sendMessage(new TextComponentString("You do not have an invite for Team " + teamname));
     }
 
 }

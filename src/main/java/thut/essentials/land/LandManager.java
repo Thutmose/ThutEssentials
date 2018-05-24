@@ -57,6 +57,10 @@ public class LandManager
         public boolean             friendlyFire   = true;
         public boolean             noExplosions   = false;
 
+        // TODO figure out what I want to do with these two.
+        public List<String>        allies         = Lists.newArrayList();
+        public List<String>        enemies        = Lists.newArrayList();
+
         public LandTeam()
         {
         }

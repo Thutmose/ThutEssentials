@@ -28,6 +28,7 @@ public class UnClaim extends BaseCommand
             throw new CommandException("You are not allowed to do that.");
         boolean up = false;
         int num = 1;
+        int n = 0;
         if (args.length > 1)
         {
             try
@@ -42,6 +43,26 @@ public class UnClaim extends BaseCommand
             {
                 // e.printStackTrace();
             }
+            if (args[0].equalsIgnoreCase("chunk"))
+            {
+                for (int i = 0; i < 16; i++)
+                {
+                    int dir = up ? -1 : 1;
+                    int x = MathHelper.floor(sender.getPosition().getX() / 16f);
+                    int y = dir * i;
+                    int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
+                    int dim = sender.getEntityWorld().provider.getDimension();
+                    Coordinate c = new Coordinate(x, y, z, dim);
+                    LandTeam owner = LandManager.getInstance().getLandOwner(c);
+                    if (owner != null && !team.equals(owner))
+                        throw new CommandException("You may not unclaim that land.");
+                    if (y < 0 || y > 15) continue;
+                    n++;
+                    LandManager.getInstance().removeTeamLand(team.teamName, c);
+                }
+                if (n > 0) sender.sendMessage(new TextComponentString("Unclaimed This land for Team" + team.teamName));
+                return;
+            }
         }
         if (args.length > 1 && args[0].equalsIgnoreCase("all"))
         {
@@ -52,7 +73,6 @@ public class UnClaim extends BaseCommand
             sender.sendMessage(new TextComponentString("Unclaimed all land for Team" + team.teamName));
             return;
         }
-        int n = 0;
         for (int i = 0; i < num; i++)
         {
             int dir = up ? -1 : 1;

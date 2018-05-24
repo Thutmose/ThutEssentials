@@ -1,5 +1,7 @@
 package thut.essentials;
 
+import java.io.IOException;
+
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -20,6 +22,7 @@ import thut.essentials.util.ConfigManager;
 import thut.essentials.util.DefaultPermissions;
 import thut.essentials.util.IPermissionHandler;
 import thut.essentials.util.PlayerDataHandler;
+import thut.essentials.world.WorldManager;
 
 @Mod(modid = ThutEssentials.MODID, name = "Thut Essentials", version = ThutEssentials.VERSION, dependencies = "", updateJSON = ThutEssentials.UPDATEURL, acceptableRemoteVersions = "*")
 public class ThutEssentials
@@ -37,7 +40,7 @@ public class ThutEssentials
     private CommandManager           manager;
     public SpawnDefuzzer             defuz     = new SpawnDefuzzer();
     public ItemControl               items     = new ItemControl();
-    public LandEventsHandler         teams     = new LandEventsHandler();
+    public final LandEventsHandler   teams     = new LandEventsHandler();
     public boolean                   loaded    = false;
 
     @EventHandler
@@ -51,8 +54,17 @@ public class ThutEssentials
     {
         loaded = true;
         manager = new CommandManager(event);
+        teams.registerPerms();
         if (config.landEnabled) LandManager.getInstance();
         if (config.economyEnabled) EconomyManager.getInstance();
+        try
+        {
+            WorldManager.onServerStart(event);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @EventHandler
