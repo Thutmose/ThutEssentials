@@ -30,17 +30,19 @@ public class Join extends BaseCommand
         PlayerContext context = new PlayerContext(player);
         String teamname = args[0];
         LandTeam teamtojoin = LandManager.getInstance().getTeam(teamname, false);
+        LandTeam oldTeam = LandManager.getTeam(player);
+        if (oldTeam == teamtojoin) throw new CommandException("You are already in that team!");
         if (teamtojoin != null)
         {
             boolean canJoinInvite = manager.hasPermission(player.getGameProfile(),
                     LandEventsHandler.PERMJOINTEAMINVITED, context);
             boolean canJoinNoInvite = manager.hasPermission(player.getGameProfile(),
                     LandEventsHandler.PERMJOINTEAMNOINVITE, context);
-            canJoinInvite = teamtojoin.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName);
-            if (canJoinInvite)
+            canJoinInvite = canJoinInvite
+                    || teamtojoin.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName);
+            if (canJoinInvite && teamtojoin.member.size() == 0)
             {
-                canJoinInvite = teamtojoin.member.size() == 0;
-                canJoinInvite = canJoinInvite && !LandManager.getInstance().getTeam(teamname, false).reserved;
+                canJoinInvite = !LandManager.getInstance().getTeam(teamname, false).reserved;
             }
             if (canJoinInvite || canJoinNoInvite)
             {
@@ -49,6 +51,7 @@ public class Join extends BaseCommand
                 player.sendMessage(new TextComponentString("You joined Team " + teamname));
                 return;
             }
+
         }
         else throw new CommandException("No team found by name " + teamname);
         sender.sendMessage(new TextComponentString("You do not have an invite for Team " + teamname));

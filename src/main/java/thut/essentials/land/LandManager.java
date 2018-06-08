@@ -303,6 +303,8 @@ public class LandManager
         {
             LandTeam old = playerTeams.remove(member);
             old.member.remove(member);
+            old.admin.remove(member);
+            LandSaveHandler.saveTeam(old.teamName);
         }
         t.member.add(member);
         playerTeams.put(member, t);
@@ -475,5 +477,4 @@ public class LandManager
         LandSaveHandler.saveTeam(team.teamName);
         LandSaveHandler.saveGlobalData();
     }
-
 }
