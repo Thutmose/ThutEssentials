@@ -51,7 +51,6 @@ public class Join extends BaseCommand
                 player.sendMessage(new TextComponentString("You joined Team " + teamname));
                 return;
             }
-
         }
         else throw new CommandException("No team found by name " + teamname);
         sender.sendMessage(new TextComponentString("You do not have an invite for Team " + teamname));
