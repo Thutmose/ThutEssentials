@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -18,6 +19,7 @@ import thut.essentials.economy.EconomyManager;
 import thut.essentials.itemcontrol.ItemControl;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
+import thut.essentials.util.ChatHandler;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.DefaultPermissions;
 import thut.essentials.util.HomeManager;
@@ -48,6 +50,10 @@ public class ThutEssentials
     public void preInit(FMLPreInitializationEvent e)
     {
         config = new ConfigManager(e.getSuggestedConfigurationFile());
+        if (config.chatTweaks)
+        {
+            MinecraftForge.EVENT_BUS.register(new ChatHandler());
+        }
     }
 
     @EventHandler

@@ -98,6 +98,14 @@ public class ConfigManager extends ConfigBase
     public boolean              comandDisableSpam         = false;
 
     @Configure(category = MISC)
+    public boolean              chatTweaks                = true;
+
+    @Configure(category = MISC)
+    public boolean              forceChatFormat           = false;
+    @Configure(category = MISC)
+    public String               chatFormat                = "<[name]> [message]";
+
+    @Configure(category = MISC)
     public String[]             allThutEssentialsCommands = {};
 
     @Configure(category = ECON)
