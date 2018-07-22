@@ -1,6 +1,7 @@
 package thut.essentials;
 
 import java.io.IOException;
+import java.util.Map;
 
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
@@ -13,6 +14,8 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
+import net.minecraftforge.fml.common.network.NetworkCheckHandler;
+import net.minecraftforge.fml.relauncher.Side;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
@@ -25,6 +28,7 @@ import thut.essentials.util.DefaultPermissions;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.IPermissionHandler;
 import thut.essentials.util.PlayerDataHandler;
+import thut.essentials.util.ServerPauser;
 import thut.essentials.world.WorldManager;
 
 @Mod(modid = ThutEssentials.MODID, name = "Thut Essentials", version = ThutEssentials.VERSION, dependencies = "", updateJSON = ThutEssentials.UPDATEURL, acceptableRemoteVersions = "*")
@@ -104,5 +108,13 @@ public class ThutEssentials
         LandManager.clearInstance();
         EconomyManager.clearInstance();
         manager.clear();
+    }
+
+    @NetworkCheckHandler
+    public boolean checkRemote(Map<String, String> args, Side side)
+    {
+        ServerPauser.paused = false;
+        ServerPauser.pauseTimer = 1000;
+        return true;
     }
 }

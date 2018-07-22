@@ -108,6 +108,12 @@ public class ConfigManager extends ConfigBase
     @Configure(category = MISC)
     public String[]             allThutEssentialsCommands = {};
 
+    @Configure(category = MISC)
+    public boolean              pauseWhenEmpty            = false;
+
+    @Configure(category = MISC)
+    public int                  pauseTime                 = 5000;
+
     @Configure(category = ECON)
     public boolean              economyEnabled            = true;
     @Configure(category = ECON)
@@ -184,6 +190,8 @@ public class ConfigManager extends ConfigBase
                 e.printStackTrace();
             }
         }
+        if (pauseWhenEmpty) MinecraftForge.EVENT_BUS.register(ServerPauser.class);
+        else MinecraftForge.EVENT_BUS.unregister(ServerPauser.class);
     }
 
 }
