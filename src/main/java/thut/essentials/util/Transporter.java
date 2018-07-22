@@ -242,13 +242,13 @@ public class Transporter
         else theEntity.setLocationAndAngles(x, y, z, yaw, pitch);
     }
 
-    public static Entity teleportEntity(Entity entity, Vector3 t2, int dimension, boolean destBlocked)
+    public static Entity teleportEntity(Entity entity, Vector3 t2, int dimension)
     {
         if (!DimensionManager.isDimensionRegistered(dimension)) return entity;
         if (entity.isRiding())
         {
             Entity mount = entity.getRidingEntity();
-            mount = teleportEntity(mount, t2, dimension, false);
+            mount = teleportEntity(mount, t2, dimension);
             return entity;
         }
         if (dimension != entity.dimension)

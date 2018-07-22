@@ -14,7 +14,6 @@ import net.minecraft.entity.MoverType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
@@ -25,7 +24,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class CompatWrapper
 {
@@ -64,11 +62,6 @@ public class CompatWrapper
     public static void sendChatMessage(ICommandSender to, ITextComponent message)
     {//
         to.sendMessage(message);
-    }
-
-    public static void registerTileEntity(Class<? extends TileEntity> tileClass, String id)
-    {
-        GameRegistry.registerTileEntity(tileClass, id);
     }
 
     public static void registerModEntity(Class<? extends Entity> entityClass, String entityName, int id, Object mod,

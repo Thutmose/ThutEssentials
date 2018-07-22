@@ -16,7 +16,6 @@ public class Area
     Set<Requirement> requirements = Sets.newHashSet();
     public Area()
     {
-        // TODO Auto-generated constructor stub
     }
 
 }

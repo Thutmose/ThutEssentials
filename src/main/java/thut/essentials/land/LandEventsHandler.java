@@ -310,6 +310,7 @@ public class LandEventsHandler
     @SubscribeEvent
     public void ExplosionEvent(ExplosionEvent.Detonate evt)
     {
+        if (evt.getWorld().isRemote) return;
         List<BlockPos> toRemove = Lists.newArrayList();
         boolean denyBlasts = ConfigManager.INSTANCE.denyExplosions;
         if (ConfigManager.INSTANCE.landEnabled)
@@ -464,6 +465,7 @@ public class LandEventsHandler
     public void mobSpawnEvent(LivingSpawnEvent.SpecialSpawn evt)
     {
         if (!ConfigManager.INSTANCE.landEnabled) return;
+        if (evt.getEntity().getEntityWorld().isRemote) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(),
                 evt.getEntity().getEntityWorld().provider.getDimension());
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
@@ -478,6 +480,7 @@ public class LandEventsHandler
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void mobSpawnEvent(LivingSpawnEvent.CheckSpawn evt)
     {
+        if (evt.getEntity().getEntityWorld().isRemote) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(),
                 evt.getEntity().getEntityWorld().provider.getDimension());
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
@@ -492,6 +495,7 @@ public class LandEventsHandler
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void interactLeftClickEntity(AttackEntityEvent evt)
     {
+        if (evt.getEntity().getEntityWorld().isRemote) return;
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getTarget().getPosition(),
                 evt.getEntityPlayer().getEntityWorld().provider.getDimension());
         LandTeam owner = LandManager.getInstance().getLandOwner(c);

@@ -36,6 +36,9 @@ public class SpawnDefuzzer
     }
 
     @SubscribeEvent
+    /** This is to handle the initial connection of the player to the server.
+     * 
+     * @param evt */
     public void EntityUpdate(LivingUpdateEvent evt)
     {
         if (logins.contains(evt.getEntity().getUniqueID()) && evt.getEntity() instanceof EntityPlayerMP)

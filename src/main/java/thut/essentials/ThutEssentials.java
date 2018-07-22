@@ -20,6 +20,7 @@ import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.DefaultPermissions;
+import thut.essentials.util.HomeManager;
 import thut.essentials.util.IPermissionHandler;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.world.WorldManager;
@@ -55,6 +56,7 @@ public class ThutEssentials
         loaded = true;
         manager = new CommandManager(event);
         teams.registerPerms();
+        HomeManager.registerPerms();
         if (config.landEnabled) LandManager.getInstance();
         if (config.economyEnabled) EconomyManager.getInstance();
         try
