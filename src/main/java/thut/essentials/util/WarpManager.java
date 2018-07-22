@@ -9,11 +9,22 @@ import com.google.common.collect.Maps;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.IPermissionHandler;
+import net.minecraftforge.server.permission.PermissionAPI;
+import net.minecraftforge.server.permission.context.PlayerContext;
+import thut.essentials.ThutEssentials;
+import thut.essentials.commands.CommandManager;
+import thut.essentials.commands.misc.Spawn;
+import thut.essentials.commands.misc.Spawn.PlayerMover;
 
 public class WarpManager
 {
@@ -42,6 +53,16 @@ public class WarpManager
             String[] args = s.split(":");
             warpLocs.put(args[0], getInt(args[1]));
         }
+
+        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+        for (String s : warpLocs.keySet())
+        {
+            String node = "thutessentials.warp." + s;
+            if (!manager.getRegisteredNodes().contains(node))
+            {
+                manager.registerNode(node, DefaultPermissionLevel.ALL, "Warp to " + s);
+            }
+        }
     }
 
     static int[] getInt(String val)
@@ -63,6 +84,12 @@ public class WarpManager
         String warp = name + ":" + center.getX() + " " + center.getY() + " " + center.getZ() + " " + dimension;
         warps.add(warp);
         warpLocs.put(name, new int[] { center.getX(), center.getY(), center.getZ(), dimension });
+        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+        String node = "thutessentials.warp." + name;
+        if (!manager.getRegisteredNodes().contains(node))
+        {
+            manager.registerNode(node, DefaultPermissionLevel.ALL, "Warp to " + name);
+        }
         ConfigManager.INSTANCE.updateField(warpsField, warps.toArray(new String[0]));
     }
 
@@ -90,15 +117,48 @@ public class WarpManager
 
     public static void sendWarpsList(EntityPlayer player)
     {
+        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+        PlayerContext context = new PlayerContext(player);
         player.sendMessage(new TextComponentString("================"));
         player.sendMessage(new TextComponentString("      Warps     "));
         player.sendMessage(new TextComponentString("================"));
         for (String s : warpLocs.keySet())
         {
+            if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
             Style style = new Style();
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
             player.sendMessage(new TextComponentString(s).setStyle(style));
         }
         player.sendMessage(new TextComponentString("================"));
+    }
+
+    public static void attemptWarp(EntityPlayer player, String warpName) throws CommandException
+    {
+        int[] warp = WarpManager.getWarp(warpName);
+        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
+        NBTTagCompound tptag = tag.getCompoundTag("tp");
+        long last = tptag.getLong("warpDelay");
+        long time = player.getServer().getWorld(0).getTotalWorldTime();
+        if (last > time)
+        {
+            player.sendMessage(
+                    CommandManager.makeFormattedComponent("Too Soon between Warp attempt", TextFormatting.RED, false));
+            return;
+        }
+        if (warp != null)
+        {
+            IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+            PlayerContext context = new PlayerContext(player);
+            if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + warpName, context))
+                throw new CommandException("You may not use this warp.");
+            ITextComponent teleMess = CommandManager.makeFormattedComponent("Warped to " + warpName,
+                    TextFormatting.GREEN);
+            PlayerMover.setMove(player, ThutEssentials.instance.config.warpActivateDelay, warp[3],
+                    new BlockPos(warp[0], warp[1], warp[2]), teleMess, Spawn.INTERUPTED);
+            tptag.setLong("warpDelay", time + ConfigManager.INSTANCE.warpReUseDelay);
+            tag.setTag("tp", tptag);
+            PlayerDataHandler.saveCustomData(player);
+        }
+        else throw new CommandException("Warp " + warpName + " not found.");
     }
 }
