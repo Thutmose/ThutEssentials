@@ -61,6 +61,11 @@ public class RuleManager
                 index = rule.indexOf('&', index);
                 if (index < rule.length() - 1 && index >= 0)
                 {
+                    if (index > 0 && rule.substring(index - 1, index).equals("\\"))
+                    {
+                        index++;
+                        continue;
+                    }
                     String toReplace = rule.substring(index, index + 2);
                     String num = toReplace.replace("&", "");
                     TextFormatting format = charCodeMap.get(num);
