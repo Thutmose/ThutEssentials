@@ -58,10 +58,6 @@ public class ChatHandler
                 name.setStyle(style);
                 found = true;
             }
-            if (temp instanceof TextComponentString)
-            {
-
-            }
         }
         IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         boolean canFormat = manager.hasPermission(event.getPlayer().getGameProfile(), CANFORMAT,
