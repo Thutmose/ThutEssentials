@@ -197,7 +197,7 @@ public abstract class ConfigBase extends Configuration
         for (String s : getCategoryNames())
         {
             cc = getCategory(s);
-            cc.setLanguageKey("pokecube.config." + cc.getName());
+            cc.setLanguageKey("thutessentials.config." + cc.getName());
             List<String> removeThis = new ArrayList<>();
             if (cc.entrySet().isEmpty()) empty.add(cc);
             for (Map.Entry<String, Property> e : cc.entrySet())

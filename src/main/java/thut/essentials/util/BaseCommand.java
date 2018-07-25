@@ -24,14 +24,14 @@ public abstract class BaseCommand extends CommandBase
 {
     static final Map<String, Integer> permsMap = Maps.newHashMap();
 
-    final String                      key;
+    public final String               key;
     final int                         perm;
 
     public BaseCommand(String key, int perms, String... aliases)
     {
         this.key = key;
         List<String> alii = CommandManager.commands.get(key);
-        if (alii == null) CommandManager.commands.put(key, alii = Lists.newArrayList(key));
+        if (alii == null || alii.isEmpty()) CommandManager.commands.put(key, alii = Lists.newArrayList(key));
         for (String s : aliases)
             if (!alii.contains(s)) alii.add(s);
         if (!alii.contains(key.toLowerCase(Locale.ENGLISH))) alii.add(key.toLowerCase(Locale.ENGLISH));

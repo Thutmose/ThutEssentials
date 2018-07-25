@@ -16,6 +16,7 @@ public class ConfigManager extends ConfigBase
     private static final String WARPS                     = "warps";
     private static final String STAFF                     = "staff";
     private static final String NAMES                     = "names";
+    private static final String COMMANDS                  = "commands";
     private static final String LAND                      = "land";
     private static final String ITEM                      = "itemcontrol";
     private static final String MISC                      = "misc";
@@ -149,6 +150,9 @@ public class ConfigManager extends ConfigBase
     public String[]             blockUseWhitelist         = {};
     @Configure(category = LAND)
     public String[]             blockBreakWhitelist       = {};
+
+    @Configure(category = COMMANDS)
+    public String[]             commands                  = {};
 
     public ConfigManager()
     {

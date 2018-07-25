@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -191,12 +192,24 @@ public class CommandManager
         commands.put("delrule", Lists.newArrayList("delrule"));
     }
 
-    Set<BaseCommand> commandSet = Sets.newHashSet();
+    List<BaseCommand> commandList = Lists.newArrayList();
 
-    public CommandManager(FMLServerStartingEvent event)
+    public CommandManager()
     {
         Set<String> blacklist = Sets.newHashSet(ConfigManager.INSTANCE.disabledCommands);
         List<Class<?>> foundClasses;
+
+        for (String s : ConfigManager.INSTANCE.commands)
+        {
+            String[] args = s.split(":");
+            List<String> aliases = Lists.newArrayList();
+            for (String s1 : args)
+                aliases.add(s1);
+            LinkedHashSet<String> names = Sets.newLinkedHashSet(aliases);
+            aliases = Lists.newArrayList(names);
+            commands.put(args[0], aliases);
+        }
+
         // Register commands.
         try
         {
@@ -226,24 +239,15 @@ public class CommandManager
                     try
                     {
                         move = (CommandBase) candidateClass.getConstructor().newInstance();
+                        if (move instanceof BaseCommand)
+                        {
+                            commandList.add((BaseCommand) move);
+                        }
                     }
                     catch (Exception e)
                     {
                         if (ConfigManager.INSTANCE.comandDisableSpam)
                             System.out.println("Error with " + candidateClass);
-                    }
-                    if (move != null && move.getName() != null)
-                    {
-                        event.registerServerCommand(move);
-                        if (move instanceof BaseCommand)
-                        {
-                            commandSet.add((BaseCommand) move);
-                        }
-                    }
-                    else
-                    {
-                        if (ConfigManager.INSTANCE.comandDisableSpam)
-                            System.err.println(candidateClass + " is not completed.");
                     }
                 }
             }
@@ -256,11 +260,47 @@ public class CommandManager
         {
             e.printStackTrace();
         }
+        Collections.sort(commandList);
+        ConfigManager.INSTANCE.commands = new String[commandList.size()];
+        for (int i = 0; i < commandList.size(); i++)
+        {
+            BaseCommand command = commandList.get(i);
+            List<String> alii = commands.get(command.getName());
+            String var = command.key;
+            for (int j = 0; j < alii.size(); j++)
+            {
+                var = var + ":" + alii.get(j);
+            }
+            ConfigManager.INSTANCE.commands[i] = var;
+        }
+        try
+        {
+            ConfigManager.INSTANCE.updateField(ConfigManager.class.getDeclaredField("commands"),
+                    ConfigManager.INSTANCE.commands);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        ConfigManager.INSTANCE.save();
+    }
+
+    public void registerCommands(FMLServerStartingEvent event)
+    {
+        for (BaseCommand command : commandList)
+            if (command != null && command.getName() != null)
+            {
+                event.registerServerCommand(command);
+            }
+            else
+            {
+                if (ConfigManager.INSTANCE.comandDisableSpam) System.err.println(command + " is not completed.");
+            }
     }
 
     public void clear()
     {
-        for (BaseCommand c : commandSet)
+        for (BaseCommand c : commandList)
         {
             c.destroy();
         }

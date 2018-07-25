@@ -16,7 +16,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemFood;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
@@ -552,6 +551,15 @@ public class LandEventsHandler
             return;
         }
         else if (owns) return;
+
+        // Allow use if public block.
+        Coordinate blockLoc = new Coordinate(evt.getPos(), player.getEntityWorld().provider.getDimension());
+        if (LandManager.getInstance().isPublic(blockLoc))
+        {
+            evt.setResult(Result.DENY);
+            return;
+        }
+
         if (!owns && !manager.hasPermission(player.getGameProfile(), PERMUSEITEMOTHER, context))
         {
             player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
@@ -560,13 +568,8 @@ public class LandEventsHandler
                     player.inventoryContainer.inventoryItemStacks);
             return;
         }
-        Coordinate blockLoc = new Coordinate(evt.getPos(), player.getEntityWorld().provider.getDimension());
-        if (!LandManager.getInstance().isPublic(blockLoc))
-        {
-            evt.setResult(Result.DENY);
-            evt.setCanceled(true);
-        }
         evt.setResult(Result.DENY);
+        evt.setCanceled(true);
     }
 
     /** Uses player interact here to also prevent opening of inventories.
@@ -655,16 +658,8 @@ public class LandEventsHandler
         if (!b && shouldPass) return;
         Coordinate blockLoc = new Coordinate(evt.getPos(),
                 evt.getEntityPlayer().getEntityWorld().provider.getDimension());
-        boolean allowed = manager.hasPermission(player.getGameProfile(), PERMUSEBLOCKOTHER, context);
-        if (!LandManager.getInstance().isPublic(blockLoc) && !allowed)
-        {
-            evt.setUseBlock(Result.DENY);
-            evt.setCanceled(true);
-            if (!evt.getWorld().isRemote && evt.getHand() == EnumHand.MAIN_HAND)
-            {
-                evt.getEntity().sendMessage(getDenyMessage(owner));
-            }
-        }
+        boolean freeuse = LandManager.getInstance().isPublic(blockLoc);
+        boolean allowed = freeuse || manager.hasPermission(player.getGameProfile(), PERMUSEBLOCKOTHER, context);
         if (!allowed)
         {
             player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));

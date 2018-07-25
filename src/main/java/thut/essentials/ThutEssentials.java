@@ -50,6 +50,7 @@ public class ThutEssentials
     public void preInit(FMLPreInitializationEvent e)
     {
         config = new ConfigManager(e.getSuggestedConfigurationFile());
+        manager = new CommandManager();
         if (config.chatTweaks)
         {
             MinecraftForge.EVENT_BUS.register(new ChatHandler());
@@ -60,9 +61,9 @@ public class ThutEssentials
     public void serverLoad(FMLServerStartingEvent event)
     {
         loaded = true;
-        manager = new CommandManager(event);
         teams.registerPerms();
         HomeManager.registerPerms();
+        manager.registerCommands(event);
         if (config.landEnabled) LandManager.getInstance();
         if (config.economyEnabled) EconomyManager.getInstance();
         try
