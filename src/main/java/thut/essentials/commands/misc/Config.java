@@ -11,34 +11,36 @@ import java.util.List;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.UserListOpsEntry;
-import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.IPermissionHandler;
+import net.minecraftforge.server.permission.PermissionAPI;
+import net.minecraftforge.server.permission.context.PlayerContext;
 import thut.essentials.ThutEssentials;
+import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.Configure;
 
-public class Config extends CommandBase
+public class Config extends BaseCommand
 {
-    private List<String>   aliases;
+    public static final String EDITPERM = "thutessentials.command.config.edit";
 
-    ArrayList<String>      fields   = Lists.newArrayList();
+    ArrayList<String>          fields   = Lists.newArrayList();
 
-    HashMap<String, Field> fieldMap = Maps.newHashMap();
+    HashMap<String, Field>     fieldMap = Maps.newHashMap();
 
     public Config()
     {
-        this.aliases = new ArrayList<String>();
-        this.aliases.add("teconfig");
+        super("teconfig", 0);
+        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+        manager.registerNode(EDITPERM, DefaultPermissionLevel.OP, "Can the player edit configs via the command.");
         populateFields();
     }
 
@@ -122,21 +124,9 @@ public class Config extends CommandBase
     }
 
     @Override
-    public List<String> getAliases()
-    {
-        return this.aliases;
-    }
-
-    @Override
-    public String getName()
-    {
-        return aliases.get(0);
-    }
-
-    @Override
     public String getUsage(ICommandSender sender)
     {
-        return "/" + aliases.get(0) + "<option name> <optional:newvalue>";
+        return "/" + getName() + "<option name> <optional:newvalue>";
     }
 
     @Override
@@ -147,8 +137,7 @@ public class Config extends CommandBase
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
-            BlockPos pos)
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
     {
         List<String> ret = new ArrayList<String>();
         if (args.length == 1)
@@ -191,17 +180,12 @@ public class Config extends CommandBase
 
     public static boolean isOp(ICommandSender sender)
     {
-        if (FMLCommonHandler.instance().getMinecraftServerInstance() != null
-                && !FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer()) { return true; }
-
-        if (sender instanceof EntityPlayer)
+        if (sender instanceof EntityPlayerMP)
         {
-            EntityPlayer player = sender.getEntityWorld().getPlayerEntityByName(sender.getName());
-            UserListOpsEntry userentry = ((EntityPlayerMP) player).mcServer.getPlayerList().getOppedPlayers()
-                    .getEntry(player.getGameProfile());
-            return userentry != null && userentry.getPermissionLevel() >= 4;
+            IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+            return manager.hasPermission(((EntityPlayerMP) sender).getGameProfile(), EDITPERM,
+                    new PlayerContext((EntityPlayer) sender));
         }
-        else if (sender instanceof TileEntityCommandBlock) { return true; }
         return sender.getName().equalsIgnoreCase("@") || sender.getName().equals("Server");
     }
 

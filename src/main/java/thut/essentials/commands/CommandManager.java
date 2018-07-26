@@ -192,7 +192,8 @@ public class CommandManager
         commands.put("delrule", Lists.newArrayList("delrule"));
     }
 
-    List<BaseCommand> commandList = Lists.newArrayList();
+    List<BaseCommand> commandList   = Lists.newArrayList();
+    List<CommandBase> otherCommands = Lists.newArrayList();
 
     public CommandManager()
     {
@@ -243,6 +244,7 @@ public class CommandManager
                         {
                             commandList.add((BaseCommand) move);
                         }
+                        else otherCommands.add(move);
                     }
                     catch (Exception e)
                     {
@@ -261,6 +263,7 @@ public class CommandManager
             e.printStackTrace();
         }
         Collections.sort(commandList);
+        Collections.sort(otherCommands);
         ConfigManager.INSTANCE.commands = new String[commandList.size()];
         for (int i = 0; i < commandList.size(); i++)
         {
@@ -296,6 +299,12 @@ public class CommandManager
             {
                 if (ConfigManager.INSTANCE.comandDisableSpam) System.err.println(command + " is not completed.");
             }
+        for (CommandBase c : otherCommands)
+        {
+            if (ConfigManager.INSTANCE.comandDisableSpam)
+                System.err.println(c + " is a commandbase instead of basecomand.");
+            event.registerServerCommand(c);
+        }
     }
 
     public void clear()

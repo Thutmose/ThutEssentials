@@ -178,6 +178,8 @@ public class ConfigManager extends ConfigBase
         else LandManager.clearInstance();
         if (economyEnabled && ThutEssentials.instance.loaded) EconomyManager.getInstance();
         else EconomyManager.clearInstance();
+        if (spawnDefuzz) MinecraftForge.EVENT_BUS.register(ThutEssentials.instance.defuz);
+        else MinecraftForge.EVENT_BUS.unregister(ThutEssentials.instance.defuz);
         DefaultPermissions.init();
         BaseCommand.permsMap.clear();
         for (String s : commandPermissionLevels)

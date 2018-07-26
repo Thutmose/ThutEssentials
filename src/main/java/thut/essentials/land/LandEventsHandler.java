@@ -389,7 +389,7 @@ public class LandEventsHandler
         if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
         Coordinate blockLoc = new Coordinate(evt.getPos(),
                 evt.getEntityPlayer().getEntityWorld().provider.getDimension());
-        if (!LandManager.getInstance().isPublic(blockLoc))
+        if (!LandManager.getInstance().isPublic(blockLoc, owner))
         {
             evt.setUseBlock(Result.DENY);
             evt.setCanceled(true);
@@ -554,7 +554,7 @@ public class LandEventsHandler
 
         // Allow use if public block.
         Coordinate blockLoc = new Coordinate(evt.getPos(), player.getEntityWorld().provider.getDimension());
-        if (LandManager.getInstance().isPublic(blockLoc))
+        if (LandManager.getInstance().isPublic(blockLoc, LandManager.getInstance().getLandOwner(c)))
         {
             evt.setResult(Result.DENY);
             return;
@@ -610,6 +610,7 @@ public class LandEventsHandler
         if (blockUseWhiteList.contains(name)) { return; }
         boolean b = true;
         boolean shouldPass = true;
+        LandTeam team = LandManager.getInstance().getLandOwner(c);
         if (LandManager.owns(evt.getEntityPlayer(), c))
         {
             if (!manager.hasPermission(player.getGameProfile(), PERMUSEBLOCKOWN, context))
@@ -626,11 +627,11 @@ public class LandEventsHandler
                     && evt.getItemStack().getDisplayName().equals("Public Toggle")
                     && evt.getEntityPlayer().isSneaking())
             {
-                if (LandManager.getInstance().isAdmin(evt.getEntityPlayer().getUniqueID()))
+                if (!team.allPublic && LandManager.getInstance().isAdmin(evt.getEntityPlayer().getUniqueID()))
                 {
                     Coordinate blockLoc = new Coordinate(evt.getPos(),
                             evt.getEntityPlayer().getEntityWorld().provider.getDimension());
-                    if (LandManager.getInstance().isPublic(blockLoc))
+                    if (LandManager.getInstance().isPublic(blockLoc, team))
                     {
                         evt.getEntityPlayer().sendMessage(new TextComponentString("Set Block to Team Only"));
                         LandManager.getInstance().unsetPublic(blockLoc);
@@ -658,7 +659,7 @@ public class LandEventsHandler
         if (!b && shouldPass) return;
         Coordinate blockLoc = new Coordinate(evt.getPos(),
                 evt.getEntityPlayer().getEntityWorld().provider.getDimension());
-        boolean freeuse = LandManager.getInstance().isPublic(blockLoc);
+        boolean freeuse = LandManager.getInstance().isPublic(blockLoc, team);
         boolean allowed = freeuse || manager.hasPermission(player.getGameProfile(), PERMUSEBLOCKOTHER, context);
         if (!allowed)
         {

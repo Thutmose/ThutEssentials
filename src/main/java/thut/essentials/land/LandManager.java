@@ -56,6 +56,7 @@ public class LandManager
         public boolean             noMobSpawn     = false;
         public boolean             friendlyFire   = true;
         public boolean             noExplosions   = false;
+        public boolean             allPublic      = false;
 
         // TODO figure out what I want to do with these two.
         public List<String>        allies         = Lists.newArrayList();
@@ -410,9 +411,9 @@ public class LandManager
         return landMap.containsKey(land);
     }
 
-    public boolean isPublic(Coordinate c)
+    public boolean isPublic(Coordinate c, LandTeam team)
     {
-        return publicBlocks.containsKey(c);
+        return team.allPublic || publicBlocks.containsKey(c);
     }
 
     public boolean isTeamLand(Coordinate chunk, String team)
