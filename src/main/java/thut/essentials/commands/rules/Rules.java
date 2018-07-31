@@ -21,10 +21,10 @@ public class Rules extends BaseCommand
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         List<String> rules = RuleManager.getRules();
-        sender.sendMessage(new TextComponentString(ConfigManager.INSTANCE.ruleHeader));
+        sender.sendMessage(new TextComponentString(RuleManager.format(ConfigManager.INSTANCE.ruleHeader)));
         for (String s : rules)
         {
-            sender.sendMessage(new TextComponentString(s));
+            sender.sendMessage(new TextComponentString(RuleManager.format(s)));
         }
     }
 

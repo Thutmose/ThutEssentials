@@ -17,6 +17,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemFood;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -652,9 +653,12 @@ public class LandEventsHandler
                     .post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(), UseType.RIGHTCLICKBLOCK));
             name = evt.getItemStack().getItem().getRegistryName().toString();
             shouldPass = shouldPass || itemUseWhitelist.contains(name);
-            if (shouldPass) b = CompatWrapper.interactWithBlock(block, evt.getWorld(), evt.getPos(), state,
-                    evt.getEntityPlayer(), evt.getHand(), null, evt.getFace(), (float) evt.getHitVec().x,
-                    (float) evt.getHitVec().y, (float) evt.getHitVec().z);
+            BlockPos pos = evt.getPos();
+            Vec3d vec = evt.getHitVec();
+            if (vec == null) vec = new Vec3d(0, 0, 0);
+            if (shouldPass)
+                b = CompatWrapper.interactWithBlock(block, evt.getWorld(), pos, state, evt.getEntityPlayer(),
+                        evt.getHand(), null, evt.getFace(), (float) vec.x, (float) vec.y, (float) vec.z);
         }
         if (!b && shouldPass) return;
         Coordinate blockLoc = new Coordinate(evt.getPos(),

@@ -34,11 +34,18 @@ public class EditRanks extends BaseCommand
     }
 
     @Override
+    public String getUsage(ICommandSender sender)
+    {
+        return super.getUsage(sender)+" <arg> <player> <value>";
+    }
+
+    @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         EntityPlayer player = getCommandSenderAsPlayer(sender);
         LandTeam landTeam = LandManager.getTeam(player);
         if (!landTeam.isAdmin(player)) throw new CommandException("Only Team Admins may manage ranks");
+        if (args.length == 0) throw new CommandException(getUsage(sender));
         String type = args[0];
         String rankName;
         EntityPlayer target;
