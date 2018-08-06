@@ -21,8 +21,6 @@ import com.google.common.collect.Sets;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.management.UserListOpsEntry;
 import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
@@ -30,8 +28,8 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
 
@@ -144,17 +142,11 @@ public class CommandManager
                 new Style().setBold(bold).setColor(colour).setClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
     }
 
-    public static boolean isOp(ICommandSender sender)
+    public static boolean isOp(ICommandSender sender, String bypasslimit)
     {
-        if (FMLCommonHandler.instance().getMinecraftServerInstance() != null
-                && !FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer()) { return true; }
-
         if (sender instanceof EntityPlayer)
         {
-            EntityPlayer player = sender.getEntityWorld().getPlayerEntityByName(sender.getName());
-            UserListOpsEntry userentry = ((EntityPlayerMP) player).mcServer.getPlayerList().getOppedPlayers()
-                    .getEntry(player.getGameProfile());
-            return userentry != null && userentry.getPermissionLevel() >= 4;
+            return PermissionAPI.hasPermission((EntityPlayer) sender, bypasslimit);
         }
         else if (sender instanceof TileEntityCommandBlock) { return true; }
         return sender.getName().equalsIgnoreCase("@") || sender.getName().equals("Server");

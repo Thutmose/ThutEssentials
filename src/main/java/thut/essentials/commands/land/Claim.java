@@ -8,6 +8,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.ClaimLandEvent;
 import thut.essentials.land.LandManager;
@@ -18,6 +20,13 @@ import thut.essentials.util.Coordinate;
 
 public class Claim extends BaseCommand
 {
+    private static final String BYPASSLIMIT = "thutessentials.land.claim.nolimit";
+
+    static
+    {
+        PermissionAPI.registerNode(BYPASSLIMIT, DefaultPermissionLevel.OP,
+                "Permission to bypass the land per player limit for a team.");
+    }
 
     public Claim()
     {
@@ -31,7 +40,7 @@ public class Claim extends BaseCommand
         LandTeam team = LandManager.getTeam(player);
         if (team == LandManager.getDefaultTeam())
             throw new CommandException("You are not in a team that can claim land.");
-        boolean isOp = CommandManager.isOp(sender);
+        boolean isOp = CommandManager.isOp(sender, BYPASSLIMIT);
         int teamCount = team.member.size();
         int count = LandManager.getInstance().countLand(team.teamName);
         boolean up = false;
