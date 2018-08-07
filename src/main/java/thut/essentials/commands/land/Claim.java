@@ -22,15 +22,14 @@ public class Claim extends BaseCommand
 {
     private static final String BYPASSLIMIT = "thutessentials.land.claim.nolimit";
 
-    static
-    {
-        PermissionAPI.registerNode(BYPASSLIMIT, DefaultPermissionLevel.OP,
-                "Permission to bypass the land per player limit for a team.");
-    }
+    private static boolean      init        = true;
 
     public Claim()
     {
         super("claim", 0);
+        if (init) PermissionAPI.registerNode(BYPASSLIMIT, DefaultPermissionLevel.OP,
+                "Permission to bypass the land per player limit for a team.");
+        init = false;
     }
 
     @Override
