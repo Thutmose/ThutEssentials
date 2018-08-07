@@ -6,6 +6,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraftforge.server.permission.PermissionAPI;
+import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -29,6 +31,7 @@ public class UnClaim extends BaseCommand
         boolean up = false;
         int num = 1;
         int n = 0;
+        boolean unclaimAny = PermissionAPI.hasPermission(player, LandEventsHandler.PERMUNCLAIMOTHER);
         if (args.length > 1)
         {
             try
@@ -54,7 +57,7 @@ public class UnClaim extends BaseCommand
                     int dim = sender.getEntityWorld().provider.getDimension();
                     Coordinate c = new Coordinate(x, y, z, dim);
                     LandTeam owner = LandManager.getInstance().getLandOwner(c);
-                    if (owner != null && !team.equals(owner))
+                    if (!unclaimAny) if (owner != null && !team.equals(owner))
                         throw new CommandException("You may not unclaim that land.");
                     if (y < 0 || y > 15) continue;
                     n++;
@@ -82,7 +85,8 @@ public class UnClaim extends BaseCommand
             int dim = sender.getEntityWorld().provider.getDimension();
             Coordinate c = new Coordinate(x, y, z, dim);
             LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner != null && !team.equals(owner)) throw new CommandException("You may not unclaim that land.");
+            if (!unclaimAny)
+                if (owner != null && !team.equals(owner)) throw new CommandException("You may not unclaim that land.");
             if (y < 0 || y > 15) continue;
             n++;
             LandManager.getInstance().removeTeamLand(team.teamName, c);

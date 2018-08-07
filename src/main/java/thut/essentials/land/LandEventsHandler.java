@@ -118,6 +118,8 @@ public class LandEventsHandler
     public static final String PERMJOINTEAMINVITED  = "thutessentials.teams.join.invite";
     public static final String PERMJOINTEAMNOINVITE = "thutessentials.teams.join.force";
 
+    public static final String PERMUNCLAIMOTHER     = "thutessentials.land.unclaim.owned.other";
+
     Map<UUID, Long>            lastLeaveMessage     = Maps.newHashMap();
     Map<UUID, Long>            lastEnterMessage     = Maps.newHashMap();
 
@@ -164,6 +166,8 @@ public class LandEventsHandler
                 "Can the player join a team with an invite.");
         manager.registerNode(PERMJOINTEAMNOINVITE, DefaultPermissionLevel.OP,
                 "Can the player join a team without an invite.");
+
+        manager.registerNode(PERMUNCLAIMOTHER, DefaultPermissionLevel.OP, "Can the player unclaim any land.");
 
     }
 
