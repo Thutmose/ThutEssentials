@@ -22,7 +22,7 @@ public class Invites extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         List<String> c = LandManager.getInstance().getInvites(player.getUniqueID());
         if (c.isEmpty())
         {

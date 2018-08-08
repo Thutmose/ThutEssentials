@@ -45,7 +45,7 @@ public class RTP extends BaseCommand
         }
         else
         {
-            player = getCommandSenderAsPlayer(sender);
+            player = getPlayerBySender(sender);
         }
         BlockPos position;
         int n = 100;

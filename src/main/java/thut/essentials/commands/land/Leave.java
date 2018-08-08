@@ -20,7 +20,7 @@ public class Leave extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         LandTeam def = LandManager.getDefaultTeam();
         if (team == def) throw new CommandException("You cannot leave the default team");

@@ -55,7 +55,7 @@ public class SetWarp extends BaseCommand
         }
         else
         {
-            EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+            EntityPlayerMP player = getPlayerBySender(sender);
             pos = player.getPosition();
             dim = player.dimension;
         }

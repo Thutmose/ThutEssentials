@@ -25,7 +25,7 @@ public class Join extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         PlayerContext context = new PlayerContext(player);
         String teamname = args[0];

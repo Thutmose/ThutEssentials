@@ -13,9 +13,12 @@ import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandSenderWrapper;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.PlayerNotFoundException;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.UserListOpsEntry;
 import net.minecraft.util.math.BlockPos;
@@ -24,6 +27,22 @@ import thut.essentials.commands.CommandManager;
 
 public abstract class BaseCommand extends CommandBase
 {
+    public static EntityPlayerMP getPlayerBySender(ICommandSender sender) throws CommandException
+    {
+        if (sender instanceof EntityPlayerMP)
+        {
+            return (EntityPlayerMP) sender;
+        }
+        else if (sender instanceof CommandSenderWrapper)// if the command is
+                                                        // sent by /execute
+        {
+            return (EntityPlayerMP) CommandBase.getPlayer(sender.getServer(), sender, sender.getName());
+        }
+        else
+        {
+            throw new CommandException("No Player Found");
+        }
+    }
 
     public static GameProfile getProfile(MinecraftServer server, UUID id)
     {

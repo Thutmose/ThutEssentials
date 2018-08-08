@@ -20,7 +20,7 @@ public class TpToggle extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tpaTag = tag.getCompoundTag("tpa");
         boolean ignore = !tpaTag.getBoolean("ignore");

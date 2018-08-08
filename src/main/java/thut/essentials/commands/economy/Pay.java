@@ -32,7 +32,7 @@ public class Pay extends BaseCommand
         EntityPlayer payer = null;
         if (sender instanceof EntityPlayer)
         {
-            payer = getCommandSenderAsPlayer(sender);
+            payer = getPlayerBySender(sender);
             senderBalance = EconomyManager.getBalance(payer);
         }
         int toSend = Integer.parseInt(args[1]);

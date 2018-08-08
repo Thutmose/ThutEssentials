@@ -35,7 +35,7 @@ public class Claim extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         if (team == LandManager.getDefaultTeam())
             throw new CommandException("You are not in a team that can claim land.");

@@ -166,7 +166,7 @@ public class Spawn extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tptag = tag.getCompoundTag("tp");
         long last = tptag.getLong("spawnDelay");

@@ -28,7 +28,7 @@ public class TpAccept extends BaseCommand
         if (args.length == 0)
             throw new CommandException("CLICK THE LINK TO ACCEPT, DO NOT SEND THIS COMMAND DIRECTLY!");
         String id = args[1];
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tpaTag = tag.getCompoundTag("tpa");
         String requestor = tpaTag.getString("R");

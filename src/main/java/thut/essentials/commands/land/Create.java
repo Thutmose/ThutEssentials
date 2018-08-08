@@ -30,7 +30,7 @@ public class Create extends BaseCommand
     {
         if (args.length != 1) throw new CommandException(getUsage(sender));
         String teamname = args[0];
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         PlayerContext context = new PlayerContext(player);
         if (!manager.hasPermission(player.getGameProfile(), LandEventsHandler.PERMCREATETEAM, context))

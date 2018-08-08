@@ -30,7 +30,7 @@ public class SetAdmin extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer user = getCommandSenderAsPlayer(sender);
+        EntityPlayer user = getPlayerBySender(sender);
         GameProfile player = getProfile(server, args[0]);
         LandTeam teamA = LandManager.getTeam(user);
         LandTeam teamB = LandManager.getTeam(player.getId());

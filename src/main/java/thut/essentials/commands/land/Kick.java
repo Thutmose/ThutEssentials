@@ -30,7 +30,7 @@ public class Kick extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer kicker = getCommandSenderAsPlayer(sender);
+        EntityPlayer kicker = getPlayerBySender(sender);
         String toKick = args[0];
         GameProfile profile = getProfile(server, toKick);
         LandTeam team = LandManager.getTeam(profile.getId());

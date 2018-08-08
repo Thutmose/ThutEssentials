@@ -29,7 +29,7 @@ public class Home extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+        EntityPlayerMP player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
 
         if (team.home == null)

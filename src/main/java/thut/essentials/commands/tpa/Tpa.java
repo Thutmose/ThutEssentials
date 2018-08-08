@@ -30,7 +30,7 @@ public class Tpa extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         EntityPlayer target = getPlayer(server, sender, args[0]);
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(target);
         NBTTagCompound tpaTag = tag.getCompoundTag("tpa");

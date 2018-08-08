@@ -37,7 +37,7 @@ public class Prefix extends BaseCommand
         }
         catch (Exception e)
         {
-            player = getCommandSenderAsPlayer(sender);
+            player = getPlayerBySender(sender);
             start = 0;
         }
         String arg = args.length == start ? "" : args[start];

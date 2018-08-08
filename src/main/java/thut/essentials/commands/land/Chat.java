@@ -36,7 +36,7 @@ public class Chat extends BaseCommand
         ITextComponent mess = new TextComponentString("[Team]" + sender.getDisplayName().getFormattedText() + ": ");
         mess.getStyle().setColor(TextFormatting.YELLOW);
         mess.appendSibling(CommandManager.makeFormattedComponent(message, TextFormatting.AQUA, false));
-        LandTeam team = LandManager.getTeam(getCommandSenderAsPlayer(sender));
+        LandTeam team = LandManager.getTeam(getPlayerBySender(sender));
         if (ConfigManager.INSTANCE.logTeamChat) server.sendMessage(mess);
         for (UUID id : team.member)
         {

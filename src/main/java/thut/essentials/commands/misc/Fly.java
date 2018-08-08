@@ -22,7 +22,7 @@ public class Fly extends BaseCommand
         EntityPlayer player;
         try
         {
-            player = getCommandSenderAsPlayer(sender);
+            player = getPlayerBySender(sender);
         }
         catch (PlayerNotFoundException e)
         {

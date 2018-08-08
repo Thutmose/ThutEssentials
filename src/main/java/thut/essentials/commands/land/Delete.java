@@ -20,7 +20,7 @@ public class Delete extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         if (team == null) throw new CommandException("You are not in a team.");
         if (!LandManager.getInstance().isAdmin(player.getUniqueID())

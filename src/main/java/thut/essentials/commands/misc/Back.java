@@ -58,7 +58,7 @@ public class Back extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+        EntityPlayerMP player = getPlayerBySender(sender);
         NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
         NBTTagCompound tptag = tag.getCompoundTag("tp");
         long last = tptag.getLong("backDelay");

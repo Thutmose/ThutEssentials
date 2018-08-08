@@ -24,7 +24,7 @@ public class Warp extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         String warpName = args[0];
         for (int i = 1; i < args.length; i++)
         {

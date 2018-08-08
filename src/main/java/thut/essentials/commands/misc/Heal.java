@@ -20,7 +20,7 @@ public class Heal extends BaseCommand
         EntityLivingBase toHeal;
         if(args.length==0)
         {
-            toHeal = getCommandSenderAsPlayer(sender);
+            toHeal = getPlayerBySender(sender);
         }
         else
         {

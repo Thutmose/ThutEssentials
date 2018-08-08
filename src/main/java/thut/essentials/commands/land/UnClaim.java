@@ -26,7 +26,7 @@ public class UnClaim extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         if (!team.hasPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
             throw new CommandException("You are not allowed to do that.");

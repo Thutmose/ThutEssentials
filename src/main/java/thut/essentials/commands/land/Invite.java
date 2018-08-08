@@ -31,7 +31,7 @@ public class Invite extends BaseCommand
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         String player = args[0];
-        EntityPlayer inviter = getCommandSenderAsPlayer(sender);
+        EntityPlayer inviter = getPlayerBySender(sender);
         EntityPlayer invitee = getPlayer(server, sender, player);
         if (invitee == inviter) throw new CommandException("You cannot invite yourself to your team.");
         LandTeam landTeam = LandManager.getTeam(inviter);

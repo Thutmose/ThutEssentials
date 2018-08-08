@@ -23,7 +23,7 @@ public class Kit extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         long kitTime = PlayerDataHandler.getCustomDataTag(player).getLong("kitTime");
         if ((ConfigManager.INSTANCE.kitReuseDelay <= 0 && kitTime != 0)
                 || server.getEntityWorld().getTotalWorldTime() < kitTime)

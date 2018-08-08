@@ -19,7 +19,7 @@ public class Balance extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getCommandSenderAsPlayer(sender);
+        EntityPlayer player = getPlayerBySender(sender);
         int amount = EconomyManager.getBalance(player);
         player.sendMessage(new TextComponentString("Your Balance is " + amount));
     }

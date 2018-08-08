@@ -24,7 +24,7 @@ public class List extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        LandTeam team = LandManager.getTeam(getCommandSenderAsPlayer(sender));
+        LandTeam team = LandManager.getTeam(getPlayerBySender(sender));
         String teamName = team.teamName;
         sender.sendMessage(new TextComponentString("Members of Team " + teamName));
         Collection<UUID> c = team.member;

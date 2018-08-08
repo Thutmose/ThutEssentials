@@ -86,7 +86,7 @@ public class Spy extends BaseCommand
         }
         else
         {
-            id = getCommandSenderAsPlayer(sender).getUniqueID();
+            id = getPlayerBySender(sender).getUniqueID();
         }
         if (spies.remove(id))
         {
