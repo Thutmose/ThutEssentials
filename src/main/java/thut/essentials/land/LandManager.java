@@ -71,14 +71,24 @@ public class LandManager
             teamName = name;
         }
 
+        public boolean isMember(UUID id)
+        {
+            return member.contains(id);
+        }
+
         public boolean isMember(Entity player)
         {
-            return member.contains(player.getUniqueID());
+            return isMember(player.getUniqueID());
+        }
+
+        public boolean isAdmin(UUID id)
+        {
+            return admin.contains(id);
         }
 
         public boolean isAdmin(Entity player)
         {
-            return admin.contains(player.getUniqueID());
+            return isAdmin(player.getUniqueID());
         }
 
         public boolean hasPerm(UUID player, String perm)
@@ -178,27 +188,32 @@ public class LandManager
         return instance;
     }
 
-    public static LandTeam getTeam(Entity player)
+    public static LandTeam getTeam(UUID id)
     {
-        LandTeam playerTeam = getInstance().playerTeams.get(player.getUniqueID());
+        LandTeam playerTeam = getInstance().playerTeams.get(id);
         if (playerTeam == null)
         {
             for (LandTeam team : getInstance().teamMap.values())
             {
-                if (team.isMember(player))
+                if (team.isMember(id))
                 {
-                    getInstance().addToTeam(player.getUniqueID(), team.teamName);
+                    getInstance().addToTeam(id, team.teamName);
                     playerTeam = team;
                     break;
                 }
             }
-            if (playerTeam == null && player instanceof EntityPlayer)
+            if (playerTeam == null)
             {
-                getInstance().addToTeam(player.getUniqueID(), ConfigManager.INSTANCE.defaultTeamName);
+                getInstance().addToTeam(id, ConfigManager.INSTANCE.defaultTeamName);
                 playerTeam = getInstance().getTeam(ConfigManager.INSTANCE.defaultTeamName, false);
             }
         }
         return playerTeam;
+    }
+
+    public static LandTeam getTeam(Entity player)
+    {
+        return getTeam(player.getUniqueID());
     }
 
     public static LandTeam getDefaultTeam()

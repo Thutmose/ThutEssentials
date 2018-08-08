@@ -1,5 +1,7 @@
 package thut.essentials.commands.land;
 
+import com.mojang.authlib.GameProfile;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -29,14 +31,14 @@ public class RemoveAdmin extends BaseCommand
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         EntityPlayer user = getCommandSenderAsPlayer(sender);
-        EntityPlayer player = getPlayer(server, sender, args[0]);
+        GameProfile player = getProfile(server, args[0]);
         LandTeam teamA = LandManager.getTeam(user);
-        LandTeam teamB = LandManager.getTeam(player);
+        LandTeam teamB = LandManager.getTeam(player.getId());
         if (teamA != teamB) throw new CommandException("You must be in the same team to do that.");
         String teamName = teamA.teamName;
         if (LandManager.getInstance().isAdmin(user.getUniqueID()))
         {
-            LandManager.getInstance().removeAdmin(player.getUniqueID());
+            LandManager.getInstance().removeAdmin(player.getId());
             sender.sendMessage(new TextComponentString(player + " removed as an Admin for Team " + teamName));
         }
         else

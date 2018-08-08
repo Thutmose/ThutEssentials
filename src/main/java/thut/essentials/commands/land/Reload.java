@@ -20,6 +20,5 @@ public class Reload extends BaseCommand
     {
         sender.sendMessage(new TextComponentString("Reloading Teams and Land from disk."));
         LandSaveHandler.loadGlobalData();
-
     }
 }

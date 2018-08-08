@@ -1,5 +1,7 @@
 package thut.essentials.commands.land;
 
+import com.mojang.authlib.GameProfile;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -30,13 +32,13 @@ public class Kick extends BaseCommand
     {
         EntityPlayer kicker = getCommandSenderAsPlayer(sender);
         String toKick = args[0];
-        EntityPlayer kickee = getPlayer(server, sender, toKick);
-        LandTeam team = LandManager.getTeam(kickee);
+        GameProfile profile = getProfile(server, toKick);
+        LandTeam team = LandManager.getTeam(profile.getId());
         LandTeam team1 = LandManager.getTeam(kicker);
         if (team != team1 || team == LandManager.getDefaultTeam()) throw new CommandException("You cannot do that.");
         if (toKick.equalsIgnoreCase(sender.getName()) || team1.hasPerm(kicker.getUniqueID(), LandTeam.KICK))
         {
-            LandManager.getInstance().removeFromTeam(kickee.getUniqueID());
+            LandManager.getInstance().removeFromTeam(profile.getId());
             sender.sendMessage(new TextComponentString("Removed " + toKick + " From Team."));
         }
         else

@@ -36,7 +36,7 @@ public class EditRanks extends BaseCommand
     @Override
     public String getUsage(ICommandSender sender)
     {
-        return super.getUsage(sender)+" <arg> <player> <value>";
+        return super.getUsage(sender) + " <arg> <player> <value>";
     }
 
     @Override
@@ -114,12 +114,11 @@ public class EditRanks extends BaseCommand
             rankName = args[1];
             rank = landTeam.rankMap.get(rankName);
             if (rank == null) throw new CommandException("Rank " + rankName + " does not exist.");
-            Collection<?> c = rank.members;
+            Collection<UUID> c = rank.members;
             player.sendMessage(new TextComponentString("Members of " + rankName));
-            for (Object o : c)
+            for (UUID o : c)
             {
-                GameProfile profile = server.getMinecraftSessionService()
-                        .fillProfileProperties(new GameProfile((UUID) o, null), true);
+                GameProfile profile = getProfile(server, o);
                 sender.sendMessage(new TextComponentString("  " + profile.getName()));
             }
             break;

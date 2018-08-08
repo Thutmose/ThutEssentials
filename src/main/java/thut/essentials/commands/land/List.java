@@ -27,11 +27,10 @@ public class List extends BaseCommand
         LandTeam team = LandManager.getTeam(getCommandSenderAsPlayer(sender));
         String teamName = team.teamName;
         sender.sendMessage(new TextComponentString("Members of Team " + teamName));
-        Collection<?> c = team.member;
-        for (Object o : c)
+        Collection<UUID> c = team.member;
+        for (UUID o : c)
         {
-            GameProfile profile = server.getMinecraftSessionService()
-                    .fillProfileProperties(new GameProfile((UUID) o, null), true);
+            GameProfile profile = getProfile(server, o);
             sender.sendMessage(new TextComponentString("" + profile.getName()));
         }
     }

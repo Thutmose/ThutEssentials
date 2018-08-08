@@ -4,11 +4,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -22,6 +24,46 @@ import thut.essentials.commands.CommandManager;
 
 public abstract class BaseCommand extends CommandBase
 {
+
+    public static GameProfile getProfile(MinecraftServer server, UUID id)
+    {
+        GameProfile profile = null;
+        // First check profile cache.
+        if (id != null) profile = server.getPlayerProfileCache().getProfileByUUID(id);
+        if (profile == null) profile = new GameProfile(id, null);
+
+        // Try to fill profile via secure method.
+        profile = server.getMinecraftSessionService().fillProfileProperties(profile, true);
+        return profile;
+    }
+
+    public static GameProfile getProfile(MinecraftServer server, String arg)
+    {
+        UUID id = null;
+        String name = null;
+
+        // First check if arg is a UUID
+        try
+        {
+            id = UUID.fromString(arg);
+        }
+        catch (Exception e)
+        {
+            // If not a UUID, arg is the name.
+            name = arg;
+        }
+
+        GameProfile profile = null;
+
+        // First check profile cache.
+        if (id != null) profile = server.getPlayerProfileCache().getProfileByUUID(id);
+        if (profile == null) profile = new GameProfile(id, name);
+
+        // Try to fill profile via secure method.
+        profile = server.getMinecraftSessionService().fillProfileProperties(profile, true);
+        return profile;
+    }
+
     static final Map<String, Integer> permsMap = Maps.newHashMap();
 
     public final String               key;
