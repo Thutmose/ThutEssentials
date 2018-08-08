@@ -1,5 +1,7 @@
 package thut.essentials.commands.land;
 
+import com.google.common.collect.Lists;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -69,7 +71,8 @@ public class UnClaim extends BaseCommand
         }
         if (args.length > 1 && args[0].equalsIgnoreCase("all"))
         {
-            for (Coordinate c : team.land.land)
+            java.util.List<Coordinate> toRemove = Lists.newArrayList(team.land.land);
+            for (Coordinate c : toRemove)
             {
                 LandManager.getInstance().removeTeamLand(team.teamName, c);
             }
