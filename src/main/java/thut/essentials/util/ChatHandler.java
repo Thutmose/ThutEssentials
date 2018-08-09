@@ -138,7 +138,7 @@ public class ChatHandler
         if (ConfigManager.INSTANCE.landEnabled)
         {
             LandTeam team = LandManager.getTeam(event.getEntity());
-            Rank rank = team.ranksMembers.get(event.getEntity().getUniqueID());
+            Rank rank = team._ranksMembers.get(event.getEntity().getUniqueID());
             if (rank != null)
             {
                 String rankPrefix = rank.prefix;

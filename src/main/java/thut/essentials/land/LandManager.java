@@ -42,7 +42,7 @@ public class LandManager
         public String              teamName;
         public Set<UUID>           admin          = Sets.newHashSet();
         public Set<UUID>           member         = Sets.newHashSet();
-        public Map<UUID, Rank>     ranksMembers   = Maps.newHashMap();
+        public Map<UUID, Rank>     _ranksMembers  = Maps.newHashMap();
         public Map<String, Rank>   rankMap        = Maps.newHashMap();
         public Set<Coordinate>     anyUse         = Sets.newHashSet();
         public Coordinate          home;
@@ -94,7 +94,7 @@ public class LandManager
         public boolean hasPerm(UUID player, String perm)
         {
             if (admin.contains(player)) return true;
-            Rank rank = ranksMembers.get(player);
+            Rank rank = _ranksMembers.get(player);
             if (rank == null) return false;
             return rank.perms.contains(perm);
         }
@@ -117,9 +117,9 @@ public class LandManager
             if (!teamName.equals(ConfigManager.INSTANCE.defaultTeamName))
             {
                 for (UUID id : members)
-                    LandManager.getInstance().playerTeams.put(id, this);
+                    LandManager.getInstance()._playerTeams.put(id, this);
                 for (Coordinate c : anyUse)
-                    LandManager.getInstance().publicBlocks.put(c, this);
+                    LandManager.getInstance()._publicBlocks.put(c, this);
             }
         }
 
@@ -173,7 +173,7 @@ public class LandManager
         if (instance != null)
         {
             LandSaveHandler.saveGlobalData();
-            for (String s : instance.teamMap.keySet())
+            for (String s : instance._teamMap.keySet())
                 LandSaveHandler.saveTeam(s);
         }
         instance = null;
@@ -190,10 +190,10 @@ public class LandManager
 
     public static LandTeam getTeam(UUID id)
     {
-        LandTeam playerTeam = getInstance().playerTeams.get(id);
+        LandTeam playerTeam = getInstance()._playerTeams.get(id);
         if (playerTeam == null)
         {
-            for (LandTeam team : getInstance().teamMap.values())
+            for (LandTeam team : getInstance()._teamMap.values())
             {
                 if (team.isMember(id))
                 {
@@ -226,12 +226,12 @@ public class LandManager
         return getTeam(player).equals(getInstance().getLandOwner(chunk));
     }
 
-    protected HashMap<String, LandTeam>     teamMap      = Maps.newHashMap();
-    protected HashMap<Coordinate, LandTeam> landMap      = Maps.newHashMap();
-    protected HashMap<UUID, LandTeam>       playerTeams  = Maps.newHashMap();
-    protected HashMap<UUID, Invites>        invites      = Maps.newHashMap();
-    protected HashMap<Coordinate, LandTeam> publicBlocks = Maps.newHashMap();
-    public int                              version      = VERSION;
+    protected HashMap<String, LandTeam>     _teamMap      = Maps.newHashMap();
+    protected HashMap<Coordinate, LandTeam> _landMap      = Maps.newHashMap();
+    protected HashMap<UUID, LandTeam>       _playerTeams  = Maps.newHashMap();
+    protected HashMap<UUID, Invites>        invites       = Maps.newHashMap();
+    protected HashMap<Coordinate, LandTeam> _publicBlocks = Maps.newHashMap();
+    public int                              version       = VERSION;
 
     LandManager()
     {
@@ -239,10 +239,10 @@ public class LandManager
 
     public void renameTeam(String oldName, String newName) throws CommandException
     {
-        if (teamMap.containsKey(newName)) throw new CommandException("Error, new team name already in use");
-        LandTeam team = teamMap.remove(oldName);
+        if (_teamMap.containsKey(newName)) throw new CommandException("Error, new team name already in use");
+        LandTeam team = _teamMap.remove(oldName);
         if (team == null) throw new CommandException("Error, specified team not found");
-        teamMap.put(newName, team);
+        _teamMap.put(newName, team);
         for (Invites i : invites.values())
         {
             if (i.teams.remove(oldName))
@@ -257,21 +257,21 @@ public class LandManager
 
     public void removeTeam(String teamName)
     {
-        LandTeam team = teamMap.remove(teamName);
-        HashSet<Coordinate> land = Sets.newHashSet(landMap.keySet());
+        LandTeam team = _teamMap.remove(teamName);
+        HashSet<Coordinate> land = Sets.newHashSet(_landMap.keySet());
         for (Coordinate c : land)
         {
-            if (landMap.get(c).equals(team))
+            if (_landMap.get(c).equals(team))
             {
-                landMap.remove(c);
+                _landMap.remove(c);
             }
         }
-        HashSet<UUID> ids = Sets.newHashSet(playerTeams.keySet());
+        HashSet<UUID> ids = Sets.newHashSet(_playerTeams.keySet());
         for (UUID id : ids)
         {
-            if (playerTeams.get(id).equals(team))
+            if (_playerTeams.get(id).equals(team))
             {
-                playerTeams.remove(id);
+                _playerTeams.remove(id);
             }
         }
         for (Invites i : invites.values())
@@ -283,15 +283,15 @@ public class LandManager
 
     public void addTeamLand(String team, Coordinate land, boolean sync)
     {
-        LandTeam t = teamMap.get(team);
+        LandTeam t = _teamMap.get(team);
         if (t == null)
         {
             Thread.dumpStack();
             return;
         }
         t.land.addLand(land);
-        landMap.put(land, t);
-        for (LandTeam t1 : teamMap.values())
+        _landMap.put(land, t);
+        for (LandTeam t1 : _teamMap.values())
         {
             if (t != t1) t1.land.removeLand(land);
         }
@@ -315,15 +315,15 @@ public class LandManager
         {
             t.admin.add(member);
         }
-        if (playerTeams.containsKey(member))
+        if (_playerTeams.containsKey(member))
         {
-            LandTeam old = playerTeams.remove(member);
+            LandTeam old = _playerTeams.remove(member);
             old.member.remove(member);
             old.admin.remove(member);
             LandSaveHandler.saveTeam(old.teamName);
         }
         t.member.add(member);
-        playerTeams.put(member, t);
+        _playerTeams.put(member, t);
         Invites invite = invites.get(member);
         if (invite != null)
         {
@@ -347,14 +347,14 @@ public class LandManager
 
     public int countLand(String team)
     {
-        LandTeam t = teamMap.get(team);
+        LandTeam t = _teamMap.get(team);
         if (t != null) { return t.land.countLand(); }
         return 0;
     }
 
     public void createTeam(UUID member, String team) throws CommandException
     {
-        if (teamMap.containsKey(team)) throw new CommandException(team + " already exists!");
+        if (_teamMap.containsKey(team)) throw new CommandException(team + " already exists!");
         getTeam(team, true);
         addToTeam(member, team);
         addAdmin(member, team);
@@ -370,16 +370,16 @@ public class LandManager
 
     public LandTeam getLandOwner(Coordinate land)
     {
-        return landMap.get(land);
+        return _landMap.get(land);
     }
 
     public LandTeam getTeam(String name, boolean create)
     {
-        LandTeam team = teamMap.get(name);
+        LandTeam team = _teamMap.get(name);
         if (team == null && create)
         {
             team = new LandTeam(name);
-            teamMap.put(name, team);
+            _teamMap.put(name, team);
         }
         return team;
     }
@@ -387,7 +387,7 @@ public class LandManager
     public List<Coordinate> getTeamLand(String team)
     {
         ArrayList<Coordinate> ret = new ArrayList<Coordinate>();
-        LandTeam t = teamMap.get(team);
+        LandTeam t = _teamMap.get(team);
         if (t != null) ret.addAll(t.land.land);
         return ret;
     }
@@ -402,7 +402,7 @@ public class LandManager
     public boolean invite(UUID inviter, UUID invitee)
     {
         if (!isAdmin(inviter)) return false;
-        String team = playerTeams.get(inviter).teamName;
+        String team = _playerTeams.get(inviter).teamName;
         if (hasInvite(invitee, team)) return false;
         Invites invite = invites.get(invitee);
         if (invite == null)
@@ -416,31 +416,31 @@ public class LandManager
 
     public boolean isAdmin(UUID member)
     {
-        LandTeam team = playerTeams.get(member);
+        LandTeam team = _playerTeams.get(member);
         if (team == null) return false;
         return team.admin.contains(member);
     }
 
     public boolean isOwned(Coordinate land)
     {
-        return landMap.containsKey(land);
+        return _landMap.containsKey(land);
     }
 
     public boolean isPublic(Coordinate c, LandTeam team)
     {
-        return team.allPublic || publicBlocks.containsKey(c);
+        return team.allPublic || _publicBlocks.containsKey(c);
     }
 
     public boolean isTeamLand(Coordinate chunk, String team)
     {
-        LandTeam t = teamMap.get(team);
+        LandTeam t = _teamMap.get(team);
         if (t != null) return t.land.land.contains(chunk);
         return false;
     }
 
     public void removeAdmin(UUID member)
     {
-        LandTeam t = playerTeams.get(member);
+        LandTeam t = _playerTeams.get(member);
         if (t != null)
         {
             t.admin.remove(member);
@@ -459,19 +459,19 @@ public class LandManager
 
     public void removeFromTeam(UUID member)
     {
-        LandTeam team = playerTeams.get(member);
+        LandTeam team = _playerTeams.get(member);
         if (team != null)
         {
             team.admin.remove(member);
             team.member.remove(member);
-            playerTeams.remove(member);
+            _playerTeams.remove(member);
         }
     }
 
     public void removeTeamLand(String team, Coordinate land)
     {
-        LandTeam t = teamMap.get(team);
-        landMap.remove(land);
+        LandTeam t = _teamMap.get(team);
+        _landMap.remove(land);
         if (t != null && t.land.removeLand(land))
         {
             LandSaveHandler.saveTeam(team);
@@ -480,16 +480,16 @@ public class LandManager
 
     public void setPublic(Coordinate c, LandTeam owner)
     {
-        publicBlocks.put(c, owner);
+        _publicBlocks.put(c, owner);
         owner.anyUse.add(c);
         LandSaveHandler.saveGlobalData();
     }
 
     public void unsetPublic(Coordinate c)
     {
-        if (!publicBlocks.containsKey(c)) return;
+        if (!_publicBlocks.containsKey(c)) return;
         LandTeam team;
-        (team = publicBlocks.remove(c)).anyUse.remove(c);
+        (team = _publicBlocks.remove(c)).anyUse.remove(c);
         LandSaveHandler.saveTeam(team.teamName);
         LandSaveHandler.saveGlobalData();
     }

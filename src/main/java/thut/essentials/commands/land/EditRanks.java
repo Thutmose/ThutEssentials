@@ -68,7 +68,7 @@ public class EditRanks extends BaseCommand
             rank = landTeam.rankMap.get(rankName);
             if (rank == null) throw new CommandException("Rank " + rankName + " does not exist.");
             rank.members.add(target.getUniqueID());
-            landTeam.ranksMembers.put(target.getUniqueID(), rank);
+            landTeam._ranksMembers.put(target.getUniqueID(), rank);
             target.refreshDisplayName();
             player.sendMessage(new TextComponentString("Added " + target.getName() + " to Rank " + rankName));
             LandSaveHandler.saveTeam(landTeam.teamName);

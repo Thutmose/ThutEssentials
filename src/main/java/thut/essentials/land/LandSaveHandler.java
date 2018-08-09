@@ -2,9 +2,11 @@ package thut.essentials.land;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+import com.google.common.collect.Lists;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
@@ -23,8 +25,7 @@ public class LandSaveHandler
         public boolean shouldSkipField(FieldAttributes f)
         {
             String name = f.getName();
-            return name.equals("landMap") || name.equals("teamMap") || name.equals("playerTeams")
-                    || name.equals("publicBlocks") || name.equals("ranksMembers");
+            return name.startsWith("_");
         }
 
         @Override
@@ -106,9 +107,10 @@ public class LandSaveHandler
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                 String json = FileUtils.readFileToString(file, "UTF-8");
                 LandTeam team = gson.fromJson(json, LandTeam.class);
-                LandManager.getInstance().teamMap.put(team.teamName, team);
+                LandManager.getInstance()._teamMap.put(team.teamName, team);
                 team.init(FMLCommonHandler.instance().getMinecraftServerInstance());
-                for (Coordinate land : team.land.land)
+                List<Coordinate> toAdd = Lists.newArrayList(team.land.land);
+                for (Coordinate land : toAdd)
                     LandManager.getInstance().addTeamLand(team.teamName, land, false);
             }
             catch (Exception e)
