@@ -42,6 +42,13 @@ public class LandManager
         public String              teamName;
         public Set<UUID>           admin          = Sets.newHashSet();
         public Set<UUID>           member         = Sets.newHashSet();
+        /** Mobs in here are specifically set as protected, this is a whitelist,
+         * anything not in here is not protected. */
+        public Set<UUID>           protected_mobs = Sets.newHashSet();
+        /** Mobs in heere are specifically set to be public, this is a
+         * whitelist, anything not in here is not public, unless team is set to
+         * allPublic */
+        public Set<UUID>           public_mobs    = Sets.newHashSet();
         public Map<UUID, Rank>     _ranksMembers  = Maps.newHashMap();
         public Map<String, Rank>   rankMap        = Maps.newHashMap();
         public Set<Coordinate>     anyUse         = Sets.newHashSet();
@@ -121,6 +128,8 @@ public class LandManager
                 for (Coordinate c : anyUse)
                     LandManager.getInstance()._publicBlocks.put(c, this);
             }
+            LandManager.getInstance()._public_mobs.addAll(public_mobs);
+            LandManager.getInstance()._protected_mobs.addAll(protected_mobs);
         }
 
         @Override
@@ -226,15 +235,45 @@ public class LandManager
         return getTeam(player).equals(getInstance().getLandOwner(chunk));
     }
 
-    public HashMap<String, LandTeam>        _teamMap      = Maps.newHashMap();
-    protected HashMap<Coordinate, LandTeam> _landMap      = Maps.newHashMap();
-    protected HashMap<UUID, LandTeam>       _playerTeams  = Maps.newHashMap();
-    protected HashMap<UUID, Invites>        invites       = Maps.newHashMap();
-    protected HashMap<Coordinate, LandTeam> _publicBlocks = Maps.newHashMap();
-    public int                              version       = VERSION;
+    public HashMap<String, LandTeam>        _teamMap        = Maps.newHashMap();
+    protected HashMap<Coordinate, LandTeam> _landMap        = Maps.newHashMap();
+    protected HashMap<UUID, LandTeam>       _playerTeams    = Maps.newHashMap();
+    protected HashMap<UUID, Invites>        invites         = Maps.newHashMap();
+    protected HashMap<Coordinate, LandTeam> _publicBlocks   = Maps.newHashMap();
+    protected Set<UUID>                     _protected_mobs = Sets.newHashSet();
+    protected Set<UUID>                     _public_mobs    = Sets.newHashSet();
+    public int                              version         = VERSION;
 
     LandManager()
     {
+    }
+
+    public void toggleMobProtect(UUID mob, LandTeam team)
+    {
+        if (_protected_mobs.contains(mob))
+        {
+            _protected_mobs.remove(mob);
+            team.protected_mobs.remove(mob);
+        }
+        else
+        {
+            _protected_mobs.add(mob);
+            team.protected_mobs.add(mob);
+        }
+    }
+
+    public void toggleMobPublic(UUID mob, LandTeam team)
+    {
+        if (_public_mobs.contains(mob))
+        {
+            _public_mobs.remove(mob);
+            team.public_mobs.remove(mob);
+        }
+        else
+        {
+            _public_mobs.add(mob);
+            team.public_mobs.add(mob);
+        }
     }
 
     public void renameTeam(String oldName, String newName) throws CommandException

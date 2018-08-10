@@ -23,6 +23,7 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -412,7 +413,69 @@ public class LandEventsHandler
                 evt.getEntityPlayer().getEntityWorld().provider.getDimension());
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
         if (owner == null) return;
-        if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
+        // If the player owns it, they can toggle whether the entity is
+        // protected or not.
+        if (LandManager.owns(evt.getEntityPlayer(), c))
+        {
+            // No protecting players.
+            if (evt.getTarget() instanceof EntityPlayer) return;
+
+            // check if player is holding a public toggle.
+            if (!evt.getWorld().isRemote && evt.getItemStack() != null
+                    && evt.getItemStack().getDisplayName().equals("Public Toggle")
+                    && evt.getEntityPlayer().isSneaking())
+            {
+                // If so, toggle whether the entity is public.
+                if (owner.public_mobs.contains(evt.getTarget().getUniqueID()))
+                {
+                    evt.getEntityPlayer()
+                            .sendMessage(new TextComponentString("Removed from public: " + evt.getTarget().getName()));
+                    LandManager.getInstance().toggleMobPublic(evt.getTarget().getUniqueID(), owner);
+                }
+                else
+                {
+                    evt.getEntityPlayer()
+                            .sendMessage(new TextComponentString("Added to Public: " + evt.getTarget().getName()));
+                    LandManager.getInstance().toggleMobPublic(evt.getTarget().getUniqueID(), owner);
+                }
+                LandSaveHandler.saveTeam(owner.teamName);
+                evt.setCanceled(true);
+                return;
+            }
+            // check if player is holding a protect toggle.
+            if (!evt.getWorld().isRemote && evt.getItemStack() != null
+                    && evt.getItemStack().getDisplayName().equals("Protect Toggle")
+                    && evt.getEntityPlayer().isSneaking())
+            {
+                // If so, toggle whether the entity is protected.
+                if (owner.protected_mobs.contains(evt.getTarget().getUniqueID()))
+                {
+                    evt.getEntityPlayer().sendMessage(
+                            new TextComponentString("Removed from protected: " + evt.getTarget().getName()));
+                    LandManager.getInstance().toggleMobProtect(evt.getTarget().getUniqueID(), owner);
+                }
+                else
+                {
+                    evt.getEntityPlayer()
+                            .sendMessage(new TextComponentString("Added to protected: " + evt.getTarget().getName()));
+                    LandManager.getInstance().toggleMobProtect(evt.getTarget().getUniqueID(), owner);
+                }
+                LandSaveHandler.saveTeam(owner.teamName);
+                evt.setCanceled(true);
+            }
+            return;
+        }
+
+        // If all public, don't bother checking things below.
+        if (owner.allPublic) return;
+
+        // If not public, no use of mob.
+        if (!owner.public_mobs.contains(evt.getTarget().getUniqueID()))
+        {
+            evt.setCanceled(true);
+            return;
+        }
+
         for (Class<?> clas : protectedEntities)
         {
             if (clas.isInstance(evt.getTarget()))
@@ -424,6 +487,39 @@ public class LandEventsHandler
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void interactLeftClickEntity(AttackEntityEvent evt)
+    {
+        if (evt.getEntity().getEntityWorld().isRemote || !ConfigManager.INSTANCE.landEnabled) return;
+        Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getTarget().getPosition(),
+                evt.getEntityPlayer().getEntityWorld().provider.getDimension());
+        LandTeam owner = LandManager.getInstance().getLandOwner(c);
+        if (owner == null) return;
+        if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
+        if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
+        {
+            evt.setCanceled(true);
+            return;
+        }
+
+        for (Class<?> clas : protectedEntities)
+        {
+            if (clas.isInstance(evt.getTarget()))
+            {
+                evt.setCanceled(true);
+                return;
+            }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void entityDeath(LivingDeathEvent evt)
+    {
+        if (evt.getEntity().getEntityWorld().isRemote) return;
+        if (!ConfigManager.INSTANCE.landEnabled) return;
+
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void interactLeftClickEntity(LivingAttackEvent evt)
     {
         if (evt.getEntity().getEntityWorld().isRemote) return;
@@ -431,18 +527,31 @@ public class LandEventsHandler
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(),
                 evt.getEntity().getEntityWorld().provider.getDimension());
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        LandTeam players = LandManager.getTeam(evt.getEntity());
-        if (players != null && !players.friendlyFire && evt.getEntity() instanceof EntityPlayer)
+
+        // TODO maybe add a perm for combat in non-claimed land?
+        if (owner == null) return;
+
+        if (evt.getEntity() instanceof EntityPlayer)
         {
-            Entity damageSource = evt.getSource().getTrueSource();
-            if (damageSource instanceof EntityPlayer && sameTeam(damageSource, evt.getEntity()))
+            LandTeam players = LandManager.getTeam(evt.getEntity());
+            if (!players.friendlyFire)
             {
-                evt.setCanceled(true);
-                return;
+                Entity damageSource = evt.getSource().getTrueSource();
+                if (damageSource instanceof EntityPlayer && sameTeam(damageSource, evt.getEntity()))
+                {
+                    evt.setCanceled(true);
+                    return;
+                }
             }
         }
-        if (owner == null) return;
+
         if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
+        {
+            evt.setCanceled(true);
+            return;
+        }
+
+        if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
         {
             evt.setCanceled(true);
             return;
@@ -457,8 +566,17 @@ public class LandEventsHandler
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(),
                 evt.getEntity().getEntityWorld().provider.getDimension());
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
+
+        // TODO maybe add a perm for combat in non-claimed land?
         if (owner == null) return;
+
         if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
+        {
+            evt.setCanceled(true);
+            return;
+        }
+
+        if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
         {
             evt.setCanceled(true);
             return;
@@ -493,25 +611,6 @@ public class LandEventsHandler
         {
             evt.setResult(Result.DENY);
             return;
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void interactLeftClickEntity(AttackEntityEvent evt)
-    {
-        if (evt.getEntity().getEntityWorld().isRemote) return;
-        Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getTarget().getPosition(),
-                evt.getEntityPlayer().getEntityWorld().provider.getDimension());
-        LandTeam owner = LandManager.getInstance().getLandOwner(c);
-        if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
-        if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
-        for (Class<?> clas : protectedEntities)
-        {
-            if (clas.isInstance(evt.getTarget()))
-            {
-                evt.setCanceled(true);
-                return;
-            }
         }
     }
 

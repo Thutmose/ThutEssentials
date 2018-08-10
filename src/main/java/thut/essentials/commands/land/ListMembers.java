@@ -34,5 +34,4 @@ public class ListMembers extends BaseCommand
             sender.sendMessage(new TextComponentString("" + profile.getName()));
         }
     }
-
 }
