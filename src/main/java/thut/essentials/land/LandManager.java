@@ -226,7 +226,7 @@ public class LandManager
         return getTeam(player).equals(getInstance().getLandOwner(chunk));
     }
 
-    protected HashMap<String, LandTeam>     _teamMap      = Maps.newHashMap();
+    public HashMap<String, LandTeam>        _teamMap      = Maps.newHashMap();
     protected HashMap<Coordinate, LandTeam> _landMap      = Maps.newHashMap();
     protected HashMap<UUID, LandTeam>       _playerTeams  = Maps.newHashMap();
     protected HashMap<UUID, Invites>        invites       = Maps.newHashMap();
@@ -459,13 +459,7 @@ public class LandManager
 
     public void removeFromTeam(UUID member)
     {
-        LandTeam team = _playerTeams.get(member);
-        if (team != null)
-        {
-            team.admin.remove(member);
-            team.member.remove(member);
-            _playerTeams.remove(member);
-        }
+        addToTeam(member, getDefaultTeam().teamName);
     }
 
     public void removeTeamLand(String team, Coordinate land)

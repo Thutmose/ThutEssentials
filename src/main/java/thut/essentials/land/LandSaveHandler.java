@@ -94,6 +94,8 @@ public class LandSaveHandler
             if (LandManager.instance == null) LandManager.instance = new LandManager();
             saveGlobalData();
         }
+        // Set default as reservred to prevent it from getting cleaned up.
+        LandManager.getDefaultTeam().reserved = true;
     }
 
     private static void loadTeams()

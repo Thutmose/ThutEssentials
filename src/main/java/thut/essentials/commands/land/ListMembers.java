@@ -13,10 +13,10 @@ import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
 
-public class List extends BaseCommand
+public class ListMembers extends BaseCommand
 {
 
-    public List()
+    public ListMembers()
     {
         super("listMembers", 0);
     }
