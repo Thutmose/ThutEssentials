@@ -51,27 +51,13 @@ import thut.essentials.util.Coordinate;
 
 public class LandEventsHandler
 {
-    public static Set<Class<?>> protectedEntities   = Sets.newHashSet();
-    public static Set<String>   itemUseWhitelist    = Sets.newHashSet();
-    public static Set<String>   blockUseWhiteList   = Sets.newHashSet();
-    public static Set<String>   blockBreakWhiteList = Sets.newHashSet();
+    public static Set<String> itemUseWhitelist    = Sets.newHashSet();
+    public static Set<String> blockUseWhiteList   = Sets.newHashSet();
+    public static Set<String> blockBreakWhiteList = Sets.newHashSet();
 
     public static void init()
     {
         MinecraftForge.EVENT_BUS.unregister(ThutEssentials.instance.teams);
-        protectedEntities.clear();
-        for (String s : ConfigManager.INSTANCE.protectedEntities)
-        {
-            try
-            {
-                Class<?> c = Class.forName(s);
-                protectedEntities.add(c);
-            }
-            catch (Throwable t)
-            {
-                t.printStackTrace();
-            }
-        }
         itemUseWhitelist.clear();
         for (String s : ConfigManager.INSTANCE.itemUseWhitelist)
         {
@@ -475,15 +461,6 @@ public class LandEventsHandler
             evt.setCanceled(true);
             return;
         }
-
-        for (Class<?> clas : protectedEntities)
-        {
-            if (clas.isInstance(evt.getTarget()))
-            {
-                evt.setCanceled(true);
-                return;
-            }
-        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -493,21 +470,18 @@ public class LandEventsHandler
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getTarget().getPosition(),
                 evt.getEntityPlayer().getEntityWorld().provider.getDimension());
         LandTeam owner = LandManager.getInstance().getLandOwner(c);
+
+        // TODO possible perms for attacking things in unclaimed land?
         if (owner == null) return;
+
+        // Player owns here, they can attack stuff.
         if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
-        if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
+
+        // If mob is protected, do not allow the attack.
+        if (owner.protected_mobs.contains(evt.getTarget().getUniqueID()))
         {
             evt.setCanceled(true);
             return;
-        }
-
-        for (Class<?> clas : protectedEntities)
-        {
-            if (clas.isInstance(evt.getTarget()))
-            {
-                evt.setCanceled(true);
-                return;
-            }
         }
     }
 
@@ -534,6 +508,7 @@ public class LandEventsHandler
         if (evt.getEntity() instanceof EntityPlayer)
         {
             LandTeam players = LandManager.getTeam(evt.getEntity());
+            // Check if player is protected via friendly fire settings.
             if (!players.friendlyFire)
             {
                 Entity damageSource = evt.getSource().getTrueSource();
@@ -543,14 +518,16 @@ public class LandEventsHandler
                     return;
                 }
             }
+
+            // Check if player is protected by team settings
+            if (owner.noPlayerDamage)
+            {
+                evt.setCanceled(true);
+                return;
+            }
         }
 
-        if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
-        {
-            evt.setCanceled(true);
-            return;
-        }
-
+        // check if entity is protected by team
         if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
         {
             evt.setCanceled(true);
@@ -570,12 +547,14 @@ public class LandEventsHandler
         // TODO maybe add a perm for combat in non-claimed land?
         if (owner == null) return;
 
+        // Check if player is protected by team settings.
         if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
         {
             evt.setCanceled(true);
             return;
         }
 
+        // check if entity is protected by team
         if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
         {
             evt.setCanceled(true);
