@@ -184,9 +184,12 @@ public class CommandManager
         commands.put("delrule", Lists.newArrayList("delrule"));
     }
 
-    List<BaseCommand> commandList   = Lists.newArrayList();
-    List<CommandBase> otherCommands = Lists.newArrayList();
+    List<Class<? extends BaseCommand>> commandClassList   = Lists.newArrayList();
+    List<Class<? extends CommandBase>> otherClassCommands = Lists.newArrayList();
 
+    List<BaseCommand>                  commandList        = Lists.newArrayList();
+
+    @SuppressWarnings("unchecked")
     public CommandManager()
     {
         Set<String> blacklist = Sets.newHashSet(ConfigManager.INSTANCE.disabledCommands);
@@ -228,15 +231,11 @@ public class CommandManager
                             System.out.println("Skipping Disabled " + candidateClass);
                         continue;
                     }
-                    CommandBase move = null;
                     try
                     {
-                        move = (CommandBase) candidateClass.getConstructor().newInstance();
-                        if (move instanceof BaseCommand)
-                        {
-                            commandList.add((BaseCommand) move);
-                        }
-                        else otherCommands.add(move);
+                        if (BaseCommand.class.isAssignableFrom(candidateClass))
+                            commandClassList.add((Class<? extends BaseCommand>) candidateClass);
+                        else otherClassCommands.add((Class<? extends CommandBase>) candidateClass);
                     }
                     catch (Exception e)
                     {
@@ -254,9 +253,54 @@ public class CommandManager
         {
             e.printStackTrace();
         }
-        Collections.sort(commandList);
-        Collections.sort(otherCommands);
+    }
+
+    public void registerCommands(FMLServerStartingEvent event)
+    {
+        ConfigManager.INSTANCE.save();
+        System.out.println(commandClassList);
+        System.out.println(otherClassCommands);
+        for (Class<? extends BaseCommand> clazz : commandClassList)
+        {
+            try
+            {
+                BaseCommand command = clazz.newInstance();
+                if (command != null && command.getName() != null)
+                {
+                    commandList.add(command);
+                    event.registerServerCommand(command);
+                }
+                else
+                {
+                    if (ConfigManager.INSTANCE.comandDisableSpam) System.err.println(command + " is not completed.");
+                }
+            }
+            catch (Exception e)
+            {
+                if (ConfigManager.INSTANCE.comandDisableSpam) System.out.println("Error with " + clazz);
+            }
+        }
+        for (Class<? extends CommandBase> clazz : otherClassCommands)
+        {
+            try
+            {
+                CommandBase command = clazz.newInstance();
+                if (command != null && command.getName() != null)
+                {
+                    event.registerServerCommand(command);
+                }
+                else
+                {
+                    if (ConfigManager.INSTANCE.comandDisableSpam) System.err.println(command + " is not completed.");
+                }
+            }
+            catch (Exception e)
+            {
+                if (ConfigManager.INSTANCE.comandDisableSpam) System.out.println("Error with " + clazz);
+            }
+        }
         ConfigManager.INSTANCE.commands = new String[commandList.size()];
+        Collections.sort(commandList);
         for (int i = 0; i < commandList.size(); i++)
         {
             BaseCommand command = commandList.get(i);
@@ -277,25 +321,11 @@ public class CommandManager
         {
             e.printStackTrace();
         }
-        ConfigManager.INSTANCE.save();
-    }
 
-    public void registerCommands(FMLServerStartingEvent event)
-    {
-        for (BaseCommand command : commandList)
-            if (command != null && command.getName() != null)
-            {
-                event.registerServerCommand(command);
-            }
-            else
-            {
-                if (ConfigManager.INSTANCE.comandDisableSpam) System.err.println(command + " is not completed.");
-            }
-        for (CommandBase c : otherCommands)
+        for (Class<? extends CommandBase> c : otherClassCommands)
         {
             if (ConfigManager.INSTANCE.comandDisableSpam)
                 System.err.println(c + " is a commandbase instead of basecomand.");
-            event.registerServerCommand(c);
         }
     }
 
