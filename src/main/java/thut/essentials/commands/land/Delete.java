@@ -1,9 +1,5 @@
 package thut.essentials.commands.land;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,6 +9,7 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
 
@@ -27,21 +24,6 @@ public class Delete extends BaseCommand
                 "Permission to bypass the land per player limit for a team.");
     }
 
-    public void removeEmptyTeams()
-    {
-        Set<String> toRemove = new HashSet<>();
-        Map<String, LandTeam> teamMap = LandManager.getInstance()._teamMap;
-        for (String s : teamMap.keySet())
-        {
-            LandTeam team = teamMap.get(s);
-            if (team.member.size() == 0 && !team.reserved && team != LandManager.getDefaultTeam()) toRemove.add(s);
-        }
-        for (String s : toRemove)
-        {
-            LandManager.getInstance().removeTeam(s);
-        }
-    }
-
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
@@ -50,7 +32,7 @@ public class Delete extends BaseCommand
             EntityPlayer player = getPlayerBySender(sender);
             if (player == null || PermissionAPI.hasPermission(player, PERMCLEANUP))
             {
-                removeEmptyTeams();
+                LandSaveHandler.removeEmptyTeams();
                 return;
             }
             else throw new CommandException("You do not have permission to do that.");

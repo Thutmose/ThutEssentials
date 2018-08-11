@@ -297,22 +297,31 @@ public class LandManager
     public void removeTeam(String teamName)
     {
         LandTeam team = _teamMap.remove(teamName);
-        HashSet<Coordinate> land = Sets.newHashSet(_landMap.keySet());
-        for (Coordinate c : land)
+        LandTeam _default = getDefaultTeam();
+        if (team == _default) return;
+        for (Coordinate c : team.land.land)
         {
-            if (_landMap.get(c).equals(team))
+            _landMap.remove(c);
+        }
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        for (UUID id : team.member)
+        {
+            _default.member.add(id);
+            _playerTeams.put(id, _default);
+            try
             {
-                _landMap.remove(c);
+                EntityPlayer player = server.getPlayerList().getPlayerByUUID(id);
+                if (player != null)
+                {
+                    player.refreshDisplayName();
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
             }
         }
-        HashSet<UUID> ids = Sets.newHashSet(_playerTeams.keySet());
-        for (UUID id : ids)
-        {
-            if (_playerTeams.get(id).equals(team))
-            {
-                _playerTeams.remove(id);
-            }
-        }
+        LandSaveHandler.saveTeam(_default.teamName);
         for (Invites i : invites.values())
         {
             i.teams.remove(teamName);

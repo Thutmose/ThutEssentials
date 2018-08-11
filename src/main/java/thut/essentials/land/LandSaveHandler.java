@@ -2,7 +2,10 @@ package thut.essentials.land;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
@@ -34,6 +37,21 @@ public class LandSaveHandler
             return false;
         }
     };
+
+    public static void removeEmptyTeams()
+    {
+        Set<String> toRemove = new HashSet<>();
+        Map<String, LandTeam> teamMap = LandManager.getInstance()._teamMap;
+        for (String s : teamMap.keySet())
+        {
+            LandTeam team = teamMap.get(s);
+            if (team.member.size() == 0 && !team.reserved && team != LandManager.getDefaultTeam()) toRemove.add(s);
+        }
+        for (String s : toRemove)
+        {
+            LandManager.getInstance().removeTeam(s);
+        }
+    }
 
     public static File getGlobalFolder()
     {
@@ -120,6 +138,8 @@ public class LandSaveHandler
                 e.printStackTrace();
             }
         }
+        // Remove any teams that were loaded with no members, and not reserved.
+        removeEmptyTeams();
     }
 
     public static void saveTeam(String team)
