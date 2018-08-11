@@ -105,6 +105,8 @@ public class LandEventsHandler
     public static final String PERMJOINTEAMINVITED  = "thutessentials.teams.join.invite";
     public static final String PERMJOINTEAMNOINVITE = "thutessentials.teams.join.force";
 
+    public static final String PERMPROTECTMOB       = "thutessentials.teams.protect.mob";
+
     public static final String PERMUNCLAIMOTHER     = "thutessentials.land.unclaim.owned.other";
 
     Map<UUID, Long>            lastLeaveMessage     = Maps.newHashMap();
@@ -119,42 +121,50 @@ public class LandEventsHandler
     public void registerPerms()
     {
         if (registered) return;
-        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         registered = true;
-        manager.registerNode(PERMBREAKWILD, DefaultPermissionLevel.ALL, "Can the player break blocks in unowned land.");
-        manager.registerNode(PERMBREAKOWN, DefaultPermissionLevel.ALL,
+        PermissionAPI.registerNode(PERMBREAKWILD, DefaultPermissionLevel.ALL,
+                "Can the player break blocks in unowned land.");
+        PermissionAPI.registerNode(PERMBREAKOWN, DefaultPermissionLevel.ALL,
                 "Can the player break blocks in their own land.");
-        manager.registerNode(PERMBREAKOTHER, DefaultPermissionLevel.OP,
+        PermissionAPI.registerNode(PERMBREAKOTHER, DefaultPermissionLevel.OP,
                 "Can the player break blocks in other player's land.");
 
-        manager.registerNode(PERMPLACEWILD, DefaultPermissionLevel.ALL, "Can the player place blocks in unowned land.");
-        manager.registerNode(PERMPLACEOWN, DefaultPermissionLevel.ALL,
+        PermissionAPI.registerNode(PERMPLACEWILD, DefaultPermissionLevel.ALL,
+                "Can the player place blocks in unowned land.");
+        PermissionAPI.registerNode(PERMPLACEOWN, DefaultPermissionLevel.ALL,
                 "Can the player place blocks in their own land.");
-        manager.registerNode(PERMPLACEOTHER, DefaultPermissionLevel.OP,
+        PermissionAPI.registerNode(PERMPLACEOTHER, DefaultPermissionLevel.OP,
                 "Can the player place blocks in other player's land.");
 
-        manager.registerNode(PERMUSEITEMWILD, DefaultPermissionLevel.ALL, "Can the player use items in unowned land.");
-        manager.registerNode(PERMUSEITEMOWN, DefaultPermissionLevel.ALL, "Can the player use items in their own land.");
-        manager.registerNode(PERMUSEITEMOTHER, DefaultPermissionLevel.OP,
-                "Can the player use items in other player's land.");
-
-        manager.registerNode(PERMUSEBLOCKWILD, DefaultPermissionLevel.ALL, "Can the player use items in unowned land.");
-        manager.registerNode(PERMUSEBLOCKOWN, DefaultPermissionLevel.ALL,
+        PermissionAPI.registerNode(PERMUSEITEMWILD, DefaultPermissionLevel.ALL,
+                "Can the player use items in unowned land.");
+        PermissionAPI.registerNode(PERMUSEITEMOWN, DefaultPermissionLevel.ALL,
                 "Can the player use items in their own land.");
-        manager.registerNode(PERMUSEBLOCKOTHER, DefaultPermissionLevel.OP,
+        PermissionAPI.registerNode(PERMUSEITEMOTHER, DefaultPermissionLevel.OP,
                 "Can the player use items in other player's land.");
 
-        manager.registerNode(PERMENTERWILD, DefaultPermissionLevel.ALL, "Can the player enter unowned land.");
-        manager.registerNode(PERMENTEROWN, DefaultPermissionLevel.ALL, "Can the player enter their own land.");
-        manager.registerNode(PERMENTEROTHER, DefaultPermissionLevel.ALL, "Can the player enter other player's land.");
+        PermissionAPI.registerNode(PERMUSEBLOCKWILD, DefaultPermissionLevel.ALL,
+                "Can the player use items in unowned land.");
+        PermissionAPI.registerNode(PERMUSEBLOCKOWN, DefaultPermissionLevel.ALL,
+                "Can the player use items in their own land.");
+        PermissionAPI.registerNode(PERMUSEBLOCKOTHER, DefaultPermissionLevel.OP,
+                "Can the player use items in other player's land.");
 
-        manager.registerNode(PERMCREATETEAM, DefaultPermissionLevel.ALL, "Can the player create a team.");
-        manager.registerNode(PERMJOINTEAMINVITED, DefaultPermissionLevel.ALL,
+        PermissionAPI.registerNode(PERMENTERWILD, DefaultPermissionLevel.ALL, "Can the player enter unowned land.");
+        PermissionAPI.registerNode(PERMENTEROWN, DefaultPermissionLevel.ALL, "Can the player enter their own land.");
+        PermissionAPI.registerNode(PERMENTEROTHER, DefaultPermissionLevel.ALL,
+                "Can the player enter other player's land.");
+
+        PermissionAPI.registerNode(PERMCREATETEAM, DefaultPermissionLevel.ALL, "Can the player create a team.");
+        PermissionAPI.registerNode(PERMJOINTEAMINVITED, DefaultPermissionLevel.ALL,
                 "Can the player join a team with an invite.");
-        manager.registerNode(PERMJOINTEAMNOINVITE, DefaultPermissionLevel.OP,
+        PermissionAPI.registerNode(PERMJOINTEAMNOINVITE, DefaultPermissionLevel.OP,
                 "Can the player join a team without an invite.");
 
-        manager.registerNode(PERMUNCLAIMOTHER, DefaultPermissionLevel.OP, "Can the player unclaim any land.");
+        PermissionAPI.registerNode(PERMPROTECTMOB, DefaultPermissionLevel.ALL,
+                "Can the player protect mobs in their team's land.");
+
+        PermissionAPI.registerNode(PERMUNCLAIMOTHER, DefaultPermissionLevel.OP, "Can the player unclaim any land.");
 
     }
 
@@ -431,7 +441,8 @@ public class LandEventsHandler
             // check if player is holding a protect toggle.
             if (!evt.getWorld().isRemote && evt.getItemStack() != null
                     && evt.getItemStack().getDisplayName().equals("Protect Toggle")
-                    && evt.getEntityPlayer().isSneaking())
+                    && evt.getEntityPlayer().isSneaking()
+                    && PermissionAPI.hasPermission(evt.getEntityPlayer(), PERMPROTECTMOB))
             {
                 // If so, toggle whether the entity is protected.
                 if (owner.protected_mobs.contains(evt.getTarget().getUniqueID()))
@@ -603,8 +614,6 @@ public class LandEventsHandler
             return;
 
         EntityPlayer player = evt.getEntityPlayer();
-        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-        PlayerContext context = new PlayerContext(player);
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(),
                 player.getEntityWorld().provider.getDimension());
         String name = evt.getItemStack().getItem().getRegistryName().toString();
@@ -615,7 +624,7 @@ public class LandEventsHandler
         boolean ownedLand = LandManager.getInstance().isOwned(c);
         if (!ownedLand)
         {
-            if (manager.hasPermission(player.getGameProfile(), PERMUSEITEMWILD, context)) { return; }
+            if (PermissionAPI.hasPermission(player, PERMUSEITEMWILD)) { return; }
             // TODO better message.
             player.sendMessage(new TextComponentString("Cannot use that."));
             evt.setCanceled(true);
@@ -625,7 +634,7 @@ public class LandEventsHandler
 
         }
         boolean owns = LandManager.owns(player, c);
-        if (owns && !manager.hasPermission(player.getGameProfile(), PERMUSEITEMOWN, context))
+        if (owns && !PermissionAPI.hasPermission(player, PERMUSEITEMOWN))
         {
             player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
             evt.setCanceled(true);
@@ -643,7 +652,7 @@ public class LandEventsHandler
             return;
         }
 
-        if (!owns && !manager.hasPermission(player.getGameProfile(), PERMUSEITEMOTHER, context))
+        if (!owns && !PermissionAPI.hasPermission(player, PERMUSEITEMOTHER))
         {
             player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
             evt.setCanceled(true);
@@ -668,11 +677,9 @@ public class LandEventsHandler
         if (!ConfigManager.INSTANCE.landEnabled) return;
 
         EntityPlayer player = evt.getEntityPlayer();
-        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-        PlayerContext context = new PlayerContext(player);
         if (owner == null)
         {
-            if (!manager.hasPermission(player.getGameProfile(), PERMUSEBLOCKWILD, context))
+            if (!PermissionAPI.hasPermission(player, PERMUSEBLOCKWILD))
             {
                 // TODO better message.
                 player.sendMessage(new TextComponentString("Cannot use that."));
@@ -696,7 +703,7 @@ public class LandEventsHandler
         LandTeam team = LandManager.getInstance().getLandOwner(c);
         if (LandManager.owns(evt.getEntityPlayer(), c))
         {
-            if (!manager.hasPermission(player.getGameProfile(), PERMUSEBLOCKOWN, context))
+            if (!PermissionAPI.hasPermission(player, PERMUSEBLOCKOWN))
             {
                 player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
                 evt.setCanceled(true);
@@ -746,7 +753,7 @@ public class LandEventsHandler
         Coordinate blockLoc = new Coordinate(evt.getPos(),
                 evt.getEntityPlayer().getEntityWorld().provider.getDimension());
         boolean freeuse = LandManager.getInstance().isPublic(blockLoc, team);
-        boolean allowed = freeuse || manager.hasPermission(player.getGameProfile(), PERMUSEBLOCKOTHER, context);
+        boolean allowed = freeuse || PermissionAPI.hasPermission(player, PERMUSEBLOCKOTHER);
         if (!allowed)
         {
             player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
