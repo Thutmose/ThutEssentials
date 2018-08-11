@@ -434,7 +434,6 @@ public class LandEventsHandler
                             .sendMessage(new TextComponentString("Added to Public: " + evt.getTarget().getName()));
                     LandManager.getInstance().toggleMobPublic(evt.getTarget().getUniqueID(), owner);
                 }
-                LandSaveHandler.saveTeam(owner.teamName);
                 evt.setCanceled(true);
                 return;
             }
@@ -457,7 +456,6 @@ public class LandEventsHandler
                             .sendMessage(new TextComponentString("Added to protected: " + evt.getTarget().getName()));
                     LandManager.getInstance().toggleMobProtect(evt.getTarget().getUniqueID(), owner);
                 }
-                LandSaveHandler.saveTeam(owner.teamName);
                 evt.setCanceled(true);
             }
             return;
@@ -485,10 +483,7 @@ public class LandEventsHandler
         // TODO possible perms for attacking things in unclaimed land?
         if (owner == null) return;
 
-        // Player owns here, they can attack stuff.
-        if (LandManager.owns(evt.getEntityPlayer(), c)) { return; }
-
-        // If mob is protected, do not allow the attack.
+        // If mob is protected, do not allow the attack, even if by owner.
         if (owner.protected_mobs.contains(evt.getTarget().getUniqueID()))
         {
             evt.setCanceled(true);
@@ -502,6 +497,20 @@ public class LandEventsHandler
         if (evt.getEntity().getEntityWorld().isRemote) return;
         if (!ConfigManager.INSTANCE.landEnabled) return;
 
+        // Cleanup the entity from protected mobs.
+        UUID id = evt.getEntity().getUniqueID();
+        if (LandManager.getInstance()._protected_mobs.containsKey(id))
+        {
+            LandTeam team = LandManager.getInstance()._protected_mobs.remove(id);
+            team.protected_mobs.remove(id);
+        }
+
+        // Cleanup the entity from public mobs.
+        if (LandManager.getInstance()._public_mobs.containsKey(id))
+        {
+            LandTeam team = LandManager.getInstance()._public_mobs.remove(id);
+            team.public_mobs.remove(id);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

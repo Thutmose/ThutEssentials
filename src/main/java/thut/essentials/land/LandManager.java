@@ -128,8 +128,10 @@ public class LandManager
                 for (Coordinate c : anyUse)
                     LandManager.getInstance()._publicBlocks.put(c, this);
             }
-            LandManager.getInstance()._public_mobs.addAll(public_mobs);
-            LandManager.getInstance()._protected_mobs.addAll(protected_mobs);
+            for (UUID id : public_mobs)
+                LandManager.getInstance()._public_mobs.put(id, this);
+            for (UUID id : protected_mobs)
+                LandManager.getInstance()._protected_mobs.put(id, this);
         }
 
         @Override
@@ -240,8 +242,8 @@ public class LandManager
     protected HashMap<UUID, LandTeam>       _playerTeams    = Maps.newHashMap();
     protected HashMap<UUID, Invites>        invites         = Maps.newHashMap();
     protected HashMap<Coordinate, LandTeam> _publicBlocks   = Maps.newHashMap();
-    protected Set<UUID>                     _protected_mobs = Sets.newHashSet();
-    protected Set<UUID>                     _public_mobs    = Sets.newHashSet();
+    protected Map<UUID, LandTeam>           _protected_mobs = Maps.newHashMap();
+    protected Map<UUID, LandTeam>           _public_mobs    = Maps.newHashMap();
     public int                              version         = VERSION;
 
     LandManager()
@@ -250,30 +252,32 @@ public class LandManager
 
     public void toggleMobProtect(UUID mob, LandTeam team)
     {
-        if (_protected_mobs.contains(mob))
+        if (_protected_mobs.containsKey(mob))
         {
             _protected_mobs.remove(mob);
             team.protected_mobs.remove(mob);
         }
         else
         {
-            _protected_mobs.add(mob);
+            _protected_mobs.put(mob, team);
             team.protected_mobs.add(mob);
         }
+        LandSaveHandler.saveTeam(team.teamName);
     }
 
     public void toggleMobPublic(UUID mob, LandTeam team)
     {
-        if (_public_mobs.contains(mob))
+        if (_public_mobs.containsKey(mob))
         {
             _public_mobs.remove(mob);
             team.public_mobs.remove(mob);
         }
         else
         {
-            _public_mobs.add(mob);
+            _public_mobs.put(mob, team);
             team.public_mobs.add(mob);
         }
+        LandSaveHandler.saveTeam(team.teamName);
     }
 
     public void renameTeam(String oldName, String newName) throws CommandException
