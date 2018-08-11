@@ -36,6 +36,7 @@ public class Join extends BaseCommand
         {
             boolean canJoinInvite = manager.hasPermission(player.getGameProfile(),
                     LandEventsHandler.PERMJOINTEAMINVITED, context);
+            canJoinInvite = canJoinInvite && LandManager.getInstance().hasInvite(player.getUniqueID(), teamname);
             boolean canJoinNoInvite = manager.hasPermission(player.getGameProfile(),
                     LandEventsHandler.PERMJOINTEAMNOINVITE, context);
             canJoinInvite = canJoinInvite
