@@ -503,6 +503,7 @@ public class LandEventsHandler
         {
             LandTeam team = LandManager.getInstance()._protected_mobs.remove(id);
             team.protected_mobs.remove(id);
+            LandSaveHandler.saveTeam(team.teamName);
         }
 
         // Cleanup the entity from public mobs.
@@ -510,6 +511,7 @@ public class LandEventsHandler
         {
             LandTeam team = LandManager.getInstance()._public_mobs.remove(id);
             team.public_mobs.remove(id);
+            LandSaveHandler.saveTeam(team.teamName);
         }
     }
 
