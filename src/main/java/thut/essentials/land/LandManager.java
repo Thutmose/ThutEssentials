@@ -23,51 +23,103 @@ import thut.essentials.util.Coordinate;
 public class LandManager
 {
 
+    /** Stores a list of invited to team names. */
     public static class Invites
     {
         public Set<String> teams = Sets.newHashSet();
     }
 
+    /** Stores a set of members, a set of permission strings, and an optional
+     * prefix for the rank. */
+    public static class PlayerRank
+    {
+        /** Who has this rank. */
+        public Set<UUID>   members = Sets.newHashSet();
+        /** Optional prefix for the rank. */
+        public String      prefix;
+        /** Perms for this rank. */
+        public Set<String> perms   = Sets.newHashSet();
+    }
+
+    public static class Relation
+    {
+        /** Permissions for the relation */
+        public Set<String> perms;
+    }
+
     public static class LandTeam
     {
-        public static final String EDITMESSAGES   = "editMessages";
-        public static final String CLAIMPERM      = "claim";
-        public static final String UNCLAIMPERM    = "unclaim";
-        public static final String SETPREFIX      = "prefix";
-        public static final String SETHOME        = "sethome";
-        public static final String INVITE         = "invite";
-        public static final String KICK           = "kick";
+        // These are perms checked for ranks.
+        /** Can edit enter/leave/deny messages. */
+        public static final String     EDITMESSAGES   = "editMessages";
+        /** Can claim. */
+        public static final String     CLAIMPERM      = "claim";
+        /** can unclaim */
+        public static final String     UNCLAIMPERM    = "unclaim";
+        /** Can change prefixes */
+        public static final String     SETPREFIX      = "prefix";
+        /** Can set team home. */
+        public static final String     SETHOME        = "sethome";
+        /** Can invite people */
+        public static final String     INVITE         = "invite";
+        /** Can kick people */
+        public static final String     KICK           = "kick";
 
-        public TeamLand            land           = new TeamLand();
-        public String              teamName;
-        public Set<UUID>           admin          = Sets.newHashSet();
-        public Set<UUID>           member         = Sets.newHashSet();
+        // These are perms checked for relations
+        /** Can interact with things freely */
+        public static final String     PUBLIC         = "public";
+        /** Can place blocks */
+        public static final String     PLACE          = "place";
+        /** Can break blocks. */
+        public static final String     BREAK          = "break";
+
+        public TeamLand                land           = new TeamLand();
+        public String                  teamName;
+        /** Admins of this team. */
+        public Set<UUID>               admin          = Sets.newHashSet();
+        /** UUIDs of members of this team. */
+        public Set<UUID>               member         = Sets.newHashSet();
         /** Mobs in here are specifically set as protected, this is a whitelist,
          * anything not in here is not protected. */
-        public Set<UUID>           protected_mobs = Sets.newHashSet();
+        public Set<UUID>               protected_mobs = Sets.newHashSet();
         /** Mobs in heere are specifically set to be public, this is a
          * whitelist, anything not in here is not public, unless team is set to
          * allPublic */
-        public Set<UUID>           public_mobs    = Sets.newHashSet();
-        public Map<UUID, Rank>     _ranksMembers  = Maps.newHashMap();
-        public Map<String, Rank>   rankMap        = Maps.newHashMap();
-        public Set<Coordinate>     anyUse         = Sets.newHashSet();
-        public Coordinate          home;
-        public String              exitMessage    = "";
-        public String              enterMessage   = "";
-        public String              denyMessage    = "";
-        public String              prefix         = "";
-        public boolean             reserved       = false;
-        public boolean             players        = false;
-        public boolean             noPlayerDamage = false;
-        public boolean             noMobSpawn     = false;
-        public boolean             friendlyFire   = true;
-        public boolean             noExplosions   = false;
-        public boolean             allPublic      = false;
-
-        // TODO figure out what I want to do with these two.
-        public List<String>        allies         = Lists.newArrayList();
-        public List<String>        enemies        = Lists.newArrayList();
+        public Set<UUID>               public_mobs    = Sets.newHashSet();
+        /** Non-Stored map for quick lookup of rank for each member. */
+        public Map<UUID, PlayerRank>   _ranksMembers  = Maps.newHashMap();
+        /** Maps of rank name to rank, this is what is actually stored. */
+        public Map<String, PlayerRank> rankMap        = Maps.newHashMap();
+        /** List of public blocks for the team. */
+        public Set<Coordinate>         anyUse         = Sets.newHashSet();
+        /** Home coordinate for the team, used for thome command. */
+        public Coordinate              home;
+        /** Message sent on exiting team land. */
+        public String                  exitMessage    = "";
+        /** Mssage sent on entering team land. */
+        public String                  enterMessage   = "";
+        /** Message sent when denying interactions in the team. */
+        public String                  denyMessage    = "";
+        /** Prefix infront of team members names. */
+        public String                  prefix         = "";
+        /** If true, this team is not cleaned up when empty, and cannot be
+         * freely joined when empty. */
+        public boolean                 reserved       = false;
+        /** If this is player specific, currently not used. */
+        public boolean                 players        = false;
+        /** If true, players cannot take damage here. */
+        public boolean                 noPlayerDamage = false;
+        /** If true, mobs cannot spawn here. */
+        public boolean                 noMobSpawn     = false;
+        /** If true, team members can hurt each other. */
+        public boolean                 friendlyFire   = true;
+        /** If true, explosions cannot occur in team land. */
+        public boolean                 noExplosions   = false;
+        /** If true, anything in this team's land is considered public for
+         * interactions. */
+        public boolean                 allPublic      = false;
+        /** Map of details about team relations. */
+        public Map<String, Relation>   relations      = Maps.newHashMap();
 
         public LandTeam()
         {
@@ -98,24 +150,63 @@ public class LandManager
             return isAdmin(player.getUniqueID());
         }
 
-        public boolean hasPerm(UUID player, String perm)
+        public boolean hasRankPerm(UUID player, String perm)
         {
             if (admin.contains(player)) return true;
-            Rank rank = _ranksMembers.get(player);
+            PlayerRank rank = _ranksMembers.get(player);
             if (rank == null) return false;
             return rank.perms.contains(perm);
         }
 
-        public void setPerm(String rankName, String perm)
+        public void setRankPerm(String rankName, String perm)
         {
-            Rank rank = rankMap.get(rankName);
+            PlayerRank rank = rankMap.get(rankName);
             if (rank != null) rank.perms.add(perm);
         }
 
-        public void unsetPerm(String rankName, String perm)
+        public void unsetRankPerm(String rankName, String perm)
         {
-            Rank rank = rankMap.get(rankName);
+            PlayerRank rank = rankMap.get(rankName);
             if (rank != null) rank.perms.remove(perm);
+        }
+
+        /** This is for checking whether the player is in a team with a relation
+         * that allows breaking blocks in our land.
+         * 
+         * @param player
+         * @return */
+        public boolean canBreakBlock(UUID player)
+        {
+            LandTeam team = LandManager.getTeam(player);
+            Relation relation = relations.get(team.teamName);
+            if (relation != null) { return relation.perms.contains(BREAK); }
+            return member.contains(player);
+        }
+
+        /** This is for checking whether the player is in a team with a relation
+         * that allows placing blocks in our land.
+         * 
+         * @param player
+         * @return */
+        public boolean canPlaceBlock(UUID player)
+        {
+            LandTeam team = LandManager.getTeam(player);
+            Relation relation = relations.get(team.teamName);
+            if (relation != null) { return relation.perms.contains(PLACE); }
+            return member.contains(player);
+        }
+
+        /** This is for checking whether the player is in a team with a relation
+         * that allows using any random thing in our land.
+         * 
+         * @param player
+         * @return */
+        public boolean canUseStuff(UUID player)
+        {
+            LandTeam team = LandManager.getTeam(player);
+            Relation relation = relations.get(team.teamName);
+            if (relation != null) { return relation.perms.contains(PUBLIC); }
+            return member.contains(player);
         }
 
         public void init(MinecraftServer server)
@@ -145,13 +236,6 @@ public class LandManager
         public int hashCode()
         {
             return teamName.hashCode();
-        }
-
-        public static class Rank
-        {
-            public Set<UUID>   members = Sets.newHashSet();
-            public String      prefix;
-            public Set<String> perms   = Sets.newHashSet();
         }
     }
 

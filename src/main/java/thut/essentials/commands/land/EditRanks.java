@@ -13,7 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
-import thut.essentials.land.LandManager.LandTeam.Rank;
+import thut.essentials.land.LandManager.PlayerRank;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.BaseCommand;
 
@@ -49,7 +49,7 @@ public class EditRanks extends BaseCommand
         String type = args[0];
         String rankName;
         EntityPlayer target;
-        Rank rank;
+        PlayerRank rank;
         String perm;
         boolean added;
         switch (type)
@@ -58,7 +58,7 @@ public class EditRanks extends BaseCommand
             rankName = args[1];
             rank = landTeam.rankMap.get(rankName);
             if (rank != null) throw new CommandException("Rank " + rankName + " already exists.");
-            landTeam.rankMap.put(rankName, new Rank());
+            landTeam.rankMap.put(rankName, new PlayerRank());
             player.sendMessage(new TextComponentString("Added Rank " + rankName));
             LandSaveHandler.saveTeam(landTeam.teamName);
             break;

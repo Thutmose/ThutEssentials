@@ -21,7 +21,7 @@ import net.minecraftforge.server.permission.context.PlayerContext;
 import thut.essentials.events.NameEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
-import thut.essentials.land.LandManager.LandTeam.Rank;
+import thut.essentials.land.LandManager.PlayerRank;
 
 public class ChatHandler
 {
@@ -138,7 +138,7 @@ public class ChatHandler
         if (ConfigManager.INSTANCE.landEnabled)
         {
             LandTeam team = LandManager.getTeam(event.getEntity());
-            Rank rank = team._ranksMembers.get(event.getEntity().getUniqueID());
+            PlayerRank rank = team._ranksMembers.get(event.getEntity().getUniqueID());
             if (rank != null)
             {
                 String rankPrefix = rank.prefix;

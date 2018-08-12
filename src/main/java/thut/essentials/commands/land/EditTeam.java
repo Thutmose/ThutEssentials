@@ -48,7 +48,7 @@ public class EditTeam extends BaseCommand
         }
         if (arg.equalsIgnoreCase("exit"))
         {
-            if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
+            if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.exitMessage = message;
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Exit Message to " + message));
@@ -57,7 +57,7 @@ public class EditTeam extends BaseCommand
         }
         if (arg.equalsIgnoreCase("enter"))
         {
-            if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
+            if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.enterMessage = message;
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Enter Message to " + message));
@@ -66,7 +66,7 @@ public class EditTeam extends BaseCommand
         }
         if (arg.equalsIgnoreCase("deny"))
         {
-            if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
+            if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.denyMessage = message;
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Deny Message to " + message));
@@ -75,7 +75,7 @@ public class EditTeam extends BaseCommand
         }
         if (arg.equalsIgnoreCase("prefix"))
         {
-            if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.SETPREFIX))
+            if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.SETPREFIX))
                 throw new CommandException("You are not allowed to do that.");
             if (message.length() > ConfigManager.INSTANCE.prefixLength)
                 message = message.substring(0, ConfigManager.INSTANCE.prefixLength);
@@ -88,7 +88,7 @@ public class EditTeam extends BaseCommand
         }
         if (arg.equalsIgnoreCase("home"))
         {
-            if (!landTeam.hasPerm(player.getUniqueID(), LandTeam.SETHOME))
+            if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.SETHOME))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.home = new Coordinate(player.getPosition(), player.dimension);
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Team Home to " + landTeam.home));

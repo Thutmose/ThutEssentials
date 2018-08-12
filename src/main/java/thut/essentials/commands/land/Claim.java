@@ -44,7 +44,7 @@ public class Claim extends BaseCommand
         int num = 1;
         int radius = 0;
 
-        if (!team.hasPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
             throw new CommandException("You are not allowed to do that.");
 
         if (args.length > 1)

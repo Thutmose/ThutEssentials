@@ -36,7 +36,7 @@ public class Kick extends BaseCommand
         LandTeam team = LandManager.getTeam(profile.getId());
         LandTeam team1 = LandManager.getTeam(kicker);
         if (team != team1 || team == LandManager.getDefaultTeam()) throw new CommandException("You cannot do that.");
-        if (toKick.equalsIgnoreCase(sender.getName()) || team1.hasPerm(kicker.getUniqueID(), LandTeam.KICK))
+        if (toKick.equalsIgnoreCase(sender.getName()) || team1.hasRankPerm(kicker.getUniqueID(), LandTeam.KICK))
         {
             LandManager.getInstance().removeFromTeam(profile.getId());
             sender.sendMessage(new TextComponentString("Removed " + toKick + " From Team."));

@@ -28,7 +28,7 @@ public class UnClaim extends BaseCommand
     {
         EntityPlayer player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
-        if (!team.hasPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
+        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
             throw new CommandException("You are not allowed to do that.");
         boolean up = false;
         int num = 1;

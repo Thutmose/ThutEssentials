@@ -37,7 +37,7 @@ public class Invite extends BaseCommand
         LandTeam landTeam = LandManager.getTeam(inviter);
         LandTeam oldTeam = LandManager.getTeam(invitee);
         if (landTeam == oldTeam) throw new CommandException(player + " is already in your team!");
-        if (!landTeam.hasPerm(inviter.getUniqueID(), LandTeam.INVITE))
+        if (!landTeam.hasRankPerm(inviter.getUniqueID(), LandTeam.INVITE))
             throw new CommandException("You are not allowed to do that.");
         String team = landTeam.teamName;
         if (LandManager.getInstance().hasInvite(invitee.getUniqueID(), team))
