@@ -72,6 +72,8 @@ public class LandManager
         public static final String     PLACE          = "place";
         /** Can break blocks. */
         public static final String     BREAK          = "break";
+        /** Are counted as "ally" by any system that cares about that. */
+        public static final String     ALLY           = "ally";
 
         public TeamLand                land           = new TeamLand();
         public String                  teamName;
@@ -207,6 +209,20 @@ public class LandManager
             Relation relation = relations.get(team.teamName);
             if (relation != null) { return relation.perms.contains(PUBLIC); }
             return member.contains(player);
+        }
+
+        public boolean isAlly(UUID player)
+        {
+            LandTeam team = LandManager.getTeam(player);
+            if (team != null) return isAlly(team);
+            return member.contains(player);
+        }
+
+        public boolean isAlly(LandTeam team)
+        {
+            Relation relation = relations.get(team.teamName);
+            if (relation != null) { return relation.perms.contains(ALLY); }
+            return false;
         }
 
         public void init(MinecraftServer server)

@@ -2,8 +2,10 @@ package thut.essentials.commands.land;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -19,13 +21,21 @@ import thut.essentials.util.BaseCommand;
 
 public class EditRelations extends BaseCommand
 {
-    public static List<String> perms = Lists.newArrayList();
+    public static List<String>        perms     = Lists.newArrayList();
+    public static Map<String, String> perm_info = Maps.newHashMap();
 
     static
     {
         perms.add(LandTeam.BREAK);
         perms.add(LandTeam.PLACE);
         perms.add(LandTeam.PUBLIC);
+        perms.add(LandTeam.ALLY);
+
+        perm_info.put(LandTeam.BREAK, "Allowd to break blocks.");
+        perm_info.put(LandTeam.PLACE, "Allowd to place blocks.");
+        perm_info.put(LandTeam.PUBLIC, "Everything counts as if Public Toggle was used.");
+        perm_info.put(LandTeam.ALLY, "Counts as \"Ally\" by anything that uses that.");
+
         Collections.sort(perms);
     }
 
@@ -81,7 +91,8 @@ public class EditRelations extends BaseCommand
             player.sendMessage(new TextComponentString(TextFormatting.AQUA + "Allowed Relation Permissions:"));
             for (String s : perms)
             {
-                player.sendMessage(new TextComponentString(TextFormatting.AQUA + "    " + s));
+                player.sendMessage(
+                        new TextComponentString(TextFormatting.AQUA + "    " + s + " - " + perm_info.get(s)));
             }
             break;
         // Set the given perm to the given relation, makes relation if not
