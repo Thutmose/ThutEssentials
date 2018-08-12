@@ -97,7 +97,7 @@ public class EditRelations extends BaseCommand
             relation = landTeam.relations.get(other);
             if (relation == null)
             {
-                landTeam.relations.put(other, new Relation());
+                landTeam.relations.put(other, relation = new Relation());
             }
             if (relation.perms.add(perm))
                 player.sendMessage(new TextComponentString(TextFormatting.AQUA + "Set perm " + perm + " for " + other));

@@ -30,19 +30,26 @@ public class RuleManager
             e.printStackTrace();
         }
         rulesField = temp;
-        temp = ReflectionHelper.findField(TextFormatting.class, "formattingCode", "field_96329_z", "z");
-        temp.setAccessible(true);
-        for (TextFormatting format : TextFormatting.values())
+        try
         {
-            try
+            temp = ReflectionHelper.findField(TextFormatting.class, "formattingCode", "field_96329_z", "z");
+            temp.setAccessible(true);
+            for (TextFormatting format : TextFormatting.values())
             {
-                char code = temp.getChar(format);
-                charCodeMap.put(code + "", format);
+                try
+                {
+                    char code = temp.getChar(format);
+                    charCodeMap.put(code + "", format);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
             }
-            catch (IllegalArgumentException | IllegalAccessException e)
-            {
-                e.printStackTrace();
-            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
     }
 

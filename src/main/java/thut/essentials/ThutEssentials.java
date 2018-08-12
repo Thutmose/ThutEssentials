@@ -1,6 +1,10 @@
 package thut.essentials;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
@@ -24,6 +28,7 @@ import thut.essentials.util.ConfigManager;
 import thut.essentials.util.DefaultPermissions;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.IPermissionHandler;
+import thut.essentials.util.LogFormatter;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.world.WorldManager;
 
@@ -39,12 +44,41 @@ public class ThutEssentials
 
     public static IPermissionHandler perms     = new DefaultPermissions();
 
+    public static Logger             logger    = Logger.getLogger(MODID);
+
     public ConfigManager             config;
     private CommandManager           manager;
     public SpawnDefuzzer             defuz     = new SpawnDefuzzer();
     public ItemControl               items     = new ItemControl();
     public final LandEventsHandler   teams     = new LandEventsHandler();
     public boolean                   loaded    = false;
+
+    public ThutEssentials()
+    {
+        initLogger();
+    }
+
+    private void initLogger()
+    {
+        FileHandler logHandler = null;
+        logger.setLevel(Level.ALL);
+        try
+        {
+            File logs = new File("." + File.separator + "logs");
+            logs.mkdirs();
+            File logfile = new File(logs, MODID + ".log");
+            if ((logfile.exists() || logfile.createNewFile()) && logfile.canWrite() && logHandler == null)
+            {
+                logHandler = new FileHandler(logfile.getPath());
+                logHandler.setFormatter(new LogFormatter());
+                logger.addHandler(logHandler);
+            }
+        }
+        catch (SecurityException | IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent e)

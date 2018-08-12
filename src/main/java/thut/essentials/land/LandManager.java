@@ -44,7 +44,7 @@ public class LandManager
     public static class Relation
     {
         /** Permissions for the relation */
-        public Set<String> perms;
+        public Set<String> perms = Sets.newHashSet();
     }
 
     public static class LandTeam

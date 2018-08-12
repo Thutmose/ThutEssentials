@@ -115,6 +115,9 @@ public class ConfigManager extends ConfigBase
     @Configure(category = MISC)
     public int                  pauseTime                 = 5000;
 
+    @Configure(category = MISC)
+    public boolean              debug                     = false;
+
     @Configure(category = ECON)
     public boolean              economyEnabled            = true;
     @Configure(category = ECON)
