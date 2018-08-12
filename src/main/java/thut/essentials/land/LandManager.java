@@ -220,6 +220,7 @@ public class LandManager
 
         public boolean isAlly(LandTeam team)
         {
+            if (team == this) return true;
             Relation relation = relations.get(team.teamName);
             if (relation != null) { return relation.perms.contains(ALLY); }
             return false;
