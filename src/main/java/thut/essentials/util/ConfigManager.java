@@ -121,7 +121,7 @@ public class ConfigManager extends ConfigBase
     @Configure(category = ECON)
     public boolean              economyEnabled            = true;
     @Configure(category = ECON)
-    public String[]             economyPermLvls           = { "make_shop:-1", "make_infinite_shop:4" };
+    public int                  maxLandViaSalesPerTeam    = 512;
 
     @Configure(category = NAMES)
     public boolean              name                      = true;
@@ -180,7 +180,6 @@ public class ConfigManager extends ConfigBase
         else EconomyManager.clearInstance();
         if (spawnDefuzz) MinecraftForge.EVENT_BUS.register(ThutEssentials.instance.defuz);
         else MinecraftForge.EVENT_BUS.unregister(ThutEssentials.instance.defuz);
-        DefaultPermissions.init();
         BaseCommand.permsMap.clear();
         for (String s : commandPermissionLevels)
         {

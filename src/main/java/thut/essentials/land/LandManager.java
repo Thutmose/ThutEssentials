@@ -446,7 +446,11 @@ public class LandManager
         _landMap.put(land, t);
         for (LandTeam t1 : _teamMap.values())
         {
-            if (t != t1) t1.land.removeLand(land);
+            if (t != t1)
+            {
+                t1.land.removeLand(land);
+                LandSaveHandler.saveTeam(t1.teamName);
+            }
         }
         if (sync)
         {

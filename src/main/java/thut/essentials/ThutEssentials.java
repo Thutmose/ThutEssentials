@@ -25,9 +25,7 @@ import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.util.ChatHandler;
 import thut.essentials.util.ConfigManager;
-import thut.essentials.util.DefaultPermissions;
 import thut.essentials.util.HomeManager;
-import thut.essentials.util.IPermissionHandler;
 import thut.essentials.util.LogFormatter;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.world.WorldManager;
@@ -41,8 +39,6 @@ public class ThutEssentials
 
     @Instance(MODID)
     public static ThutEssentials     instance;
-
-    public static IPermissionHandler perms     = new DefaultPermissions();
 
     public static Logger             logger    = Logger.getLogger(MODID);
 

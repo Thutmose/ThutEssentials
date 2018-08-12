@@ -10,6 +10,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.ThutEssentials;
 import thut.essentials.commands.misc.Spawn;
 import thut.essentials.commands.misc.Spawn.PlayerMover;
@@ -18,10 +20,12 @@ import thut.essentials.util.ConfigManager;
 
 public class RTP extends BaseCommand
 {
+    private static final String PERMRTPOTHER = "thutessentials.rtp.other";
 
     public RTP()
     {
         super("rtp", 0);
+        PermissionAPI.registerNode(PERMRTPOTHER, DefaultPermissionLevel.OP, "Is allowed to cast RTP on someone else?");
     }
 
     /** Return whether the specified command parameter index is a username
@@ -38,9 +42,8 @@ public class RTP extends BaseCommand
         EntityPlayer player;
         if (args.length == 1)
         {
-            if (sender instanceof EntityPlayer)
-                if (!ThutEssentials.perms.hasPermission((EntityPlayer) sender, "rtp.other"))
-                    throw new CommandException("You do not have permission to RTP someone else.");
+            if (sender instanceof EntityPlayer) if (!PermissionAPI.hasPermission((EntityPlayer) sender, PERMRTPOTHER))
+                throw new CommandException("You do not have permission to RTP someone else.");
             player = getPlayer(server, sender, args[0]);
         }
         else

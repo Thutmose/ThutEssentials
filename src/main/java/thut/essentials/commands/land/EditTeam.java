@@ -8,7 +8,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
-import thut.essentials.ThutEssentials;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
@@ -19,10 +20,25 @@ import thut.essentials.util.RuleManager;
 
 public class EditTeam extends BaseCommand
 {
+    private static final String PERMRESERVELAND        = "thutessentials.land.toggle.reserve";
+    private static final String PERMTOGGLEMOBS         = "thutessentials.land.toggle.mobspawn";
+    private static final String PERMTOGGLEEXPLODE      = "thutessentials.land.toggle.explode";
+    private static final String PERMTOGGLEFF           = "thutessentials.land.toggle.friendlyfire";
+    private static final String PERMTOGGLEPLAYERDAMAGE = "thutessentials.land.toggle.playerdamage";
 
     public EditTeam()
     {
         super("editteam", 0, "editTeam");
+        PermissionAPI.registerNode(PERMTOGGLEEXPLODE, DefaultPermissionLevel.OP,
+                "Allowed to toggle explosions on/off in their team land");
+        PermissionAPI.registerNode(PERMTOGGLEMOBS, DefaultPermissionLevel.OP,
+                "Allowed to toggle mob spawns on/off in their team land");
+        PermissionAPI.registerNode(PERMRESERVELAND, DefaultPermissionLevel.OP,
+                "Allowed to toggle reserved status on/off for their team");
+        PermissionAPI.registerNode(PERMTOGGLEFF, DefaultPermissionLevel.OP,
+                "Allowed to toggle friendly fire on/off for their team");
+        PermissionAPI.registerNode(PERMTOGGLEPLAYERDAMAGE, DefaultPermissionLevel.OP,
+                "Allowed to toggle player damage on/off in their team land");
     }
 
     @Override
@@ -95,15 +111,14 @@ public class EditTeam extends BaseCommand
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
-        if (arg.equalsIgnoreCase("reserve") && ThutEssentials.perms.hasPermission(player, "land.team.reserve"))
+        if (arg.equalsIgnoreCase("reserve") && PermissionAPI.hasPermission(player, PERMRESERVELAND))
         {
             landTeam.reserved = Boolean.parseBoolean(message);
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "reserved set to " + landTeam.reserved));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
-        if (arg.equalsIgnoreCase("noPlayerDamage")
-                && ThutEssentials.perms.hasPermission(player, "land.team.noplayerdamage"))
+        if (arg.equalsIgnoreCase("noPlayerDamage") && PermissionAPI.hasPermission(player, PERMTOGGLEPLAYERDAMAGE))
         {
             landTeam.noPlayerDamage = Boolean.parseBoolean(message);
             sender.sendMessage(
@@ -111,8 +126,7 @@ public class EditTeam extends BaseCommand
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
-        if (arg.equalsIgnoreCase("friendlyFire")
-                && ThutEssentials.perms.hasPermission(player, "land.team.friendlyfire"))
+        if (arg.equalsIgnoreCase("friendlyFire") && PermissionAPI.hasPermission(player, PERMTOGGLEFF))
         {
             landTeam.friendlyFire = Boolean.parseBoolean(message);
             sender.sendMessage(
@@ -120,7 +134,7 @@ public class EditTeam extends BaseCommand
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
-        if (arg.equalsIgnoreCase("noMobSpawn") && ThutEssentials.perms.hasPermission(player, "land.team.nomobspawn"))
+        if (arg.equalsIgnoreCase("noMobSpawn") && PermissionAPI.hasPermission(player, PERMTOGGLEMOBS))
         {
             landTeam.noMobSpawn = Boolean.parseBoolean(message);
             sender.sendMessage(
@@ -128,8 +142,7 @@ public class EditTeam extends BaseCommand
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
-        if (arg.equalsIgnoreCase("noExplosions")
-                && ThutEssentials.perms.hasPermission(player, "land.team.noexplosions"))
+        if (arg.equalsIgnoreCase("noExplosions") && PermissionAPI.hasPermission(player, PERMTOGGLEEXPLODE))
         {
             landTeam.noExplosions = Boolean.parseBoolean(message);
             sender.sendMessage(

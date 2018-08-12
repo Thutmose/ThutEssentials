@@ -27,7 +27,8 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import thut.essentials.ThutEssentials;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.CompatWrapper;
 import thut.essentials.util.Coordinate;
@@ -263,12 +264,17 @@ public class EconomyManager
         }
     }
 
-    public static final int         VERSION = 1;
+    public static final int         VERSION         = 1;
+
+    public static final String      PERMMAKESHOP    = "thutessentials.economy.make_shop";
+    public static final String      PERMMAKEINFSHOP = "thutessentials.economy.make_infinite_shop";
+
     public static EconomyManager    instance;
-    public int                      version = VERSION;
-    public int                      initial = 1000;
-    public Map<UUID, Account>       bank    = Maps.newHashMap();
-    public Map<Coordinate, Account> shopMap = Maps.newHashMap();
+    private static boolean          init            = false;
+    public int                      version         = VERSION;
+    public int                      initial         = 1000;
+    public Map<UUID, Account>       bank            = Maps.newHashMap();
+    public Map<Coordinate, Account> shopMap         = Maps.newHashMap();
 
     public static void clearInstance()
     {
@@ -285,6 +291,14 @@ public class EconomyManager
         if (instance == null)
         {
             EconomySaveHandler.loadGlobalData();
+            if (!init)
+            {
+                init = true;
+                PermissionAPI.registerNode(PERMMAKESHOP, DefaultPermissionLevel.ALL,
+                        "Allowed to make a shop that sells from a chest.");
+                PermissionAPI.registerNode(PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
+                        "Allowed to make a shop that sells infinite items.");
+            }
         }
         return instance;
     }
@@ -308,8 +322,8 @@ public class EconomyManager
                             || evt.getItemStack().getDisplayName().contains("InfShop")))
             {
                 boolean infinite = evt.getItemStack().getDisplayName().contains("InfShop");
-                String permission = infinite ? "make_infinite_shop" : "make_shop";
-                if (!ThutEssentials.perms.hasPermission(evt.getEntityPlayer(), permission))
+                String permission = infinite ? PERMMAKEINFSHOP : PERMMAKESHOP;
+                if (!PermissionAPI.hasPermission(evt.getEntityPlayer(), permission))
                 {
                     evt.getEntityPlayer().sendMessage(
                             new TextComponentString(TextFormatting.RED + "You are not allowed to make that shop."));
@@ -352,16 +366,21 @@ public class EconomyManager
         }
     }
 
-    public Account getAccount(EntityPlayer player)
+    public Account getAccount(UUID player)
     {
-        Account account = bank.get(player.getUniqueID());
+        Account account = bank.get(player);
         if (account == null)
         {
-            bank.put(player.getUniqueID(), account = new Account());
+            bank.put(player, account = new Account());
             account.balance = initial;
             EconomySaveHandler.saveGlobalData();
         }
         return account;
+    }
+
+    public Account getAccount(EntityPlayer player)
+    {
+        return getAccount(player.getUniqueID());
     }
 
     public static Shop addShop(EntityPlayer owner, EntityItemFrame frame, Coordinate location, boolean infinite)
@@ -401,17 +420,32 @@ public class EconomyManager
 
     public static int getBalance(EntityPlayer player)
     {
-        return getInstance().getAccount(player).balance;
+        return getBalance(player.getUniqueID());
     }
 
     public static void setBalance(EntityPlayer player, int amount)
+    {
+        setBalance(player.getUniqueID(), amount);
+    }
+
+    public static void addBalance(EntityPlayer player, int amount)
+    {
+        addBalance(player.getUniqueID(), amount);
+    }
+
+    public static int getBalance(UUID player)
+    {
+        return getInstance().getAccount(player).balance;
+    }
+
+    public static void setBalance(UUID player, int amount)
     {
         Account account = getInstance().getAccount(player);
         account.balance = amount;
         EconomySaveHandler.saveGlobalData();
     }
 
-    public static void addBalance(EntityPlayer player, int amount)
+    public static void addBalance(UUID player, int amount)
     {
         Account account = getInstance().getAccount(player);
         account.balance += amount;
