@@ -5,6 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.CompatWrapper;
@@ -42,12 +43,14 @@ public class Pay extends BaseCommand
         {
             EconomyManager.addBalance(payee, toSend);
             CompatWrapper.sendChatMessage(payee,
-                    new TextComponentString("You recieved " + toSend + " from " + sender.getName()));
+                    new TextComponentString(TextFormatting.AQUA + "You recieved " + TextFormatting.GOLD + toSend
+                            + TextFormatting.AQUA + " from ").appendSibling(sender.getDisplayName()));
             if (payer != null)
             {
                 EconomyManager.addBalance(payer, -toSend);
-                CompatWrapper.sendChatMessage(payer,
-                        new TextComponentString("You sent " + toSend + " to " + payee.getName()));
+                CompatWrapper.sendChatMessage(payer, new TextComponentString(
+                        TextFormatting.AQUA + "You sent " + TextFormatting.GOLD + toSend + TextFormatting.AQUA + " to ")
+                                .appendSibling(payee.getDisplayName()));
             }
         }
         else

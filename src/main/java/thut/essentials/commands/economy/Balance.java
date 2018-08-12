@@ -5,6 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.util.BaseCommand;
 
@@ -21,7 +22,8 @@ public class Balance extends BaseCommand
     {
         EntityPlayer player = getPlayerBySender(sender);
         int amount = EconomyManager.getBalance(player);
-        player.sendMessage(new TextComponentString("Your Balance is " + amount));
+        player.sendMessage(
+                new TextComponentString(TextFormatting.AQUA + "Your Balance is " + TextFormatting.GOLD + amount));
     }
 
 }

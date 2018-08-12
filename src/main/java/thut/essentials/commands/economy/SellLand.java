@@ -151,12 +151,13 @@ public class SellLand extends BaseCommand
         PlayerDataHandler.saveCustomData(target);
 
         // Make a message to send to the target.
-        ITextComponent message = new TextComponentString("===============================\n")
+        ITextComponent message = new TextComponentString("==============================================\n")
                 .appendSibling(player.getDisplayName())
-                .appendText(TextFormatting.AQUA + " Wishes to sell you some land!\n");
-        message.appendText(TextFormatting.AQUA + "It is sub chunk " + loc.x + " " + loc.y + " " + loc.z
-                + "\nLocated in dimension " + loc.dim + "\n\n");
-        message.appendText(TextFormatting.AQUA + "The offered price is " + cost + "\n\n");
+                .appendText(TextFormatting.AQUA + " Wishes to sell you some land!\n\n");
+        message.appendText(TextFormatting.AQUA + "It is sub chunk " + TextFormatting.GOLD + loc.x + " " + loc.y + " "
+                + loc.z + "\n" + TextFormatting.AQUA + "Located in dimension " + TextFormatting.GOLD + loc.dim
+                + "\n\n");
+        message.appendText(TextFormatting.AQUA + "The offered price is " + TextFormatting.GOLD + cost + "\n\n");
 
         ITextComponent accept = new TextComponentString(TextFormatting.GREEN + "Accept");
         accept.setStyle(new Style());
@@ -167,9 +168,15 @@ public class SellLand extends BaseCommand
         deny.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/" + getName() + " !clear"));
 
         message.appendSibling(accept).appendText(" / ").appendSibling(deny)
-                .appendText(("\n==============================="));
+                .appendText(("\n=============================================="));
         target.sendMessage(message);
 
+        message = new TextComponentString("==============================================\n")
+                .appendText(TextFormatting.AQUA + "Sell offer sent to ").appendSibling(player.getDisplayName());
+        message.appendText("\n\n" + TextFormatting.AQUA + "It is sub chunk " + TextFormatting.GOLD + loc.x + " " + loc.y
+                + " " + loc.z + "\n" + TextFormatting.AQUA + "Located in dimension " + TextFormatting.GOLD + loc.dim)
+                .appendText(("\n=============================================="));
+        sender.sendMessage(message);
     }
 
 }
