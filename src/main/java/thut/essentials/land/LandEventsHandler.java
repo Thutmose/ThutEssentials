@@ -454,7 +454,7 @@ public class LandEventsHandler
         {
             if (evt.getSide() == Side.CLIENT) return;
             if (!ConfigManager.INSTANCE.landEnabled) return;
-            Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(),
+            Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getTarget().getPosition(),
                     evt.getEntityPlayer().getEntityWorld().provider.getDimension());
             LandTeam owner = LandManager.getInstance().getLandOwner(c);
             if (owner == null) return;
