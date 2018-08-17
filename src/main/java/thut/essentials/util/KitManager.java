@@ -166,9 +166,9 @@ public class KitManager
                 tag = values.get(key);
             }
         }
-        if (id.isEmpty()) return CompatWrapper.nullStack;
+        if (id.isEmpty()) return ItemStack.EMPTY;
         resource = id.contains(":");
-        ItemStack stack = CompatWrapper.nullStack;
+        ItemStack stack = ItemStack.EMPTY;
         Item item = null;
         if (resource)
         {
@@ -178,7 +178,7 @@ public class KitManager
         {
             item = Item.REGISTRY.getObject(new ResourceLocation("minecraft:" + id));
         }
-        if (item == null) return CompatWrapper.nullStack;
+        if (item == null) return ItemStack.EMPTY;
         if (meta == -1) meta = 0;
         if (!CompatWrapper.isValid(stack)) stack = new ItemStack(item, 1, meta);
         CompatWrapper.setStackSize(stack, size);

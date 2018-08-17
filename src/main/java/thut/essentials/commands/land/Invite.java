@@ -7,8 +7,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.land.LandManager;
-import thut.essentials.land.LandSaveHandler;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.BaseCommand;
 
 public class Invite extends BaseCommand

@@ -162,7 +162,7 @@ public class EconomyManager
                                 CompatWrapper.increment(itemstack, -k);
                                 if (!CompatWrapper.isValid(itemstack))
                                 {
-                                    inv.setInventorySlotContents(j, CompatWrapper.nullStack);
+                                    inv.setInventorySlotContents(j, ItemStack.EMPTY);
                                 }
                                 if (removeCount > 0 && i >= removeCount)
                                 {
