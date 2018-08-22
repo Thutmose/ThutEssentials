@@ -33,21 +33,21 @@ import thut.essentials.world.WorldManager;
 @Mod(modid = ThutEssentials.MODID, name = "Thut Essentials", version = ThutEssentials.VERSION, dependencies = "", updateJSON = ThutEssentials.UPDATEURL, acceptableRemoteVersions = "*")
 public class ThutEssentials
 {
-    public static final String       MODID     = Reference.MODID;
-    public static final String       VERSION   = Reference.VERSION;
-    public static final String       UPDATEURL = "";
+    public static final String     MODID     = Reference.MODID;
+    public static final String     VERSION   = Reference.VERSION;
+    public static final String     UPDATEURL = "";
 
     @Instance(MODID)
-    public static ThutEssentials     instance;
+    public static ThutEssentials   instance;
 
-    public static Logger             logger    = Logger.getLogger(MODID);
+    public static Logger           logger    = Logger.getLogger(MODID);
 
-    public ConfigManager             config;
-    private CommandManager           manager;
-    public SpawnDefuzzer             defuz     = new SpawnDefuzzer();
-    public ItemControl               items     = new ItemControl();
-    public final LandEventsHandler   teams     = new LandEventsHandler();
-    public boolean                   loaded    = false;
+    public ConfigManager           config;
+    private CommandManager         manager;
+    public SpawnDefuzzer           defuz     = new SpawnDefuzzer();
+    public ItemControl             items     = new ItemControl();
+    public final LandEventsHandler teams     = new LandEventsHandler();
+    public boolean                 loaded    = false;
 
     public ThutEssentials()
     {
@@ -81,15 +81,15 @@ public class ThutEssentials
     {
         config = new ConfigManager(e.getSuggestedConfigurationFile());
         manager = new CommandManager();
-        if (config.chatTweaks)
-        {
-            MinecraftForge.EVENT_BUS.register(new ChatHandler());
-        }
     }
 
     @EventHandler
     public void serverLoad(FMLServerStartingEvent event)
     {
+        if (config.chatTweaks)
+        {
+            MinecraftForge.EVENT_BUS.register(new ChatHandler());
+        }
         loaded = true;
         teams.registerPerms();
         HomeManager.registerPerms();

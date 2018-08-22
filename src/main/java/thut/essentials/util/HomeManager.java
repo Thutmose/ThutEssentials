@@ -10,9 +10,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.context.PlayerContext;
 
 public class HomeManager
 {
@@ -21,12 +19,11 @@ public class HomeManager
     public static void registerPerms()
     {
         if (HOMEPERMS != null) return;
-        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         HOMEPERMS = new String[ConfigManager.INSTANCE.maxHomes];
         for (int i = 0; i < ConfigManager.INSTANCE.maxHomes; i++)
         {
             HOMEPERMS[i] = "thutessentials.homes.max." + (i + 1);
-            manager.registerNode(HOMEPERMS[i], DefaultPermissionLevel.ALL,
+            PermissionAPI.registerNode(HOMEPERMS[i], DefaultPermissionLevel.ALL,
                     "Can the player have this many homes (checked when adding a home).");
         }
     }
@@ -56,8 +53,7 @@ public class HomeManager
             return;
         }
         String node = HOMEPERMS[num];
-        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-        if (!manager.hasPermission(player.getGameProfile(), node, new PlayerContext(player)))
+        if (!PermissionAPI.hasPermission(player, node))
         {
             ITextComponent message = new TextComponentString("You may not have another home!");
             message.getStyle().setColor(TextFormatting.DARK_RED);

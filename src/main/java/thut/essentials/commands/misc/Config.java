@@ -39,8 +39,7 @@ public class Config extends BaseCommand
     public Config()
     {
         super("teconfig", 0);
-        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-        manager.registerNode(EDITPERM, DefaultPermissionLevel.OP, "Can the player edit configs via the command.");
+        PermissionAPI.registerNode(EDITPERM, DefaultPermissionLevel.OP, "Can the player edit configs via the command.");
         populateFields();
     }
 

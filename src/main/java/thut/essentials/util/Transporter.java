@@ -277,15 +277,8 @@ public class Transporter
                 .register(new ReMounter(entity, dimension, passengers.toArray(new Entity[passengers.size()])));
         WorldServer world = entity.getServer().getWorld(dimension);
         EntityTracker tracker = world.getEntityTracker();
-        if (tracker.getTrackingPlayers(entity).getClass().getSimpleName().equals("EmptySet"))
-        {
-            tracker.track(entity);
-            if (entity instanceof EntityPlayerMP)
-            {
-                EntityPlayerMP playerIn = (EntityPlayerMP) entity;
-                tracker.updateVisibility(playerIn);
-            }
-        }
+        tracker.untrack(entity);
+        tracker.track(entity);
         return entity;
     }
 
@@ -298,19 +291,15 @@ public class Transporter
         MinecraftServer server = entityIn.world.getMinecraftServer();
         WorldServer worldServer = server.getWorld(dimension);
         Teleporter teleporter = new TTeleporter(worldServer, t2.x, t2.y, t2.z);
-        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) entityIn;
-        ReflectionHelper.setPrivateValue(EntityPlayerMP.class, entityPlayerMP, true, "invulnerableDimensionChange",
+        EntityPlayerMP playerIn = (EntityPlayerMP) entityIn;
+        // Prevents death due to say world border size differences.
+        ReflectionHelper.setPrivateValue(EntityPlayerMP.class, playerIn, true, "invulnerableDimensionChange",
                 "field_184851_cj", "ck");
-        entityPlayerMP.addExperienceLevel(0);
-        worldServer.getMinecraftServer().getPlayerList().transferPlayerToDimension(entityPlayerMP, dimension,
-                teleporter);
-        if (oldDimension == 1)
-        {
-            // For some reason teleporting out of the end does weird things.
-            worldServer.spawnEntity(entityPlayerMP);
-            worldServer.updateEntityWithOptionalForce(entityPlayerMP, false);
-        }
-        return entityPlayerMP;
+        // Use player list to actually do the transfer.
+        worldServer.getMinecraftServer().getPlayerList().transferPlayerToDimension(playerIn, dimension, teleporter);
+        // Re-Sync exp bar.
+        playerIn.addExperienceLevel(0);
+        return playerIn;
     }
 
     @Nullable

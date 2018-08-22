@@ -170,7 +170,7 @@ public class ConfigManager extends ConfigBase
     }
 
     @Override
-    protected void applySettings()
+    public void applySettings()
     {
         WarpManager.init();
         if (itemControlEnabled) ItemControl.init();

@@ -29,8 +29,7 @@ public class ChatHandler
 
     public ChatHandler()
     {
-        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-        manager.registerNode(CANFORMAT, DefaultPermissionLevel.OP,
+        PermissionAPI.registerNode(CANFORMAT, DefaultPermissionLevel.OP,
                 "Will messages sent by the player using & codes be converted to text formats, use \\& to bypass. This requires forceChatFormat true in configs.");
     }
 
