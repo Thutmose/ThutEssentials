@@ -39,8 +39,16 @@ public class EconomyManager
     public static class Account
     {
         int                   balance;
-        Set<Shop>             shops   = Sets.newHashSet();
-        Map<Coordinate, Shop> shopMap = Maps.newHashMap();
+        Set<Shop>             shops    = Sets.newHashSet();
+        Map<Coordinate, Shop> _shopMap = Maps.newHashMap();
+
+        public void init()
+        {
+            for (Shop shop : shops)
+            {
+                _shopMap.put(shop.location, shop);
+            }
+        }
     }
 
     public static class Shop
@@ -265,19 +273,23 @@ public class EconomyManager
         }
     }
 
-    public static final int         VERSION         = 1;
+    public static final int         VERSION           = 1;
 
-    public static final String      PERMMAKESHOP    = "thutessentials.economy.make_shop";
-    public static final String      PERMMAKEINFSHOP = "thutessentials.economy.make_infinite_shop";
+    public static final String      PERMMAKESHOP      = "thutessentials.economy.make_shop";
+    public static final String      PERMMAKEINFSHOP   = "thutessentials.economy.make_infinite_shop";
 
-    public static final UUID        DEFAULT_ID      = new UUID(0, 0);
+    public static final String      PERMKILLSHOP      = "thutessentials.economy.kill_shop";
+    public static final String      PERMKILLSHOPOTHER = "thutessentials.economy.kill_shop_other";
+
+    public static final UUID        DEFAULT_ID        = new UUID(0, 0);
 
     public static EconomyManager    instance;
-    private static boolean          init            = false;
-    public int                      version         = VERSION;
-    public int                      initial         = 1000;
-    public Map<UUID, Account>       bank            = Maps.newHashMap();
-    public Map<Coordinate, Account> shopMap         = Maps.newHashMap();
+    private static boolean          init              = false;
+    public int                      version           = VERSION;
+    public int                      initial           = 1000;
+    public Map<UUID, Account>       bank              = Maps.newHashMap();
+    public Map<Coordinate, Account> _shopMap          = Maps.newHashMap();
+    public Map<Account, UUID>       _revBank          = Maps.newHashMap();
 
     public static void clearInstance()
     {
@@ -301,6 +313,11 @@ public class EconomyManager
                         "Allowed to make a shop that sells from a chest.");
                 PermissionAPI.registerNode(PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
                         "Allowed to make a shop that sells infinite items.");
+
+                PermissionAPI.registerNode(PERMKILLSHOP, DefaultPermissionLevel.ALL,
+                        "Allowed to remove a shop made by this player.");
+                PermissionAPI.registerNode(PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
+                        "Allowed to remove a shop made by another player.");
             }
         }
         return instance;
@@ -339,9 +356,9 @@ public class EconomyManager
                 {
                     shop = addShop(evt.getEntityPlayer(), (EntityItemFrame) evt.getTarget(), c, infinite);
                     if (shop != null) shop.ignoreTag = evt.getItemStack().getDisplayName().contains("noTag");
-                    evt.getEntityPlayer()
-                    .sendMessage(new TextComponentString(TextFormatting.GREEN + "Successfully created the shop. "));
-                    
+                    evt.getEntityPlayer().sendMessage(
+                            new TextComponentString(TextFormatting.GREEN + "Successfully created the shop. "));
+
                 }
                 catch (Exception e)
                 {
@@ -362,9 +379,21 @@ public class EconomyManager
         if (evt.getEntityPlayer().getEntityWorld().isRemote) return;
         if (evt.getTarget() instanceof EntityItemFrame)
         {
-            Coordinate c = new Coordinate(evt.getTarget().getPosition().down(), evt.getEntityPlayer().dimension);
+            Coordinate c = new Coordinate(evt.getTarget().getPosition().down(2), evt.getTarget().dimension);
             Shop shop = getShop(c);
-            if (shop != null) evt.setCanceled(true);
+            if (shop != null)
+            {
+                evt.setCanceled(true);
+                Account account = _shopMap.get(c);
+                UUID owner = _revBank.get(account);
+                String perm = evt.getEntityPlayer().getUniqueID().equals(owner) ? PERMKILLSHOP : PERMKILLSHOPOTHER;
+                if (PermissionAPI.hasPermission(evt.getEntityPlayer(), perm))
+                {
+                    removeShop(c);
+                    evt.getEntityPlayer()
+                            .sendMessage(new TextComponentString(TextFormatting.GREEN + "Removed the shop."));
+                }
+            }
         }
     }
 
@@ -379,7 +408,7 @@ public class EconomyManager
         Shop shop = getShop(c);
         if (shop != null)
         {
-            shop.transact(evt.getEntityPlayer(), evt.getItemStack(), shopMap.get(c));
+            shop.transact(evt.getEntityPlayer(), evt.getItemStack(), _shopMap.get(c));
         }
     }
 
@@ -409,8 +438,8 @@ public class EconomyManager
         // Assign the infinite shops to the default id account.
         Account account = getInstance().getAccount(infinite ? DEFAULT_ID : owner.getUniqueID());
         account.shops.add(shop);
-        account.shopMap.put(location, shop);
-        getInstance().shopMap.put(location, account);
+        account._shopMap.put(location, shop);
+        getInstance()._shopMap.put(location, account);
         if (!shop.infinite)
         {
             TileEntity down = owner.getEntityWorld()
@@ -443,19 +472,19 @@ public class EconomyManager
 
     public static void removeShop(Coordinate location)
     {
-        Account account = getInstance().shopMap.remove(location);
+        Account account = getInstance()._shopMap.remove(location);
         if (account != null)
         {
-            account.shops.remove(account.shopMap.remove(location));
+            account.shops.remove(account._shopMap.remove(location));
             EconomySaveHandler.saveGlobalData();
         }
     }
 
     public static Shop getShop(Coordinate location)
     {
-        Account account = getInstance().shopMap.get(location);
+        Account account = getInstance()._shopMap.get(location);
         if (account == null) return null;
-        return account.shopMap.get(location);
+        return account._shopMap.get(location);
     }
 
     public static int getBalance(EntityPlayer player)

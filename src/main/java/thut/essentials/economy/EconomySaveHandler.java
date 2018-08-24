@@ -2,6 +2,8 @@ package thut.essentials.economy;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 
@@ -22,7 +24,7 @@ public class EconomySaveHandler
         public boolean shouldSkipField(FieldAttributes f)
         {
             String name = f.getName();
-            return name.equals("shopMap");
+            return name.startsWith("_");
         }
 
         @Override
@@ -71,12 +73,15 @@ public class EconomySaveHandler
                         .create();
                 String json = FileUtils.readFileToString(teamsFile, "UTF-8");
                 EconomyManager.instance = gson.fromJson(json, EconomyManager.class);
-                for (Account account : EconomyManager.instance.bank.values())
+                for (Entry<UUID, Account> entry : EconomyManager.instance.bank.entrySet())
                 {
+                    Account account = entry.getValue();
+                    UUID id = entry.getKey();
+                    EconomyManager.instance._revBank.put(account, id);
                     for (Shop shop : account.shops)
                     {
-                        account.shopMap.put(shop.location, shop);
-                        EconomyManager.instance.shopMap.put(shop.location, account);
+                        account._shopMap.put(shop.location, shop);
+                        EconomyManager.instance._shopMap.put(shop.location, account);
                     }
                 }
             }
