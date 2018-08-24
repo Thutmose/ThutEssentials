@@ -26,6 +26,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -56,7 +57,7 @@ public class EconomyManager
 
         public boolean transact(EntityPlayer player, ItemStack heldStack, Account shopAccount)
         {
-            ItemStack stack = null;
+            ItemStack stack = ItemStack.EMPTY;
             Entity ent = player.getServer().getWorld(player.dimension).getEntityFromUuid(frameId);
             if (ent instanceof EntityItemFrame) stack = ((EntityItemFrame) ent).getDisplayedItem();
             TileEntity tile = player.world.getTileEntity(new BlockPos(location.x, location.y, location.z));
@@ -66,7 +67,8 @@ public class EconomyManager
                 return false;
             }
             TileEntitySign sign = (TileEntitySign) tile;
-            sell = sign.signText[0].getUnformattedText().contains("Sell");
+            sell = sign.signText[0].getUnformattedText().contains("Sell")
+                    || sign.signText[0].getUnformattedText().contains("Sale");
             recycle = sign.signText[0].getUnformattedText().contains("Recycle");
             try
             {
@@ -87,13 +89,13 @@ public class EconomyManager
                 return false;
             }
 
-            if (recycle && heldStack == null)
+            if (recycle && heldStack.isEmpty())
             {
                 player.sendMessage(
                         new TextComponentString(TextFormatting.RED + "You need to hold the item you want to recycle"));
                 return false;
             }
-            else if ((stack == null))
+            else if ((stack.isEmpty()))
             {
                 removeShop(location);
                 return false;
@@ -103,7 +105,7 @@ public class EconomyManager
                 int balance = getBalance(player);
                 if (balance < cost)
                 {
-                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Funds"));
+                    player.sendMessage(new TextComponentString(TextFormatting.RED + "You have Insufficient Funds"));
                     return false;
                 }
                 stack = stack.copy();
@@ -124,7 +126,7 @@ public class EconomyManager
                             for (int i = 0; i < inv.getSizeInventory(); i++)
                             {
                                 ItemStack item = inv.getStackInSlot(i);
-                                if (item != null)
+                                if (!item.isEmpty())
                                 {
                                     ItemStack test = item.copy();
                                     if (ignoreTag) test.setTagCompound(new NBTTagCompound());
@@ -137,7 +139,7 @@ public class EconomyManager
                     }
                     if (count < number || inv == null)
                     {
-                        player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
+                        player.sendMessage(new TextComponentString(TextFormatting.RED + "Shop Has Insufficient Items"));
                         return false;
                     }
                     int i = 0;
@@ -148,8 +150,7 @@ public class EconomyManager
                     for (int j = 0; j < inv.getSizeInventory(); ++j)
                     {
                         ItemStack itemstack = inv.getStackInSlot(j);
-
-                        if (itemstack != null && (itemIn == null || itemstack.getItem() == itemIn)
+                        if (!itemstack.isEmpty() && (itemstack.getItem() == itemIn)
                                 && (metadataIn <= -1 || itemstack.getMetadata() == metadataIn)
                                 && (itemNBT == null || NBTUtil.areNBTEquals(itemNBT, itemstack.getTagCompound(), true)))
                         {
@@ -180,10 +181,10 @@ public class EconomyManager
             }
             else
             {
-                int balance = shopAccount.balance;
+                int balance = infinite ? Integer.MAX_VALUE : shopAccount.balance;
                 if (balance < cost)
                 {
-                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Funds"));
+                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Shop has Insufficient Funds"));
                     return false;
                 }
                 int count = 0;
@@ -192,7 +193,7 @@ public class EconomyManager
                     count = CompatWrapper.getStackSize(heldStack);
                     if (count < number)
                     {
-                        player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
+                        player.sendMessage(new TextComponentString(TextFormatting.RED + "You have Insufficient Items"));
                         return false;
                     }
                     stack = heldStack;
@@ -203,7 +204,7 @@ public class EconomyManager
                     CompatWrapper.setStackSize(stack, number);
                     for (ItemStack item : player.inventory.mainInventory)
                     {
-                        if (item != null)
+                        if (!item.isEmpty())
                         {
                             ItemStack test = item.copy();
                             CompatWrapper.setStackSize(test, number);
@@ -269,6 +270,8 @@ public class EconomyManager
     public static final String      PERMMAKESHOP    = "thutessentials.economy.make_shop";
     public static final String      PERMMAKEINFSHOP = "thutessentials.economy.make_infinite_shop";
 
+    public static final UUID        DEFAULT_ID      = new UUID(0, 0);
+
     public static EconomyManager    instance;
     private static boolean          init            = false;
     public int                      version         = VERSION;
@@ -306,6 +309,9 @@ public class EconomyManager
     public EconomyManager()
     {
         MinecraftForge.EVENT_BUS.register(this);
+        Account master = new Account();
+        master.balance = Integer.MAX_VALUE;
+        bank.put(DEFAULT_ID, master);
     }
 
     @SubscribeEvent(receiveCanceled = true)
@@ -329,8 +335,19 @@ public class EconomyManager
                             new TextComponentString(TextFormatting.RED + "You are not allowed to make that shop."));
                     return;
                 }
-                shop = addShop(evt.getEntityPlayer(), (EntityItemFrame) evt.getTarget(), c, infinite);
-                shop.ignoreTag = evt.getItemStack().getDisplayName().contains("noTag");
+                try
+                {
+                    shop = addShop(evt.getEntityPlayer(), (EntityItemFrame) evt.getTarget(), c, infinite);
+                    if (shop != null) shop.ignoreTag = evt.getItemStack().getDisplayName().contains("noTag");
+                    evt.getEntityPlayer()
+                    .sendMessage(new TextComponentString(TextFormatting.GREEN + "Successfully created the shop. "));
+                    
+                }
+                catch (Exception e)
+                {
+                    evt.getEntityPlayer()
+                            .sendMessage(new TextComponentString(TextFormatting.RED + "Error making shop. " + e));
+                }
             }
             if (shop != null)
             {
@@ -385,17 +402,40 @@ public class EconomyManager
 
     public static Shop addShop(EntityPlayer owner, EntityItemFrame frame, Coordinate location, boolean infinite)
     {
-        Account account = getInstance().getAccount(owner);
         Shop shop = new Shop();
         shop.infinite = infinite;
         shop.frameId = frame.getUniqueID();
         shop.location = location;
+        // Assign the infinite shops to the default id account.
+        Account account = getInstance().getAccount(infinite ? DEFAULT_ID : owner.getUniqueID());
         account.shops.add(shop);
         account.shopMap.put(location, shop);
         getInstance().shopMap.put(location, account);
         if (!shop.infinite)
         {
-            shop.storage = new Coordinate(location.x, location.y - 1, location.z, location.dim);
+            TileEntity down = owner.getEntityWorld()
+                    .getTileEntity(new BlockPos(location.x, location.y - 1, location.z));
+            if (down instanceof TileEntitySign)
+            {
+                String[] var = ((TileEntitySign) down).signText[0].getUnformattedText().split(",");
+                int dx = Integer.parseInt(var[0]);
+                int dy = Integer.parseInt(var[1]);
+                int dz = Integer.parseInt(var[2]);
+
+                BlockPos pos = new BlockPos(location.x + dx, location.y + dy, location.z + dz);
+                BreakEvent event = new BreakEvent(owner.getEntityWorld(), pos,
+                        owner.getEntityWorld().getBlockState(pos), owner);
+                MinecraftForge.EVENT_BUS.post(event);
+                if (event.isCanceled())
+                {
+                    owner.sendMessage(new TextComponentString(
+                            TextFormatting.RED + "You may not link that inventory to the shop!"));
+                    return null;
+                }
+
+                shop.storage = new Coordinate(location.x + dx, location.y + dy, location.z + dz, location.dim);
+            }
+            else shop.storage = new Coordinate(location.x, location.y - 1, location.z, location.dim);
         }
         EconomySaveHandler.saveGlobalData();
         return shop;

@@ -30,7 +30,7 @@ import thut.essentials.util.LogFormatter;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.world.WorldManager;
 
-@Mod(modid = ThutEssentials.MODID, name = "Thut Essentials", version = ThutEssentials.VERSION, dependencies = "", updateJSON = ThutEssentials.UPDATEURL, acceptableRemoteVersions = "*")
+@Mod(modid = ThutEssentials.MODID, name = "Thut Essentials", version = ThutEssentials.VERSION, updateJSON = ThutEssentials.UPDATEURL, acceptableRemoteVersions = "*")
 public class ThutEssentials
 {
     public static final String     MODID     = Reference.MODID;
