@@ -213,7 +213,7 @@ public class EconomyManager
                     }
                     if (count < number)
                     {
-                        player.sendMessage(new TextComponentString(TextFormatting.RED + "Insufficient Items"));
+                        player.sendMessage(new TextComponentString(TextFormatting.RED + "You have Insufficient Items"));
                         return false;
                     }
                 }
