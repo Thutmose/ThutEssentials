@@ -30,6 +30,6 @@ Note: If this bug occurs in a modpack, please report this to the modpack author.
 ____
 #### Affected Versions (Do *not* use "latest"): Replace with a list of all mods you have in.
 
-- T
+- Thutessentials: 
 - Minecraft: 1.12.2
 - Forge:
