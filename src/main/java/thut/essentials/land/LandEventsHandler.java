@@ -644,6 +644,13 @@ public class LandEventsHandler
             // Check permission, Treat relation public perm as if we own this
             // for this check.
             boolean owns = owner.canUseStuff(player.getUniqueID());
+
+            // Check if the block is public.
+            Coordinate blockLoc = new Coordinate(evt.getPos(),
+                    evt.getEntityPlayer().getEntityWorld().provider.getDimension());
+            boolean freeuse = LandManager.getInstance().isPublic(blockLoc, owner);
+            owns = owns || freeuse;
+
             String perm = owns ? PERMUSEBLOCKOWN : PERMUSEBLOCKOTHER;
             boolean permission = PermissionAPI.hasPermission(player, perm);
 
@@ -669,7 +676,7 @@ public class LandEventsHandler
                         && evt.getEntityPlayer().isSneaking() && !owner.allPublic
                         && LandManager.getInstance().isAdmin(evt.getEntityPlayer().getUniqueID()))
                 {
-                    Coordinate blockLoc = new Coordinate(evt.getPos(),
+                    blockLoc = new Coordinate(evt.getPos(),
                             evt.getEntityPlayer().getEntityWorld().provider.getDimension());
                     if (LandManager.getInstance().isPublic(blockLoc, owner))
                     {
@@ -707,12 +714,6 @@ public class LandEventsHandler
                 }
                 if (!b && shouldPass) return;
             }
-
-            // Check if the block is public.
-            Coordinate blockLoc = new Coordinate(evt.getPos(),
-                    evt.getEntityPlayer().getEntityWorld().provider.getDimension());
-            boolean freeuse = LandManager.getInstance().isPublic(blockLoc, owner);
-            if (freeuse) return;
 
             // If we got here, then nothing allows use.
             player.sendMessage(getDenyMessage(owner));
