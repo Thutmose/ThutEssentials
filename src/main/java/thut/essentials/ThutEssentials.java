@@ -2,9 +2,14 @@ package thut.essentials;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.google.common.io.Files;
 
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
@@ -63,7 +68,17 @@ public class ThutEssentials
             File logs = new File("." + File.separator + "logs");
             logs.mkdirs();
             File logfile = new File(logs, MODID + ".log");
-            if ((logfile.exists() || logfile.createNewFile()) && logfile.canWrite() && logHandler == null)
+            // Backup the log
+            if (logfile.exists())
+            {
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+                Date date = new Date();
+                logs = new File(logs, MODID);
+                logs.mkdirs();
+                File newFile = new File(logs, dateFormat.format(date) + ".log");
+                Files.move(logfile, newFile);
+            }
+            if (logfile.createNewFile() && logfile.canWrite() && logHandler == null)
             {
                 logHandler = new FileHandler(logfile.getPath());
                 logHandler.setFormatter(new LogFormatter());

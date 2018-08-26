@@ -5,8 +5,12 @@ import java.util.Map;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.ClickEvent.Action;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -33,11 +37,15 @@ public class ListTeams extends BaseCommand
         {
             LandTeam team = teamMap.get(s);
             String emptyTip = "";
-            String lastSeenTip = "["
-                    + (sender.getServer().getEntityWorld().getTotalWorldTime() - team.lastSeen) / 24000d + " MC Days]";
+            String lastSeenTip = "[" + (sender.getServer().getEntityWorld().getTotalWorldTime() - team.lastSeen) / 24000
+                    + " MC Days]";
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
-            sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
-                    + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip));
+            ITextComponent message = new TextComponentString(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
+                    + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
+            ClickEvent event = new ClickEvent(Action.RUN_COMMAND, "/listMembers " + s);
+            message.setStyle(new Style());
+            message.getStyle().setClickEvent(event);
+            sender.sendMessage(message);
         }
     }
 
