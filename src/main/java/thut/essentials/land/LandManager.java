@@ -129,6 +129,10 @@ public class LandManager
         /** Last time a member of this team was seen. */
         public long                    lastSeen       = 0;
 
+        /** Random UUID for the team, this can be used for things like
+         * accounts. */
+        public UUID                    uuid           = UUID.randomUUID();
+
         public LandTeam()
         {
         }
