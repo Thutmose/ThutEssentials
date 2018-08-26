@@ -31,10 +31,14 @@ public class ListTeams extends BaseCommand
         sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "Team List:"));
         for (String s : teamMap.keySet())
         {
+            LandTeam team = teamMap.get(s);
             String emptyTip = "";
-            if (teamMap.get(s).member.size() == 0) emptyTip = "(EMPTY)";
-            sender.sendMessage(new TextComponentString(
-                    TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s + TextFormatting.AQUA + "] " + emptyTip));
+            String lastSeenTip = "["
+                    + (sender.getServer().getEntityWorld().getTotalWorldTime() - team.lastSeen) / 24000d + " MC Days]";
+            if (team.member.size() == 0) emptyTip = "(EMPTY)";
+            sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
+                    + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip));
         }
     }
+
 }
