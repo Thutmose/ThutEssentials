@@ -141,6 +141,10 @@ public class ConfigManager extends ConfigBase
     @Configure(category = LAND)
     public String               defaultTeamName           = "Plebs";
     @Configure(category = LAND)
+    public String               wildernessTeamName        = "Wilds";
+    @Configure(category = LAND)
+    public boolean              wildernessTeam            = false;
+    @Configure(category = LAND)
     public boolean              logTeamChat               = false;
     @Configure(category = LAND)
     public int                  prefixLength              = 10;
