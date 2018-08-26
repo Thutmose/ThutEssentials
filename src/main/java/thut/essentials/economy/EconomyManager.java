@@ -40,15 +40,8 @@ public class EconomyManager
     {
         int                   balance;
         Set<Shop>             shops    = Sets.newHashSet();
+        UUID                  _id;
         Map<Coordinate, Shop> _shopMap = Maps.newHashMap();
-
-        public void init()
-        {
-            for (Shop shop : shops)
-            {
-                _shopMap.put(shop.location, shop);
-            }
-        }
     }
 
     public static class Shop
@@ -182,8 +175,8 @@ public class EconomyManager
                     }
                 }
                 giveItem(player, stack);
+                addBalance(shopAccount._id, cost);
                 addBalance(player, -cost);
-                if (!infinite) shopAccount.balance += cost;
                 player.sendMessage(new TextComponentString(
                         TextFormatting.GREEN + "Remaining Balance: " + TextFormatting.GOLD + getBalance(player)));
             }
@@ -264,8 +257,8 @@ public class EconomyManager
                 }
                 player.inventory.clearMatchingItems(stack.getItem(), stack.getItemDamage(), number,
                         stack.getTagCompound());
+                addBalance(shopAccount._id, -cost);
                 addBalance(player, cost);
-                if (!infinite) shopAccount.balance -= cost;
                 player.sendMessage(new TextComponentString(
                         TextFormatting.GREEN + "Remaining Balance: " + TextFormatting.GOLD + getBalance(player)));
             }
@@ -418,6 +411,7 @@ public class EconomyManager
         if (account == null)
         {
             bank.put(player, account = new Account());
+            account._id = player;
             account.balance = initial;
             EconomySaveHandler.saveGlobalData();
         }

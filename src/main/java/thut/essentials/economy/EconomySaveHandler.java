@@ -77,6 +77,7 @@ public class EconomySaveHandler
                 {
                     Account account = entry.getValue();
                     UUID id = entry.getKey();
+                    account._id = id;
                     EconomyManager.instance._revBank.put(account, id);
                     for (Shop shop : account.shops)
                     {
