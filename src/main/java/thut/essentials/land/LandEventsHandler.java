@@ -33,6 +33,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -826,7 +827,8 @@ public class LandEventsHandler
     public void login(PlayerLoggedInEvent evt)
     {
         EntityPlayer entityPlayer = evt.player;
-        LandManager.getTeam(entityPlayer);
+        LandTeam team = LandManager.getTeam(entityPlayer);
+        team.lastSeen = FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld().getTotalWorldTime();
     }
 
     @SubscribeEvent

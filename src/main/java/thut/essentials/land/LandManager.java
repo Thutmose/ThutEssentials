@@ -120,8 +120,14 @@ public class LandManager
         /** If true, anything in this team's land is considered public for
          * interactions. */
         public boolean                 allPublic      = false;
+        /** If true, any player can place in this teams land. */
+        public boolean                 anyPlace       = false;
+        /** If true, any player can break in this teams land. */
+        public boolean                 anyBreak       = false;
         /** Map of details about team relations. */
         public Map<String, Relation>   relations      = Maps.newHashMap();
+        /** Last time a member of this team was seen. */
+        public long                    lastSeen       = 0;
 
         public LandTeam()
         {
@@ -179,6 +185,7 @@ public class LandManager
          * @return */
         public boolean canBreakBlock(UUID player)
         {
+            if (anyBreak) return true;
             LandTeam team = LandManager.getTeam(player);
             Relation relation = relations.get(team.teamName);
             if (relation != null) { return relation.perms.contains(BREAK); }
@@ -192,6 +199,7 @@ public class LandManager
          * @return */
         public boolean canPlaceBlock(UUID player)
         {
+            if (anyPlace) return true;
             LandTeam team = LandManager.getTeam(player);
             Relation relation = relations.get(team.teamName);
             if (relation != null) { return relation.perms.contains(PLACE); }
@@ -205,6 +213,7 @@ public class LandManager
          * @return */
         public boolean canUseStuff(UUID player)
         {
+            if (allPublic) return true;
             LandTeam team = LandManager.getTeam(player);
             Relation relation = relations.get(team.teamName);
             if (relation != null) { return relation.perms.contains(PUBLIC); }
@@ -331,6 +340,22 @@ public class LandManager
     public static LandTeam getDefaultTeam()
     {
         return getInstance().getTeam(ConfigManager.INSTANCE.defaultTeamName, true);
+    }
+
+    public static LandTeam getWildTeam()
+    {
+        if (!ConfigManager.INSTANCE.wildernessTeam) return null;
+        LandTeam wilds = getInstance().getTeam(ConfigManager.INSTANCE.wildernessTeamName, false);
+        if (wilds == null)
+        {
+            wilds = getInstance().getTeam(ConfigManager.INSTANCE.wildernessTeamName, true);
+            wilds.reserved = true;
+            wilds.allPublic = true;
+            wilds.enterMessage = " ";
+            wilds.exitMessage = " ";
+            wilds.denyMessage = " ";
+        }
+        return wilds;
     }
 
     public static boolean owns(Entity player, Coordinate chunk)
@@ -527,7 +552,9 @@ public class LandManager
 
     public LandTeam getLandOwner(Coordinate land)
     {
-        return _landMap.get(land);
+        LandTeam owner = _landMap.get(land);
+        if (owner == null) return getWildTeam();
+        return owner;
     }
 
     public LandTeam getTeam(String name, boolean create)

@@ -62,6 +62,22 @@ public class EditTeam extends BaseCommand
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
+        if (arg.equalsIgnoreCase("anyPlace"))
+        {
+            if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
+            landTeam.anyPlace = parseBoolean(message);
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set anyPlace to " + message));
+            LandSaveHandler.saveTeam(landTeam.teamName);
+            return;
+        }
+        if (arg.equalsIgnoreCase("anyBreak"))
+        {
+            if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
+            landTeam.anyBreak = parseBoolean(message);
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set anyBreak to " + message));
+            LandSaveHandler.saveTeam(landTeam.teamName);
+            return;
+        }
         if (arg.equalsIgnoreCase("exit"))
         {
             if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
