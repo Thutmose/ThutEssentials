@@ -842,10 +842,19 @@ public class LandEventsHandler
         if (toCheck.isEmpty() || event.phase != Phase.END) return;
         MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
         if (server.getEntityWorld().getTotalWorldTime() % 5 != 0) return;
-        GameProfile profile = toCheck.remove(0);
-        server.getMinecraftSessionService().fillProfileProperties(profile, true);
+        GameProfile profile = toCheck.get(0);
+        try
+        {
+            profile = server.getMinecraftSessionService().fillProfileProperties(profile, true);
+            if (profile.getName() == null || profile.getId() == null) return;
+            server.getPlayerProfileCache().addEntry(profile);
+        }
+        catch (Exception e)
+        {
+            return;
+        }
+        toCheck.remove(0);
         checked.add(profile.getId());
-        server.getPlayerProfileCache().addEntry(profile);
     }
 
     @SubscribeEvent

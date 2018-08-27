@@ -42,7 +42,7 @@ public class ListTeams extends BaseCommand
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
             ITextComponent message = new TextComponentString(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
                     + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
-            ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/listMembers " + s);
+            ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/listmembers " + s);
             ITextComponent tooltip = ListMembers.getMembers(server, team, false);
             HoverEvent event2 = new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
             message.setStyle(new Style());
