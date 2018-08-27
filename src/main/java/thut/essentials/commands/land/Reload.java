@@ -13,7 +13,7 @@ public class Reload extends BaseCommand
 
     public Reload()
     {
-        super("reloadTeams", 4);
+        super("reloadteams", 4);
     }
 
     @Override

@@ -15,7 +15,7 @@ public class Owner extends BaseCommand
 
     public Owner()
     {
-        super("landOwner", 0);
+        super("landowner", 0);
     }
 
     @Override

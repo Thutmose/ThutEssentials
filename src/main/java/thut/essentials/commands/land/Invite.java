@@ -16,7 +16,7 @@ public class Invite extends BaseCommand
 
     public Invite()
     {
-        super("teamInvite", 0);
+        super("teaminvite", 0);
     }
 
     /** Return whether the specified command parameter index is a username

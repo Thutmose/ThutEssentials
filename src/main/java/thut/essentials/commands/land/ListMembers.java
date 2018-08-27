@@ -21,7 +21,7 @@ public class ListMembers extends BaseCommand
 
     public ListMembers()
     {
-        super("listMembers", 0);
+        super("listmembers", 0);
     }
 
     @Override

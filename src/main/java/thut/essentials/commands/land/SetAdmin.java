@@ -16,7 +16,7 @@ public class SetAdmin extends BaseCommand
 
     public SetAdmin()
     {
-        super("setTeamAdmin", 0);
+        super("setteamadmin", 0);
     }
 
     /** Return whether the specified command parameter index is a username

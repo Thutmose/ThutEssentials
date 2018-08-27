@@ -17,7 +17,7 @@ public class Join extends BaseCommand
 
     public Join()
     {
-        super("joinTeam", 0);
+        super("jointeam", 0);
     }
 
     @Override

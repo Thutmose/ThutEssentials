@@ -14,7 +14,7 @@ public class Leave extends BaseCommand
 
     public Leave()
     {
-        super("leaveTeam", 0);
+        super("leaveteam", 0);
     }
 
     @Override

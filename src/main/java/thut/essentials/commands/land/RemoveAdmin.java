@@ -16,7 +16,7 @@ public class RemoveAdmin extends BaseCommand
 
     public RemoveAdmin()
     {
-        super("removeTeamAdmin", 0);
+        super("removeteamadmin", 0);
     }
 
     /** Return whether the specified command parameter index is a username

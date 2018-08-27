@@ -18,7 +18,7 @@ public class Admins extends BaseCommand
 
     public Admins()
     {
-        super("listTeamAdmins", 0);
+        super("listteamadmins", 0);
     }
 
     @Override

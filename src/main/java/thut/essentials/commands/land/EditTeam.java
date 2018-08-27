@@ -28,7 +28,7 @@ public class EditTeam extends BaseCommand
 
     public EditTeam()
     {
-        super("editteam", 0, "editTeam");
+        super("editteam", 0);
         PermissionAPI.registerNode(PERMTOGGLEEXPLODE, DefaultPermissionLevel.OP,
                 "Allowed to toggle explosions on/off in their team land");
         PermissionAPI.registerNode(PERMTOGGLEMOBS, DefaultPermissionLevel.OP,

@@ -19,7 +19,7 @@ public class Delete extends BaseCommand
 
     public Delete()
     {
-        super("deleteTeam", 0);
+        super("deleteteam", 0);
         PermissionAPI.registerNode(PERMCLEANUP, DefaultPermissionLevel.OP,
                 "Permission to bypass the land per player limit for a team.");
     }

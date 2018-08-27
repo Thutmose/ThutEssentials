@@ -16,7 +16,7 @@ public class Kick extends BaseCommand
 
     public Kick()
     {
-        super("kickFromTeam", 0);
+        super("kickfromteam", 0);
     }
 
     /** Return whether the specified command parameter index is a username

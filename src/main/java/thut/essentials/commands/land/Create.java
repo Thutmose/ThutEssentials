@@ -16,7 +16,7 @@ public class Create extends BaseCommand
 {
     public Create()
     {
-        super("createTeam", 0);
+        super("createteam", 0);
     }
 
     @Override

@@ -13,7 +13,7 @@ public class Team extends BaseCommand
 
     public Team()
     {
-        super("myTeam", 0);
+        super("myteam", 0);
     }
 
     @Override

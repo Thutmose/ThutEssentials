@@ -14,7 +14,7 @@ public class Rename extends BaseCommand
 {
     public Rename()
     {
-        super("renameTeam", 0);
+        super("renameteam", 0);
     }
 
     @Override

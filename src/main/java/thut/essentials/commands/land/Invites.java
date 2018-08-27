@@ -16,7 +16,7 @@ public class Invites extends BaseCommand
 
     public Invites()
     {
-        super("teamInvites", 0);
+        super("teaminvites", 0);
     }
 
     @Override
