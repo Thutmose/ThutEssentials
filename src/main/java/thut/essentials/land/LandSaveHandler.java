@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 
@@ -16,7 +17,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import thut.essentials.ThutEssentials;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.ConfigManager;
 import thut.essentials.util.Coordinate;
 
 public class LandSaveHandler
@@ -91,6 +94,7 @@ public class LandSaveHandler
     {
         if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
         File teamsFile = new File(getGlobalFolder(), "landData.json");
+        if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO, "Starting Loading Land");
         if (teamsFile.exists())
         {
             try
@@ -112,6 +116,7 @@ public class LandSaveHandler
             if (LandManager.instance == null) LandManager.instance = new LandManager();
             saveGlobalData();
         }
+        if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO, "Finished Loading Land and Teams");
         // Set default as reservred to prevent it from getting cleaned up.
         LandManager.getDefaultTeam().reserved = true;
     }
@@ -120,6 +125,7 @@ public class LandSaveHandler
     {
         if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
         File folder = getTeamFolder();
+        if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO, "Starting Loading Teams");
         for (File file : folder.listFiles())
         {
             try
@@ -130,6 +136,7 @@ public class LandSaveHandler
                 LandManager.getInstance()._teamMap.put(team.teamName, team);
                 team.init(FMLCommonHandler.instance().getMinecraftServerInstance());
                 List<Coordinate> toAdd = Lists.newArrayList(team.land.land);
+                if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO, "Processing " + team.teamName);
                 for (Coordinate land : toAdd)
                     LandManager.getInstance().addTeamLand(team.teamName, land, false);
             }
@@ -138,6 +145,7 @@ public class LandSaveHandler
                 e.printStackTrace();
             }
         }
+        if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO, "Cleaning Up Teams");
         // Remove any teams that were loaded with no members, and not reserved.
         removeEmptyTeams();
     }
@@ -150,6 +158,7 @@ public class LandSaveHandler
         LandTeam land;
         if ((land = LandManager.getInstance().getTeam(team, false)) != null)
         {
+            if (land == LandManager.getDefaultTeam()) land.member.clear();
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             String json = gson.toJson(land);
             try

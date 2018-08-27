@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.mojang.authlib.GameProfile;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -17,6 +18,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemFood;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
@@ -38,6 +40,8 @@ import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -769,6 +773,9 @@ public class LandEventsHandler
     protected EntityEventHandler   entity_handler       = new EntityEventHandler();
     protected BlockEventHandler    block_handler        = new BlockEventHandler();
 
+    public Set<UUID>               checked              = Sets.newHashSet();
+    public List<GameProfile>       toCheck              = Lists.newArrayList();
+
     public LandEventsHandler()
     {
     }
@@ -821,6 +828,24 @@ public class LandEventsHandler
 
         PermissionAPI.registerNode(PERMUNCLAIMOTHER, DefaultPermissionLevel.OP, "Can the player unclaim any land.");
 
+    }
+
+    public void queueUpdate(GameProfile profile)
+    {
+        if (checked.contains(profile.getId())) return;
+        toCheck.add(profile);
+    }
+
+    @SubscribeEvent
+    public void tick(ServerTickEvent event)
+    {
+        if (toCheck.isEmpty() || event.phase != Phase.END) return;
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        if (server.getEntityWorld().getTotalWorldTime() % 5 != 0) return;
+        GameProfile profile = toCheck.remove(0);
+        server.getMinecraftSessionService().fillProfileProperties(profile, true);
+        checked.add(profile.getId());
+        server.getPlayerProfileCache().addEntry(profile);
     }
 
     @SubscribeEvent

@@ -23,6 +23,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.UserListOpsEntry;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.MinecraftForge;
+import thut.essentials.ThutEssentials;
 import thut.essentials.commands.CommandManager;
 
 public abstract class BaseCommand extends CommandBase
@@ -52,7 +53,7 @@ public abstract class BaseCommand extends CommandBase
         if (profile == null) profile = new GameProfile(id, null);
 
         // Try to fill profile via secure method.
-        profile = server.getMinecraftSessionService().fillProfileProperties(profile, true);
+        ThutEssentials.instance.teams.queueUpdate(profile);
         return profile;
     }
 
@@ -79,7 +80,7 @@ public abstract class BaseCommand extends CommandBase
         if (profile == null) profile = new GameProfile(id, name);
 
         // Try to fill profile via secure method.
-        profile = server.getMinecraftSessionService().fillProfileProperties(profile, true);
+        ThutEssentials.instance.teams.queueUpdate(profile);
         return profile;
     }
 

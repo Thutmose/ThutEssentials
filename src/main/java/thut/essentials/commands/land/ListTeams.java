@@ -10,7 +10,7 @@ import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.ClickEvent.Action;
+import net.minecraft.util.text.event.HoverEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -26,10 +26,10 @@ public class ListTeams extends BaseCommand
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        sendTeamList(sender);
+        sendTeamList(server, sender);
     }
 
-    public void sendTeamList(ICommandSender sender)
+    public void sendTeamList(MinecraftServer server, ICommandSender sender)
     {
         Map<String, LandTeam> teamMap = LandManager.getInstance()._teamMap;
         sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "Team List:"));
@@ -42,9 +42,12 @@ public class ListTeams extends BaseCommand
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
             ITextComponent message = new TextComponentString(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
                     + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
-            ClickEvent event = new ClickEvent(Action.RUN_COMMAND, "/listMembers " + s);
+            ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/listMembers " + s);
+            ITextComponent tooltip = ListMembers.getMembers(server, team, false);
+            HoverEvent event2 = new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
             message.setStyle(new Style());
             message.getStyle().setClickEvent(event);
+            message.getStyle().setHoverEvent(event2);
             sender.sendMessage(message);
         }
     }

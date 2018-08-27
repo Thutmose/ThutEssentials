@@ -316,23 +316,7 @@ public class LandManager
     public static LandTeam getTeam(UUID id)
     {
         LandTeam playerTeam = getInstance()._playerTeams.get(id);
-        if (playerTeam == null)
-        {
-            for (LandTeam team : getInstance()._teamMap.values())
-            {
-                if (team.isMember(id))
-                {
-                    getInstance().addToTeam(id, team.teamName);
-                    playerTeam = team;
-                    break;
-                }
-            }
-            if (playerTeam == null)
-            {
-                getInstance().addToTeam(id, ConfigManager.INSTANCE.defaultTeamName);
-                playerTeam = getInstance().getTeam(ConfigManager.INSTANCE.defaultTeamName, false);
-            }
-        }
+        if (playerTeam == null) return getDefaultTeam();
         return playerTeam;
     }
 
@@ -473,16 +457,16 @@ public class LandManager
         }
         t.land.addLand(land);
         _landMap.put(land, t);
-        for (LandTeam t1 : _teamMap.values())
-        {
-            if (t != t1)
-            {
-                t1.land.removeLand(land);
-                LandSaveHandler.saveTeam(t1.teamName);
-            }
-        }
         if (sync)
         {
+            for (LandTeam t1 : _teamMap.values())
+            {
+                if (t != t1)
+                {
+                    t1.land.removeLand(land);
+                    LandSaveHandler.saveTeam(t1.teamName);
+                }
+            }
             LandSaveHandler.saveTeam(team);
         }
     }

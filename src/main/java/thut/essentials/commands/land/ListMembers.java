@@ -1,13 +1,16 @@
 package thut.essentials.commands.land;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
+import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
@@ -28,13 +31,26 @@ public class ListMembers extends BaseCommand
         if (args.length == 1) team = LandManager.getInstance().getTeam(args[0], false);
         if (team == null) throw new CommandException("No team found by name " + args[0]);
         String teamName = team.teamName;
-        sender.sendMessage(new TextComponentString("Members of Team " + teamName));
+        sender.sendMessage(new TextComponentString("Members of Team " + teamName + ":"));
+        sender.sendMessage(getMembers(server, team, true));
+    }
+
+    public static ITextComponent getMembers(MinecraftServer server, LandTeam team, boolean tabbed)
+    {
+        TextComponentString mess = new TextComponentString("");
         Collection<UUID> c = team.member;
-        for (UUID o : c)
+        List<UUID> ids = Lists.newArrayList(c);
+        for (int i = 0; i < ids.size(); i++)
         {
+            UUID o = ids.get(i);
             if (o == null) continue;
             GameProfile profile = getProfile(server, o);
-            sender.sendMessage(new TextComponentString("    " + profile.getName()));
+            if (tabbed) mess.appendText("    ");
+            if (profile.getName() != null) mess.appendText(profile.getName());
+            else mess.appendText("<unknown> " + o);
+            if (i < ids.size() - 1) mess.appendText("\n");
         }
+        System.out.println(mess);
+        return mess;
     }
 }
