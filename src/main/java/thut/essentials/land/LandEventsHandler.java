@@ -31,7 +31,9 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -89,15 +91,11 @@ public class LandEventsHandler
 
     public static class BlockEventHandler
     {
-        @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void placeBlocks(PlaceEvent evt)
+        public void CheckPlace(BlockEvent evt, EntityPlayer player)
         {
-            if (evt.getPlayer().getEntityWorld().isRemote) return;
-            if (!ConfigManager.INSTANCE.landEnabled) return;
-            EntityPlayer player = (EntityPlayer) evt.getPlayer();
             if (!(player instanceof EntityPlayerMP)) return;
             Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(),
-                    evt.getPlayer().getEntityWorld().provider.getDimension());
+                    player.getEntityWorld().provider.getDimension());
             LandTeam team = LandManager.getInstance().getLandOwner(c);
 
             // Check permission for breaking wilderness, then return.
@@ -135,11 +133,8 @@ public class LandEventsHandler
             LandManager.getInstance().unsetPublic(block);
         }
 
-        @SubscribeEvent
-        public void BreakBlock(BreakEvent evt)
+        public void checkBreak(BlockEvent evt, EntityPlayer player)
         {
-            if (evt.getPlayer().getEntityWorld().isRemote) return;
-            EntityPlayer player = evt.getPlayer();
             if (ConfigManager.INSTANCE.landEnabled && player != null)
             {
                 // check whitelist first.
@@ -177,6 +172,39 @@ public class LandEventsHandler
                 Coordinate block = new Coordinate(evt.getPos(), evt.getWorld().provider.getDimension());
                 LandManager.getInstance().unsetPublic(block);
             }
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public void placeBlocks(PlaceEvent evt)
+        {
+            if (evt.getPlayer().getEntityWorld().isRemote) return;
+            if (!ConfigManager.INSTANCE.landEnabled) return;
+            CheckPlace(evt, evt.getPlayer());
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public void BreakBlock(BreakEvent evt)
+        {
+            if (evt.getPlayer().getEntityWorld().isRemote) return;
+            EntityPlayer player = evt.getPlayer();
+            checkBreak(evt, player);
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public void bucket(FillBucketEvent event)
+        {
+            if (event.getEntityPlayer().getEntityWorld().isRemote) return;
+            if (!ConfigManager.INSTANCE.landEnabled) return;
+            BlockPos pos = event.getEntityPlayer().getPosition();
+            if (event.getTarget() != null)
+            {
+                pos = event.getTarget().getBlockPos().offset(event.getTarget().sideHit);
+            }
+            EntityPlayer player = event.getEntityPlayer();
+            BlockEvent evt = new BreakEvent(event.getWorld(), pos, event.getWorld().getBlockState(pos), player);
+            CheckPlace(evt, player);
+            checkBreak(evt, player);
+            if (evt.isCanceled()) event.setCanceled(true);
         }
     }
 
