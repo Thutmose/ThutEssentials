@@ -1,4 +1,4 @@
-package thut.essentials.commands.land;
+package thut.essentials.commands.land.claims;
 
 import java.util.logging.Level;
 
@@ -87,14 +87,14 @@ public class Claim extends BaseCommand
         int x = MathHelper.floor(sender.getPosition().getX() / 16f);
         int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
         int n = 0;
+        int maxLand = team.maxLand < 0 ? teamCount * ConfigManager.INSTANCE.teamLandPerPlayer : team.maxLand;
         for (int dx = -radius; dx <= radius; dx++)
             for (int dz = -radius; dz <= radius; dz++)
                 for (int i = 0; i < num; i++)
                 {
-                    if (count < teamCount * ConfigManager.INSTANCE.teamLandPerPlayer || isOp)
+                    if (count < maxLand || isOp)
                     {
                         int dir = up ? 1 : -1;
-                        teamCount = team.member.size();
                         count = LandManager.getInstance().countLand(team.teamName);
                         int y = MathHelper.floor(sender.getPosition().getY() / 16f) + i * dir;
                         if (all) y = i * dir;
@@ -119,12 +119,12 @@ public class Claim extends BaseCommand
                     {
                         sender.sendMessage(
                                 new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
-                        ThutEssentials.logger.log(Level.FINE, "claim: " + team.teamName + " " + x + " " + z);
+                        ThutEssentials.logger.log(Level.FINER, "claim: " + team.teamName + " " + x + " " + z);
                         return;
                     }
                 }
         sender.sendMessage(new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
-        ThutEssentials.logger.log(Level.FINE, "claim: " + team.teamName + " " + x + " " + z);
+        ThutEssentials.logger.log(Level.FINER, "claim: " + team.teamName + " " + x + " " + z);
         return;
     }
 

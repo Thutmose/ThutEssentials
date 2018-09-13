@@ -1,5 +1,6 @@
 package thut.essentials.land;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,10 +21,14 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemFood;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -180,6 +185,13 @@ public class LandEventsHandler
             if (evt.getPlayer().getEntityWorld().isRemote) return;
             if (!ConfigManager.INSTANCE.landEnabled) return;
             CheckPlace(evt, evt.getPlayer());
+            if (!evt.isCanceled() && ThutEssentials.instance.config.log_interactions)
+            {
+                Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(),
+                        evt.getWorld().provider.getDimension());
+                ThutEssentials.logger.log(Level.FINER, c + " place " + evt.getPos() + " " + evt.getPlacedAgainst() + " "
+                        + evt.getPlacedBlock() + " " + evt.getPlayer().getUniqueID() + " " + evt.getPlayer().getName());
+            }
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -188,6 +200,13 @@ public class LandEventsHandler
             if (evt.getPlayer().getEntityWorld().isRemote) return;
             EntityPlayer player = evt.getPlayer();
             checkBreak(evt, player);
+            if (!evt.isCanceled() && ThutEssentials.instance.config.log_interactions)
+            {
+                Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(),
+                        evt.getWorld().provider.getDimension());
+                ThutEssentials.logger.log(Level.FINER, c + " break " + evt.getPos() + " " + evt.getState() + " "
+                        + evt.getPlayer().getUniqueID() + " " + evt.getPlayer().getName());
+            }
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -205,6 +224,13 @@ public class LandEventsHandler
             CheckPlace(evt, player);
             checkBreak(evt, player);
             if (evt.isCanceled()) event.setCanceled(true);
+            else if (ThutEssentials.instance.config.log_interactions)
+            {
+                Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(),
+                        evt.getWorld().provider.getDimension());
+                ThutEssentials.logger.log(Level.FINER, c + " bucket " + evt.getPos() + " " + player.getUniqueID() + " "
+                        + player.getName() + " " + event.getFilledBucket() + " " + event.getEmptyBucket());
+            }
         }
     }
 
@@ -476,8 +502,9 @@ public class LandEventsHandler
                 evt.setUseBlock(Result.DENY);
                 evt.setCanceled(true);
                 if (!evt.getWorld().isRemote) evt.getEntity().sendMessage(getDenyMessage(owner));
-                if (ConfigManager.INSTANCE.debug)
-                    ThutEssentials.logger.log(Level.INFO, "Cancelled interact due to not allowed to left click that.");
+                if (ConfigManager.INSTANCE.log_interactions)
+                    ThutEssentials.logger.log(Level.FINER, "Cancelled interact due to not allowed to left click that."
+                            + c + " " + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
             }
             evt.setUseItem(Result.DENY);
         }
@@ -517,8 +544,9 @@ public class LandEventsHandler
                         LandManager.getInstance().toggleMobPublic(evt.getTarget().getUniqueID(), owner);
                     }
                     evt.setCanceled(true);
-                    if (ConfigManager.INSTANCE.debug)
-                        ThutEssentials.logger.log(Level.INFO, "Cancelled interact due to toggling public mob.");
+                    if (ConfigManager.INSTANCE.log_interactions)
+                        ThutEssentials.logger.log(Level.FINER, "Cancelled interact due to toggling public mob." + c
+                                + " " + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
                     return;
                 }
                 // check if player is holding a protect toggle.
@@ -541,8 +569,9 @@ public class LandEventsHandler
                         LandManager.getInstance().toggleMobProtect(evt.getTarget().getUniqueID(), owner);
                     }
                     evt.setCanceled(true);
-                    if (ConfigManager.INSTANCE.debug)
-                        ThutEssentials.logger.log(Level.INFO, "Cancelled interact due to toggling protected mob.");
+                    if (ConfigManager.INSTANCE.log_interactions)
+                        ThutEssentials.logger.log(Level.FINER, "Cancelled interact due to toggling protected mob." + c
+                                + " " + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
                     return;
                 }
             }
@@ -557,8 +586,9 @@ public class LandEventsHandler
             if (!owner.public_mobs.contains(evt.getTarget().getUniqueID()))
             {
                 evt.setCanceled(true);
-                if (ConfigManager.INSTANCE.debug)
-                    ThutEssentials.logger.log(Level.INFO, "Cancelled interact due to not public mob.");
+                if (ConfigManager.INSTANCE.log_interactions)
+                    ThutEssentials.logger.log(Level.FINER, "Cancelled interact due to not public mob." + c + " "
+                            + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
                 return;
             }
         }
@@ -657,8 +687,9 @@ public class LandEventsHandler
                     evt.setUseItem(Result.DENY);
                     ((EntityPlayerMP) player).sendAllContents(player.inventoryContainer,
                             player.inventoryContainer.inventoryItemStacks);
-                    if (ConfigManager.INSTANCE.debug)
-                        ThutEssentials.logger.log(Level.INFO, "Cancelled interact due to not allowed to use wild.");
+                    if (ConfigManager.INSTANCE.log_interactions)
+                        ThutEssentials.logger.log(Level.FINER, "Cancelled interact due to not allowed to use wild." + c
+                                + " " + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
                     return;
                 }
                 return;
@@ -695,8 +726,9 @@ public class LandEventsHandler
                 evt.setUseItem(Result.DENY);
                 ((EntityPlayerMP) player).sendAllContents(player.inventoryContainer,
                         player.inventoryContainer.inventoryItemStacks);
-                if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO,
-                        "Cancelled interact due to not allowed to use. owns?: " + owns);
+                if (ConfigManager.INSTANCE.log_interactions) ThutEssentials.logger.log(Level.FINER,
+                        "Cancelled interact due to not allowed to use. owns?: " + owns + ", " + c + " "
+                                + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
                 return;
             }
             // If we own this, we can return here, first check public toggle
@@ -722,8 +754,9 @@ public class LandEventsHandler
                         LandManager.getInstance().setPublic(blockLoc, owner);
                     }
                     evt.setCanceled(true);
-                    if (ConfigManager.INSTANCE.debug)
-                        ThutEssentials.logger.log(Level.INFO, "Cancelled interact due to public toggling.");
+                    if (ConfigManager.INSTANCE.log_interactions)
+                        ThutEssentials.logger.log(Level.FINER, "Cancelled interact due to public toggling. " + c + " "
+                                + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
                 }
                 return;
             }
@@ -755,8 +788,52 @@ public class LandEventsHandler
             evt.setUseItem(Result.DENY);
             ((EntityPlayerMP) player).sendAllContents(player.inventoryContainer,
                     player.inventoryContainer.inventoryItemStacks);
-            if (ConfigManager.INSTANCE.debug)
-                ThutEssentials.logger.log(Level.INFO, "Cancelled interact due to not allowed to use block.");
+            if (ConfigManager.INSTANCE.log_interactions)
+                ThutEssentials.logger.log(Level.FINER, "Cancelled interact due to not allowed to use block." + c + " "
+                        + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
+        }
+    }
+
+    public static class ChunkLoadHandler
+    {
+        public static HashMap<Coordinate, Ticket> chunks = Maps.newHashMap();
+
+        public static boolean removeChunks(Coordinate location)
+        {
+            Ticket ticket = chunks.remove(location);
+            if (ticket != null)
+            {
+                ForgeChunkManager.releaseTicket(ticket);
+                return true;
+            }
+            return false;
+        }
+
+        public static boolean addChunks(World world, Coordinate location, UUID placer)
+        {
+            if (!ConfigManager.INSTANCE.chunkLoading) return false;
+
+            boolean found = chunks.containsKey(location);
+            try
+            {
+                if (!found)
+                {
+                    Ticket ticket = ForgeChunkManager.requestPlayerTicket(ThutEssentials.instance, placer.toString(),
+                            world, ForgeChunkManager.Type.NORMAL);
+                    int[] loc = { location.x, location.z };
+                    ticket.getModData().setIntArray("pos", loc);
+                    ChunkPos chunk = new ChunkPos(location.x, location.z);
+                    ThutEssentials.logger.log(Level.FINER, "Forcing Chunk at " + location);
+                    ForgeChunkManager.forceChunk(ticket, chunk);
+                    chunks.put(location, ticket);
+                    return true;
+                }
+            }
+            catch (Throwable e)
+            {
+                ThutEssentials.logger.log(Level.FINER, "Error adding chunks to load.", new Exception(e));
+            }
+            return false;
         }
     }
 

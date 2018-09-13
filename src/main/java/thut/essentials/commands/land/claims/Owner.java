@@ -1,10 +1,11 @@
-package thut.essentials.commands.land;
+package thut.essentials.commands.land.claims;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextComponentString;
+import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -25,9 +26,15 @@ public class Owner extends BaseCommand
         int y = MathHelper.floor(sender.getPosition().getY() / 16f);
         int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
         int dim = sender.getEntityWorld().provider.getDimension();
-        LandTeam owner = LandManager.getInstance().getLandOwner(new Coordinate(x, y, z, dim));
+        Coordinate c = new Coordinate(x, y, z, dim);
+        LandTeam owner = LandManager.getInstance().getLandOwner(c);
         if (owner == null) sender.sendMessage(new TextComponentString("This Land is not owned"));
-        else sender.sendMessage(new TextComponentString("This Land is owned by Team " + owner.teamName));
+        else
+        {
+            sender.sendMessage(new TextComponentString("This Land is owned by Team " + owner.teamName));
+            if (ChunkLoadHandler.chunks.containsKey(c))
+                sender.sendMessage(new TextComponentString("This Land is Chunk Loaded."));
+        }
     }
 
 }

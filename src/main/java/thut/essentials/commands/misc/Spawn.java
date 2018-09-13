@@ -3,6 +3,7 @@ package thut.essentials.commands.misc;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 
 import com.google.common.collect.Maps;
 
@@ -68,6 +69,8 @@ public class Spawn extends BaseCommand
                 if (event) MinecraftForge.EVENT_BUS.post(new MoveEvent(player));
                 Vector3 dest = new Vector3(moveTo);
                 dest.add(offset);
+                if (ConfigManager.INSTANCE.log_teleports) ThutEssentials.logger.log(Level.FINER,
+                        "TP: " + player.getUniqueID() + " " + player.getName() + " from: " + start + " to " + moveTo);
                 Entity player1 = Transporter.teleportEntity(player, dest, dimension);
                 if (callback != null) callback.test(player1);
                 if (message != null) player1.sendMessage(message);

@@ -136,7 +136,7 @@ public class LandSaveHandler
                 LandManager.getInstance()._teamMap.put(team.teamName, team);
                 team.init(FMLCommonHandler.instance().getMinecraftServerInstance());
                 List<Coordinate> toAdd = Lists.newArrayList(team.land.land);
-                if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO, "Processing " + team.teamName);
+                if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.FINER, "Processing " + team.teamName);
                 for (Coordinate land : toAdd)
                     LandManager.getInstance().addTeamLand(team.teamName, land, false);
             }

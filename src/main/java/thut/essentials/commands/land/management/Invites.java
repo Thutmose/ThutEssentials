@@ -1,4 +1,4 @@
-package thut.essentials.commands.land;
+package thut.essentials.commands.land.management;
 
 import java.util.List;
 

@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.xml.namespace.QName;
 
@@ -24,6 +25,7 @@ import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import thut.essentials.ThutEssentials;
 
 public class WorldManager
 {
@@ -75,7 +77,7 @@ public class WorldManager
         File file = new File(DEFAULTPATH, dimFile);
         if (!file.exists())
         {
-            System.out.println("No Custom Dimensions file found: " + file
+            ThutEssentials.logger.log(Level.FINER, "No Custom Dimensions file found: " + file
                     + " If you make one, it will allow specifying custom dimensions and worldgen.");
             return;
         }
@@ -85,12 +87,11 @@ public class WorldManager
             FileInputStream stream = new FileInputStream(file);
             InputStreamReader reader = new InputStreamReader(stream);
             dims = gson.fromJson(reader, CustomDims.class);
-            System.out.println("Loaded Dims: " + dims.dims);
+            ThutEssentials.logger.log(Level.FINER, "Loaded Dims: " + dims.dims);
         }
         catch (Exception e)
         {
-            System.err.println("Error loading custom Dims from: " + file);
-            e.printStackTrace();
+            ThutEssentials.logger.log(Level.WARNING, "Error loading custom Dims from: " + file, e);
         }
 
     }
@@ -100,7 +101,7 @@ public class WorldManager
         loadCustomDims("thutessentials_dimensions.json");
         if (dims != null)
         {
-            System.out.println("Starting server, Thut Essentials Registering Dimensions");
+            ThutEssentials.logger.log(Level.FINER, "Starting server, Thut Essentials Registering Dimensions");
             for (CustomDim dim : dims.dims)
             {
                 DimensionType type = DimensionType.OVERWORLD;
@@ -112,8 +113,7 @@ public class WorldManager
                     }
                     catch (Exception e)
                     {
-                        System.err.println("Error with dim_type: " + dim.dim_type);
-                        e.printStackTrace();
+                        ThutEssentials.logger.log(Level.WARNING, "Error with dim_type: " + dim.dim_type, e);
                         type = DimensionType.OVERWORLD;
                     }
                 }
@@ -135,7 +135,7 @@ public class WorldManager
         if (dimType == null)
         {
             dimType = DimensionType.OVERWORLD;
-            System.err.println("Dimtype should not be null!");
+            ThutEssentials.logger.log(Level.WARNING, "Dimtype should not be null!");
         }
         if (!DimensionManager.isDimensionRegistered(dim))
         {
@@ -143,7 +143,7 @@ public class WorldManager
         }
         else
         {
-            System.out.println(DimensionManager.getProviderType(dim));
+            ThutEssentials.logger.log(Level.FINER, DimensionManager.getProviderType(dim) + "");
         }
         World oldWorld = DimensionManager.getWorld(dim);
         if (generatorOptions != null && generatorOptions.isEmpty()) generatorOptions = null;
@@ -155,15 +155,15 @@ public class WorldManager
         DimensionManager.setWorld(dim, newWorld, FMLCommonHandler.instance().getMinecraftServerInstance());
         if (oldWorld != null && newWorld != null)
         {
-            System.out.println("Replaced " + oldWorld + " with " + newWorld);
+            ThutEssentials.logger.log(Level.FINER, "Replaced " + oldWorld + " with " + newWorld);
         }
         else if (newWorld != null)
         {
-            System.out.println("Set World " + newWorld);
+            ThutEssentials.logger.log(Level.FINER, "Set World " + newWorld);
         }
         else
         {
-            System.out.println(
+            ThutEssentials.logger.log(Level.WARNING,
                     "Unable to create world " + dim + " " + worldName + " " + worldType + " " + generatorOptions);
         }
         return newWorld;

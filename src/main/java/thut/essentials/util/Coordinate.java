@@ -59,4 +59,10 @@ public class Coordinate implements Comparable<Coordinate>
                         : this.dim == p_compareTo_1_.dim ? this.z - p_compareTo_1_.z : this.dim - p_compareTo_1_.dim)
                 : this.y - p_compareTo_1_.y;
     }
+
+    @Override
+    public String toString()
+    {
+        return "CCxyzw: " + x + " " + y + " " + z + " " + dim;
+    }
 }

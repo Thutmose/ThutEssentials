@@ -5,14 +5,23 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.common.collect.ListMultimap;
 import com.google.common.io.Files;
 
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.ForgeChunkManager.PlayerOrderedLoadingCallback;
+import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
@@ -96,6 +105,44 @@ public class ThutEssentials
     {
         config = new ConfigManager(e.getSuggestedConfigurationFile());
         manager = new CommandManager();
+
+        // Initialize the chunk loading stuff
+        ForgeChunkManager.setForcedChunkLoadingCallback(this, new PlayerOrderedLoadingCallback()
+        {
+            @Override
+            public void ticketsLoaded(List<Ticket> tickets, World world)
+            {
+                Iterator<Ticket> next = tickets.iterator();
+                while (next.hasNext())
+                {
+                    Ticket ticket = next.next();
+                    if (!ticket.getModId().equals(ThutEssentials.MODID)) continue;
+                    if (!ticket.isPlayerTicket() || !ConfigManager.INSTANCE.chunkLoading)
+                    {
+                        ForgeChunkManager.releaseTicket(ticket);
+                        continue;
+                    }
+                    int[] pos = ticket.getModData().getIntArray("pos");
+                    if (pos.length != 2)
+                    {
+                        logger.log(Level.FINER, "invalid ticket for " + pos);
+                        ForgeChunkManager.releaseTicket(ticket);
+                    }
+                    else
+                    {
+                        ChunkPos location = new ChunkPos(pos[0], pos[1]);
+                        logger.log(Level.FINER, "Forcing Chunk at " + location);
+                        ForgeChunkManager.forceChunk(ticket, location);
+                    }
+                }
+            }
+
+            @Override
+            public ListMultimap<String, Ticket> playerTicketsLoaded(ListMultimap<String, Ticket> tickets, World world)
+            {
+                return tickets;
+            }
+        });
     }
 
     @EventHandler
@@ -124,8 +171,8 @@ public class ThutEssentials
     @EventHandler
     public void serverStarted(FMLServerStartedEvent evt)
     {
-        CommandHandler ch = (CommandHandler) FMLCommonHandler.instance().getMinecraftServerInstance()
-                .getCommandManager();
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        CommandHandler ch = (CommandHandler) server.getCommandManager();
         for (String s : ConfigManager.INSTANCE.alternateCommands)
         {
             String[] args = s.split(":");
@@ -140,6 +187,9 @@ public class ThutEssentials
                 ch.getCommands().put(args[i], command);
             }
         }
+        // Run these commands as server first starts.
+        for (String s : ConfigManager.INSTANCE.serverInitCommands)
+            ch.executeCommand(server, s);
     }
 
     @EventHandler

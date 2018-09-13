@@ -11,11 +11,13 @@ import java.util.UUID;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.Coordinate;
@@ -64,6 +66,10 @@ public class LandManager
         public static final String     INVITE         = "invite";
         /** Can kick people */
         public static final String     KICK           = "kick";
+        /** Can chunkload. */
+        public static final String     LOADPERM       = "cload";
+        /** Can chunkload. */
+        public static final String     UNLOADPERM     = "uncload";
 
         // These are perms checked for relations
         /** Can interact with things freely */
@@ -128,10 +134,18 @@ public class LandManager
         public Map<String, Relation>   relations      = Maps.newHashMap();
         /** Last time a member of this team was seen. */
         public long                    lastSeen       = 0;
+        /** Override of maximum land allowed for the team, if this is not -1, it
+         * will be used instead. */
+        public int                     maxLand        = -1;
+        /** Override of maximum land allowed for the team, if this is not -1, it
+         * will be used instead. */
+        public int                     maxLoaded      = -1;
 
         /** Random UUID for the team, this can be used for things like
          * accounts. */
         public UUID                    uuid           = UUID.randomUUID();
+
+        private GameProfile            _teamprofile;
 
         public LandTeam()
         {
@@ -140,6 +154,12 @@ public class LandManager
         public LandTeam(String name)
         {
             teamName = name;
+        }
+
+        public GameProfile getProfile()
+        {
+            if (_teamprofile == null) _teamprofile = new GameProfile(uuid, "team:" + teamName);
+            return _teamprofile;
         }
 
         public boolean isMember(UUID id)
@@ -271,7 +291,8 @@ public class LandManager
 
     public static class TeamLand
     {
-        public HashSet<Coordinate> land = Sets.newHashSet();
+        public HashSet<Coordinate> land   = Sets.newHashSet();
+        public int                 loaded = 0;
 
         public boolean addLand(Coordinate land)
         {
@@ -640,6 +661,8 @@ public class LandManager
         _landMap.remove(land);
         if (t != null && t.land.removeLand(land))
         {
+            // Ensure the land is unloaded if it was loaded.
+            unLoadLand(land, t);
             LandSaveHandler.saveTeam(team);
         }
     }
@@ -658,5 +681,23 @@ public class LandManager
         (team = _publicBlocks.remove(c)).anyUse.remove(c);
         LandSaveHandler.saveTeam(team.teamName);
         LandSaveHandler.saveGlobalData();
+    }
+
+    public void loadLand(World world, Coordinate chunk, LandTeam team)
+    {
+        if (LandEventsHandler.ChunkLoadHandler.addChunks(world, chunk, team.uuid))
+        {
+            team.land.loaded++;
+            LandSaveHandler.saveTeam(team.teamName);
+        }
+    }
+
+    public void unLoadLand(Coordinate chunk, LandTeam team)
+    {
+        if (LandEventsHandler.ChunkLoadHandler.removeChunks(chunk))
+        {
+            team.land.loaded--;
+            LandSaveHandler.saveTeam(team.teamName);
+        }
     }
 }

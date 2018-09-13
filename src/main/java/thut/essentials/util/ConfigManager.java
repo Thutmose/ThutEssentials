@@ -21,6 +21,7 @@ public class ConfigManager extends ConfigBase
     private static final String ITEM                      = "itemcontrol";
     private static final String MISC                      = "misc";
     private static final String ECON                      = "economy";
+    private static final String LOGGING                   = "logging";
 
     public static ConfigManager INSTANCE;
 
@@ -115,9 +116,6 @@ public class ConfigManager extends ConfigBase
     @Configure(category = MISC)
     public int                  pauseTime                 = 5000;
 
-    @Configure(category = MISC)
-    public boolean              debug                     = false;
-
     @Configure(category = ECON)
     public boolean              economyEnabled            = true;
     @Configure(category = ECON)
@@ -154,9 +152,24 @@ public class ConfigManager extends ConfigBase
     public String[]             blockUseWhitelist         = {};
     @Configure(category = LAND)
     public String[]             blockBreakWhitelist       = {};
+    @Configure(category = LAND)
+    public boolean              chunkLoading              = true;
+    @Configure(category = LAND)
+    public int                  loadedChunksPerTeam       = 1;
 
     @Configure(category = COMMANDS)
     public String[]             commands                  = {};
+    @Configure(category = COMMANDS)
+    public String[]             serverInitCommands        = {};
+
+    @Configure(category = LOGGING)
+    public boolean              debug                     = false;
+    @Configure(category = LOGGING)
+    public boolean              log_interactions          = true;
+    @Configure(category = LOGGING)
+    public boolean              log_teleports             = true;
+    @Configure(category = LOGGING)
+    public boolean              log_inventories           = true;
 
     public ConfigManager()
     {
@@ -184,6 +197,8 @@ public class ConfigManager extends ConfigBase
         else EconomyManager.clearInstance();
         if (spawnDefuzz) MinecraftForge.EVENT_BUS.register(ThutEssentials.instance.defuz);
         else MinecraftForge.EVENT_BUS.unregister(ThutEssentials.instance.defuz);
+        if (log_inventories) InventoryLogger.enable();
+        else InventoryLogger.disable();
         BaseCommand.permsMap.clear();
         for (String s : commandPermissionLevels)
         {

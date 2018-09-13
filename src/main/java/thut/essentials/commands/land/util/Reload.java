@@ -1,4 +1,4 @@
-package thut.essentials.commands.land;
+package thut.essentials.commands.land.util;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
