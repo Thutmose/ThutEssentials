@@ -153,7 +153,7 @@ public class ConfigManager extends ConfigBase
     @Configure(category = LAND)
     public String[]             blockBreakWhitelist       = {};
     @Configure(category = LAND)
-    public boolean              chunkLoading              = true;
+    public boolean              chunkLoading              = false;
     @Configure(category = LAND)
     public int                  loadedChunksPerTeam       = 1;
 
