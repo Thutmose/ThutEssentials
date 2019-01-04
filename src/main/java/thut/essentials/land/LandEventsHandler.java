@@ -198,6 +198,7 @@ public class LandEventsHandler
         public void BreakBlock(BreakEvent evt)
         {
             if (evt.getPlayer().getEntityWorld().isRemote) return;
+            if (!ConfigManager.INSTANCE.landEnabled) return;
             EntityPlayer player = evt.getPlayer();
             checkBreak(evt, player);
             if (!evt.isCanceled() && ThutEssentials.instance.config.log_interactions)
@@ -264,6 +265,7 @@ public class LandEventsHandler
         public void update(LivingUpdateEvent evt)
         {
             if (evt.getEntity().getEntityWorld().isRemote) return;
+            if (!ConfigManager.INSTANCE.landEnabled) return;
             if (evt.getEntityLiving() instanceof EntityPlayerMP && evt.getEntityLiving().ticksExisted > 10)
             {
                 EntityPlayerMP player = (EntityPlayerMP) evt.getEntityLiving();
@@ -457,11 +459,12 @@ public class LandEventsHandler
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void spawn(LivingSpawnEvent.CheckSpawn evt)
         {
+            if (!ConfigManager.INSTANCE.landEnabled) return;
             if (evt.getEntity().getEntityWorld().isRemote) return;
             Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(),
                     evt.getEntity().getEntityWorld().provider.getDimension());
             LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null || !ConfigManager.INSTANCE.landEnabled) return;
+            if (owner == null) return;
             if (owner.noMobSpawn)
             {
                 evt.setResult(Result.DENY);
