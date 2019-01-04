@@ -37,6 +37,12 @@ public class InventoryLogger
         @Override
         public void sendSlotContents(Container containerToSend, int slotInd, ItemStack stack)
         {
+            //Ensure that the list has room for the slot. This fixes issues with inventories that change size.
+            while(slotInd >= initialList.size())
+            {
+                initialList.add(ItemStack.EMPTY);
+            }
+            
             ItemStack oldStack = initialList.get(slotInd);
             IInventory inventory = containerToSend.getSlot(slotInd).inventory;
 
@@ -87,7 +93,7 @@ public class InventoryLogger
     }
 
     @SubscribeEvent
-    public static void takeFromInventory(PlayerContainerEvent.Open event)
+    public static void openInventory(PlayerContainerEvent.Open event)
     {
         Coordinate c = Coordinate.getChunkCoordFromWorldCoord(event.getEntityPlayer().getPosition(),
                 event.getEntityPlayer().dimension);
