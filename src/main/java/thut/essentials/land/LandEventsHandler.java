@@ -30,6 +30,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -115,23 +116,31 @@ public class LandEventsHandler
                 return;
 
             }
-            // Treat relation place perm as owning the land.
-            boolean owns = team.canPlaceBlock(player.getUniqueID());
-            if (owns && !PermissionAPI.hasPermission(player, PERMPLACEOWN))
+            // Check if the team allows fakeplayers
+            if (team.fakePlayers && player instanceof FakePlayer)
             {
-                player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
-                evt.setCanceled(true);
-                ((EntityPlayerMP) player).sendAllContents(player.inventoryContainer,
-                        player.inventoryContainer.inventoryItemStacks);
-                return;
+
             }
-            if (!owns && !PermissionAPI.hasPermission(player, PERMPLACEOTHER))
+            else // Otherwise check normal behaviour
             {
-                player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
-                evt.setCanceled(true);
-                ((EntityPlayerMP) player).sendAllContents(player.inventoryContainer,
-                        player.inventoryContainer.inventoryItemStacks);
-                return;
+                // Treat relation place perm as owning the land.
+                boolean owns = team.canPlaceBlock(player.getUniqueID());
+                if (owns && !PermissionAPI.hasPermission(player, PERMPLACEOWN))
+                {
+                    player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
+                    evt.setCanceled(true);
+                    ((EntityPlayerMP) player).sendAllContents(player.inventoryContainer,
+                            player.inventoryContainer.inventoryItemStacks);
+                    return;
+                }
+                if (!owns && !PermissionAPI.hasPermission(player, PERMPLACEOTHER))
+                {
+                    player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
+                    evt.setCanceled(true);
+                    ((EntityPlayerMP) player).sendAllContents(player.inventoryContainer,
+                            player.inventoryContainer.inventoryItemStacks);
+                    return;
+                }
             }
             // Unset as public if the block was changed.
             Coordinate block = new Coordinate(evt.getPos(), evt.getWorld().provider.getDimension());
@@ -159,20 +168,29 @@ public class LandEventsHandler
                     return;
 
                 }
-                // Treat relation break perm as owning the land.
-                boolean owns = team.canBreakBlock(player.getUniqueID());
-                if (owns && !PermissionAPI.hasPermission(player, PERMBREAKOWN))
+                // Check if the team allows fakeplayers
+                if (team.fakePlayers && player instanceof FakePlayer)
                 {
-                    player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
-                    evt.setCanceled(true);
-                    return;
+
                 }
-                if (!owns && !PermissionAPI.hasPermission(player, PERMBREAKOTHER))
+                else // Otherwise check normal behaviour
                 {
-                    player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
-                    evt.setCanceled(true);
-                    return;
+                    // Treat relation break perm as owning the land.
+                    boolean owns = team.canBreakBlock(player.getUniqueID());
+                    if (owns && !PermissionAPI.hasPermission(player, PERMBREAKOWN))
+                    {
+                        player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
+                        evt.setCanceled(true);
+                        return;
+                    }
+                    if (!owns && !PermissionAPI.hasPermission(player, PERMBREAKOTHER))
+                    {
+                        player.sendMessage(getDenyMessage(LandManager.getInstance().getLandOwner(c)));
+                        evt.setCanceled(true);
+                        return;
+                    }
                 }
+
                 // Unset as public if the block was changed.
                 Coordinate block = new Coordinate(evt.getPos(), evt.getWorld().provider.getDimension());
                 LandManager.getInstance().unsetPublic(block);
@@ -363,6 +381,9 @@ public class LandEventsHandler
             // TODO possible perms for attacking things in unclaimed land?
             if (owner == null) return;
 
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && evt.getEntityPlayer() instanceof FakePlayer) return;
+
             // If mob is protected, do not allow the attack, even if by owner.
             if (owner.protected_mobs.contains(evt.getTarget().getUniqueID()))
             {
@@ -382,6 +403,9 @@ public class LandEventsHandler
 
             // TODO maybe add a perm for combat in non-claimed land?
             if (owner == null) return;
+
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && evt.getSource().getTrueSource() instanceof FakePlayer) return;
 
             if (evt.getEntity() instanceof EntityPlayer)
             {
@@ -488,6 +512,9 @@ public class LandEventsHandler
             // TODO potentially have perms for unowned use here?
             if (owner == null) return;
 
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && evt.getEntityPlayer() instanceof FakePlayer) return;
+
             // check if this is in the global whitelist.
             Block block = evt.getWorld().getBlockState(evt.getPos()).getBlock();
             String name = block.getRegistryName().toString();
@@ -521,6 +548,10 @@ public class LandEventsHandler
                     evt.getEntityPlayer().getEntityWorld().provider.getDimension());
             LandTeam owner = LandManager.getInstance().getLandOwner(c);
             if (owner == null) return;
+
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && evt.getEntityPlayer() instanceof FakePlayer) return;
+
             // If the player owns it, they can toggle whether the entity is
             // protected or not, Only team admins can do this.
             if (owner.canUseStuff(evt.getEntityPlayer().getUniqueID()) && owner.isAdmin(evt.getEntityPlayer()))
@@ -634,6 +665,9 @@ public class LandEventsHandler
             // If all public, don't bother checking things below.
             if (team.allPublic) return;
 
+            // Check if the team allows fakeplayers
+            if (team.fakePlayers && evt.getEntityPlayer() instanceof FakePlayer) return;
+
             // Treat the relations settings as whether the player owns this.
             boolean owns = team.canUseStuff(player.getUniqueID());
 
@@ -707,6 +741,9 @@ public class LandEventsHandler
             if (blockUseWhiteList.contains(name)) { return; }
             boolean b = true;
             boolean shouldPass = true;
+
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && evt.getEntityPlayer() instanceof FakePlayer) return;
 
             // Check permission, Treat relation public perm as if we own this
             // for this check.

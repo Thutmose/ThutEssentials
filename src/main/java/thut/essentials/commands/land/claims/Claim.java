@@ -1,7 +1,5 @@
 package thut.essentials.commands.land.claims;
 
-import java.util.logging.Level;
-
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,7 +10,6 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
-import thut.essentials.ThutEssentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.ClaimLandEvent;
 import thut.essentials.land.LandManager;
@@ -119,12 +116,10 @@ public class Claim extends BaseCommand
                     {
                         sender.sendMessage(
                                 new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
-                        ThutEssentials.logger.log(Level.FINER, "claim: " + team.teamName + " " + x + " " + z);
                         return;
                     }
                 }
         sender.sendMessage(new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
-        ThutEssentials.logger.log(Level.FINER, "claim: " + team.teamName + " " + x + " " + z);
         return;
     }
 

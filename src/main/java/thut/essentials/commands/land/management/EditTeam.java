@@ -25,6 +25,7 @@ public class EditTeam extends BaseCommand
     private static final String PERMTOGGLEEXPLODE      = "thutessentials.land.toggle.explode";
     private static final String PERMTOGGLEFF           = "thutessentials.land.toggle.friendlyfire";
     private static final String PERMTOGGLEPLAYERDAMAGE = "thutessentials.land.toggle.playerdamage";
+    private static final String PERMTOGGLEFAKEPLAYERS  = "thutessentials.land.toggle.fakeplayers";
 
     public EditTeam()
     {
@@ -39,6 +40,8 @@ public class EditTeam extends BaseCommand
                 "Allowed to toggle friendly fire on/off for their team");
         PermissionAPI.registerNode(PERMTOGGLEPLAYERDAMAGE, DefaultPermissionLevel.OP,
                 "Allowed to toggle player damage on/off in their team land");
+        PermissionAPI.registerNode(PERMTOGGLEFAKEPLAYERS, DefaultPermissionLevel.ALL,
+                "Allowed to toggle whether fakeplayers are ignored for land stuff.");
     }
 
     @Override
@@ -63,6 +66,14 @@ public class EditTeam extends BaseCommand
             return;
         }
         if (arg.equalsIgnoreCase("anyPlace"))
+        {
+            if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
+            landTeam.anyPlace = parseBoolean(message);
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set anyPlace to " + message));
+            LandSaveHandler.saveTeam(landTeam.teamName);
+            return;
+        }
+        if (arg.equalsIgnoreCase("fakePlayers") && PermissionAPI.hasPermission(player, PERMTOGGLEFAKEPLAYERS))
         {
             if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
             landTeam.anyPlace = parseBoolean(message);

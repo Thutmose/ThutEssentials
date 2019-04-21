@@ -32,7 +32,7 @@ public class SetAdmin extends BaseCommand
     {
         EntityPlayer user = getPlayerBySender(sender);
         GameProfile player = getProfile(server, args[0]);
-        LandTeam teamA = LandManager.getTeam(user);
+        LandTeam teamA = LandManager.getTeam(user.getUniqueID());
         LandTeam teamB = LandManager.getTeam(player.getId());
         if (teamA != teamB) throw new CommandException("You must be in the same team to do that.");
         String teamName = teamA.teamName;

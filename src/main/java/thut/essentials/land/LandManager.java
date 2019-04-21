@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -19,6 +20,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import thut.essentials.ThutEssentials;
 import thut.essentials.util.ConfigManager;
 import thut.essentials.util.Coordinate;
 
@@ -100,6 +102,8 @@ public class LandManager
         public Map<String, PlayerRank> rankMap        = Maps.newHashMap();
         /** List of public blocks for the team. */
         public Set<Coordinate>         anyUse         = Sets.newHashSet();
+        /** List of public blocks for the team. TODO implement this. */
+        public Set<Coordinate>         anyBreakSet    = Sets.newHashSet();
         /** Home coordinate for the team, used for thome command. */
         public Coordinate              home;
         /** Message sent on exiting team land. */
@@ -117,6 +121,8 @@ public class LandManager
         public boolean                 players        = false;
         /** If true, players cannot take damage here. */
         public boolean                 noPlayerDamage = false;
+        /** If true, fakeplayers can run. */
+        public boolean                 fakePlayers    = false;
         /** If true, mobs cannot spawn here. */
         public boolean                 noMobSpawn     = false;
         /** If true, team members can hurt each other. */
@@ -476,18 +482,14 @@ public class LandManager
             Thread.dumpStack();
             return;
         }
+        ThutEssentials.logger.log(Level.FINER, "claim: " + team + " Coord: " + land);
+        LandTeam prev = _landMap.remove(land);
         t.land.addLand(land);
+        if (prev != null) prev.land.removeLand(land);
         _landMap.put(land, t);
         if (sync)
         {
-            for (LandTeam t1 : _teamMap.values())
-            {
-                if (t != t1)
-                {
-                    t1.land.removeLand(land);
-                    LandSaveHandler.saveTeam(t1.teamName);
-                }
-            }
+            if (prev != null) LandSaveHandler.saveTeam(prev.teamName);
             LandSaveHandler.saveTeam(team);
         }
     }
@@ -658,9 +660,10 @@ public class LandManager
     public void removeTeamLand(String team, Coordinate land)
     {
         LandTeam t = _teamMap.get(team);
-        _landMap.remove(land);
         if (t != null && t.land.removeLand(land))
         {
+            _landMap.remove(land);
+            ThutEssentials.logger.log(Level.FINER, "unclaim: " + team + " Coord: " + land);
             // Ensure the land is unloaded if it was loaded.
             unLoadLand(land, t);
             LandSaveHandler.saveTeam(team);
