@@ -722,8 +722,8 @@ public class LandEventsHandler
                     evt.setCanceled(true);
                     evt.setUseBlock(Result.DENY);
                     evt.setUseItem(Result.DENY);
-                    ((EntityPlayerMP) player).sendAllContents(player.inventoryContainer,
-                            player.inventoryContainer.inventoryItemStacks);
+                    if (player.inventoryContainer != null) ((EntityPlayerMP) player)
+                            .sendAllContents(player.inventoryContainer, player.inventoryContainer.inventoryItemStacks);
                     if (ConfigManager.INSTANCE.log_interactions)
                         ThutEssentials.logger.log(Level.FINER, "Cancelled interact due to not allowed to use wild." + c
                                 + " " + evt.getEntityPlayer().getUniqueID() + " " + evt.getEntityPlayer().getName());
