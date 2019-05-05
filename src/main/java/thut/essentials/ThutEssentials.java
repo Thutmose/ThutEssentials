@@ -84,8 +84,15 @@ public class ThutEssentials
                 Date date = new Date();
                 logs = new File(logs, MODID);
                 logs.mkdirs();
-                File newFile = new File(logs, dateFormat.format(date) + ".log");
-                Files.move(logfile, newFile);
+                try
+                {
+                    File newFile = new File(logs, dateFormat.format(date) + ".log");
+                    Files.move(logfile, newFile);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
             }
             if (logfile.createNewFile() && logfile.canWrite() && logHandler == null)
             {
