@@ -977,6 +977,7 @@ public class LandEventsHandler
 
     public void queueUpdate(GameProfile profile)
     {
+        if (profile.getId() == null) return;
         if (checked.contains(profile.getId())) return;
         toCheck.add(profile);
     }
@@ -999,7 +1000,7 @@ public class LandEventsHandler
             return;
         }
         toCheck.remove(0);
-        checked.add(profile.getId());
+        if (profile.getId() != null) checked.add(profile.getId());
     }
 
     @SubscribeEvent

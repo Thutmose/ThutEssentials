@@ -81,6 +81,14 @@ public abstract class BaseCommand extends CommandBase
 
         // Try to fill profile via secure method.
         ThutEssentials.instance.teams.queueUpdate(profile);
+
+        // Temporarily update the UUID from server player list if possible
+        if (profile.getId() == null)
+        {
+            EntityPlayer player = server.getPlayerList().getPlayerByUsername(profile.getName());
+            profile = player.getGameProfile();
+        }
+
         return profile;
     }
 

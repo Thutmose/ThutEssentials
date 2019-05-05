@@ -613,7 +613,7 @@ public class LandManager
     {
         LandTeam team = _playerTeams.get(member);
         if (team == null) return false;
-        return team.admin.contains(member);
+        return team.isAdmin(member);
     }
 
     public boolean isOwned(Coordinate land)

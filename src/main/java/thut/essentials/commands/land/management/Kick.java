@@ -35,6 +35,8 @@ public class Kick extends BaseCommand
         GameProfile profile = getProfile(server, toKick);
         LandTeam team = LandManager.getTeam(profile.getId());
         LandTeam team1 = LandManager.getTeam(kicker);
+        System.out.println(team1+" "+team);
+        System.out.println(profile);
         if (team != team1 || team == LandManager.getDefaultTeam()) throw new CommandException("You cannot do that.");
         if (toKick.equalsIgnoreCase(sender.getName()) || team1.hasRankPerm(kicker.getUniqueID(), LandTeam.KICK))
         {

@@ -45,7 +45,7 @@ public class Invite extends BaseCommand
         boolean invite = LandManager.getInstance().invite(inviter.getUniqueID(), invitee.getUniqueID());
         if (!invite) throw new CommandException("Invite not successful.");
         String links = "";
-        String cmd = "joinTeam";
+        String cmd = "jointeam";
         String command = "/" + cmd + " " + team;
         String abilityJson = "{\"text\":\"" + team
                 + "\",\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"" + command + ""
