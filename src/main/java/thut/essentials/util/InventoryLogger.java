@@ -1,9 +1,12 @@
 package thut.essentials.util;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -37,37 +40,50 @@ public class InventoryLogger
         @Override
         public void sendSlotContents(Container containerToSend, int slotInd, ItemStack stack)
         {
-            //Ensure that the list has room for the slot. This fixes issues with inventories that change size.
-            while(slotInd >= initialList.size())
+            try
             {
-                initialList.add(ItemStack.EMPTY);
-            }
-            
-            ItemStack oldStack = initialList.get(slotInd);
-            IInventory inventory = containerToSend.getSlot(slotInd).inventory;
+                // Ensure that the list has room for the slot. This fixes issues
+                // with inventories that change size.
+                while (slotInd >= initialList.size())
+                {
+                    initialList.add(ItemStack.EMPTY);
+                }
 
-            String invName = inventory.getName();
+                ItemStack oldStack = initialList.get(slotInd);
+                IInventory inventory = containerToSend.getSlot(slotInd).inventory;
 
-            if (oldStack.isEmpty() && !stack.isEmpty())
-            {
-                ThutEssentials.logger.log(Level.FINER,
-                        "slot_place " + containerToSend.getClass() + " " + stack + " " + stack.getDisplayName() + ", "
-                                + invName + " " + player.getUniqueID() + " " + player.getName());
+                String invName = inventory.getName();
+
+                if (oldStack.isEmpty() && !stack.isEmpty())
+                {
+                    ThutEssentials.logger.log(Level.FINER,
+                            "slot_place " + containerToSend.getClass() + " " + stack + " " + stack.getDisplayName()
+                                    + ", " + invName + " " + player.getUniqueID() + " " + player.getName());
+                }
+                else if (stack.isEmpty() && !oldStack.isEmpty())
+                {
+                    ThutEssentials.logger.log(Level.FINER,
+                            "slot_take " + containerToSend.getClass() + " " + oldStack + " " + oldStack.getDisplayName()
+                                    + ", " + invName + " " + player.getUniqueID() + " " + player.getName());
+                }
+                else
+                {
+                    ThutEssentials.logger.log(Level.FINER,
+                            "slot_swap " + containerToSend.getClass() + " " + stack + " " + stack.getDisplayName()
+                                    + " <-> " + oldStack + " " + oldStack.getDisplayName() + ", " + invName + " "
+                                    + player.getUniqueID() + " " + player.getName());
+                }
+                initialList.set(slotInd, stack);
             }
-            else if (stack.isEmpty() && !oldStack.isEmpty())
+            catch (Exception e)
             {
-                ThutEssentials.logger.log(Level.FINER,
-                        "slot_take " + containerToSend.getClass() + " " + oldStack + " " + oldStack.getDisplayName()
-                                + ", " + invName + " " + player.getUniqueID() + " " + player.getName());
+                ThutEssentials.logger.log(Level.SEVERE, "Blacklisting Errored Inventory:" + containerToSend.getClass(),
+                        e);
+                blacklist.add(containerToSend.getClass().getName());
+                List<String> temp = Lists.newArrayList(blacklist);
+                Collections.sort(temp);
+                ConfigManager.INSTANCE.inventory_log_blacklist = temp.toArray(new String[0]);
             }
-            else
-            {
-                ThutEssentials.logger.log(Level.FINER,
-                        "slot_swap " + containerToSend.getClass() + " " + stack + " " + stack.getDisplayName() + " <-> "
-                                + oldStack + " " + oldStack.getDisplayName() + ", " + invName + " "
-                                + player.getUniqueID() + " " + player.getName());
-            }
-            initialList.set(slotInd, stack);
         }
 
         @Override
@@ -82,13 +98,17 @@ public class InventoryLogger
 
     }
 
+    private static Set<String> blacklist = Sets.newHashSet();
+
     public static void enable()
     {
+        blacklist = Sets.newHashSet(ConfigManager.INSTANCE.inventory_log_blacklist);
         MinecraftForge.EVENT_BUS.register(InventoryLogger.class);
     }
 
     public static void disable()
     {
+        blacklist.clear();
         MinecraftForge.EVENT_BUS.unregister(InventoryLogger.class);
     }
 
@@ -99,6 +119,7 @@ public class InventoryLogger
                 event.getEntityPlayer().dimension);
         ThutEssentials.logger.log(Level.FINER, c + " open " + event.getContainer().getClass() + " "
                 + event.getEntityPlayer().getUniqueID() + " " + event.getEntityPlayer().getName());
-        event.getContainer().addListener(new Listener(event.getEntityPlayer(), event.getContainer()));
+        if (!blacklist.contains(event.getContainer().getClass().getName()))
+            event.getContainer().addListener(new Listener(event.getEntityPlayer(), event.getContainer()));
     }
 }

@@ -170,6 +170,8 @@ public class ConfigManager extends ConfigBase
     public boolean              log_teleports             = true;
     @Configure(category = LOGGING)
     public boolean              log_inventories           = true;
+    @Configure(category = LOGGING)
+    public String[]             inventory_log_blacklist   = {};
 
     public ConfigManager()
     {
