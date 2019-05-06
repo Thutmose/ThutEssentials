@@ -59,6 +59,8 @@ public class ConfigManager extends ConfigBase
     public int                  rtpActivateDelay          = 10;
     @Configure(category = WARPS)
     public int                  tpaActivateDelay          = 10;
+    @Configure(category = WARPS)
+    public int                  rtpReuseDelay             = 6000;
 
     @Configure(category = STAFF)
     public String[]             staff                     = {};

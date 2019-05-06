@@ -17,6 +17,7 @@ import thut.essentials.commands.misc.Spawn;
 import thut.essentials.commands.misc.Spawn.PlayerMover;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
+import thut.essentials.util.PlayerDataHandler;
 
 public class RTP extends BaseCommand
 {
@@ -51,6 +52,15 @@ public class RTP extends BaseCommand
             player = getPlayerBySender(sender);
         }
         BlockPos position;
+
+        int delay = ConfigManager.INSTANCE.kitReuseDelay;
+        String timeTag = "rtp_time";
+        long rtpTime = PlayerDataHandler.getCustomDataTag(player).getLong(timeTag);
+        if ((delay <= 0 && rtpTime != 0) || server.getEntityWorld().getTotalWorldTime() < rtpTime)
+            throw new CommandException("You cannot RTP again yet.");
+
+        PlayerDataHandler.getCustomDataTag(player).setLong(timeTag,
+                server.getEntityWorld().getTotalWorldTime() + delay);
         int n = 100;
         while ((position = checkSpot(player)) == null && n-- > 0)
             ;
