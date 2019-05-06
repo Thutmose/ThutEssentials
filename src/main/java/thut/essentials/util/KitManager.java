@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -23,14 +24,33 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.IPermissionHandler;
+import net.minecraftforge.server.permission.PermissionAPI;
+import thut.essentials.ThutEssentials;
 
 public class KitManager
 {
+    @XmlRootElement(name = "Kits")
+    public static class Kits
+    {
+        @XmlElement(name = "Kit")
+        public List<XMLStarterItems> kits = Lists.newArrayList();
+    }
+
+    public static class KitSet
+    {
+        public Integer         cooldown = null;
+        public List<ItemStack> stacks   = null;
+    }
+
     @XmlRootElement(name = "Items")
     public static class XMLStarterItems
     {
+        @XmlAnyAttribute
+        public Map<QName, String> values = Maps.newHashMap();
         @XmlElement(name = "Item")
-        private List<Drop> drops = Lists.newArrayList();
+        private List<Drop>        drops  = Lists.newArrayList();
     }
 
     @XmlRootElement(name = "Drop")
@@ -42,15 +62,128 @@ public class KitManager
         public String             tag;
     }
 
-    public static List<ItemStack> kit = Lists.newArrayList();
+    public static List<ItemStack>     kit  = Lists.newArrayList();
+    public static Map<String, KitSet> kits = Maps.newHashMap();
 
     public static void init()
     {
-        File file = new File(ConfigManager.INSTANCE.getConfigFile().getParentFile(), "kit.xml");
+        File file = new File(ConfigManager.INSTANCE.getConfigFile().getParentFile(), "kits.xml");
 
+        boolean newKits = file.exists();
+        QName ident = new QName("name");
+        QName cooldown = new QName("10");
+        kits.clear();
         kit.clear();
-        if (!file.exists())
+
+        // Load Kits
+        if (newKits)
         {
+            try
+            {
+                JAXBContext jaxbContext = JAXBContext.newInstance(Kits.class);
+                Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+                FileReader reader = new FileReader(file);
+                Kits database = (Kits) unmarshaller.unmarshal(reader);
+                reader.close();
+
+                for (XMLStarterItems items : database.kits)
+                {
+                    if (items.values.containsKey(ident))
+                    {
+                        KitSet set = new KitSet();
+                        String name = items.values.get(ident);
+                        if (kits.containsKey(name)) ThutEssentials.logger.log(Level.WARNING, "Duplicate kit: " + name);
+                        List<ItemStack> list = Lists.newArrayList();
+                        for (Drop drop : items.drops)
+                        {
+                            ItemStack stack = getStackFromDrop(drop);
+                            if (!stack.isEmpty()) list.add(stack);
+                        }
+                        try
+                        {
+                            set.cooldown = Integer.parseInt(items.values.get(cooldown));
+                        }
+                        catch (Exception e)
+                        {
+                            set.cooldown = 0;
+                        }
+                        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+                        String node = "thutessentials.kit." + name;
+                        if (!manager.getRegisteredNodes().contains(node))
+                        {
+                            manager.registerNode(node, DefaultPermissionLevel.ALL, "Can get the Kit " + name);
+                        }
+                        set.stacks = list;
+                        kits.put(name, set);
+                    }
+                    else
+                    {
+                        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
+                        String node = "thutessentials.kit.default";
+                        if (!manager.getRegisteredNodes().contains(node))
+                        {
+                            manager.registerNode(node, DefaultPermissionLevel.ALL, "Can get the default Kit");
+                        }
+                        for (Drop drop : items.drops)
+                        {
+                            ItemStack stack = getStackFromDrop(drop);
+                            if (!stack.isEmpty()) kit.add(stack);
+                        }
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            // Update to new standard.
+            file = new File(ConfigManager.INSTANCE.getConfigFile().getParentFile(), "kit.xml");
+            if (file.exists())
+            {
+                newKits = true;
+                try
+                {
+                    JAXBContext jaxbContext = JAXBContext.newInstance(XMLStarterItems.class);
+                    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+                    FileReader reader = new FileReader(file);
+                    XMLStarterItems database = (XMLStarterItems) unmarshaller.unmarshal(reader);
+                    reader.close();
+
+                    for (Drop drop : database.drops)
+                    {
+                        ItemStack stack = getStackFromDrop(drop);
+                        if (!stack.isEmpty()) kit.add(stack);
+                    }
+                    file.delete();
+                    file = new File(ConfigManager.INSTANCE.getConfigFile().getParentFile(), "kits.xml");
+                    Kits kits = new Kits();
+                    kits.kits.add(database);
+                    try
+                    {
+                        jaxbContext = JAXBContext.newInstance(Kits.class);
+                        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+                        // output pretty printed
+                        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+                        jaxbMarshaller.marshal(kits, file);
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+        if (!newKits)
+        {
+            file = new File(ConfigManager.INSTANCE.getConfigFile().getParentFile(), "kits.xml");
             XMLStarterItems items = new XMLStarterItems();
             Drop init = new Drop();
             init.values.put(new QName("id"), "minecraft:stick");
@@ -69,24 +202,7 @@ public class KitManager
                 e.printStackTrace();
             }
         }
-        try
-        {
-            JAXBContext jaxbContext = JAXBContext.newInstance(XMLStarterItems.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            FileReader reader = new FileReader(file);
-            XMLStarterItems database = (XMLStarterItems) unmarshaller.unmarshal(reader);
-            reader.close();
-            for (Drop drop : database.drops)
-            {
-                ItemStack stack = getStackFromDrop(drop);
-                if (stack != null) kit.add(stack);
-            }
-        }
-        catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+
     }
 
     public static ItemStack getStackFromDrop(Drop d)

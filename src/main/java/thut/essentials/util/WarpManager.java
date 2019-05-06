@@ -122,8 +122,10 @@ public class WarpManager
         player.sendMessage(new TextComponentString("================"));
         player.sendMessage(new TextComponentString("      Warps     "));
         player.sendMessage(new TextComponentString("================"));
-        for (String s : warpLocs.keySet())
+        for (String s : ConfigManager.INSTANCE.warps)
         {
+            String[] args = s.split(":");
+            s = args[0];
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
             Style style = new Style();
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
