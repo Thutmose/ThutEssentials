@@ -71,7 +71,7 @@ public class KitManager
 
         boolean newKits = file.exists();
         QName ident = new QName("name");
-        QName cooldown = new QName("10");
+        QName cooldown = new QName("cooldown");
         kits.clear();
         kit.clear();
 
