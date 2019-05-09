@@ -21,7 +21,12 @@ public class CPU extends BaseCommand
         double meanTickTime = mean(server.tickTimeArray) * 1.0E-6D;
         val = (int) (100 * meanTickTime / 50);
         val = Math.min(val, 100);
-        String mess = "World Threads Load: " + val + "%";
+        int procs = Runtime.getRuntime().availableProcessors();
+
+        String mess = "Processor Count: " + procs;
+        sender.sendMessage(new TextComponentString(mess));
+
+        mess = "World Threads Load: " + val + "%";
         sender.sendMessage(new TextComponentString(mess));
     }
 
