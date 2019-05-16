@@ -37,7 +37,7 @@ public abstract class BaseCommand extends CommandBase
         else if (sender instanceof CommandSenderWrapper)// if the command is
                                                         // sent by /execute
         {
-            return (EntityPlayerMP) CommandBase.getPlayer(sender.getServer(), sender, sender.getName());
+            return CommandBase.getPlayer(sender.getServer(), sender, sender.getName());
         }
         else
         {

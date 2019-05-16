@@ -104,6 +104,8 @@ public class LandManager
         public Set<Coordinate>         anyUse         = Sets.newHashSet();
         /** List of public blocks for the team. TODO implement this. */
         public Set<Coordinate>         anyBreakSet    = Sets.newHashSet();
+        /** List of public blocks for the team. TODO implement this. */
+        public Set<Coordinate>         anyPlaceSet    = Sets.newHashSet();
         /** Home coordinate for the team, used for thome command. */
         public Coordinate              home;
         /** Message sent on exiting team land. */
@@ -213,9 +215,9 @@ public class LandManager
          * 
          * @param player
          * @return */
-        public boolean canBreakBlock(UUID player)
+        public boolean canBreakBlock(UUID player, Coordinate location)
         {
-            if (anyBreak) return true;
+            if (anyBreak || anyBreakSet.contains(location)) return true;
             LandTeam team = LandManager.getTeam(player);
             Relation relation = relations.get(team.teamName);
             if (relation != null) { return relation.perms.contains(BREAK); }
@@ -227,9 +229,9 @@ public class LandManager
          * 
          * @param player
          * @return */
-        public boolean canPlaceBlock(UUID player)
+        public boolean canPlaceBlock(UUID player, Coordinate location)
         {
-            if (anyPlace) return true;
+            if (anyPlace || anyPlaceSet.contains(location)) return true;
             LandTeam team = LandManager.getTeam(player);
             Relation relation = relations.get(team.teamName);
             if (relation != null) { return relation.perms.contains(PLACE); }
@@ -241,9 +243,9 @@ public class LandManager
          * 
          * @param player
          * @return */
-        public boolean canUseStuff(UUID player)
+        public boolean canUseStuff(UUID player, Coordinate location)
         {
-            if (allPublic) return true;
+            if (allPublic || anyUse.contains(location)) return true;
             LandTeam team = LandManager.getTeam(player);
             Relation relation = relations.get(team.teamName);
             if (relation != null) { return relation.perms.contains(PUBLIC); }
@@ -272,8 +274,6 @@ public class LandManager
             {
                 for (UUID id : members)
                     LandManager.getInstance()._playerTeams.put(id, this);
-                for (Coordinate c : anyUse)
-                    LandManager.getInstance()._publicBlocks.put(c, this);
             }
             for (UUID id : public_mobs)
                 LandManager.getInstance()._public_mobs.put(id, this);
@@ -382,7 +382,6 @@ public class LandManager
     protected HashMap<Coordinate, LandTeam> _landMap        = Maps.newHashMap();
     protected HashMap<UUID, LandTeam>       _playerTeams    = Maps.newHashMap();
     protected HashMap<UUID, Invites>        invites         = Maps.newHashMap();
-    protected HashMap<Coordinate, LandTeam> _publicBlocks   = Maps.newHashMap();
     protected Map<UUID, LandTeam>           _protected_mobs = Maps.newHashMap();
     protected Map<UUID, LandTeam>           _public_mobs    = Maps.newHashMap();
     public int                              version         = VERSION;
@@ -623,7 +622,7 @@ public class LandManager
 
     public boolean isPublic(Coordinate c, LandTeam team)
     {
-        return team.allPublic || _publicBlocks.containsKey(c);
+        return team.allPublic || team.anyUse.contains(c);
     }
 
     public boolean isTeamLand(Coordinate chunk, String team)
@@ -672,18 +671,14 @@ public class LandManager
 
     public void setPublic(Coordinate c, LandTeam owner)
     {
-        _publicBlocks.put(c, owner);
         owner.anyUse.add(c);
-        LandSaveHandler.saveGlobalData();
+        LandSaveHandler.saveTeam(owner.teamName);
     }
 
-    public void unsetPublic(Coordinate c)
+    public void unsetPublic(Coordinate c, LandTeam owner)
     {
-        if (!_publicBlocks.containsKey(c)) return;
-        LandTeam team;
-        (team = _publicBlocks.remove(c)).anyUse.remove(c);
-        LandSaveHandler.saveTeam(team.teamName);
-        LandSaveHandler.saveGlobalData();
+        if (!owner.anyUse.contains(c)) return;
+        LandSaveHandler.saveTeam(owner.teamName);
     }
 
     public void loadLand(World world, Coordinate chunk, LandTeam team)

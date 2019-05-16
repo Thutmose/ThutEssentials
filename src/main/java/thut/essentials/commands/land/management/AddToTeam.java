@@ -28,7 +28,6 @@ public class AddToTeam extends BaseCommand
         if (teamtojoin != null)
         {
             LandManager.getInstance().addToTeam(player.getUniqueID(), teamname);
-            LandManager.getInstance().addAdmin(player.getUniqueID(), teamname);
             player.sendMessage(new TextComponentString("You joined Team " + teamname));
             return;
         }

@@ -42,7 +42,6 @@ public class Join extends BaseCommand
             if (canJoinInvite || canJoinNoInvite)
             {
                 LandManager.getInstance().addToTeam(player.getUniqueID(), teamname);
-                LandManager.getInstance().addAdmin(player.getUniqueID(), teamname);
                 player.sendMessage(new TextComponentString("You joined Team " + teamname));
                 return;
             }

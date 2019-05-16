@@ -56,7 +56,7 @@ public class Autoclaim extends BaseCommand
         if (evt.getEntityLiving() instanceof EntityPlayer && claimers.containsKey(evt.getEntityLiving()))
         {
             boolean all = claimers.get(evt.getEntityLiving());
-            LandTeam team = LandManager.getTeam((EntityPlayer) evt.getEntityLiving());
+            LandTeam team = LandManager.getTeam(evt.getEntityLiving());
             if (team == null)
             {
                 claimers.remove(evt.getEntityLiving());

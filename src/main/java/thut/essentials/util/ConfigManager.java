@@ -155,9 +155,13 @@ public class ConfigManager extends ConfigBase
     @Configure(category = LAND)
     public String[]             blockBreakWhitelist       = {};
     @Configure(category = LAND)
+    public String[]             blockPlaceWhitelist       = {};
+    @Configure(category = LAND)
     public boolean              chunkLoading              = false;
     @Configure(category = LAND)
     public int                  loadedChunksPerTeam       = 1;
+    @Configure(category = LAND)
+    public boolean              defaultMessages           = true;
 
     @Configure(category = COMMANDS)
     public String[]             commands                  = {};
