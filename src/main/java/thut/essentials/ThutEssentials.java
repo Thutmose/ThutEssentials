@@ -89,6 +89,10 @@ public class ThutEssentials
                     File newFile = new File(logs, dateFormat.format(date) + ".log");
                     Files.move(logfile, newFile);
                 }
+                catch (IOException e)
+                {
+                    //Probably another minecraft instance running.
+                }
                 catch (Exception e)
                 {
                     e.printStackTrace();

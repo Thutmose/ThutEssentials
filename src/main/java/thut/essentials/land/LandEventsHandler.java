@@ -389,6 +389,13 @@ public class LandEventsHandler
             // TODO possible perms for attacking things in unclaimed land?
             if (owner == null) return;
 
+            // No player damage allowed here.
+            if (evt.getTarget() instanceof EntityPlayer && owner.noPlayerDamage)
+            {
+                evt.setCanceled(true);
+                return;
+            }
+
             // Check if the team allows fakeplayers
             if (owner.fakePlayers && evt.getEntityPlayer() instanceof FakePlayer) return;
 
@@ -412,9 +419,6 @@ public class LandEventsHandler
             // TODO maybe add a perm for combat in non-claimed land?
             if (owner == null) return;
 
-            // Check if the team allows fakeplayers
-            if (owner.fakePlayers && evt.getSource().getTrueSource() instanceof FakePlayer) return;
-
             if (evt.getEntity() instanceof EntityPlayer)
             {
                 LandTeam players = LandManager.getTeam(evt.getEntity());
@@ -436,6 +440,9 @@ public class LandEventsHandler
                     return;
                 }
             }
+
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && evt.getSource().getTrueSource() instanceof FakePlayer) return;
 
             // check if entity is protected by team
             if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
@@ -819,7 +826,7 @@ public class LandEventsHandler
                 // Do stuff for toggling break
                 if (!evt.getWorld().isRemote && evt.getItemStack() != null
                         && evt.getItemStack().getDisplayName().equals("Break Toggle")
-                        && evt.getEntityPlayer().isSneaking() && !owner.allPublic
+                        && evt.getEntityPlayer().isSneaking()
                         && LandManager.getInstance().isAdmin(evt.getEntityPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(),
@@ -843,7 +850,7 @@ public class LandEventsHandler
                 // Do stuff for toggling place
                 if (!evt.getWorld().isRemote && evt.getItemStack() != null
                         && evt.getItemStack().getDisplayName().equals("Place Toggle")
-                        && evt.getEntityPlayer().isSneaking() && !owner.allPublic
+                        && evt.getEntityPlayer().isSneaking()
                         && LandManager.getInstance().isAdmin(evt.getEntityPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(),
