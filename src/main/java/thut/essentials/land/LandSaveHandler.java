@@ -24,22 +24,24 @@ import thut.essentials.util.Coordinate;
 
 public class LandSaveHandler
 {
+    public static Gson       SAVE_GSON = null;
+    public static Gson       LOAD_GSON = null;
 
     static ExclusionStrategy exclusion = new ExclusionStrategy()
-    {
-        @Override
-        public boolean shouldSkipField(FieldAttributes f)
-        {
-            String name = f.getName();
-            return name.startsWith("_");
-        }
+                                       {
+                                           @Override
+                                           public boolean shouldSkipField(FieldAttributes f)
+                                           {
+                                               String name = f.getName();
+                                               return name.startsWith("_");
+                                           }
 
-        @Override
-        public boolean shouldSkipClass(Class<?> clazz)
-        {
-            return false;
-        }
-    };
+                                           @Override
+                                           public boolean shouldSkipClass(Class<?> clazz)
+                                           {
+                                               return false;
+                                           }
+                                       };
 
     public static void removeEmptyTeams()
     {
@@ -76,9 +78,10 @@ public class LandSaveHandler
     public static void saveGlobalData()
     {
         if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
-        Gson gson = new GsonBuilder().addSerializationExclusionStrategy(exclusion).setPrettyPrinting().create();
+        if (SAVE_GSON == null)
+            SAVE_GSON = new GsonBuilder().addSerializationExclusionStrategy(exclusion).setPrettyPrinting().create();
         LandManager.getInstance().version = LandManager.VERSION;
-        String json = gson.toJson(LandManager.getInstance());
+        String json = SAVE_GSON.toJson(LandManager.getInstance());
         File teamsFile = new File(getGlobalFolder(), "landData.json");
         try
         {
@@ -93,16 +96,16 @@ public class LandSaveHandler
     public static void loadGlobalData()
     {
         if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
+        if (LOAD_GSON == null)
+            LOAD_GSON = new GsonBuilder().addDeserializationExclusionStrategy(exclusion).setPrettyPrinting().create();
         File teamsFile = new File(getGlobalFolder(), "landData.json");
         if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO, "Starting Loading Land");
         if (teamsFile.exists())
         {
             try
             {
-                Gson gson = new GsonBuilder().addDeserializationExclusionStrategy(exclusion).setPrettyPrinting()
-                        .create();
                 String json = FileUtils.readFileToString(teamsFile, "UTF-8");
-                LandManager.instance = gson.fromJson(json, LandManager.class);
+                LandManager.instance = LOAD_GSON.fromJson(json, LandManager.class);
             }
             catch (Exception e)
             {
@@ -124,15 +127,16 @@ public class LandSaveHandler
     private static void loadTeams()
     {
         if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
+        if (LOAD_GSON == null)
+            LOAD_GSON = new GsonBuilder().addDeserializationExclusionStrategy(exclusion).setPrettyPrinting().create();
         File folder = getTeamFolder();
         if (ConfigManager.INSTANCE.debug) ThutEssentials.logger.log(Level.INFO, "Starting Loading Teams");
         for (File file : folder.listFiles())
         {
             try
             {
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
                 String json = FileUtils.readFileToString(file, "UTF-8");
-                LandTeam team = gson.fromJson(json, LandTeam.class);
+                LandTeam team = LOAD_GSON.fromJson(json, LandTeam.class);
                 LandManager.getInstance()._teamMap.put(team.teamName, team);
                 team.init(FMLCommonHandler.instance().getMinecraftServerInstance());
                 List<Coordinate> toAdd = Lists.newArrayList(team.land.land);
@@ -153,14 +157,15 @@ public class LandSaveHandler
     public static void saveTeam(String team)
     {
         if (FMLCommonHandler.instance().getMinecraftServerInstance() == null) return;
+        if (SAVE_GSON == null)
+            SAVE_GSON = new GsonBuilder().addSerializationExclusionStrategy(exclusion).setPrettyPrinting().create();
         File folder = getTeamFolder();
         File teamFile = new File(folder, team + ".json");
         LandTeam land;
         if ((land = LandManager.getInstance().getTeam(team, false)) != null)
         {
             if (land == LandManager.getDefaultTeam()) land.member.clear();
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String json = gson.toJson(land);
+            String json = SAVE_GSON.toJson(land);
             try
             {
                 FileUtils.writeStringToFile(teamFile, json, "UTF-8");
