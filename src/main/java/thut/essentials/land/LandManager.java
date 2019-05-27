@@ -677,7 +677,7 @@ public class LandManager
 
     public void unsetPublic(Coordinate c, LandTeam owner)
     {
-        if (!owner.anyUse.contains(c)) return;
+        if (!owner.anyUse.remove(c)) return;
         LandSaveHandler.saveTeam(owner.teamName);
     }
 
