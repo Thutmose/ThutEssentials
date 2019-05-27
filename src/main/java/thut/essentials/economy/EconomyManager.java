@@ -132,7 +132,7 @@ public class EconomyManager
                                     ItemStack test = item.copy();
                                     if (ignoreTag) test.setTagCompound(new NBTTagCompound());
                                     CompatWrapper.setStackSize(test, number);
-                                    if (ItemStack.areItemStacksEqual(test, stack))
+                                    if (ItemStack.areItemStacksEqual(test, test2))
                                         count += CompatWrapper.getStackSize(item);
                                 }
                             }
