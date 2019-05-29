@@ -17,6 +17,8 @@ import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
 import thut.essentials.ThutEssentials;
 
 public class InventoryLogger
@@ -110,6 +112,22 @@ public class InventoryLogger
     {
         blacklist.clear();
         MinecraftForge.EVENT_BUS.unregister(InventoryLogger.class);
+    }
+
+    @SubscribeEvent
+    public void PlayerLoggedInEvent(PlayerLoggedInEvent event)
+    {
+        Coordinate c = Coordinate.getChunkCoordFromWorldCoord(event.player.getPosition(), event.player.dimension);
+        ThutEssentials.logger.log(Level.FINER,
+                c + " log-in " + event.player.getUniqueID() + " " + event.player.getName());
+    }
+
+    @SubscribeEvent
+    public void PlayerLoggedOutEvent(PlayerLoggedOutEvent event)
+    {
+        Coordinate c = Coordinate.getChunkCoordFromWorldCoord(event.player.getPosition(), event.player.dimension);
+        ThutEssentials.logger.log(Level.FINER,
+                c + " log-out " + event.player.getUniqueID() + " " + event.player.getName());
     }
 
     @SubscribeEvent

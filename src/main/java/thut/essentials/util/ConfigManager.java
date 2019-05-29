@@ -121,6 +121,8 @@ public class ConfigManager extends ConfigBase
     @Configure(category = ECON)
     public boolean              economyEnabled            = true;
     @Configure(category = ECON)
+    public boolean              shopsEnabled              = true;
+    @Configure(category = ECON)
     public int                  maxLandViaSalesPerTeam    = 512;
 
     @Configure(category = NAMES)

@@ -32,6 +32,7 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.CompatWrapper;
+import thut.essentials.util.ConfigManager;
 import thut.essentials.util.Coordinate;
 
 public class EconomyManager
@@ -74,6 +75,11 @@ public class EconomyManager
             try
             {
                 number = Integer.parseInt(sign.signText[1].getUnformattedText());
+                if (ignoreTag)
+                {
+                    if (number != 1) sign.signText[1] = new TextComponentString("1");
+                    number = 1;
+                }
             }
             catch (NumberFormatException e)
             {
@@ -155,10 +161,11 @@ public class EconomyManager
                                 && (metadataIn <= -1 || itemstack.getMetadata() == metadataIn)
                                 && (itemNBT == null || NBTUtil.areNBTEquals(itemNBT, itemstack.getTagCompound(), true)))
                         {
+
                             int k = removeCount <= 0 ? CompatWrapper.getStackSize(itemstack)
                                     : Math.min(removeCount - i, CompatWrapper.getStackSize(itemstack));
                             i += k;
-
+                            if (number == 1) stack.setTagCompound(itemstack.getTagCompound());
                             if (removeCount != 0)
                             {
                                 CompatWrapper.increment(itemstack, -k);
@@ -328,6 +335,7 @@ public class EconomyManager
     public void interactRightClickEntity(PlayerInteractEvent.EntityInteract evt)
     {
         if (evt.getWorld().isRemote) return;
+        if (!ConfigManager.INSTANCE.shopsEnabled) return;
         if (evt.getTarget() instanceof EntityItemFrame)
         {
             Coordinate c = new Coordinate(evt.getPos().down(), evt.getEntityPlayer().dimension);
@@ -347,8 +355,8 @@ public class EconomyManager
                 }
                 try
                 {
-                    shop = addShop(evt.getEntityPlayer(), (EntityItemFrame) evt.getTarget(), c, infinite);
-                    if (shop != null) shop.ignoreTag = evt.getItemStack().getDisplayName().contains("noTag");
+                    boolean noTag = evt.getItemStack().getDisplayName().contains("noTag");
+                    shop = addShop(evt.getEntityPlayer(), (EntityItemFrame) evt.getTarget(), c, infinite, noTag);
                     evt.getEntityPlayer().sendMessage(
                             new TextComponentString(TextFormatting.GREEN + "Successfully created the shop. "));
 
@@ -370,6 +378,7 @@ public class EconomyManager
     public void interactLeftClickEntity(AttackEntityEvent evt)
     {
         if (evt.getEntityPlayer().getEntityWorld().isRemote) return;
+        if (!ConfigManager.INSTANCE.shopsEnabled) return;
         if (evt.getTarget() instanceof EntityItemFrame)
         {
             Coordinate c = new Coordinate(evt.getTarget().getPosition().down(2), evt.getTarget().dimension);
@@ -396,7 +405,7 @@ public class EconomyManager
     @SubscribeEvent(receiveCanceled = true)
     public void interactRightClickBlock(PlayerInteractEvent.RightClickBlock evt)
     {
-        if (evt.getWorld().isRemote) return;
+        if (evt.getWorld().isRemote || !ConfigManager.INSTANCE.shopsEnabled) return;
         Coordinate c = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);
         Shop shop = getShop(c);
         if (shop != null)
@@ -423,12 +432,14 @@ public class EconomyManager
         return getAccount(player.getUniqueID());
     }
 
-    public static Shop addShop(EntityPlayer owner, EntityItemFrame frame, Coordinate location, boolean infinite)
+    public static Shop addShop(EntityPlayer owner, EntityItemFrame frame, Coordinate location, boolean infinite,
+            boolean noTag)
     {
         Shop shop = new Shop();
         shop.infinite = infinite;
         shop.frameId = frame.getUniqueID();
         shop.location = location;
+        shop.ignoreTag = noTag;
         // Assign the infinite shops to the default id account.
         Account account = getInstance().getAccount(infinite ? DEFAULT_ID : owner.getUniqueID());
         account.shops.add(shop);
