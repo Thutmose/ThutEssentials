@@ -53,7 +53,7 @@ public class RTP extends BaseCommand
         }
         BlockPos position;
 
-        int delay = ConfigManager.INSTANCE.kitReuseDelay;
+        int delay = ConfigManager.INSTANCE.rtpReuseDelay;
         String timeTag = "rtp_time";
         long rtpTime = PlayerDataHandler.getCustomDataTag(player).getLong(timeTag);
         if ((delay <= 0 && rtpTime != 0) || server.getEntityWorld().getTotalWorldTime() < rtpTime)

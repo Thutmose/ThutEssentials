@@ -31,6 +31,7 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -450,6 +451,37 @@ public class LandEventsHandler
                 evt.setCanceled(true);
                 return;
             }
+        }
+
+        @SubscribeEvent
+        public void projectileImpact(ProjectileImpactEvent evt)
+        {
+            if (evt.getEntity().getEntityWorld().isRemote) return;
+            if (!ConfigManager.INSTANCE.shopsEnabled) return;
+            if (evt.getRayTraceResult() == null) return;
+            if (evt.getRayTraceResult().entityHit == null) return;
+
+            Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(),
+                    evt.getEntity().getEntityWorld().provider.getDimension());
+            LandTeam owner = LandManager.getInstance().getLandOwner(c);
+
+            // TODO maybe add a perm for combat in non-claimed land?
+            if (owner == null) return;
+
+            // Check if player is protected by team settings.
+            if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
+            {
+                evt.setCanceled(true);
+                return;
+            }
+
+            // check if entity is protected by team
+            if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
+            {
+                evt.setCanceled(true);
+                return;
+            }
+
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)

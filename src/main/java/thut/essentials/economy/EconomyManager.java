@@ -24,6 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
@@ -374,6 +375,25 @@ public class EconomyManager
         }
     }
 
+    @SubscribeEvent
+    public void projectileImpact(ProjectileImpactEvent evt)
+    {
+        if (evt.getEntity().getEntityWorld().isRemote) return;
+        if (!ConfigManager.INSTANCE.shopsEnabled) return;
+        if (evt.getRayTraceResult() == null) return;
+        if (evt.getRayTraceResult().entityHit == null) return;
+        Entity target = evt.getRayTraceResult().entityHit;
+        if (target instanceof EntityItemFrame)
+        {
+            Coordinate c = new Coordinate(target.getPosition().down(2), target.dimension);
+            Shop shop = getShop(c);
+            if (shop != null)
+            {
+                evt.setCanceled(true);
+            }
+        }
+    }
+
     @SubscribeEvent(receiveCanceled = true)
     public void interactLeftClickEntity(AttackEntityEvent evt)
     {
@@ -394,6 +414,11 @@ public class EconomyManager
                     removeShop(c);
                     evt.getEntityPlayer()
                             .sendMessage(new TextComponentString(TextFormatting.GREEN + "Removed the shop."));
+                }
+                else
+                {
+                    evt.getEntityPlayer()
+                            .sendMessage(new TextComponentString(TextFormatting.RED + "Cannot remove the shop."));
                 }
             }
         }
