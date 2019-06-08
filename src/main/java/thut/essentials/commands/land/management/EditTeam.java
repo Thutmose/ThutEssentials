@@ -73,6 +73,14 @@ public class EditTeam extends BaseCommand
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
+        if (arg.equalsIgnoreCase("frames"))
+        {
+            if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
+            landTeam.protectFrames = parseBoolean(message);
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set protected frames to " + message));
+            LandSaveHandler.saveTeam(landTeam.teamName);
+            return;
+        }
         if (arg.equalsIgnoreCase("fakePlayers") && PermissionAPI.hasPermission(player, PERMTOGGLEFAKEPLAYERS))
         {
             if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");

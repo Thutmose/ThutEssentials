@@ -15,6 +15,8 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.IEntityOwnable;
+import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
@@ -42,6 +44,7 @@ import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
+import net.minecraftforge.event.world.BlockEvent.FarmlandTrampleEvent;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -203,6 +206,27 @@ public class LandEventsHandler
                         return;
                     }
                 }
+            }
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public void trample(FarmlandTrampleEvent evt)
+        {
+            if (evt.getEntity().getEntityWorld().isRemote) return;
+            if (!ConfigManager.INSTANCE.landEnabled) return;
+            Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getWorld().provider.getDimension());
+            Entity trampler = evt.getEntity();
+            LandTeam team = LandManager.getInstance().getLandOwner(c);
+            if (team == null) return;
+            EntityPlayer player = null;
+            if (trampler instanceof EntityPlayer) player = (EntityPlayer) trampler;
+            if (trampler instanceof IEntityOwnable && ((IEntityOwnable) trampler).getOwner() instanceof EntityPlayer)
+                player = (EntityPlayer) ((IEntityOwnable) trampler).getOwner();
+            checkBreak(evt, player);
+            if (!evt.isCanceled() && ThutEssentials.instance.config.log_interactions)
+            {
+                ThutEssentials.logger.log(Level.FINER,
+                        c + " trample " + evt.getPos() + " " + trampler.getUniqueID() + " " + trampler.getName());
             }
         }
 
@@ -396,9 +420,21 @@ public class LandEventsHandler
                 evt.setCanceled(true);
                 return;
             }
+            EntityPlayer attacker = evt.getEntityPlayer();
 
             // Check if the team allows fakeplayers
             if (owner.fakePlayers && evt.getEntityPlayer() instanceof FakePlayer) return;
+
+            BlockPos pos = evt.getTarget().getPosition();
+            Coordinate b = Coordinate.getChunkCoordFromWorldCoord(pos.getX(), pos.getY(), pos.getZ(),
+                    attacker.dimension);
+
+            // Check if item frame
+            if (evt.getTarget() instanceof EntityItemFrame && !owner.canBreakBlock(attacker.getUniqueID(), b))
+            {
+                evt.setCanceled(true);
+                return;
+            }
 
             // If mob is protected, do not allow the attack, even if by owner.
             if (owner.protected_mobs.contains(evt.getTarget().getUniqueID()))
@@ -461,6 +497,8 @@ public class LandEventsHandler
             if (evt.getRayTraceResult() == null) return;
             if (evt.getRayTraceResult().entityHit == null) return;
 
+            Entity target = evt.getRayTraceResult().entityHit;
+
             Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(),
                     evt.getEntity().getEntityWorld().provider.getDimension());
             LandTeam owner = LandManager.getInstance().getLandOwner(c);
@@ -469,14 +507,21 @@ public class LandEventsHandler
             if (owner == null) return;
 
             // Check if player is protected by team settings.
-            if (owner.noPlayerDamage && evt.getEntity() instanceof EntityPlayer)
+            if (owner.noPlayerDamage && target instanceof EntityPlayer)
+            {
+                evt.setCanceled(true);
+                return;
+            }
+
+            // Protect item frames from projectiles regardless.
+            if (target instanceof EntityItemFrame && owner.protectFrames)
             {
                 evt.setCanceled(true);
                 return;
             }
 
             // check if entity is protected by team
-            if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
+            if (owner.protected_mobs.contains(target.getUniqueID()))
             {
                 evt.setCanceled(true);
                 return;

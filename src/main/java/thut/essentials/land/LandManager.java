@@ -138,6 +138,8 @@ public class LandManager
         public boolean                 anyPlace       = false;
         /** If true, any player can break in this teams land. */
         public boolean                 anyBreak       = false;
+        /** If false, itemframes are not protected from projectiles. */
+        public boolean                 protectFrames  = true;
         /** Map of details about team relations. */
         public Map<String, Relation>   relations      = Maps.newHashMap();
         /** Last time a member of this team was seen. */
