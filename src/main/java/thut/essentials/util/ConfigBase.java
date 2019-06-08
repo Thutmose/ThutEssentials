@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import net.minecraftforge.common.config.ConfigCategory;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
 
 public abstract class ConfigBase extends Configuration
 {
