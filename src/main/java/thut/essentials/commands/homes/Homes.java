@@ -1,8 +1,8 @@
 package thut.essentials.commands.homes;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.HomeManager;
@@ -15,9 +15,9 @@ public class Homes extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayerMP player = getPlayerBySender(sender);
+        ServerPlayerEntity player = getPlayerBySender(sender);
         HomeManager.sendHomeList(player);
     }
 

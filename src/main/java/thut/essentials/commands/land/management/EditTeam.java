@@ -3,10 +3,10 @@ package thut.essentials.commands.land.management;
 import java.util.UUID;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -45,9 +45,9 @@ public class EditTeam extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         LandTeam landTeam = LandManager.getTeam(player);
         String arg = args[0];
         String message = "";
@@ -61,7 +61,7 @@ public class EditTeam extends BaseCommand
         {
             if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
             landTeam.allPublic = parseBoolean(message);
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set all public to " + message));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set all public to " + message));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -69,7 +69,7 @@ public class EditTeam extends BaseCommand
         {
             if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
             landTeam.anyPlace = parseBoolean(message);
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set anyPlace to " + message));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set anyPlace to " + message));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -77,7 +77,7 @@ public class EditTeam extends BaseCommand
         {
             if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
             landTeam.protectFrames = parseBoolean(message);
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set protected frames to " + message));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set protected frames to " + message));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -85,7 +85,7 @@ public class EditTeam extends BaseCommand
         {
             if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
             landTeam.anyPlace = parseBoolean(message);
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set anyPlace to " + message));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set anyPlace to " + message));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -93,7 +93,7 @@ public class EditTeam extends BaseCommand
         {
             if (!landTeam.isAdmin(player)) throw new CommandException("You are not allowed to do that.");
             landTeam.anyBreak = parseBoolean(message);
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set anyBreak to " + message));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set anyBreak to " + message));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -102,7 +102,7 @@ public class EditTeam extends BaseCommand
             if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.exitMessage = message;
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Exit Message to " + message));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set Exit Message to " + message));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -111,7 +111,7 @@ public class EditTeam extends BaseCommand
             if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.enterMessage = message;
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Enter Message to " + message));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set Enter Message to " + message));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -120,7 +120,7 @@ public class EditTeam extends BaseCommand
             if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.EDITMESSAGES))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.denyMessage = message;
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Deny Message to " + message));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set Deny Message to " + message));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -132,7 +132,7 @@ public class EditTeam extends BaseCommand
                 message = message.substring(0, ConfigManager.INSTANCE.prefixLength);
             landTeam.prefix = message;
             sender.sendMessage(
-                    new TextComponentString(TextFormatting.GREEN + "Set Prefix to " + TextFormatting.RESET + message));
+                    new StringTextComponent(TextFormatting.GREEN + "Set Prefix to " + TextFormatting.RESET + message));
             refreshTeam(landTeam, server);
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
@@ -142,14 +142,14 @@ public class EditTeam extends BaseCommand
             if (!landTeam.hasRankPerm(player.getUniqueID(), LandTeam.SETHOME))
                 throw new CommandException("You are not allowed to do that.");
             landTeam.home = new Coordinate(player.getPosition(), player.dimension);
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Set Team Home to " + landTeam.home));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "Set Team Home to " + landTeam.home));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
         if (arg.equalsIgnoreCase("reserve") && PermissionAPI.hasPermission(player, PERMRESERVELAND))
         {
             landTeam.reserved = Boolean.parseBoolean(message);
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "reserved set to " + landTeam.reserved));
+            sender.sendMessage(new StringTextComponent(TextFormatting.GREEN + "reserved set to " + landTeam.reserved));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -157,7 +157,7 @@ public class EditTeam extends BaseCommand
         {
             landTeam.noPlayerDamage = Boolean.parseBoolean(message);
             sender.sendMessage(
-                    new TextComponentString(TextFormatting.GREEN + "noPlayerDamage set to " + landTeam.noPlayerDamage));
+                    new StringTextComponent(TextFormatting.GREEN + "noPlayerDamage set to " + landTeam.noPlayerDamage));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -165,7 +165,7 @@ public class EditTeam extends BaseCommand
         {
             landTeam.friendlyFire = Boolean.parseBoolean(message);
             sender.sendMessage(
-                    new TextComponentString(TextFormatting.GREEN + "friendlyFire set to " + landTeam.friendlyFire));
+                    new StringTextComponent(TextFormatting.GREEN + "friendlyFire set to " + landTeam.friendlyFire));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -173,7 +173,7 @@ public class EditTeam extends BaseCommand
         {
             landTeam.noMobSpawn = Boolean.parseBoolean(message);
             sender.sendMessage(
-                    new TextComponentString(TextFormatting.GREEN + "noMobSpawn set to " + landTeam.noMobSpawn));
+                    new StringTextComponent(TextFormatting.GREEN + "noMobSpawn set to " + landTeam.noMobSpawn));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -181,7 +181,7 @@ public class EditTeam extends BaseCommand
         {
             landTeam.noExplosions = Boolean.parseBoolean(message);
             sender.sendMessage(
-                    new TextComponentString(TextFormatting.GREEN + "noExplosions set to " + landTeam.noExplosions));
+                    new StringTextComponent(TextFormatting.GREEN + "noExplosions set to " + landTeam.noExplosions));
             LandSaveHandler.saveTeam(landTeam.teamName);
             return;
         }
@@ -193,7 +193,7 @@ public class EditTeam extends BaseCommand
         {
             try
             {
-                EntityPlayer player = server.getPlayerList().getPlayerByUUID(id);
+                PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
                 if (player != null)
                 {
                     player.refreshDisplayName();

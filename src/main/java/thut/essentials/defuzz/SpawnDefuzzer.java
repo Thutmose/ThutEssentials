@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import com.google.common.collect.Sets;
 
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.math.BlockPos;
@@ -30,7 +30,7 @@ public class SpawnDefuzzer
         BlockPos playerSpawn = event.player.getBedLocation();
         if (playerSpawn == null)
         {
-            PlayerMover.setMove(event.player, 0, event.player.getEntityWorld().provider.getDimension(), worldSpawn,
+            PlayerMover.setMove(event.player, 0, event.player.getEntityWorld().dimension.getDimension(), worldSpawn,
                     null, null, false);
         }
     }
@@ -41,9 +41,9 @@ public class SpawnDefuzzer
      * @param evt */
     public void EntityUpdate(LivingUpdateEvent evt)
     {
-        if (logins.contains(evt.getEntity().getUniqueID()) && evt.getEntity() instanceof EntityPlayerMP)
+        if (logins.contains(evt.getEntity().getUniqueID()) && evt.getEntity() instanceof ServerPlayerEntity)
         {
-            EntityPlayerMP player = (EntityPlayerMP) evt.getEntity();
+            ServerPlayerEntity player = (ServerPlayerEntity) evt.getEntity();
             if (player.getEntityWorld().isRemote) return;
             int num = player.getStatFile().readStat(StatList.WALK_ONE_CM)
                     + player.getStatFile().readStat(StatList.FALL_ONE_CM)
@@ -54,7 +54,7 @@ public class SpawnDefuzzer
             if (num > DEFUZZSENS) return;
             if (playerSpawn == null)
             {
-                PlayerMover.setMove(player, 0, player.getEntityWorld().provider.getDimension(), worldSpawn, null, null,
+                PlayerMover.setMove(player, 0, player.getEntityWorld().dimension.getDimension(), worldSpawn, null, null,
                         false);
             }
         }
@@ -66,7 +66,7 @@ public class SpawnDefuzzer
         if (event.getHandler() instanceof NetHandlerPlayServer
                 && FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer())
         {
-            EntityPlayerMP player = ((NetHandlerPlayServer) event.getHandler()).player;
+            ServerPlayerEntity player = ((NetHandlerPlayServer) event.getHandler()).player;
             logins.add(player.getUniqueID());
         }
     }

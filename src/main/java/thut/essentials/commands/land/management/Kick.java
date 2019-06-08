@@ -3,10 +3,10 @@ package thut.essentials.commands.land.management;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -28,9 +28,9 @@ public class Kick extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer kicker = getPlayerBySender(sender);
+        PlayerEntity kicker = getPlayerBySender(sender);
         String toKick = args[0];
         GameProfile profile = getProfile(server, toKick);
         LandTeam team = LandManager.getTeam(profile.getId());
@@ -41,7 +41,7 @@ public class Kick extends BaseCommand
         if (toKick.equalsIgnoreCase(sender.getName()) || team1.hasRankPerm(kicker.getUniqueID(), LandTeam.KICK))
         {
             LandManager.getInstance().removeFromTeam(profile.getId());
-            sender.sendMessage(new TextComponentString("Removed " + toKick + " From Team."));
+            sender.sendMessage(new StringTextComponent("Removed " + toKick + " From Team."));
         }
         else
         {

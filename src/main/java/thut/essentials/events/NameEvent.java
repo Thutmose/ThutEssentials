@@ -1,14 +1,14 @@
 package thut.essentials.events;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 
 public class NameEvent extends Event
 {
-    public final EntityPlayer toName;
+    public final PlayerEntity toName;
     String                    displayName;
     String                    newName;
 
-    public NameEvent(EntityPlayer target, String name)
+    public NameEvent(PlayerEntity target, String name)
     {
         displayName = name;
         newName = name;

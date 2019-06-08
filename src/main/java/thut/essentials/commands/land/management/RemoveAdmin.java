@@ -3,10 +3,10 @@ package thut.essentials.commands.land.management;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -28,9 +28,9 @@ public class RemoveAdmin extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer user = getPlayerBySender(sender);
+        PlayerEntity user = getPlayerBySender(sender);
         GameProfile player = getProfile(server, args[0]);
         LandTeam teamA = LandManager.getTeam(user);
         LandTeam teamB = LandManager.getTeam(player.getId());
@@ -39,7 +39,7 @@ public class RemoveAdmin extends BaseCommand
         if (LandManager.getInstance().isAdmin(user.getUniqueID()))
         {
             LandManager.getInstance().removeAdmin(player.getId());
-            sender.sendMessage(new TextComponentString(player + " removed as an Admin for Team " + teamName));
+            sender.sendMessage(new StringTextComponent(player + " removed as an Admin for Team " + teamName));
         }
         else
         {

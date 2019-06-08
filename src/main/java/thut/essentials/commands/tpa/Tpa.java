@@ -1,12 +1,12 @@
 package thut.essentials.commands.tpa;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.util.BaseCommand;
@@ -28,12 +28,12 @@ public class Tpa extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
-        EntityPlayer target = getPlayer(server, sender, args[0]);
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(target);
-        NBTTagCompound tpaTag = tag.getCompoundTag("tpa");
+        PlayerEntity player = getPlayerBySender(sender);
+        PlayerEntity target = getPlayer(server, sender, args[0]);
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(target);
+        CompoundNBT tpaTag = tag.getCompound("tpa");
 
         if (tpaTag.getBoolean("ignore")) { return; }
 
@@ -46,9 +46,9 @@ public class Tpa extends BaseCommand
                 "/tpaccept accept " + player.getCachedUniqueIdString(), TextFormatting.GREEN, true);
         ITextComponent deny = CommandManager.makeFormattedCommandLink("Deny",
                 "/tpaccept deny " + player.getCachedUniqueIdString(), TextFormatting.RED, true);
-        tpMessage = accept.appendSibling(new TextComponentString("      /      ")).appendSibling(deny);
+        tpMessage = accept.appendSibling(new StringTextComponent("      /      ")).appendSibling(deny);
         target.sendMessage(tpMessage);
-        tpaTag.setString("R", player.getCachedUniqueIdString());
+        tpaTag.putString("R", player.getCachedUniqueIdString());
         tag.setTag("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(target);
         player.sendMessage(CommandManager.makeFormattedComponent(

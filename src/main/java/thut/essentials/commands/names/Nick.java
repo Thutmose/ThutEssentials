@@ -1,11 +1,11 @@
 package thut.essentials.commands.names;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.RuleManager;
@@ -26,9 +26,9 @@ public class Nick extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayerMP player;
+        ServerPlayerEntity player;
         int start = 1;
         try
         {
@@ -40,9 +40,9 @@ public class Nick extends BaseCommand
             start = 0;
         }
         String arg = args.length == start ? "" : args[start];
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
-        NBTTagCompound nametag = tag.getCompoundTag("name");
-        if (!nametag.hasKey("original")) nametag.setString("original", player.getDisplayNameString());
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundNBT nametag = tag.getCompound("name");
+        if (!nametag.hasKey("original")) nametag.putString("original", player.getDisplayNameString());
         for (int i = start + 1; i < args.length; i++)
         {
             arg = arg + " " + args[i];
@@ -50,13 +50,13 @@ public class Nick extends BaseCommand
         arg = RuleManager.format(arg);
         if (arg.isEmpty())
         {
-            nametag.removeTag("name");
-            sender.sendMessage(new TextComponentString("Reset name of " + player.getDisplayNameString()));
+            nametag.remove("name");
+            sender.sendMessage(new StringTextComponent("Reset name of " + player.getDisplayNameString()));
         }
         else
         {
-            nametag.setString("name", arg);
-            sender.sendMessage(new TextComponentString("Set name of " + player.getDisplayNameString() + " to " + arg));
+            nametag.putString("name", arg);
+            sender.sendMessage(new StringTextComponent("Set name of " + player.getDisplayNameString() + " to " + arg));
         }
         tag.setTag("name", nametag);
         PlayerDataHandler.saveCustomData(player);

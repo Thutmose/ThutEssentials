@@ -3,11 +3,11 @@ package thut.essentials.commands.land.claims;
 import java.util.logging.Level;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.ThutEssentials;
@@ -31,9 +31,9 @@ public class Unload extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         if (team == LandManager.getDefaultTeam())
             throw new CommandException("You are not in a team that can claim land.");
@@ -49,14 +49,14 @@ public class Unload extends BaseCommand
             {
                 LandManager.getInstance().unLoadLand(coord, team);
             }
-            sender.sendMessage(new TextComponentString("UnLoaded all land for Team" + team.teamName));
+            sender.sendMessage(new StringTextComponent("UnLoaded all land for Team" + team.teamName));
             return;
         }
 
         int x = MathHelper.floor(sender.getPosition().getX() / 16f);
         int y = MathHelper.floor(sender.getPosition().getY() / 16f);
         int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
-        int dim = sender.getEntityWorld().provider.getDimension();
+        int dim = sender.getEntityWorld().dimension.getDimension();
 
         Coordinate chunk = new Coordinate(x, y, z, dim);
         LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
@@ -65,7 +65,7 @@ public class Unload extends BaseCommand
         if (!ChunkLoadHandler.chunks.containsKey(chunk)) throw new CommandException("Not loaded.");
 
         LandManager.getInstance().unLoadLand(chunk, team);
-        sender.sendMessage(new TextComponentString("UnLoaded subchunk for Team" + team.teamName));
+        sender.sendMessage(new StringTextComponent("UnLoaded subchunk for Team" + team.teamName));
         ThutEssentials.logger.log(Level.FINER, "unload: " + team.teamName + " " + chunk);
     }
 

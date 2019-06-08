@@ -1,7 +1,7 @@
 package thut.essentials.commands.warps;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.server.MinecraftServer;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.WarpManager;
@@ -15,13 +15,13 @@ public class DelWarp extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return "/" + getName() + " <warpName>";
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         String warpName = args.length > 0 ? args[0] : null;
         if (warpName == null) throw new CommandException("You need to specify the warp name");

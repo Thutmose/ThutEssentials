@@ -1,11 +1,11 @@
 package thut.essentials.commands.land.management;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
@@ -28,11 +28,11 @@ public class Invite extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         String player = args[0];
-        EntityPlayer inviter = getPlayerBySender(sender);
-        EntityPlayer invitee = getPlayer(server, sender, player);
+        PlayerEntity inviter = getPlayerBySender(sender);
+        PlayerEntity invitee = getPlayer(server, sender, player);
         if (invitee == inviter) throw new CommandException("You cannot invite yourself to your team.");
         LandTeam landTeam = LandManager.getTeam(inviter);
         LandTeam oldTeam = LandManager.getTeam(invitee);
@@ -51,9 +51,9 @@ public class Invite extends BaseCommand
                 + "\",\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"" + command + ""
                 + "\"}}";
         links = abilityJson;
-        invitee.sendMessage(new TextComponentString("New Invite to Team " + team));
+        invitee.sendMessage(new StringTextComponent("New Invite to Team " + team));
         ITextComponent message = ITextComponent.Serializer.jsonToComponent("[\" [\"," + links + ",\"]\"]");
-        inviter.sendMessage(new TextComponentString("Invite sent"));
+        inviter.sendMessage(new StringTextComponent("Invite sent"));
         invitee.sendMessage(message);
         LandSaveHandler.saveGlobalData();
     }

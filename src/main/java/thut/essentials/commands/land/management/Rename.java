@@ -1,10 +1,10 @@
 package thut.essentials.commands.land.management;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.BaseCommand;
@@ -18,15 +18,15 @@ public class Rename extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         if (team == null) throw new CommandException("You are not in a team.");
         if (!LandManager.getInstance().isAdmin(player.getUniqueID())
                 || team.teamName.equalsIgnoreCase(ConfigManager.INSTANCE.defaultTeamName))
         {
-            sender.sendMessage(new TextComponentString("You are not Authorized to rename your team"));
+            sender.sendMessage(new StringTextComponent("You are not Authorized to rename your team"));
             return;
         }
         String newName = args[0];

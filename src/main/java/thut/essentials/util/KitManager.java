@@ -19,8 +19,8 @@ import com.google.common.collect.Maps;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
@@ -243,14 +243,14 @@ public class KitManager
                 || b.getItemDamage() == OreDictionary.WILDCARD_VALUE))
             check = false;
         if (check) return false;
-        NBTBase tag;
-        if (a.hasTagCompound() && ((tag = a.getTagCompound().getTag("ForgeCaps")) != null) && tag.hasNoTags())
+        INBT tag;
+        if (a.hasTag() && ((tag = a.getTag().getTag("ForgeCaps")) != null) && tag.hasNoTags())
         {
-            a.getTagCompound().removeTag("ForgeCaps");
+            a.getTag().remove("ForgeCaps");
         }
-        if (b.hasTagCompound() && ((tag = b.getTagCompound().getTag("ForgeCaps")) != null) && tag.hasNoTags())
+        if (b.hasTag() && ((tag = b.getTag().getTag("ForgeCaps")) != null) && tag.hasNoTags())
         {
-            b.getTagCompound().removeTag("ForgeCaps");
+            b.getTag().remove("ForgeCaps");
         }
         return ItemStack.areItemStackTagsEqual(a, b);
     }
@@ -302,7 +302,7 @@ public class KitManager
         {
             try
             {
-                stack.setTagCompound(JsonToNBT.getTagFromJson(tag));
+                stack.setTag(JsonToNBT.getTagFromJson(tag));
             }
             catch (NBTException e)
             {

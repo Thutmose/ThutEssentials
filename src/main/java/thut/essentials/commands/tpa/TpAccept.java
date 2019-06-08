@@ -3,9 +3,9 @@ package thut.essentials.commands.tpa;
 import java.util.UUID;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextFormatting;
 import thut.essentials.ThutEssentials;
@@ -23,20 +23,20 @@ public class TpAccept extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         if (args.length == 0)
             throw new CommandException("CLICK THE LINK TO ACCEPT, DO NOT SEND THIS COMMAND DIRECTLY!");
         String id = args[1];
-        EntityPlayer player = getPlayerBySender(sender);
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
-        NBTTagCompound tpaTag = tag.getCompoundTag("tpa");
+        PlayerEntity player = getPlayerBySender(sender);
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundNBT tpaTag = tag.getCompound("tpa");
         String requestor = tpaTag.getString("R");
         if (!requestor.equals(id)) { return; }
-        tpaTag.removeTag("R");
+        tpaTag.remove("R");
         tag.setTag("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(player);
-        EntityPlayer target = server.getPlayerList().getPlayerByUUID(UUID.fromString(id));
+        PlayerEntity target = server.getPlayerList().getPlayerByUUID(UUID.fromString(id));
         if (args[0].equals("accept"))
         {
             target.sendMessage(CommandManager.makeFormattedComponent("Your TPA request was accepted.",

@@ -12,17 +12,17 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.ISaveHandler;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.api.distmarker.Dist;
 
 public class PlayerDataHandler
 {
@@ -34,9 +34,9 @@ public class PlayerDataHandler
 
         boolean shouldSync();
 
-        void writeToNBT(NBTTagCompound tag);
+        void writeToNBT(CompoundNBT tag);
 
-        void readFromNBT(NBTTagCompound tag);
+        void readFromNBT(CompoundNBT tag);
 
         void readSync(ByteBuf data);
 
@@ -60,7 +60,7 @@ public class PlayerDataHandler
      * in the player's entity data to store information. */
     public static class PlayerCustomData extends PlayerData
     {
-        public NBTTagCompound tag = new NBTTagCompound();
+        public CompoundNBT tag = new CompoundNBT();
 
         public PlayerCustomData()
         {
@@ -85,15 +85,15 @@ public class PlayerDataHandler
         }
 
         @Override
-        public void writeToNBT(NBTTagCompound tag)
+        public void writeToNBT(CompoundNBT tag)
         {
             tag.setTag("data", this.tag);
         }
 
         @Override
-        public void readFromNBT(NBTTagCompound tag)
+        public void readFromNBT(CompoundNBT tag)
         {
-            this.tag = tag.getCompoundTag("data");
+            this.tag = tag.getCompound("data");
         }
     }
 
@@ -148,7 +148,7 @@ public class PlayerDataHandler
 
     public static PlayerDataHandler getInstance()
     {
-        if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) { return INSTANCECLIENT != null
+        if (FMLCommonHandler.instance().getEffectiveSide() == Dist.CLIENT) { return INSTANCECLIENT != null
                 ? INSTANCECLIENT : (INSTANCECLIENT = new PlayerDataHandler()); }
         return INSTANCESERVER != null ? INSTANCESERVER : (INSTANCESERVER = new PlayerDataHandler());
     }
@@ -165,21 +165,21 @@ public class PlayerDataHandler
 
     }
 
-    public static NBTTagCompound getCustomDataTag(EntityPlayer player)
+    public static CompoundNBT getCustomDataTag(PlayerEntity player)
     {
         PlayerDataManager manager = PlayerDataHandler.getInstance().getPlayerData(player);
         PlayerCustomData data = manager.getData(PlayerCustomData.class);
         return data.tag;
     }
 
-    public static NBTTagCompound getCustomDataTag(String player)
+    public static CompoundNBT getCustomDataTag(String player)
     {
         PlayerDataManager manager = PlayerDataHandler.getInstance().getPlayerData(player);
         PlayerCustomData data = manager.getData(PlayerCustomData.class);
         return data.tag;
     }
 
-    public static void saveCustomData(EntityPlayer player)
+    public static void saveCustomData(PlayerEntity player)
     {
         saveCustomData(player.getCachedUniqueIdString());
     }
@@ -210,7 +210,7 @@ public class PlayerDataHandler
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    public PlayerDataManager getPlayerData(EntityPlayer player)
+    public PlayerDataManager getPlayerData(PlayerEntity player)
     {
         return getPlayerData(player.getCachedUniqueIdString());
     }
@@ -237,12 +237,12 @@ public class PlayerDataHandler
         // online, and remove them. This is done here, and not on logoff, as
         // something may have requested the manager for an offline player, which
         // would have loaded it.
-        if (event.getWorld().provider.getDimension() == 0)
+        if (event.getWorld().dimension.getDimension() == 0)
         {
             Set<String> toUnload = Sets.newHashSet();
             for (String uuid : data.keySet())
             {
-                EntityPlayerMP player = event.getWorld().getMinecraftServer().getPlayerList()
+                ServerPlayerEntity player = event.getWorld().getMinecraftServer().getPlayerList()
                         .getPlayerByUUID(UUID.fromString(uuid));
                 if (player == null)
                 {
@@ -281,9 +281,9 @@ public class PlayerDataHandler
                 try
                 {
                     FileInputStream fileinputstream = new FileInputStream(file);
-                    NBTTagCompound nbttagcompound = CompressedStreamTools.readCompressed(fileinputstream);
+                    CompoundNBT CompoundNBT = CompressedStreamTools.readCompressed(fileinputstream);
                     fileinputstream.close();
-                    data.readFromNBT(nbttagcompound.getCompoundTag("Data"));
+                    data.readFromNBT(CompoundNBT.getCompound("Data"));
                 }
                 catch (IOException e)
                 {
@@ -307,14 +307,14 @@ public class PlayerDataHandler
                 File file = getFileForUUID(uuid, fileName);
                 if (file != null)
                 {
-                    NBTTagCompound nbttagcompound = new NBTTagCompound();
-                    data.writeToNBT(nbttagcompound);
-                    NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-                    nbttagcompound1.setTag("Data", nbttagcompound);
+                    CompoundNBT CompoundNBT = new CompoundNBT();
+                    data.writeToNBT(CompoundNBT);
+                    CompoundNBT CompoundNBT1 = new CompoundNBT();
+                    CompoundNBT1.setTag("Data", CompoundNBT);
                     try
                     {
                         FileOutputStream fileoutputstream = new FileOutputStream(file);
-                        CompressedStreamTools.writeCompressed(nbttagcompound1, fileoutputstream);
+                        CompressedStreamTools.writeCompressed(CompoundNBT1, fileoutputstream);
                         fileoutputstream.close();
                     }
                     catch (IOException e)
@@ -337,14 +337,14 @@ public class PlayerDataHandler
                 File file = getFileForUUID(uuid, fileName);
                 if (file != null)
                 {
-                    NBTTagCompound nbttagcompound = new NBTTagCompound();
-                    data.writeToNBT(nbttagcompound);
-                    NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-                    nbttagcompound1.setTag("Data", nbttagcompound);
+                    CompoundNBT CompoundNBT = new CompoundNBT();
+                    data.writeToNBT(CompoundNBT);
+                    CompoundNBT CompoundNBT1 = new CompoundNBT();
+                    CompoundNBT1.setTag("Data", CompoundNBT);
                     try
                     {
                         FileOutputStream fileoutputstream = new FileOutputStream(file);
-                        CompressedStreamTools.writeCompressed(nbttagcompound1, fileoutputstream);
+                        CompressedStreamTools.writeCompressed(CompoundNBT1, fileoutputstream);
                         fileoutputstream.close();
                     }
                     catch (IOException e)

@@ -6,16 +6,16 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityList.EntityEggInfo;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -29,7 +29,7 @@ public class CompatWrapper
 {
     public static final ItemStack nullStack = ItemStack.EMPTY;
 
-    public static ItemStack fromTag(NBTTagCompound tag)
+    public static ItemStack fromTag(CompoundNBT tag)
     {
         return new ItemStack(tag);
     }
@@ -59,7 +59,7 @@ public class CompatWrapper
         in.move(MoverType.SELF, x, y, z);
     }
 
-    public static void sendChatMessage(ICommandSender to, ITextComponent message)
+    public static void sendChatMessage(ICommandSource to, ITextComponent message)
     {//
         to.sendMessage(message);
     }
@@ -119,7 +119,7 @@ public class CompatWrapper
         return NonNullList.<ItemStack> withSize(size, ItemStack.EMPTY);
     }
 
-    public static void rightClickWith(ItemStack stack, EntityPlayer player, EnumHand hand)
+    public static void rightClickWith(ItemStack stack, PlayerEntity player, Hand hand)
     {
         ItemStack old = player.getHeldItem(hand);
         player.setHeldItem(hand, stack);
@@ -127,25 +127,25 @@ public class CompatWrapper
         player.setHeldItem(hand, old);
     }
 
-    public static NBTTagCompound getTag(ItemStack stack, String name, boolean create)
+    public static CompoundNBT getTag(ItemStack stack, String name, boolean create)
     {
-        NBTTagCompound ret = stack.getSubCompound(name);
+        CompoundNBT ret = stack.getSubCompound(name);
         if (ret == null)
         {
-            if (!stack.hasTagCompound()) stack.setTagCompound(new NBTTagCompound());
-            ret = new NBTTagCompound();
-            stack.getTagCompound().setTag(name, ret);
+            if (!stack.hasTag()) stack.setTag(new CompoundNBT());
+            ret = new CompoundNBT();
+            stack.getTag().setTag(name, ret);
         }
         return ret;
     }
 
-    public static void processInitialInteract(Entity in, EntityPlayer player, EnumHand hand, ItemStack stack)
+    public static void processInitialInteract(Entity in, PlayerEntity player, Hand hand, ItemStack stack)
     {
         in.processInitialInteract(player, hand);
     }
 
     public static boolean interactWithBlock(Block block, World worldIn, BlockPos pos, IBlockState state,
-            EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY,
+            PlayerEntity playerIn, Hand hand, @Nullable ItemStack heldItem, Direction side, float hitX, float hitY,
             float hitZ)
     {
         return block.onBlockActivated(worldIn, pos, state, playerIn, hand, side, hitX, hitY, hitZ);

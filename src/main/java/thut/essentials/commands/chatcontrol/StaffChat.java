@@ -8,12 +8,12 @@ import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.util.BaseCommand;
@@ -52,7 +52,7 @@ public class StaffChat extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         if (args[0].equals("!add"))
         {
@@ -73,11 +73,11 @@ public class StaffChat extends BaseCommand
             try
             {
                 ConfigManager.INSTANCE.updateField(staffField, rulesList.toArray(new String[0]));
-                sender.sendMessage(new TextComponentString("Added to Staff: " + args[1]));
+                sender.sendMessage(new StringTextComponent("Added to Staff: " + args[1]));
             }
             catch (Exception e)
             {
-                sender.sendMessage(new TextComponentString("Error adding to Staff"));
+                sender.sendMessage(new StringTextComponent("Error adding to Staff"));
                 e.printStackTrace();
             }
         }
@@ -92,11 +92,11 @@ public class StaffChat extends BaseCommand
             try
             {
                 ConfigManager.INSTANCE.updateField(staffField, rulesList.toArray(new String[0]));
-                sender.sendMessage(new TextComponentString("Removed from Staff: " + args[1]));
+                sender.sendMessage(new StringTextComponent("Removed from Staff: " + args[1]));
             }
             catch (Exception e)
             {
-                sender.sendMessage(new TextComponentString("Error remvoing from Staff"));
+                sender.sendMessage(new StringTextComponent("Error remvoing from Staff"));
                 e.printStackTrace();
             }
         }
@@ -108,7 +108,7 @@ public class StaffChat extends BaseCommand
                 message = message + " " + args[i];
             }
             message = RuleManager.format(message);
-            ITextComponent mess = new TextComponentString(
+            ITextComponent mess = new StringTextComponent(
                     "[Staff]" + sender.getDisplayName().getFormattedText() + ": ");
             mess.getStyle().setColor(TextFormatting.YELLOW);
             mess.appendSibling(CommandManager.makeFormattedComponent(message, TextFormatting.AQUA, false));
@@ -118,7 +118,7 @@ public class StaffChat extends BaseCommand
                 try
                 {
                     UUID id = UUID.fromString(s);
-                    EntityPlayer player = server.getPlayerList().getPlayerByUUID(id);
+                    PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
                     if (player != null)
                     {
                         player.sendMessage(mess);

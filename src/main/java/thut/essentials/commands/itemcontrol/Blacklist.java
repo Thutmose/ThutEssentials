@@ -6,9 +6,9 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.itemcontrol.ItemControl;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.ConfigManager;
@@ -21,13 +21,13 @@ public class Blacklist extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return "/" + getName() + " list|add|remove <items>";
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         if (args.length == 0) throw new CommandException(getUsage(sender));
         String arg = args[0];
@@ -35,13 +35,13 @@ public class Blacklist extends BaseCommand
         if (arg.equalsIgnoreCase("list"))
         {
             sender.sendMessage(
-                    new TextComponentString("Current Blackist State: " + ConfigManager.INSTANCE.itemControlEnabled));
+                    new StringTextComponent("Current Blackist State: " + ConfigManager.INSTANCE.itemControlEnabled));
             if (ConfigManager.INSTANCE.itemControlEnabled)
             {
-                sender.sendMessage(new TextComponentString("Current Item Blacklist:"));
+                sender.sendMessage(new StringTextComponent("Current Item Blacklist:"));
                 for (String s : ItemControl.blacklist)
                 {
-                    sender.sendMessage(new TextComponentString(s));
+                    sender.sendMessage(new StringTextComponent(s));
                 }
             }
         }
@@ -68,7 +68,7 @@ public class Blacklist extends BaseCommand
             {
                 ConfigManager.INSTANCE.updateField(ConfigManager.class.getDeclaredField("itemBlacklist"),
                         blacklist.toArray(new String[0]));
-                sender.sendMessage(new TextComponentString(message));
+                sender.sendMessage(new StringTextComponent(message));
             }
             catch (Exception e)
             {

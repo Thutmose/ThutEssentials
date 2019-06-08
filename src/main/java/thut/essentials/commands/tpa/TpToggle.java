@@ -1,9 +1,9 @@
 package thut.essentials.commands.tpa;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextFormatting;
 import thut.essentials.commands.CommandManager;
@@ -18,13 +18,13 @@ public class TpToggle extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
-        NBTTagCompound tpaTag = tag.getCompoundTag("tpa");
+        PlayerEntity player = getPlayerBySender(sender);
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundNBT tpaTag = tag.getCompound("tpa");
         boolean ignore = !tpaTag.getBoolean("ignore");
-        tpaTag.setBoolean("ignore", ignore);
+        tpaTag.putBoolean("ignore", ignore);
         tag.setTag("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(player);
         player.sendMessage(CommandManager.makeFormattedComponent("Set ignoring TPA to " + ignore,

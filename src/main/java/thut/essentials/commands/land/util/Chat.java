@@ -3,11 +3,11 @@ package thut.essentials.commands.land.util;
 import java.util.UUID;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
@@ -25,7 +25,7 @@ public class Chat extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         String message = args[0];
         for (int i = 1; i < args.length; i++)
@@ -33,7 +33,7 @@ public class Chat extends BaseCommand
             message = message + " " + args[i];
         }
         message = RuleManager.format(message);
-        ITextComponent mess = new TextComponentString("[Team]" + sender.getDisplayName().getFormattedText() + ": ");
+        ITextComponent mess = new StringTextComponent("[Team]" + sender.getDisplayName().getFormattedText() + ": ");
         mess.getStyle().setColor(TextFormatting.YELLOW);
         mess.appendSibling(CommandManager.makeFormattedComponent(message, TextFormatting.AQUA, false));
         LandTeam team = LandManager.getTeam(getPlayerBySender(sender));
@@ -42,7 +42,7 @@ public class Chat extends BaseCommand
         {
             try
             {
-                EntityPlayer player = server.getPlayerList().getPlayerByUUID(id);
+                PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
                 if (player != null)
                 {
                     player.sendMessage(mess);

@@ -7,10 +7,10 @@ import java.util.UUID;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandManager.PlayerRank;
@@ -34,21 +34,21 @@ public class EditRanks extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return super.getUsage(sender) + " <arg> <player> <value>";
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         LandTeam landTeam = LandManager.getTeam(player);
         if (!landTeam.isAdmin(player)) throw new CommandException("Only Team Admins may manage ranks");
         if (args.length == 0) throw new CommandException(getUsage(sender));
         String type = args[0];
         String rankName;
-        EntityPlayer target;
+        PlayerEntity target;
         PlayerRank rank;
         String perm;
         boolean added;
@@ -59,7 +59,7 @@ public class EditRanks extends BaseCommand
             rank = landTeam.rankMap.get(rankName);
             if (rank != null) throw new CommandException("Rank " + rankName + " already exists.");
             landTeam.rankMap.put(rankName, new PlayerRank());
-            player.sendMessage(new TextComponentString("Added Rank " + rankName));
+            player.sendMessage(new StringTextComponent("Added Rank " + rankName));
             LandSaveHandler.saveTeam(landTeam.teamName);
             break;
         case "setRank":
@@ -70,7 +70,7 @@ public class EditRanks extends BaseCommand
             rank.members.add(target.getUniqueID());
             landTeam._ranksMembers.put(target.getUniqueID(), rank);
             target.refreshDisplayName();
-            player.sendMessage(new TextComponentString("Added " + target.getName() + " to Rank " + rankName));
+            player.sendMessage(new StringTextComponent("Added " + target.getName() + " to Rank " + rankName));
             LandSaveHandler.saveTeam(landTeam.teamName);
             break;
         case "setPerm":
@@ -79,8 +79,8 @@ public class EditRanks extends BaseCommand
             if (rank == null) throw new CommandException("Rank " + rankName + " does not exist.");
             perm = args[2];
             added = rank.perms.add(perm);
-            if (added) player.sendMessage(new TextComponentString("Allowed " + perm));
-            else player.sendMessage(new TextComponentString("Already has " + perm));
+            if (added) player.sendMessage(new StringTextComponent("Allowed " + perm));
+            else player.sendMessage(new StringTextComponent("Already has " + perm));
             break;
         case "delPerm":
             rankName = args[1];
@@ -88,8 +88,8 @@ public class EditRanks extends BaseCommand
             if (rank == null) throw new CommandException("Rank " + rankName + " does not exist.");
             perm = args[2];
             added = rank.perms.remove(perm);
-            if (added) player.sendMessage(new TextComponentString("Removed " + perm));
-            else player.sendMessage(new TextComponentString("Did not have " + perm));
+            if (added) player.sendMessage(new StringTextComponent("Removed " + perm));
+            else player.sendMessage(new StringTextComponent("Did not have " + perm));
             break;
         case "setPrefix":
             rankName = args[1];
@@ -99,15 +99,15 @@ public class EditRanks extends BaseCommand
             rank.prefix = perm;
             if (perm.trim().isEmpty()) rank.prefix = null;
             added = rank.prefix != null;
-            if (added) player.sendMessage(new TextComponentString("Set Prefix to " + rank.prefix));
-            else player.sendMessage(new TextComponentString("Removed Rank Prefix"));
+            if (added) player.sendMessage(new StringTextComponent("Set Prefix to " + rank.prefix));
+            else player.sendMessage(new StringTextComponent("Removed Rank Prefix"));
             break;
         case "listRanks":
             Set<String> ranks = landTeam.rankMap.keySet();
-            player.sendMessage(new TextComponentString("Ranks in your team:"));
+            player.sendMessage(new StringTextComponent("Ranks in your team:"));
             for (String s : ranks)
             {
-                player.sendMessage(new TextComponentString("  " + s));
+                player.sendMessage(new StringTextComponent("  " + s));
             }
             break;
         case "listMembers":
@@ -115,11 +115,11 @@ public class EditRanks extends BaseCommand
             rank = landTeam.rankMap.get(rankName);
             if (rank == null) throw new CommandException("Rank " + rankName + " does not exist.");
             Collection<UUID> c = rank.members;
-            player.sendMessage(new TextComponentString("Members of " + rankName));
+            player.sendMessage(new StringTextComponent("Members of " + rankName));
             for (UUID o : c)
             {
                 GameProfile profile = getProfile(server, o);
-                sender.sendMessage(new TextComponentString("  " + profile.getName()));
+                sender.sendMessage(new StringTextComponent("  " + profile.getName()));
             }
             break;
         }

@@ -5,10 +5,10 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ServerChatEvent;
@@ -53,7 +53,7 @@ public class ChatHandler
             if (temp.getUnformattedText().equals(userName))
             {
                 Style style = temp.getStyle();
-                name = new TextComponentString(userName);
+                name = new StringTextComponent(userName);
                 name.setStyle(style);
                 found = true;
             }
@@ -64,7 +64,7 @@ public class ChatHandler
         // If we find the component for the name, re-build chat based on that.
         if (found && text.size() > 3)
         {
-            ITextComponent message = new TextComponentString("");
+            ITextComponent message = new StringTextComponent("");
             // Here we assume that the username and formatting are first 3
             // values of the formatted username section.
             for (int i = 4; i < text.size(); i++)
@@ -75,7 +75,7 @@ public class ChatHandler
                 {
                     segment = RuleManager.format(segment);
                 }
-                TextComponentString part = new TextComponentString(segment);
+                StringTextComponent part = new StringTextComponent(segment);
                 part.setStyle(styles.get(i));
                 message.appendSibling(part);
             }
@@ -86,16 +86,16 @@ public class ChatHandler
                 {
                     vars[0] = RuleManager.format(vars[0]);
                 }
-                ITextComponent toSend = new TextComponentString(vars[0]);
+                ITextComponent toSend = new StringTextComponent(vars[0]);
                 toSend.appendSibling(name);
                 vars = vars[1].split("\\[message\\]");
                 if (canFormat) for (int i = 0; i < vars.length; i++)
                 {
                     vars[i] = RuleManager.format(vars[i]);
                 }
-                ITextComponent newMessage = new TextComponentString(vars[0]);
+                ITextComponent newMessage = new StringTextComponent(vars[0]);
                 newMessage.appendSibling(message);
-                if (vars.length == 2) newMessage.appendSibling(new TextComponentString(vars[1]));
+                if (vars.length == 2) newMessage.appendSibling(new StringTextComponent(vars[1]));
                 toSend.appendSibling(newMessage);
                 event.setComponent(toSend);
                 return;
@@ -110,7 +110,7 @@ public class ChatHandler
             mess = RuleManager.format(mess);
         }
         message = message.replace("[message]", mess);
-        event.setComponent(new TextComponentString(message));
+        event.setComponent(new StringTextComponent(message));
 
     }
 
@@ -118,8 +118,8 @@ public class ChatHandler
     public void getDisplayNameEvent(PlayerEvent.NameFormat event)
     {
         String displayName = event.getDisplayname();
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(event.getEntityPlayer());
-        NBTTagCompound nametag = tag.getCompoundTag("name");
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(event.getPlayerEntity());
+        CompoundNBT nametag = tag.getCompound("name");
         if (nametag.hasKey("name") && ConfigManager.INSTANCE.name)
         {
             displayName = nametag.getString("name");
@@ -148,7 +148,7 @@ public class ChatHandler
             }
             if (!team.prefix.isEmpty()) displayName = team.prefix + TextFormatting.RESET + " " + displayName;
         }
-        NameEvent event1 = new NameEvent(event.getEntityPlayer(), displayName);
+        NameEvent event1 = new NameEvent(event.getPlayerEntity(), displayName);
         MinecraftForge.EVENT_BUS.post(event1);
         event.setDisplayname(event1.getName());
     }

@@ -5,11 +5,11 @@ import java.util.Random;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.ThutEssentials;
@@ -38,12 +38,12 @@ public class RTP extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player;
+        PlayerEntity player;
         if (args.length == 1)
         {
-            if (sender instanceof EntityPlayer) if (!PermissionAPI.hasPermission((EntityPlayer) sender, PERMRTPOTHER))
+            if (sender instanceof PlayerEntity) if (!PermissionAPI.hasPermission((PlayerEntity) sender, PERMRTPOTHER))
                 throw new CommandException("You do not have permission to RTP someone else.");
             player = getPlayer(server, sender, args[0]);
         }
@@ -56,17 +56,17 @@ public class RTP extends BaseCommand
         int delay = ConfigManager.INSTANCE.rtpReuseDelay;
         String timeTag = "rtp_time";
         long rtpTime = PlayerDataHandler.getCustomDataTag(player).getLong(timeTag);
-        if ((delay <= 0 && rtpTime != 0) || server.getEntityWorld().getTotalWorldTime() < rtpTime)
+        if ((delay <= 0 && rtpTime != 0) || server.getEntityWorld().getGameTime() < rtpTime)
             throw new CommandException("You cannot RTP again yet.");
 
-        PlayerDataHandler.getCustomDataTag(player).setLong(timeTag,
-                server.getEntityWorld().getTotalWorldTime() + delay);
+        PlayerDataHandler.getCustomDataTag(player).putLong(timeTag,
+                server.getEntityWorld().getGameTime() + delay);
         int n = 100;
         while ((position = checkSpot(player)) == null && n-- > 0)
             ;
         if (position != null) PlayerMover.setMove(player, ThutEssentials.instance.config.rtpActivateDelay,
                 player.dimension, position, null, Spawn.INTERUPTED);
-        else sender.sendMessage(new TextComponentString("No spot found."));
+        else sender.sendMessage(new StringTextComponent("No spot found."));
     }
 
     private boolean isValid(IBlockState ground, IBlockState lower, IBlockState upper)
@@ -89,7 +89,7 @@ public class RTP extends BaseCommand
         return new BlockPos(x, y, z);
     }
 
-    private BlockPos checkSpot(EntityPlayer player)
+    private BlockPos checkSpot(PlayerEntity player)
     {
         BlockPos position = calculatePos();
         IBlockState ground = player.getEntityWorld().getBlockState(position);

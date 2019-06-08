@@ -7,8 +7,8 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import thut.essentials.ThutEssentials;
@@ -93,20 +93,20 @@ public class RuleManager
         return rule;
     }
 
-    public static void addRule(ICommandSender sender, String rule) throws Exception
+    public static void addRule(ICommandSource sender, String rule) throws Exception
     {
         List<String> rulesList = getRules();
         rule = format(rule);
         rulesList.add(rule);
-        sender.sendMessage(new TextComponentString("Added rule: " + rule));
+        sender.sendMessage(new StringTextComponent("Added rule: " + rule));
         ConfigManager.INSTANCE.updateField(rulesField, rulesList.toArray(new String[0]));
     }
 
-    public static void delRule(ICommandSender sender, int rule) throws Exception
+    public static void delRule(ICommandSource sender, int rule) throws Exception
     {
         List<String> rulesList = getRules();
         String r = rulesList.remove(rule);
-        sender.sendMessage(new TextComponentString("Removed rule: " + r));
+        sender.sendMessage(new StringTextComponent("Removed rule: " + r));
         ConfigManager.INSTANCE.updateField(rulesField, rulesList.toArray(new String[0]));
     }
 

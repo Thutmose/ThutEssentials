@@ -1,9 +1,9 @@
 package thut.essentials.commands.homes;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -25,22 +25,22 @@ public class Home extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return "/" + getName() + " <optional|homeName>";
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayerMP player = getPlayerBySender(sender);
+        ServerPlayerEntity player = getPlayerBySender(sender);
         String homeName = args.length > 0 ? args[0] : null;
         int[] home = HomeManager.getHome(player, homeName);
 
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
-        NBTTagCompound tptag = tag.getCompoundTag("tp");
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundNBT tptag = tag.getCompound("tp");
         long last = tptag.getLong("homeDelay");
-        long time = player.getServer().getWorld(0).getTotalWorldTime();
+        long time = player.getServer().getWorld(0).getGameTime();
         if (last > time)
         {
             player.sendMessage(
@@ -53,7 +53,7 @@ public class Home extends BaseCommand
             if (homeName == null) homeName = "Home";
             ITextComponent teleMess = CommandManager.makeFormattedComponent("Warping to " + homeName,
                     TextFormatting.GREEN);
-            tptag.setLong("homeDelay", time + ConfigManager.INSTANCE.homeReUseDelay);
+            tptag.putLong("homeDelay", time + ConfigManager.INSTANCE.homeReUseDelay);
             tag.setTag("tp", tptag);
             PlayerDataHandler.saveCustomData(player);
             PlayerMover.setMove(player, ThutEssentials.instance.config.homeActivateDelay, home[3],

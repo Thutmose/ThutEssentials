@@ -5,9 +5,9 @@ import java.util.UUID;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.server.MinecraftServer;
 import thut.essentials.util.BaseCommand;
@@ -20,19 +20,19 @@ public class InvSee extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return "/" + getName() + " <name|uuid> <optional|ender>";
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         if (args.length == 0) throw new CommandException(getUsage(sender));
 
         UUID id = null;
         GameProfile gameprofile = null;
-        EntityPlayerMP user = getCommandSenderAsPlayer(sender);
+        ServerPlayerEntity user = getCommandSenderAsPlayer(sender);
 
         try
         {
@@ -46,7 +46,7 @@ public class InvSee extends BaseCommand
         if (gameprofile == null) { throw new CommandException("No profile found for " + args[0]); }
         id = gameprofile.getId();
 
-        EntityPlayer player = server.getPlayerList().getPlayerByUUID(id);
+        PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
         boolean fake = player == null;
 
         boolean ender = args.length == 2;
@@ -54,7 +54,7 @@ public class InvSee extends BaseCommand
         if (fake)
         {
             // Make a fake one.
-            player = new EntityPlayer(server.getEntityWorld(), gameprofile)
+            player = new PlayerEntity(server.getEntityWorld(), gameprofile)
             {
 
                 @Override

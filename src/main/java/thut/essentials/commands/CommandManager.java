@@ -19,12 +19,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import net.minecraft.command.CommandBase;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
@@ -127,26 +127,26 @@ public class CommandManager
 
     public static ITextComponent makeFormattedComponent(String text, TextFormatting colour, boolean bold)
     {
-        return new TextComponentString(text).setStyle(new Style().setBold(bold).setColor(colour));
+        return new StringTextComponent(text).setStyle(new Style().setBold(bold).setColor(colour));
     }
 
     public static ITextComponent makeFormattedComponent(String text, TextFormatting colour)
     {
-        return new TextComponentString(text).setStyle(new Style().setColor(colour));
+        return new StringTextComponent(text).setStyle(new Style().setColor(colour));
     }
 
     public static ITextComponent makeFormattedCommandLink(String text, String command, TextFormatting colour,
             boolean bold)
     {
-        return new TextComponentString(text).setStyle(
+        return new StringTextComponent(text).setStyle(
                 new Style().setBold(bold).setColor(colour).setClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
     }
 
-    public static boolean isOp(ICommandSender sender, String bypasslimit)
+    public static boolean isOp(ICommandSource sender, String bypasslimit)
     {
-        if (sender instanceof EntityPlayer)
+        if (sender instanceof PlayerEntity)
         {
-            return PermissionAPI.hasPermission((EntityPlayer) sender, bypasslimit);
+            return PermissionAPI.hasPermission((PlayerEntity) sender, bypasslimit);
         }
         else if (sender instanceof TileEntityCommandBlock) { return true; }
         return sender.getName().equalsIgnoreCase("@") || sender.getName().equals("Server");

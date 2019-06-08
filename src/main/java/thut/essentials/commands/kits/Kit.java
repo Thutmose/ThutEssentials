@@ -3,8 +3,8 @@ package thut.essentials.commands.kits;
 import java.util.List;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.server.permission.IPermissionHandler;
@@ -27,9 +27,9 @@ public class Kit extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
 
         List<ItemStack> stacks;
         int delay = ConfigManager.INSTANCE.kitReuseDelay;
@@ -56,13 +56,13 @@ public class Kit extends BaseCommand
             throw new CommandException("You are not allowed to get that kit!");
 
         long kitTime = PlayerDataHandler.getCustomDataTag(player).getLong(kitTag);
-        if ((delay <= 0 && kitTime != 0) || server.getEntityWorld().getTotalWorldTime() < kitTime)
+        if ((delay <= 0 && kitTime != 0) || server.getEntityWorld().getGameTime() < kitTime)
             throw new CommandException("You cannot get another kit yet.");
         for (ItemStack stack : stacks)
         {
             EconomyManager.giveItem(player, stack.copy());
-            PlayerDataHandler.getCustomDataTag(player).setLong(kitTag,
-                    server.getEntityWorld().getTotalWorldTime() + delay);
+            PlayerDataHandler.getCustomDataTag(player).putLong(kitTag,
+                    server.getEntityWorld().getGameTime() + delay);
         }
 
     }

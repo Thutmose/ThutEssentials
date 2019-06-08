@@ -8,14 +8,14 @@ import java.util.logging.Level;
 import com.google.common.collect.Maps;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -31,7 +31,7 @@ import thut.essentials.util.Transporter.Vector3;
 
 public class Spawn extends BaseCommand
 {
-    public static final ITextComponent INTERUPTED = new TextComponentString(
+    public static final ITextComponent INTERUPTED = new StringTextComponent(
             TextFormatting.RED + "" + TextFormatting.ITALIC + "You must remain still to do that");
 
     public static class PlayerMover
@@ -41,7 +41,7 @@ public class Spawn extends BaseCommand
         private static class Mover
         {
             final long              moveTime;
-            final EntityPlayer      player;
+            final PlayerEntity      player;
             final int               dimension;
             final BlockPos          moveTo;
             final Vector3           start;
@@ -50,7 +50,7 @@ public class Spawn extends BaseCommand
             final boolean           event;
             final Predicate<Entity> callback;
 
-            public Mover(EntityPlayer player, long moveTime, int dimension, BlockPos moveTo, ITextComponent message,
+            public Mover(PlayerEntity player, long moveTime, int dimension, BlockPos moveTo, ITextComponent message,
                     ITextComponent failMess, Predicate<Entity> callback, boolean event)
             {
                 this.player = player;
@@ -77,25 +77,25 @@ public class Spawn extends BaseCommand
             }
         }
 
-        public static void setMove(final EntityPlayer player, final int moveTime, final int dimension,
+        public static void setMove(final PlayerEntity player, final int moveTime, final int dimension,
                 final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess)
         {
             setMove(player, moveTime, dimension, moveTo, message, failMess, true);
         }
 
-        public static void setMove(final EntityPlayer player, final int moveTime, final int dimension,
+        public static void setMove(final PlayerEntity player, final int moveTime, final int dimension,
                 final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess, final boolean event)
         {
             setMove(player, moveTime, dimension, moveTo, message, failMess, null, event);
         }
 
-        public static void setMove(final EntityPlayer player, final int moveTime, final int dimension,
+        public static void setMove(final PlayerEntity player, final int moveTime, final int dimension,
                 final BlockPos moveTo, final ITextComponent message, final ITextComponent failMess,
                 final Predicate<Entity> callback, final boolean event)
         {
-            if (player.isRiding() || player.isBeingRidden())
+            if (player.isPassenger() || player.isBeingRidden())
             {
-                player.sendMessage(new TextComponentString(TextFormatting.RED + "Please Dismount then try again."));
+                player.sendMessage(new StringTextComponent(TextFormatting.RED + "Please Dismount then try again."));
                 return;
             }
 
@@ -109,9 +109,9 @@ public class Spawn extends BaseCommand
                         long time = moveTime;
                         if (time > 0)
                         {
-                            player.sendMessage(new TextComponentString(
+                            player.sendMessage(new StringTextComponent(
                                     TextFormatting.GREEN + "Initiating Teleport, please remain still."));
-                            time += player.getEntityWorld().getTotalWorldTime();
+                            time += player.getEntityWorld().getGameTime();
                         }
                         toMove.put(player.getUniqueID(),
                                 new Mover(player, time, dimension, moveTo, message, failMess, callback, event));
@@ -145,7 +145,7 @@ public class Spawn extends BaseCommand
                     toMove.remove(tick.getEntity().getUniqueID());
                     return;
                 }
-                if (tick.getEntity().getEntityWorld().getTotalWorldTime() > mover.moveTime)
+                if (tick.getEntity().getEntityWorld().getGameTime() > mover.moveTime)
                 {
                     mover.move();
                     toMove.remove(tick.getEntity().getUniqueID());
@@ -161,19 +161,19 @@ public class Spawn extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return "/" + getName();
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
-        NBTTagCompound tptag = tag.getCompoundTag("tp");
+        PlayerEntity player = getPlayerBySender(sender);
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundNBT tptag = tag.getCompound("tp");
         long last = tptag.getLong("spawnDelay");
-        long time = player.getServer().getWorld(0).getTotalWorldTime();
+        long time = player.getServer().getWorld(0).getGameTime();
         if (last > time)
         {
             player.sendMessage(
@@ -186,7 +186,7 @@ public class Spawn extends BaseCommand
             ITextComponent teleMess = CommandManager.makeFormattedComponent("Warped to Spawn", TextFormatting.GREEN);
             PlayerMover.setMove(player, ThutEssentials.instance.config.spawnActivateDelay,
                     ThutEssentials.instance.config.spawnDimension, spawn, teleMess, Spawn.INTERUPTED);
-            tptag.setLong("spawnDelay", time + ConfigManager.INSTANCE.spawnReUseDelay);
+            tptag.putLong("spawnDelay", time + ConfigManager.INSTANCE.spawnReUseDelay);
             tag.setTag("tp", tptag);
             PlayerDataHandler.saveCustomData(player);
         }
@@ -199,7 +199,7 @@ public class Spawn extends BaseCommand
                         TextFormatting.GREEN);
                 PlayerMover.setMove(player, ThutEssentials.instance.config.spawnActivateDelay, player.dimension, spawn,
                         teleMess, Spawn.INTERUPTED);
-                tptag.setLong("spawnDelay", time + ConfigManager.INSTANCE.spawnReUseDelay);
+                tptag.putLong("spawnDelay", time + ConfigManager.INSTANCE.spawnReUseDelay);
                 tag.setTag("tp", tptag);
             }
             else

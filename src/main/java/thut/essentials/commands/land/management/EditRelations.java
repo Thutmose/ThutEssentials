@@ -8,10 +8,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
@@ -53,15 +53,15 @@ public class EditRelations extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return super.getUsage(sender) + " <relations|perms|set|unset> if set/unset, then <team> <perm>";
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         LandTeam landTeam = LandManager.getTeam(player);
         if (!landTeam.isAdmin(player)) throw new CommandException("Only Team Admins may manage relations");
         if (args.length == 0) throw new CommandException(getUsage(sender));
@@ -75,24 +75,24 @@ public class EditRelations extends BaseCommand
         {
         // List off the relations, as well as any perms they might have.
         case "relations":
-            player.sendMessage(new TextComponentString(TextFormatting.AQUA + "Relations of " + landTeam.teamName));
+            player.sendMessage(new StringTextComponent(TextFormatting.AQUA + "Relations of " + landTeam.teamName));
             for (String s : keys)
             {
                 relation = landTeam.relations.get(s);
-                player.sendMessage(new TextComponentString(TextFormatting.AQUA + "    " + s));
+                player.sendMessage(new StringTextComponent(TextFormatting.AQUA + "    " + s));
                 for (String s1 : relation.perms)
                 {
-                    player.sendMessage(new TextComponentString(TextFormatting.AQUA + "        " + s1));
+                    player.sendMessage(new StringTextComponent(TextFormatting.AQUA + "        " + s1));
                 }
             }
             break;
         // List off all of the valid permissions for relations.
         case "perms":
-            player.sendMessage(new TextComponentString(TextFormatting.AQUA + "Allowed Relation Permissions:"));
+            player.sendMessage(new StringTextComponent(TextFormatting.AQUA + "Allowed Relation Permissions:"));
             for (String s : perms)
             {
                 player.sendMessage(
-                        new TextComponentString(TextFormatting.AQUA + "    " + s + " - " + perm_info.get(s)));
+                        new StringTextComponent(TextFormatting.AQUA + "    " + s + " - " + perm_info.get(s)));
             }
             break;
         // Set the given perm to the given relation, makes relation if not
@@ -111,8 +111,8 @@ public class EditRelations extends BaseCommand
                 landTeam.relations.put(other, relation = new Relation());
             }
             if (relation.perms.add(perm))
-                player.sendMessage(new TextComponentString(TextFormatting.AQUA + "Set perm " + perm + " for " + other));
-            else player.sendMessage(new TextComponentString(TextFormatting.AQUA + other + " already had " + perm));
+                player.sendMessage(new StringTextComponent(TextFormatting.AQUA + "Set perm " + perm + " for " + other));
+            else player.sendMessage(new StringTextComponent(TextFormatting.AQUA + other + " already had " + perm));
             LandSaveHandler.saveTeam(other);
             break;
         // unsets the given perm, removes the relation if empty.
@@ -127,13 +127,13 @@ public class EditRelations extends BaseCommand
             relation = landTeam.relations.get(other);
             if (relation == null)
             {
-                player.sendMessage(new TextComponentString(TextFormatting.AQUA + "No Relations with " + other));
+                player.sendMessage(new StringTextComponent(TextFormatting.AQUA + "No Relations with " + other));
                 return;
             }
             if (relation.perms.remove(perm)) player.sendMessage(
-                    new TextComponentString(TextFormatting.AQUA + "Removed perm " + perm + " for " + other));
+                    new StringTextComponent(TextFormatting.AQUA + "Removed perm " + perm + " for " + other));
             else player
-                    .sendMessage(new TextComponentString(TextFormatting.AQUA + other + " does not have perm " + perm));
+                    .sendMessage(new StringTextComponent(TextFormatting.AQUA + other + " does not have perm " + perm));
             if (relation.perms.isEmpty()) landTeam.relations.remove(other);
             LandSaveHandler.saveTeam(other);
             break;

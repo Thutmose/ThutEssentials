@@ -1,10 +1,10 @@
 package thut.essentials.commands.land.management;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
@@ -21,9 +21,9 @@ public class Join extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         String teamname = args[0];
         LandTeam teamtojoin = LandManager.getInstance().getTeam(teamname, false);
         LandTeam oldTeam = LandManager.getTeam(player);
@@ -42,12 +42,12 @@ public class Join extends BaseCommand
             if (canJoinInvite || canJoinNoInvite)
             {
                 LandManager.getInstance().addToTeam(player.getUniqueID(), teamname);
-                player.sendMessage(new TextComponentString("You joined Team " + teamname));
+                player.sendMessage(new StringTextComponent("You joined Team " + teamname));
                 return;
             }
         }
         else throw new CommandException("No team found by name " + teamname);
-        sender.sendMessage(new TextComponentString("You do not have an invite for Team " + teamname));
+        sender.sendMessage(new StringTextComponent("You do not have an invite for Team " + teamname));
     }
 
 }

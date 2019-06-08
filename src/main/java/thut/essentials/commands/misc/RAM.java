@@ -3,9 +3,9 @@ package thut.essentials.commands.misc;
 import java.text.NumberFormat;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.util.BaseCommand;
 
 public class RAM extends BaseCommand
@@ -41,10 +41,10 @@ public class RAM extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         String ramString = memInfo();
-        sender.sendMessage(new TextComponentString(ramString));
+        sender.sendMessage(new StringTextComponent(ramString));
     }
 
 }

@@ -1,9 +1,9 @@
 package thut.essentials.commands.misc;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.command.PlayerNotFoundException;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import thut.essentials.util.BaseCommand;
@@ -16,9 +16,9 @@ public class Repair extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player;
+        PlayerEntity player;
         try
         {
             player = getPlayerBySender(sender);
@@ -29,7 +29,7 @@ public class Repair extends BaseCommand
             player = getPlayer(server, sender, args[0]);
         }
         ItemStack stack = player.getHeldItemMainhand();
-        if (stack != null && stack.isItemDamaged())
+        if (stack != null && stack.isDamaged())
         {
             stack.setItemDamage(0);
         }

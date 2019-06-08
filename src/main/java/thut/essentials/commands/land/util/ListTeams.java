@@ -3,11 +3,11 @@ package thut.essentials.commands.land.util;
 import java.util.Map;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
@@ -24,23 +24,23 @@ public class ListTeams extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         sendTeamList(server, sender);
     }
 
-    public void sendTeamList(MinecraftServer server, ICommandSender sender)
+    public void sendTeamList(MinecraftServer server, ICommandSource sender)
     {
         Map<String, LandTeam> teamMap = LandManager.getInstance()._teamMap;
-        sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "Team List:"));
+        sender.sendMessage(new StringTextComponent(TextFormatting.AQUA + "Team List:"));
         for (String s : teamMap.keySet())
         {
             LandTeam team = teamMap.get(s);
             String emptyTip = "";
-            String lastSeenTip = "[" + (sender.getServer().getEntityWorld().getTotalWorldTime() - team.lastSeen) / 24000
+            String lastSeenTip = "[" + (sender.getServer().getEntityWorld().getGameTime() - team.lastSeen) / 24000
                     + " MC Days]";
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
-            ITextComponent message = new TextComponentString(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
+            ITextComponent message = new StringTextComponent(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
                     + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
             ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/listmembers " + s);
             ITextComponent tooltip = ListMembers.getMembers(server, team, false);

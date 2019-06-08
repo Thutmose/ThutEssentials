@@ -8,20 +8,20 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityItemFrame;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.item.ItemEntityFrame;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
@@ -58,11 +58,11 @@ public class EconomyManager
         int        cost;
         int        number;
 
-        public boolean transact(EntityPlayer player, ItemStack heldStack, Account shopAccount)
+        public boolean transact(PlayerEntity player, ItemStack heldStack, Account shopAccount)
         {
             ItemStack stack = ItemStack.EMPTY;
             Entity ent = player.getServer().getWorld(player.dimension).getEntityFromUuid(frameId);
-            if (ent instanceof EntityItemFrame) stack = ((EntityItemFrame) ent).getDisplayedItem();
+            if (ent instanceof ItemEntityFrame) stack = ((ItemEntityFrame) ent).getDisplayedItem();
             TileEntity tile = player.world.getTileEntity(new BlockPos(location.x, location.y, location.z));
             if (!(tile instanceof TileEntitySign))
             {
@@ -78,7 +78,7 @@ public class EconomyManager
                 number = Integer.parseInt(sign.signText[1].getUnformattedText());
                 if (ignoreTag)
                 {
-                    if (number != 1) sign.signText[1] = new TextComponentString("1");
+                    if (number != 1) sign.signText[1] = new StringTextComponent("1");
                     number = 1;
                 }
             }
@@ -100,7 +100,7 @@ public class EconomyManager
             if (recycle && heldStack.isEmpty())
             {
                 player.sendMessage(
-                        new TextComponentString(TextFormatting.RED + "You need to hold the item you want to recycle"));
+                        new StringTextComponent(TextFormatting.RED + "You need to hold the item you want to recycle"));
                 return false;
             }
             else if ((stack.isEmpty()))
@@ -113,7 +113,7 @@ public class EconomyManager
                 int balance = getBalance(player);
                 if (balance < cost)
                 {
-                    player.sendMessage(new TextComponentString(TextFormatting.RED + "You have Insufficient Funds"));
+                    player.sendMessage(new StringTextComponent(TextFormatting.RED + "You have Insufficient Funds"));
                     return false;
                 }
                 stack = stack.copy();
@@ -130,14 +130,14 @@ public class EconomyManager
                         if (inventory instanceof IInventory)
                         {
                             inv = (IInventory) inventory;
-                            if (ignoreTag) test2.setTagCompound(new NBTTagCompound());
+                            if (ignoreTag) test2.setTag(new CompoundNBT());
                             for (int i = 0; i < inv.getSizeInventory(); i++)
                             {
                                 ItemStack item = inv.getStackInSlot(i);
                                 if (!item.isEmpty())
                                 {
                                     ItemStack test = item.copy();
-                                    if (ignoreTag) test.setTagCompound(new NBTTagCompound());
+                                    if (ignoreTag) test.setTag(new CompoundNBT());
                                     CompatWrapper.setStackSize(test, number);
                                     if (ItemStack.areItemStacksEqual(test, test2))
                                         count += CompatWrapper.getStackSize(item);
@@ -147,26 +147,26 @@ public class EconomyManager
                     }
                     if (count < number || inv == null)
                     {
-                        player.sendMessage(new TextComponentString(TextFormatting.RED + "Shop Has Insufficient Items"));
+                        player.sendMessage(new StringTextComponent(TextFormatting.RED + "Shop Has Insufficient Items"));
                         return false;
                     }
                     int i = 0;
                     Item itemIn = test2.getItem();
                     int metadataIn = test2.getItemDamage();
                     int removeCount = number;
-                    NBTTagCompound itemNBT = ignoreTag ? null : test2.getTagCompound();
+                    CompoundNBT itemNBT = ignoreTag ? null : test2.getTag();
                     for (int j = 0; j < inv.getSizeInventory(); ++j)
                     {
                         ItemStack itemstack = inv.getStackInSlot(j);
                         if (!itemstack.isEmpty() && (itemstack.getItem() == itemIn)
                                 && (metadataIn <= -1 || itemstack.getMetadata() == metadataIn)
-                                && (itemNBT == null || NBTUtil.areNBTEquals(itemNBT, itemstack.getTagCompound(), true)))
+                                && (itemNBT == null || NBTUtil.areNBTEquals(itemNBT, itemstack.getTag(), true)))
                         {
 
                             int k = removeCount <= 0 ? CompatWrapper.getStackSize(itemstack)
                                     : Math.min(removeCount - i, CompatWrapper.getStackSize(itemstack));
                             i += k;
-                            if (number == 1) stack.setTagCompound(itemstack.getTagCompound());
+                            if (number == 1) stack.setTag(itemstack.getTag());
                             if (removeCount != 0)
                             {
                                 CompatWrapper.increment(itemstack, -k);
@@ -185,7 +185,7 @@ public class EconomyManager
                 giveItem(player, stack);
                 addBalance(shopAccount._id, cost);
                 addBalance(player, -cost);
-                player.sendMessage(new TextComponentString(
+                player.sendMessage(new StringTextComponent(
                         TextFormatting.GREEN + "Remaining Balance: " + TextFormatting.GOLD + getBalance(player)));
             }
             else
@@ -193,7 +193,7 @@ public class EconomyManager
                 int balance = infinite ? Integer.MAX_VALUE : shopAccount.balance;
                 if (balance < cost)
                 {
-                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Shop has Insufficient Funds"));
+                    player.sendMessage(new StringTextComponent(TextFormatting.RED + "Shop has Insufficient Funds"));
                     return false;
                 }
                 int count = 0;
@@ -202,7 +202,7 @@ public class EconomyManager
                     count = CompatWrapper.getStackSize(heldStack);
                     if (count < number)
                     {
-                        player.sendMessage(new TextComponentString(TextFormatting.RED + "You have Insufficient Items"));
+                        player.sendMessage(new StringTextComponent(TextFormatting.RED + "You have Insufficient Items"));
                         return false;
                     }
                     stack = heldStack;
@@ -222,7 +222,7 @@ public class EconomyManager
                     }
                     if (count < number)
                     {
-                        player.sendMessage(new TextComponentString(TextFormatting.RED + "You have Insufficient Items"));
+                        player.sendMessage(new StringTextComponent(TextFormatting.RED + "You have Insufficient Items"));
                         return false;
                     }
                 }
@@ -230,7 +230,7 @@ public class EconomyManager
                 {
                     if (storage == null)
                     {
-                        player.sendMessage(new TextComponentString(TextFormatting.RED + "No Storage"));
+                        player.sendMessage(new StringTextComponent(TextFormatting.RED + "No Storage"));
                         return false;
                     }
                     TileEntity te = player.world.getTileEntity(new BlockPos(storage.x, storage.y, storage.z));
@@ -264,10 +264,10 @@ public class EconomyManager
                     }
                 }
                 player.inventory.clearMatchingItems(stack.getItem(), stack.getItemDamage(), number,
-                        stack.getTagCompound());
+                        stack.getTag());
                 addBalance(shopAccount._id, -cost);
                 addBalance(player, cost);
-                player.sendMessage(new TextComponentString(
+                player.sendMessage(new StringTextComponent(
                         TextFormatting.GREEN + "Remaining Balance: " + TextFormatting.GOLD + getBalance(player)));
             }
             return false;
@@ -337,9 +337,9 @@ public class EconomyManager
     {
         if (evt.getWorld().isRemote) return;
         if (!ConfigManager.INSTANCE.shopsEnabled) return;
-        if (evt.getTarget() instanceof EntityItemFrame)
+        if (evt.getTarget() instanceof ItemEntityFrame)
         {
-            Coordinate c = new Coordinate(evt.getPos().down(), evt.getEntityPlayer().dimension);
+            Coordinate c = new Coordinate(evt.getPos().down(), evt.getPlayerEntity().dimension);
             Shop shop = getShop(c);
             TileEntity tile = evt.getWorld().getTileEntity(new BlockPos(c.x, c.y, c.z));
             if (evt.getItemStack() != null && tile instanceof TileEntitySign && shop == null
@@ -348,24 +348,24 @@ public class EconomyManager
             {
                 boolean infinite = evt.getItemStack().getDisplayName().contains("InfShop");
                 String permission = infinite ? PERMMAKEINFSHOP : PERMMAKESHOP;
-                if (!PermissionAPI.hasPermission(evt.getEntityPlayer(), permission))
+                if (!PermissionAPI.hasPermission(evt.getPlayerEntity(), permission))
                 {
-                    evt.getEntityPlayer().sendMessage(
-                            new TextComponentString(TextFormatting.RED + "You are not allowed to make that shop."));
+                    evt.getPlayerEntity().sendMessage(
+                            new StringTextComponent(TextFormatting.RED + "You are not allowed to make that shop."));
                     return;
                 }
                 try
                 {
                     boolean noTag = evt.getItemStack().getDisplayName().contains("noTag");
-                    shop = addShop(evt.getEntityPlayer(), (EntityItemFrame) evt.getTarget(), c, infinite, noTag);
-                    evt.getEntityPlayer().sendMessage(
-                            new TextComponentString(TextFormatting.GREEN + "Successfully created the shop. "));
+                    shop = addShop(evt.getPlayerEntity(), (ItemEntityFrame) evt.getTarget(), c, infinite, noTag);
+                    evt.getPlayerEntity().sendMessage(
+                            new StringTextComponent(TextFormatting.GREEN + "Successfully created the shop. "));
 
                 }
                 catch (Exception e)
                 {
-                    evt.getEntityPlayer()
-                            .sendMessage(new TextComponentString(TextFormatting.RED + "Error making shop. " + e));
+                    evt.getPlayerEntity()
+                            .sendMessage(new StringTextComponent(TextFormatting.RED + "Error making shop. " + e));
                 }
             }
             if (shop != null)
@@ -383,7 +383,7 @@ public class EconomyManager
         if (evt.getRayTraceResult() == null) return;
         if (evt.getRayTraceResult().entityHit == null) return;
         Entity target = evt.getRayTraceResult().entityHit;
-        if (target instanceof EntityItemFrame)
+        if (target instanceof ItemEntityFrame)
         {
             Coordinate c = new Coordinate(target.getPosition().down(2), target.dimension);
             Shop shop = getShop(c);
@@ -397,9 +397,9 @@ public class EconomyManager
     @SubscribeEvent(receiveCanceled = true)
     public void interactLeftClickEntity(AttackEntityEvent evt)
     {
-        if (evt.getEntityPlayer().getEntityWorld().isRemote) return;
+        if (evt.getPlayerEntity().getEntityWorld().isRemote) return;
         if (!ConfigManager.INSTANCE.shopsEnabled) return;
-        if (evt.getTarget() instanceof EntityItemFrame)
+        if (evt.getTarget() instanceof ItemEntityFrame)
         {
             Coordinate c = new Coordinate(evt.getTarget().getPosition().down(2), evt.getTarget().dimension);
             Shop shop = getShop(c);
@@ -408,17 +408,17 @@ public class EconomyManager
                 evt.setCanceled(true);
                 Account account = _shopMap.get(c);
                 UUID owner = _revBank.get(account);
-                String perm = evt.getEntityPlayer().getUniqueID().equals(owner) ? PERMKILLSHOP : PERMKILLSHOPOTHER;
-                if (PermissionAPI.hasPermission(evt.getEntityPlayer(), perm))
+                String perm = evt.getPlayerEntity().getUniqueID().equals(owner) ? PERMKILLSHOP : PERMKILLSHOPOTHER;
+                if (PermissionAPI.hasPermission(evt.getPlayerEntity(), perm))
                 {
                     removeShop(c);
-                    evt.getEntityPlayer()
-                            .sendMessage(new TextComponentString(TextFormatting.GREEN + "Removed the shop."));
+                    evt.getPlayerEntity()
+                            .sendMessage(new StringTextComponent(TextFormatting.GREEN + "Removed the shop."));
                 }
                 else
                 {
-                    evt.getEntityPlayer()
-                            .sendMessage(new TextComponentString(TextFormatting.RED + "Cannot remove the shop."));
+                    evt.getPlayerEntity()
+                            .sendMessage(new StringTextComponent(TextFormatting.RED + "Cannot remove the shop."));
                 }
             }
         }
@@ -431,11 +431,11 @@ public class EconomyManager
     public void interactRightClickBlock(PlayerInteractEvent.RightClickBlock evt)
     {
         if (evt.getWorld().isRemote || !ConfigManager.INSTANCE.shopsEnabled) return;
-        Coordinate c = new Coordinate(evt.getPos(), evt.getEntityPlayer().dimension);
+        Coordinate c = new Coordinate(evt.getPos(), evt.getPlayerEntity().dimension);
         Shop shop = getShop(c);
         if (shop != null)
         {
-            shop.transact(evt.getEntityPlayer(), evt.getItemStack(), _shopMap.get(c));
+            shop.transact(evt.getPlayerEntity(), evt.getItemStack(), _shopMap.get(c));
         }
     }
 
@@ -452,12 +452,12 @@ public class EconomyManager
         return account;
     }
 
-    public Account getAccount(EntityPlayer player)
+    public Account getAccount(PlayerEntity player)
     {
         return getAccount(player.getUniqueID());
     }
 
-    public static Shop addShop(EntityPlayer owner, EntityItemFrame frame, Coordinate location, boolean infinite,
+    public static Shop addShop(PlayerEntity owner, ItemEntityFrame frame, Coordinate location, boolean infinite,
             boolean noTag)
     {
         Shop shop = new Shop();
@@ -487,7 +487,7 @@ public class EconomyManager
                 MinecraftForge.EVENT_BUS.post(event);
                 if (event.isCanceled())
                 {
-                    owner.sendMessage(new TextComponentString(
+                    owner.sendMessage(new StringTextComponent(
                             TextFormatting.RED + "You may not link that inventory to the shop!"));
                     return null;
                 }
@@ -517,17 +517,17 @@ public class EconomyManager
         return account._shopMap.get(location);
     }
 
-    public static int getBalance(EntityPlayer player)
+    public static int getBalance(PlayerEntity player)
     {
         return getBalance(player.getUniqueID());
     }
 
-    public static void setBalance(EntityPlayer player, int amount)
+    public static void setBalance(PlayerEntity player, int amount)
     {
         setBalance(player.getUniqueID(), amount);
     }
 
-    public static void addBalance(EntityPlayer player, int amount)
+    public static void addBalance(PlayerEntity player, int amount)
     {
         addBalance(player.getUniqueID(), amount);
     }
@@ -551,23 +551,23 @@ public class EconomyManager
         EconomySaveHandler.saveGlobalData();
     }
 
-    public static void giveItem(EntityPlayer entityplayer, ItemStack itemstack)
+    public static void giveItem(PlayerEntity PlayerEntity, ItemStack itemstack)
     {
-        boolean flag = entityplayer.inventory.addItemStackToInventory(itemstack);
+        boolean flag = PlayerEntity.inventory.addItemStackToInventory(itemstack);
         if (flag)
         {
-            entityplayer.world.playSound((EntityPlayer) null, entityplayer.posX, entityplayer.posY, entityplayer.posZ,
+            PlayerEntity.world.playSound((PlayerEntity) null, PlayerEntity.posX, PlayerEntity.posY, PlayerEntity.posZ,
                     SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F,
-                    ((entityplayer.getRNG().nextFloat() - entityplayer.getRNG().nextFloat()) * 0.7F + 1.0F) * 2.0F);
-            entityplayer.inventoryContainer.detectAndSendChanges();
+                    ((PlayerEntity.getRNG().nextFloat() - PlayerEntity.getRNG().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+            PlayerEntity.inventoryContainer.detectAndSendChanges();
         }
         else
         {
-            EntityItem entityitem = entityplayer.dropItem(itemstack, false);
-            if (entityitem != null)
+            ItemEntity ItemEntity = PlayerEntity.dropItem(itemstack, false);
+            if (ItemEntity != null)
             {
-                entityitem.setNoPickupDelay();
-                entityitem.setOwner(entityplayer.getName());
+                ItemEntity.setNoPickupDelay();
+                ItemEntity.setOwner(PlayerEntity.getName());
             }
         }
     }

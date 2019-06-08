@@ -3,12 +3,12 @@ package thut.essentials.commands.land.claims;
 import java.util.logging.Level;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -35,9 +35,9 @@ public class Load extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         if (team == LandManager.getDefaultTeam())
             throw new CommandException("You are not in a team that can claim land.");
@@ -48,7 +48,7 @@ public class Load extends BaseCommand
         int x = MathHelper.floor(sender.getPosition().getX() / 16f);
         int y = MathHelper.floor(sender.getPosition().getY() / 16f);
         int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
-        int dim = sender.getEntityWorld().provider.getDimension();
+        int dim = sender.getEntityWorld().dimension.getDimension();
 
         Coordinate chunk = new Coordinate(x, y, z, dim);
         LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
@@ -64,7 +64,7 @@ public class Load extends BaseCommand
         if (!event.isCanceled())
         {
             LandManager.getInstance().loadLand(player.getEntityWorld(), chunk, team);
-            sender.sendMessage(new TextComponentString("Loaded subchunk for Team" + team.teamName));
+            sender.sendMessage(new StringTextComponent("Loaded subchunk for Team" + team.teamName));
             ThutEssentials.logger.log(Level.FINER, "load: " + team.teamName + " " + chunk);
         }
     }

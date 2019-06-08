@@ -1,12 +1,12 @@
 package thut.essentials.commands.land.claims;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -30,9 +30,9 @@ public class Claim extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         if (team == LandManager.getDefaultTeam())
             throw new CommandException("You are not in a team that can claim land.");
@@ -95,7 +95,7 @@ public class Claim extends BaseCommand
                         count = LandManager.getInstance().countLand(team.teamName);
                         int y = MathHelper.floor(sender.getPosition().getY() / 16f) + i * dir;
                         if (all) y = i * dir;
-                        int dim = sender.getEntityWorld().provider.getDimension();
+                        int dim = sender.getEntityWorld().dimension.getDimension();
                         if (y < 0 || y > 15) continue;
                         Coordinate chunk = new Coordinate(x + dx, y, z + dz, dim);
                         LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
@@ -106,7 +106,7 @@ public class Claim extends BaseCommand
                         if (owner != null)
                         {
                             if (owner.equals(team)) continue;
-                            sender.sendMessage(new TextComponentString("This land is already claimed by " + owner));
+                            sender.sendMessage(new StringTextComponent("This land is already claimed by " + owner));
                             continue;
                         }
                         n++;
@@ -115,11 +115,11 @@ public class Claim extends BaseCommand
                     else
                     {
                         sender.sendMessage(
-                                new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
+                                new StringTextComponent("Claimed " + n + " subchunks for Team" + team.teamName));
                         return;
                     }
                 }
-        sender.sendMessage(new TextComponentString("Claimed " + n + " subchunks for Team" + team.teamName));
+        sender.sendMessage(new StringTextComponent("Claimed " + n + " subchunks for Team" + team.teamName));
         return;
     }
 

@@ -4,11 +4,11 @@ import java.util.function.Predicate;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -38,31 +38,31 @@ public class Back extends BaseCommand
     @SubscribeEvent
     public void move(MoveEvent event)
     {
-        PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getCachedUniqueIdString()).setIntArray("prevPos",
+        PlayerDataHandler.getCustomDataTag(event.getMobEntity().getCachedUniqueIdString()).putIntArray("prevPos",
                 event.getPos());
     }
 
     @SubscribeEvent
     public void death(LivingDeathEvent event)
     {
-        if (event.getEntityLiving() instanceof EntityPlayer)
+        if (event.getMobEntity() instanceof PlayerEntity)
         {
-            BlockPos pos = event.getEntityLiving().getPosition();
-            int[] loc = new int[] { pos.getX(), pos.getY(), pos.getZ(), event.getEntityLiving().dimension };
-            PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getCachedUniqueIdString()).setIntArray("prevPos",
+            BlockPos pos = event.getMobEntity().getPosition();
+            int[] loc = new int[] { pos.getX(), pos.getY(), pos.getZ(), event.getMobEntity().dimension };
+            PlayerDataHandler.getCustomDataTag(event.getMobEntity().getCachedUniqueIdString()).putIntArray("prevPos",
                     loc);
-            PlayerDataHandler.saveCustomData(event.getEntityLiving().getCachedUniqueIdString());
+            PlayerDataHandler.saveCustomData(event.getMobEntity().getCachedUniqueIdString());
         }
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayerMP player = getPlayerBySender(sender);
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
-        NBTTagCompound tptag = tag.getCompoundTag("tp");
+        ServerPlayerEntity player = getPlayerBySender(sender);
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundNBT tptag = tag.getCompound("tp");
         long last = tptag.getLong("backDelay");
-        long time = player.getServer().getWorld(0).getTotalWorldTime();
+        long time = player.getServer().getWorld(0).getGameTime();
         if (last > time)
         {
             player.sendMessage(
@@ -79,11 +79,11 @@ public class Back extends BaseCommand
                 @Override
                 public boolean test(Entity t)
                 {
-                    if (!(t instanceof EntityPlayer)) return false;
-                    PlayerDataHandler.getCustomDataTag(t.getCachedUniqueIdString()).removeTag("prevPos");
-                    tptag.setLong("backDelay", time + ConfigManager.INSTANCE.backReUseDelay);
+                    if (!(t instanceof PlayerEntity)) return false;
+                    PlayerDataHandler.getCustomDataTag(t.getCachedUniqueIdString()).remove("prevPos");
+                    tptag.putLong("backDelay", time + ConfigManager.INSTANCE.backReUseDelay);
                     tag.setTag("tp", tptag);
-                    PlayerDataHandler.saveCustomData((EntityPlayer) t);
+                    PlayerDataHandler.saveCustomData((PlayerEntity) t);
                     return true;
                 }
             };

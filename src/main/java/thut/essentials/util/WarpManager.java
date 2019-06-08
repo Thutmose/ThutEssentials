@@ -8,12 +8,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
@@ -115,13 +115,13 @@ public class WarpManager
         return warpLocs.get(name);
     }
 
-    public static void sendWarpsList(EntityPlayer player)
+    public static void sendWarpsList(PlayerEntity player)
     {
         IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         PlayerContext context = new PlayerContext(player);
-        player.sendMessage(new TextComponentString("================"));
-        player.sendMessage(new TextComponentString("      Warps     "));
-        player.sendMessage(new TextComponentString("================"));
+        player.sendMessage(new StringTextComponent("================"));
+        player.sendMessage(new StringTextComponent("      Warps     "));
+        player.sendMessage(new StringTextComponent("================"));
         for (String s : ConfigManager.INSTANCE.warps)
         {
             String[] args = s.split(":");
@@ -129,18 +129,18 @@ public class WarpManager
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
             Style style = new Style();
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
-            player.sendMessage(new TextComponentString(s).setStyle(style));
+            player.sendMessage(new StringTextComponent(s).setStyle(style));
         }
-        player.sendMessage(new TextComponentString("================"));
+        player.sendMessage(new StringTextComponent("================"));
     }
 
-    public static void attemptWarp(EntityPlayer player, String warpName) throws CommandException
+    public static void attemptWarp(PlayerEntity player, String warpName) throws CommandException
     {
         int[] warp = WarpManager.getWarp(warpName);
-        NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player);
-        NBTTagCompound tptag = tag.getCompoundTag("tp");
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundNBT tptag = tag.getCompound("tp");
         long last = tptag.getLong("warpDelay");
-        long time = player.getServer().getWorld(0).getTotalWorldTime();
+        long time = player.getServer().getWorld(0).getGameTime();
         if (last > time)
         {
             player.sendMessage(
@@ -157,7 +157,7 @@ public class WarpManager
                     TextFormatting.GREEN);
             PlayerMover.setMove(player, ThutEssentials.instance.config.warpActivateDelay, warp[3],
                     new BlockPos(warp[0], warp[1], warp[2]), teleMess, Spawn.INTERUPTED);
-            tptag.setLong("warpDelay", time + ConfigManager.INSTANCE.warpReUseDelay);
+            tptag.putLong("warpDelay", time + ConfigManager.INSTANCE.warpReUseDelay);
             tag.setTag("tp", tptag);
             PlayerDataHandler.saveCustomData(player);
         }

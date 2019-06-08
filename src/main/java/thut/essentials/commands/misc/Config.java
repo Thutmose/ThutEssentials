@@ -12,13 +12,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -44,13 +44,13 @@ public class Config extends BaseCommand
     }
 
     @Override
-    public boolean checkPermission(MinecraftServer server, ICommandSender sender)
+    public boolean checkPermission(MinecraftServer server, ICommandSource sender)
     {
         return true;
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         boolean op = isOp(sender);
         if (args.length == 0) { throw new CommandException("arguments error, press tab for options"); }
@@ -74,7 +74,7 @@ public class Config extends BaseCommand
             {
                 text += o;
             }
-            ITextComponent mess = new TextComponentTranslation("thutcore.command.settings.check", args[0], text);
+            ITextComponent mess = new TranslationTextComponent("thutcore.command.settings.check", args[0], text);
             if (check)
             {
                 sender.sendMessage(mess);
@@ -111,7 +111,7 @@ public class Config extends BaseCommand
             {
                 text += o;
             }
-            mess = new TextComponentTranslation("thutcore.command.settings.set", args[0], text);
+            mess = new TranslationTextComponent("thutcore.command.settings.set", args[0], text);
             sender.sendMessage(mess);
             return;
         }
@@ -123,7 +123,7 @@ public class Config extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return "/" + getName() + "<option name> <optional:newvalue>";
     }
@@ -136,7 +136,7 @@ public class Config extends BaseCommand
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSource sender, String[] args, BlockPos pos)
     {
         List<String> ret = new ArrayList<String>();
         if (args.length == 1)
@@ -177,13 +177,13 @@ public class Config extends BaseCommand
         }
     }
 
-    public static boolean isOp(ICommandSender sender)
+    public static boolean isOp(ICommandSource sender)
     {
-        if (sender instanceof EntityPlayerMP)
+        if (sender instanceof ServerPlayerEntity)
         {
             IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-            return manager.hasPermission(((EntityPlayerMP) sender).getGameProfile(), EDITPERM,
-                    new PlayerContext((EntityPlayer) sender));
+            return manager.hasPermission(((ServerPlayerEntity) sender).getGameProfile(), EDITPERM,
+                    new PlayerContext((PlayerEntity) sender));
         }
         return sender.getName().equalsIgnoreCase("@") || sender.getName().equals("Server");
     }

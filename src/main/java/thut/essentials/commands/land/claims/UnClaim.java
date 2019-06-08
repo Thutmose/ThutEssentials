@@ -3,11 +3,11 @@ package thut.essentials.commands.land.claims;
 import com.google.common.collect.Lists;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
@@ -24,9 +24,9 @@ public class UnClaim extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
             throw new CommandException("You are not allowed to do that.");
@@ -56,7 +56,7 @@ public class UnClaim extends BaseCommand
                     int x = MathHelper.floor(sender.getPosition().getX() / 16f);
                     int y = dir * i;
                     int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
-                    int dim = sender.getEntityWorld().provider.getDimension();
+                    int dim = sender.getEntityWorld().dimension.getDimension();
                     Coordinate c = new Coordinate(x, y, z, dim);
                     LandTeam owner = LandManager.getInstance().getLandOwner(c);
                     if (!unclaimAny) if (owner != null && !team.equals(owner))
@@ -65,7 +65,7 @@ public class UnClaim extends BaseCommand
                     n++;
                     LandManager.getInstance().removeTeamLand(team.teamName, c);
                 }
-                if (n > 0) sender.sendMessage(new TextComponentString("Unclaimed This land for Team" + team.teamName));
+                if (n > 0) sender.sendMessage(new StringTextComponent("Unclaimed This land for Team" + team.teamName));
                 return;
             }
         }
@@ -76,7 +76,7 @@ public class UnClaim extends BaseCommand
             {
                 LandManager.getInstance().removeTeamLand(team.teamName, c);
             }
-            sender.sendMessage(new TextComponentString("Unclaimed all land for Team" + team.teamName));
+            sender.sendMessage(new StringTextComponent("Unclaimed all land for Team" + team.teamName));
             return;
         }
         for (int i = 0; i < num; i++)
@@ -85,7 +85,7 @@ public class UnClaim extends BaseCommand
             int x = MathHelper.floor(sender.getPosition().getX() / 16f);
             int y = MathHelper.floor(sender.getPosition().getY() / 16f) + dir * i;
             int z = MathHelper.floor(sender.getPosition().getZ() / 16f);
-            int dim = sender.getEntityWorld().provider.getDimension();
+            int dim = sender.getEntityWorld().dimension.getDimension();
             Coordinate c = new Coordinate(x, y, z, dim);
             LandTeam owner = LandManager.getInstance().getLandOwner(c);
             if (!unclaimAny)
@@ -94,7 +94,7 @@ public class UnClaim extends BaseCommand
             n++;
             LandManager.getInstance().removeTeamLand(team.teamName, c);
         }
-        if (n > 0) sender.sendMessage(new TextComponentString("Unclaimed This land for Team" + team.teamName));
+        if (n > 0) sender.sendMessage(new StringTextComponent("Unclaimed This land for Team" + team.teamName));
     }
 
 }

@@ -3,11 +3,11 @@ package thut.essentials.commands.warps;
 import java.util.Arrays;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import thut.essentials.util.BaseCommand;
 import thut.essentials.util.WarpManager;
 
@@ -20,13 +20,13 @@ public class SetWarp extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return "/" + getName() + " <warpName>";
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         String warpName = args.length > 0 ? args[0] : null;
         if (warpName == null || warpName.isEmpty()) throw new CommandException("You need to specify the warp name");
@@ -55,7 +55,7 @@ public class SetWarp extends BaseCommand
         }
         else
         {
-            EntityPlayerMP player = getPlayerBySender(sender);
+            ServerPlayerEntity player = getPlayerBySender(sender);
             pos = player.getPosition();
             dim = player.dimension;
         }
@@ -68,7 +68,7 @@ public class SetWarp extends BaseCommand
             e.printStackTrace();
         }
         sender.sendMessage(
-                new TextComponentString("Set " + warpName + " to " + Arrays.toString(WarpManager.getWarp(warpName))));
+                new StringTextComponent("Set " + warpName + " to " + Arrays.toString(WarpManager.getWarp(warpName))));
     }
 
 }

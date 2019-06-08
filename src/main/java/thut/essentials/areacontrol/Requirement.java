@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -21,7 +21,7 @@ public class Requirement
     {
     }
 
-    public boolean fills(EntityPlayer player)
+    public boolean fills(PlayerEntity player)
     {
         IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         for (String node : neededPerms)
@@ -31,7 +31,7 @@ public class Requirement
 
     public interface IRejection
     {
-        void reject(EntityPlayer player);
+        void reject(PlayerEntity player);
     }
 
     public static class TeleportReject implements IRejection
@@ -50,7 +50,7 @@ public class Requirement
         }
 
         @Override
-        public void reject(EntityPlayer player)
+        public void reject(PlayerEntity player)
         {
             if (pos != null) Transporter.teleportEntity(player, new Vector3(pos), dimension);
         }
@@ -70,7 +70,7 @@ public class Requirement
         }
 
         @Override
-        public void reject(EntityPlayer player)
+        public void reject(PlayerEntity player)
         {
             if (dir != null)
             {

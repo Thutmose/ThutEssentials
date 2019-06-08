@@ -15,10 +15,10 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandSenderWrapper;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ICommandSource;
 import net.minecraft.command.PlayerNotFoundException;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.UserListOpsEntry;
 import net.minecraft.util.math.BlockPos;
@@ -28,11 +28,11 @@ import thut.essentials.commands.CommandManager;
 
 public abstract class BaseCommand extends CommandBase
 {
-    public static EntityPlayerMP getPlayerBySender(ICommandSender sender) throws CommandException
+    public static ServerPlayerEntity getPlayerBySender(ICommandSource sender) throws CommandException
     {
-        if (sender instanceof EntityPlayerMP)
+        if (sender instanceof ServerPlayerEntity)
         {
-            return (EntityPlayerMP) sender;
+            return (ServerPlayerEntity) sender;
         }
         else if (sender instanceof CommandSenderWrapper)// if the command is
                                                         // sent by /execute
@@ -85,7 +85,7 @@ public abstract class BaseCommand extends CommandBase
         // Temporarily update the UUID from server player list if possible
         if (profile.getId() == null)
         {
-            EntityPlayer player = server.getPlayerList().getPlayerByUsername(profile.getName());
+            PlayerEntity player = server.getPlayerList().getPlayerByUsername(profile.getName());
             profile = player.getGameProfile();
         }
 
@@ -122,13 +122,13 @@ public abstract class BaseCommand extends CommandBase
         return perm;
     }
 
-    /** Check if the given ICommandSender has permission to execute this
+    /** Check if the given ICommandSource has permission to execute this
      * command */
     @Override
-    public boolean checkPermission(MinecraftServer server, ICommandSender sender)
+    public boolean checkPermission(MinecraftServer server, ICommandSource sender)
     {
-        if (!(sender instanceof EntityPlayer) || !server.isDedicatedServer()) return true;
-        EntityPlayer player = null;
+        if (!(sender instanceof PlayerEntity) || !server.isDedicatedServer()) return true;
+        PlayerEntity player = null;
         try
         {
             player = getCommandSenderAsPlayer(sender);
@@ -150,7 +150,7 @@ public abstract class BaseCommand extends CommandBase
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return "/" + getName();
     }
@@ -163,7 +163,7 @@ public abstract class BaseCommand extends CommandBase
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSource sender, String[] args,
             @Nullable BlockPos pos)
     {
         int last = args.length - 1;

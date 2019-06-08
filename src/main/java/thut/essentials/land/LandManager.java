@@ -16,7 +16,7 @@ import com.mojang.authlib.GameProfile;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -456,7 +456,7 @@ public class LandManager
             _playerTeams.put(id, _default);
             try
             {
-                EntityPlayer player = server.getPlayerList().getPlayerByUUID(id);
+                PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
                 if (player != null)
                 {
                     player.refreshDisplayName();
@@ -527,7 +527,7 @@ public class LandManager
         MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
         try
         {
-            EntityPlayer player = server.getPlayerList().getPlayerByUUID(member);
+            PlayerEntity player = server.getPlayerList().getPlayerByUUID(member);
             if (player != null)
             {
                 player.refreshDisplayName();

@@ -3,15 +3,15 @@ package thut.essentials.commands.economy;
 import java.util.UUID;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
@@ -37,7 +37,7 @@ public class SellLand extends BaseCommand
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
+    public String getUsage(ICommandSource sender)
     {
         return super.getUsage(sender) + " <player> <cost> <optional|4-coordinates x y z w> or " + super.getUsage(sender)
                 + " !clear to clear your current sale offer.";
@@ -52,10 +52,10 @@ public class SellLand extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         if (!ConfigManager.INSTANCE.landEnabled) throw new CommandException("Land is not enabled on this server.");
-        EntityPlayer player = getPlayerBySender(sender);
+        PlayerEntity player = getPlayerBySender(sender);
         // We use this to actually confirm the sale.
         if (args.length == 1)
         {
@@ -64,9 +64,9 @@ public class SellLand extends BaseCommand
             {
                 if (PlayerDataHandler.getCustomDataTag(player).hasKey("land_sale"))
                 {
-                    PlayerDataHandler.getCustomDataTag(player).removeTag("land_sale");
+                    PlayerDataHandler.getCustomDataTag(player).remove("land_sale");
                     PlayerDataHandler.saveCustomData(player);
-                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Cleared land sale offer!"));
+                    player.sendMessage(new StringTextComponent(TextFormatting.RED + "Cleared land sale offer!"));
                 }
                 return;
             }
@@ -78,7 +78,7 @@ public class SellLand extends BaseCommand
                     throw new CommandException("You cannot buy land for the default team");
                 if (buyTeam.land.land.size() >= ConfigManager.INSTANCE.maxLandViaSalesPerTeam)
                     throw new CommandException("Your team may not buy any more land.");
-                NBTTagCompound tag = PlayerDataHandler.getCustomDataTag(player).getCompoundTag("land_sale");
+                CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player).getCompound("land_sale");
                 // check if we have any sales
                 if (tag.hasNoTags()) throw new CommandException("You do not have any sale offers.");
                 int cost = tag.getInteger("c");
@@ -93,26 +93,26 @@ public class SellLand extends BaseCommand
                 EconomyManager.addBalance(seller, cost);
                 EconomyManager.addBalance(player, -cost);
 
-                EntityPlayerMP sellPlayer = server.getPlayerList().getPlayerByUUID(seller);
+                ServerPlayerEntity sellPlayer = server.getPlayerList().getPlayerByUUID(seller);
                 if (sellPlayer != null)
                 {
                     sellPlayer.sendMessage(
-                            new TextComponentString(TextFormatting.GREEN + "Land Sale Complete, you received " + cost));
+                            new StringTextComponent(TextFormatting.GREEN + "Land Sale Complete, you received " + cost));
                 }
                 player.sendMessage(
-                        new TextComponentString(TextFormatting.GREEN + "Land Sale Complete, you spent " + cost));
+                        new StringTextComponent(TextFormatting.GREEN + "Land Sale Complete, you spent " + cost));
 
                 // Transfer the team land, this automatically removes old owner
                 // of the land.
                 LandManager.getInstance().addTeamLand(buyTeam.teamName, coord, true);
                 // Remove sale tag from player.
-                PlayerDataHandler.getCustomDataTag(player).removeTag("land_sale");
+                PlayerDataHandler.getCustomDataTag(player).remove("land_sale");
                 PlayerDataHandler.saveCustomData(player);
                 return;
             }
         }
         if (args.length < 1) throw new CommandException(getUsage(sender));
-        EntityPlayer target = getPlayer(server, sender, args[0]);
+        PlayerEntity target = getPlayer(server, sender, args[0]);
         Coordinate loc = null;
         LandTeam sellTeam = LandManager.getTeam(player);
         LandTeam buyTeam = LandManager.getTeam(target);
@@ -140,18 +140,18 @@ public class SellLand extends BaseCommand
         if (loc == null) throw new CommandException(getUsage(sender));
 
         // Set the nbt tag that the player has offers.
-        NBTTagCompound tag = new NBTTagCompound();
+        CompoundNBT tag = new CompoundNBT();
         tag.setInteger("c", cost);
         tag.setInteger("x", loc.x);
         tag.setInteger("y", loc.y);
         tag.setInteger("z", loc.z);
         tag.setInteger("w", loc.dim);
-        tag.setString("id", player.getCachedUniqueIdString());
+        tag.putString("id", player.getCachedUniqueIdString());
         PlayerDataHandler.getCustomDataTag(target).setTag("land_sale", tag);
         PlayerDataHandler.saveCustomData(target);
 
         // Make a message to send to the target.
-        ITextComponent message = new TextComponentString("==============================================\n")
+        ITextComponent message = new StringTextComponent("==============================================\n")
                 .appendSibling(player.getDisplayName())
                 .appendText(TextFormatting.AQUA + " Wishes to sell you some land!\n\n");
         message.appendText(TextFormatting.AQUA + "It is sub chunk " + TextFormatting.GOLD + loc.x + " " + loc.y + " "
@@ -159,11 +159,11 @@ public class SellLand extends BaseCommand
                 + "\n\n");
         message.appendText(TextFormatting.AQUA + "The offered price is " + TextFormatting.GOLD + cost + "\n\n");
 
-        ITextComponent accept = new TextComponentString(TextFormatting.GREEN + "Accept");
+        ITextComponent accept = new StringTextComponent(TextFormatting.GREEN + "Accept");
         accept.setStyle(new Style());
         accept.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/" + getName() + " !confim"));
 
-        ITextComponent deny = new TextComponentString(TextFormatting.RED + "Deny");
+        ITextComponent deny = new StringTextComponent(TextFormatting.RED + "Deny");
         deny.setStyle(new Style());
         deny.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/" + getName() + " !clear"));
 
@@ -171,7 +171,7 @@ public class SellLand extends BaseCommand
                 .appendText(("\n=============================================="));
         target.sendMessage(message);
 
-        message = new TextComponentString("==============================================\n")
+        message = new StringTextComponent("==============================================\n")
                 .appendText(TextFormatting.AQUA + "Sell offer sent to ").appendSibling(player.getDisplayName());
         message.appendText("\n\n" + TextFormatting.AQUA + "It is sub chunk " + TextFormatting.GOLD + loc.x + " " + loc.y
                 + " " + loc.z + "\n" + TextFormatting.AQUA + "Located in dimension " + TextFormatting.GOLD + loc.dim)

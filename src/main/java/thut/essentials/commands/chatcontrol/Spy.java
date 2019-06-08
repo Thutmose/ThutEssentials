@@ -6,12 +6,12 @@ import java.util.UUID;
 import com.google.common.collect.Sets;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.CommandEvent;
@@ -24,7 +24,7 @@ public class Spy extends BaseCommand
 {
     UUID                serverID      = new UUID(0, 0);
     Set<UUID>           spies         = Sets.newHashSet();
-    Set<ICommandSender> customSenders = Sets.newHashSet();
+    Set<ICommandSource> customSenders = Sets.newHashSet();
 
     public Spy()
     {
@@ -38,8 +38,8 @@ public class Spy extends BaseCommand
         if (event.getCommand().getName().equals("tell") && event.getParameters().length > 1)
         {
             ITextComponent message;
-            EntityPlayer target = null;
-            EntityPlayer sayer;
+            PlayerEntity target = null;
+            PlayerEntity sayer;
             try
             {
                 target = getPlayer(event.getSender().getServer(), event.getSender(), event.getParameters()[0]);
@@ -59,17 +59,17 @@ public class Spy extends BaseCommand
                 values = values + " " + event.getParameters()[i];
             }
             message.appendSibling(sender).appendSibling(arrow).appendSibling(name)
-                    .appendSibling(new TextComponentString(values));
+                    .appendSibling(new StringTextComponent(values));
             for (UUID id : spies)
             {
                 if (id == serverID)
                 {
-                    for (ICommandSender sender2 : customSenders)
+                    for (ICommandSource sender2 : customSenders)
                         sender2.sendMessage(message);
                 }
                 else if (!(id.equals(target.getUniqueID()) || id.equals(sayer.getUniqueID())))
                 {
-                    EntityPlayerMP spy = event.getSender().getServer().getPlayerList().getPlayerByUUID(id);
+                    ServerPlayerEntity spy = event.getSender().getServer().getPlayerList().getPlayerByUUID(id);
                     spy.sendMessage(message);
                 }
             }
@@ -77,10 +77,10 @@ public class Spy extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         UUID id = null;
-        if (!(sender instanceof EntityPlayerMP))
+        if (!(sender instanceof ServerPlayerEntity))
         {
             id = serverID;
         }
@@ -91,13 +91,13 @@ public class Spy extends BaseCommand
         if (spies.remove(id))
         {
             customSenders.remove(sender);
-            sender.sendMessage(new TextComponentString("Spying turned off."));
+            sender.sendMessage(new StringTextComponent("Spying turned off."));
         }
         else
         {
             spies.add(id);
             if (id == serverID) customSenders.add(sender);
-            sender.sendMessage(new TextComponentString("Spying turned on."));
+            sender.sendMessage(new StringTextComponent("Spying turned on."));
         }
     }
 

@@ -1,10 +1,10 @@
 package thut.essentials.commands.economy;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.command.ICommandSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.util.BaseCommand;
@@ -27,28 +27,28 @@ public class Pay extends BaseCommand
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
     {
         int senderBalance = Integer.MAX_VALUE;
-        EntityPlayer payer = null;
-        if (sender instanceof EntityPlayer)
+        PlayerEntity payer = null;
+        if (sender instanceof PlayerEntity)
         {
             payer = getPlayerBySender(sender);
             senderBalance = EconomyManager.getBalance(payer);
         }
         int toSend = Integer.parseInt(args[1]);
         if (toSend <= 0) throw new CommandException("You must pay more than 0");
-        EntityPlayer payee = getPlayer(server, sender, args[0]);
+        PlayerEntity payee = getPlayer(server, sender, args[0]);
         if (toSend <= senderBalance)
         {
             EconomyManager.addBalance(payee, toSend);
             CompatWrapper.sendChatMessage(payee,
-                    new TextComponentString(TextFormatting.AQUA + "You recieved " + TextFormatting.GOLD + toSend
+                    new StringTextComponent(TextFormatting.AQUA + "You recieved " + TextFormatting.GOLD + toSend
                             + TextFormatting.AQUA + " from ").appendSibling(sender.getDisplayName()));
             if (payer != null)
             {
                 EconomyManager.addBalance(payer, -toSend);
-                CompatWrapper.sendChatMessage(payer, new TextComponentString(
+                CompatWrapper.sendChatMessage(payer, new StringTextComponent(
                         TextFormatting.AQUA + "You sent " + TextFormatting.GOLD + toSend + TextFormatting.AQUA + " to ")
                                 .appendSibling(payee.getDisplayName()));
             }

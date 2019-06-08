@@ -3,15 +3,15 @@ package thut.essentials.util;
 import java.lang.reflect.Field;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ServerConnectionFromClientEvent;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
-import net.minecraftforge.api.distmarker.Dist;
 
 public class ServerPauser
 {
@@ -30,7 +30,7 @@ public class ServerPauser
     @SubscribeEvent
     public static void tickEnd(TickEvent.ServerTickEvent event)
     {
-        if (event.phase == Phase.START && event.side == Side.SERVER)
+        if (event.phase == Phase.START && event.side == Dist.DEDICATED_SERVER)
         {
             MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
             paused = pauseTimer-- < 0 && server.isDedicatedServer() && server.getPlayerList().getPlayers().isEmpty();
@@ -38,7 +38,7 @@ public class ServerPauser
             {
                 try
                 {
-                    server.sendMessage(new TextComponentString(TextFormatting.DARK_GREEN + "zzzZZZzzz"));
+                    server.sendMessage(new StringTextComponent(TextFormatting.DARK_GREEN + "zzzZZZzzz"));
                     Thread.sleep(ConfigManager.INSTANCE.pauseTime);
                     f.set(server, ((long) f.get(server)) + ConfigManager.INSTANCE.pauseTime);
                 }

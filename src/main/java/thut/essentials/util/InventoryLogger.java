@@ -8,7 +8,7 @@ import java.util.logging.Level;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.container.IContainerListener;
 import net.minecraft.item.ItemStack;
@@ -24,10 +24,10 @@ public class InventoryLogger
 {
     private static class Listener implements IContainerListener
     {
-        final EntityPlayer    player;
+        final PlayerEntity    player;
         final List<ItemStack> initialList = Lists.newArrayList();
 
-        public Listener(EntityPlayer player, Container opened)
+        public Listener(PlayerEntity player, Container opened)
         {
             this.player = player;
             initialList.addAll(opened.inventoryItemStacks);
@@ -132,11 +132,11 @@ public class InventoryLogger
     @SubscribeEvent
     public static void openInventory(PlayerContainerEvent.Open event)
     {
-        Coordinate c = Coordinate.getChunkCoordFromWorldCoord(event.getEntityPlayer().getPosition(),
-                event.getEntityPlayer().dimension);
+        Coordinate c = Coordinate.getChunkCoordFromWorldCoord(event.getPlayerEntity().getPosition(),
+                event.getPlayerEntity().dimension);
         ThutEssentials.logger.log(Level.FINER, c + " open " + event.getContainer().getClass() + " "
-                + event.getEntityPlayer().getUniqueID() + " " + event.getEntityPlayer().getName());
+                + event.getPlayerEntity().getUniqueID() + " " + event.getPlayerEntity().getName());
         if (!blacklist.contains(event.getContainer().getClass().getName()))
-            event.getContainer().addListener(new Listener(event.getEntityPlayer(), event.getContainer()));
+            event.getContainer().addListener(new Listener(event.getPlayerEntity(), event.getContainer()));
     }
 }
