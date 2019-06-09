@@ -2,14 +2,14 @@ package thut.essentials.world;
 
 import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 
-public class WorldServerMulti extends WorldServer
+public class ServerWorldMulti extends ServerWorld
 {
 
-    public WorldServerMulti(MinecraftServer server, ISaveHandler saveHandlerIn, WorldInfo info, int dimensionId,
+    public ServerWorldMulti(MinecraftServer server, ISaveHandler saveHandlerIn, WorldInfo info, int dimensionId,
             Profiler profilerIn)
     {
         super(server, saveHandlerIn, info, dimensionId, profilerIn);

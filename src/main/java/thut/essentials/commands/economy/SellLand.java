@@ -141,11 +141,11 @@ public class SellLand extends BaseCommand
 
         // Set the nbt tag that the player has offers.
         CompoundNBT tag = new CompoundNBT();
-        tag.setInteger("c", cost);
-        tag.setInteger("x", loc.x);
-        tag.setInteger("y", loc.y);
-        tag.setInteger("z", loc.z);
-        tag.setInteger("w", loc.dim);
+        tag.putInt("c", cost);
+        tag.putInt("x", loc.x);
+        tag.putInt("y", loc.y);
+        tag.putInt("z", loc.z);
+        tag.putInt("w", loc.dim);
         tag.putString("id", player.getCachedUniqueIdString());
         PlayerDataHandler.getCustomDataTag(target).setTag("land_sale", tag);
         PlayerDataHandler.saveCustomData(target);

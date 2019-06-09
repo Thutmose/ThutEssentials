@@ -16,7 +16,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.Teleporter;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -65,13 +65,13 @@ public class Transporter
     // From RFTools.
     public static class TTeleporter extends Teleporter
     {
-        private final WorldServer worldServerInstance;
+        private final ServerWorld worldServerInstance;
         private boolean           move = true;
         private double            x;
         private double            y;
         private double            z;
 
-        public TTeleporter(WorldServer world, double x, double y, double z)
+        public TTeleporter(ServerWorld world, double x, double y, double z)
         {
             super(world);
             this.worldServerInstance = world;
@@ -80,7 +80,7 @@ public class Transporter
             this.z = z;
         }
 
-        public TTeleporter(WorldServer worldServerForDimension)
+        public TTeleporter(ServerWorld worldServerForDimension)
         {
             super(worldServerForDimension);
             this.worldServerInstance = worldServerForDimension;
@@ -275,7 +275,7 @@ public class Transporter
         }
         if (!passengers.isEmpty()) MinecraftForge.EVENT_BUS
                 .register(new ReMounter(entity, dimension, passengers.toArray(new Entity[passengers.size()])));
-        WorldServer world = entity.getServer().getWorld(dimension);
+        ServerWorld world = entity.getServer().getWorld(dimension);
         EntityTracker tracker = world.getEntityTracker();
         tracker.untrack(entity);
         tracker.track(entity);
@@ -289,7 +289,7 @@ public class Transporter
         if (oldDimension == dimension) return entityIn;
         if (!(entityIn instanceof ServerPlayerEntity)) { return changeDimension(entityIn, t2, dimension); }
         MinecraftServer server = entityIn.world.getMinecraftServer();
-        WorldServer worldServer = server.getWorld(dimension);
+        ServerWorld worldServer = server.getWorld(dimension);
         Teleporter teleporter = new TTeleporter(worldServer, t2.x, t2.y, t2.z);
         ServerPlayerEntity playerIn = (ServerPlayerEntity) entityIn;
         // Prevents death due to say world border size differences.
@@ -315,8 +315,8 @@ public class Transporter
             entityIn.world.profiler.startSection("changeDimension");
             MinecraftServer minecraftserver = entityIn.getServer();
             int i = entityIn.dimension;
-            WorldServer worldserver = minecraftserver.getWorld(i);
-            WorldServer worldserver1 = minecraftserver.getWorld(dimensionIn);
+            ServerWorld worldserver = minecraftserver.getWorld(i);
+            ServerWorld worldserver1 = minecraftserver.getWorld(dimensionIn);
             entityIn.dimension = dimensionIn;
 
             if (i == 1 && dimensionIn == 1)

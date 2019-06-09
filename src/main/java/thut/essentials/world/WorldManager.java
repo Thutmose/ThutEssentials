@@ -17,7 +17,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
 import net.minecraft.world.dimension.DimensionType;
@@ -122,13 +122,13 @@ public class WorldManager
         }
     }
 
-    public static WorldServer initDimension(int dim, String worldName, String worldType, String generatorOptions,
+    public static ServerWorld initDimension(int dim, String worldName, String worldType, String generatorOptions,
             Long seed)
     {
         return initDimension(dim, worldName, worldType, generatorOptions, DimensionType.OVERWORLD, seed);
     }
 
-    public static WorldServer initDimension(int dim, String worldName, String worldType, String generatorOptions,
+    public static ServerWorld initDimension(int dim, String worldName, String worldType, String generatorOptions,
             DimensionType dimType, Long seed)
     {
         World overworld = DimensionManager.getWorld(0);
@@ -151,7 +151,7 @@ public class WorldManager
         WorldSettings settings = new WorldSettings(seed == null ? overworld.getSeed() : seed, old.getGameType(),
                 old.isMapFeaturesEnabled(), old.isHardcoreModeEnabled(), WorldType.parseWorldType(worldType));
         settings.setGeneratorOptions(generatorOptions);
-        WorldServer newWorld = WorldManager.initDimension(dim, settings, worldName);
+        ServerWorld newWorld = WorldManager.initDimension(dim, settings, worldName);
         DimensionManager.setWorld(dim, newWorld, FMLCommonHandler.instance().getMinecraftServerInstance());
         if (oldWorld != null && newWorld != null)
         {
@@ -169,12 +169,12 @@ public class WorldManager
         return newWorld;
     }
 
-    public static WorldServer initDimension(int dim, WorldSettings settings, String name)
+    public static ServerWorld initDimension(int dim, WorldSettings settings, String name)
     {
         DimensionManager.initDimension(dim);
-        WorldServer overworld = DimensionManager.getWorld(0);
+        ServerWorld overworld = DimensionManager.getWorld(0);
         WorldInfo info = new WorldInfo(settings, name);
-        WorldServerMulti newWorld = new WorldServerMulti(overworld.getMinecraftServer(), overworld.getSaveHandler(),
+        ServerWorldMulti newWorld = new ServerWorldMulti(overworld.getMinecraftServer(), overworld.getSaveHandler(),
                 info, dim, overworld.profiler);
         return newWorld;
     }

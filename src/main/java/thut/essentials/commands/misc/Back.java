@@ -14,7 +14,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -101,7 +101,7 @@ public class Back extends BaseCommand
     private Coordinate getBackSpot(int[] pos)
     {
         Coordinate spot = new Coordinate(pos[0], pos[1], pos[2], pos[3]);
-        WorldServer world = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(pos[3]);
+        ServerWorld world = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(pos[3]);
         if (world == null) return null;
         BlockPos check = new BlockPos(spot.x, spot.y, spot.z);
         if (valid(check, world)) return spot;
