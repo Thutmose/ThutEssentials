@@ -5,7 +5,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.command.ICommandSource;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -144,7 +144,7 @@ public class CompatWrapper
         in.processInitialInteract(player, hand);
     }
 
-    public static boolean interactWithBlock(Block block, World worldIn, BlockPos pos, IBlockState state,
+    public static boolean interactWithBlock(Block block, World worldIn, BlockPos pos, BlockState state,
             PlayerEntity playerIn, Hand hand, @Nullable ItemStack heldItem, Direction side, float hitX, float hitY,
             float hitZ)
     {
@@ -157,7 +157,7 @@ public class CompatWrapper
     }
 
     @SuppressWarnings("deprecation")
-    public static IBlockState getBlockStateFromMeta(Block block, int meta)
+    public static BlockState getBlockStateFromMeta(Block block, int meta)
     {
         return block.getStateFromMeta(meta);
     }

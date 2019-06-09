@@ -81,12 +81,12 @@ public class SellLand extends BaseCommand
                 CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player).getCompound("land_sale");
                 // check if we have any sales
                 if (tag.hasNoTags()) throw new CommandException("You do not have any sale offers.");
-                int cost = tag.getInteger("c");
+                int cost = tag.getInt("c");
                 // Check if we have enough money for the sale
                 int balance = EconomyManager.getBalance(player);
                 if (balance < cost) throw new CommandException("Insufficient Funds, cost is " + cost);
-                Coordinate coord = new Coordinate(tag.getInteger("x"), tag.getInteger("y"), tag.getInteger("z"),
-                        tag.getInteger("w"));
+                Coordinate coord = new Coordinate(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"),
+                        tag.getInt("w"));
 
                 UUID seller = UUID.fromString(tag.getString("id"));
 

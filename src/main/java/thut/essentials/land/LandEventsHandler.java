@@ -13,7 +13,7 @@ import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.IEntityOwnable;
 import net.minecraft.entity.item.ItemEntityFrame;
@@ -45,7 +45,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.event.world.BlockEvent.FarmlandTrampleEvent;
-import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
+import net.minecraftforge.event.world.BlockEvent.EntityPlaceEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -229,7 +229,7 @@ public class LandEventsHandler
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void placeBlocks(PlaceEvent evt)
+        public void placeBlocks(EntityPlaceEvent evt)
         {
             if (evt.getPlayer().getEntityWorld().isRemote) return;
             if (!ConfigManager.INSTANCE.landEnabled) return;
@@ -836,7 +836,7 @@ public class LandEventsHandler
             if (owner.allPublic) return;
 
             Block block = null;
-            IBlockState state = evt.getWorld().getBlockState(evt.getPos());
+            BlockState state = evt.getWorld().getBlockState(evt.getPos());
             block = state.getBlock();
             String name = block.getRegistryName().toString();
             if (blockUseWhiteList.contains(name)) { return; }

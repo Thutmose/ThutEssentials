@@ -2,7 +2,7 @@ package thut.essentials.commands.misc;
 
 import java.util.function.Predicate;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSource;
 import net.minecraft.entity.Entity;
@@ -122,8 +122,8 @@ public class Back extends BaseCommand
 
     private boolean valid(BlockPos pos, World world)
     {
-        IBlockState state1 = world.getBlockState(pos);
-        IBlockState state2 = world.getBlockState(pos.up());
+        BlockState state1 = world.getBlockState(pos);
+        BlockState state2 = world.getBlockState(pos.up());
         boolean valid1 = state1 == null || !state1.getMaterial().isSolid();
         boolean valid2 = state2 == null || !state2.getMaterial().isSolid();
         return valid1 && valid2;

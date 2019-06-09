@@ -3,7 +3,7 @@ package thut.essentials.commands.rtp;
 import java.util.Random;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSource;
 import net.minecraft.entity.player.PlayerEntity;
@@ -69,7 +69,7 @@ public class RTP extends BaseCommand
         else sender.sendMessage(new StringTextComponent("No spot found."));
     }
 
-    private boolean isValid(IBlockState ground, IBlockState lower, IBlockState upper)
+    private boolean isValid(BlockState ground, BlockState lower, BlockState upper)
     {
         return ground.isBlockNormalCube() && validMaterial(lower.getMaterial()) && validMaterial(upper.getMaterial());
     }
@@ -92,9 +92,9 @@ public class RTP extends BaseCommand
     private BlockPos checkSpot(PlayerEntity player)
     {
         BlockPos position = calculatePos();
-        IBlockState ground = player.getEntityWorld().getBlockState(position);
-        IBlockState lower = player.getEntityWorld().getBlockState(position.up());
-        IBlockState upper = player.getEntityWorld().getBlockState(position.up(2));
+        BlockState ground = player.getEntityWorld().getBlockState(position);
+        BlockState lower = player.getEntityWorld().getBlockState(position.up());
+        BlockState upper = player.getEntityWorld().getBlockState(position.up(2));
         // If the block we're standing on is air or liquid or if the two blocks
         // we take up are liquid then return null, check failed.
         if (isValid(ground, lower, upper)) { return position; }

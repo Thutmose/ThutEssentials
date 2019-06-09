@@ -35,8 +35,8 @@ public class Speed extends BaseCommand
         CompoundNBT speed = tag.getCompound("speed");
         if (!speed.hasKey("defaultWalk"))
         {
-            speed.setDouble("defaultWalk", player.capabilities.getWalkSpeed());
-            speed.setDouble("defaultFly", player.capabilities.getFlySpeed());
+            speed.putDouble("defaultWalk", player.capabilities.getWalkSpeed());
+            speed.putDouble("defaultFly", player.capabilities.getFlySpeed());
         }
         CompoundNBT cap = new CompoundNBT();
         player.capabilities.writeCapabilitiesToNBT(cap);
