@@ -83,7 +83,10 @@ public class KitManager
                 JAXBContext jaxbContext = JAXBContext.newInstance(Kits.class);
                 Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
                 FileReader reader = new FileReader(file);
-                Kits database = (Kits) unmarshaller.unmarshal(reader);
+                Object obj = unmarshaller.unmarshal(reader);
+
+                Kits database = obj instanceof Kits ? (Kits) obj : new Kits();
+                if (obj instanceof XMLStarterItems) database.kits.add((XMLStarterItems) obj);
                 reader.close();
 
                 for (XMLStarterItems items : database.kits)
