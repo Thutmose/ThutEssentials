@@ -1,57 +1,45 @@
 package thut.essentials.commands.land.util;
 
-import java.util.UUID;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSource;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.PermissionAPI;
+import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.land.LandManager;
-import thut.essentials.land.LandManager.LandTeam;
-import thut.essentials.util.BaseCommand;
-import thut.essentials.util.ConfigManager;
-import thut.essentials.util.RuleManager;
 
-public class Chat extends BaseCommand
+public class Chat
 {
 
-    public Chat()
+    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        super("tchat", 0);
+        // TODO configurable this.
+        final String name = "team_chat";
+        if (Essentials.config.commandBlacklist.contains(name)) return;
+        String perm;
+        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+                "Can the player use their team chat.");
+
+        // Setup with name and permission
+        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+                perm));
+
+        // Set up the command's arguments
+        command = command.then(Commands.argument("message", StringArgumentType.greedyString()).executes(ctx -> Chat
+                .execute(ctx.getSource(), StringArgumentType.getString(ctx, "message"))));
     }
 
-    @Override
-    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
+    private static int execute(final CommandSource source, final String message) throws CommandSyntaxException
     {
-        String message = args[0];
-        for (int i = 1; i < args.length; i++)
-        {
-            message = message + " " + args[i];
-        }
-        message = RuleManager.format(message);
-        ITextComponent mess = new StringTextComponent("[Team]" + sender.getDisplayName().getFormattedText() + ": ");
-        mess.getStyle().setColor(TextFormatting.YELLOW);
-        mess.appendSibling(CommandManager.makeFormattedComponent(message, TextFormatting.AQUA, false));
-        LandTeam team = LandManager.getTeam(getPlayerBySender(sender));
-        if (ConfigManager.INSTANCE.logTeamChat) server.sendMessage(mess);
-        for (UUID id : team.member)
-        {
-            try
-            {
-                PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
-                if (player != null)
-                {
-                    player.sendMessage(mess);
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
+        final PlayerEntity sender = source.asPlayer();
+        // source.sendFeedback(new
+        // TranslationTextComponent("thutessentials.team.created", teamname),
+        // true);
+        return 0;
     }
 }

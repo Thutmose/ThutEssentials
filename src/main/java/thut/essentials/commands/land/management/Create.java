@@ -1,41 +1,59 @@
 package thut.essentials.commands.land.management;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.server.permission.IPermissionHandler;
-import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.context.PlayerContext;
+import java.util.UUID;
+
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
+import net.minecraft.util.text.TranslationTextComponent;
+import thut.essentials.Essentials;
+import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
-import thut.essentials.util.BaseCommand;
 
-public class Create extends BaseCommand
+public class Create
 {
-    public Create()
+
+    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        super("createteam", 0);
+        // TODO configurable this.
+        final String name = "create_team";
+        if (Essentials.config.commandBlacklist.contains(name)) return;
+        final String perm = LandEventsHandler.PERMCREATETEAM;
+
+        // Setup with name and permission
+        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+                perm));
+
+        // Set up the command's arguments
+        command = command.then(Commands.argument("team_name", StringArgumentType.string()).executes(ctx -> Create
+                .execute(ctx.getSource(), StringArgumentType.getString(ctx, "team_name"))));
     }
 
-    @Override
-    public String getUsage(ICommandSource sender)
+    private static int execute(final CommandSource source, final String teamname)
     {
-        return "/" + getName() + " <team name>";
-    }
-
-    @Override
-    public void execute(MinecraftServer server, ICommandSource sender, String[] args) throws CommandException
-    {
-        if (args.length != 1) throw new CommandException(getUsage(sender));
-        String teamname = args[0];
-        PlayerEntity player = getPlayerBySender(sender);
-        IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-        PlayerContext context = new PlayerContext(player);
-        if (!manager.hasPermission(player.getGameProfile(), LandEventsHandler.PERMCREATETEAM, context))
-            throw new CommandException("You are not allowed to create a team");
-        LandManager.getInstance().createTeam(player.getUniqueID(), teamname);
-        player.sendMessage(new StringTextComponent("You created Team " + teamname));
+        UUID toAdd = null;
+        try
+        {
+            toAdd = source.asPlayer().getUniqueID();
+        }
+        catch (final Exception e)
+        {
+            // This was run from server to just generate the team.
+        }
+        try
+        {
+            LandManager.getInstance().createTeam(toAdd, teamname);
+        }
+        catch (final IllegalArgumentException e)
+        {
+            source.sendErrorMessage(new TranslationTextComponent(e.getMessage()));
+            return 1;
+        }
+        source.sendFeedback(new TranslationTextComponent("thutessentials.team.created", teamname), true);
+        return 0;
     }
 }

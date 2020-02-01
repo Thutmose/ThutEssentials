@@ -8,20 +8,22 @@ import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.eventbus.api.Cancelable;
 
 @Cancelable
-/** Cancel this event to allow the item to be used. These events are only called
- * in the case where these items are about to be denied of use */
+/**
+ * Cancel this event to allow the item to be used. These events are only called
+ * in the case where these items are about to be denied of use
+ */
 public class DenyItemUseEvent extends EntityEvent
 {
     private final ItemStack toUse;
 
-    private final UseType   type;
+    private final UseType type;
 
     public UseType getType()
     {
-        return type;
+        return this.type;
     }
 
-    public DenyItemUseEvent(Entity user, @Nullable ItemStack toUse, UseType type)
+    public DenyItemUseEvent(final Entity user, @Nullable final ItemStack toUse, final UseType type)
     {
         super(user);
         this.toUse = toUse;
@@ -31,7 +33,7 @@ public class DenyItemUseEvent extends EntityEvent
     @Nullable
     public ItemStack getItem()
     {
-        return toUse;
+        return this.toUse;
     }
 
     public static enum UseType
