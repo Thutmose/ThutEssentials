@@ -22,9 +22,18 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.ClickEvent.Action;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
+import thut.essentials.Essentials;
 import thut.essentials.land.LandEventsHandler;
+import thut.essentials.util.PlayerMover;
 
 public class CommandManager
 {
@@ -188,26 +197,37 @@ public class CommandManager
 
     public static void register_commands(final CommandDispatcher<CommandSource> commandDispatcher)
     {
+        // We do this first, as commands might need it.
+        MinecraftForge.EVENT_BUS.register(new PlayerMover());
         // Register commands.
         try
         {
             final List<Class<?>> foundClasses = ClassFinder.find(CommandManager.class.getPackage().getName());
+
+            foundClasses.removeIf(c -> c.getName().startsWith("thut.essentials.commands.CommandManage"));
+
             final List<String> classNames = Lists.newArrayList();
             Method m;
             for (final Class<?> candidateClass : foundClasses)
-                if ((m = candidateClass.getDeclaredMethod("register", CommandDispatcher.class)) != null)
+                try
                 {
-                    classNames.add(candidateClass.getName());
-                    try
+                    if ((m = candidateClass.getDeclaredMethod("register", CommandDispatcher.class)) != null)
                     {
-                        m.setAccessible(true);
-                        m.invoke(null, commandDispatcher);
+                        classNames.add(candidateClass.getName());
+                        try
+                        {
+                            m.setAccessible(true);
+                            m.invoke(null, commandDispatcher);
+                        }
+                        catch (final Exception e)
+                        {
+                            e.printStackTrace();
+                        }
                     }
-                    catch (final Exception e)
-                    {
-                        e.printStackTrace();
-                    }
-
+                }
+                catch (final Exception e)
+                {
+                    Essentials.LOGGER.debug("No register found for " + candidateClass);
                 }
             Collections.sort(classNames);
 
@@ -217,4 +237,42 @@ public class CommandManager
             e.printStackTrace();
         }
     }
+
+    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
+            final boolean bold, final Object[] args)
+    {
+        return new TranslationTextComponent(text, args).setStyle(new Style().setBold(bold).setColor(colour));
+    }
+
+    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
+            final Object[] args)
+    {
+        return new TranslationTextComponent(text, args).setStyle(new Style().setColor(colour));
+    }
+
+    public static ITextComponent makeFormattedCommandLink(final String text, final String command,
+            final TextFormatting colour, final boolean bold, final Object[] args)
+    {
+        return new TranslationTextComponent(text, args).setStyle(new Style().setBold(bold).setColor(colour)
+                .setClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
+    }
+
+    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
+            final boolean bold)
+    {
+        return new TranslationTextComponent(text).setStyle(new Style().setBold(bold).setColor(colour));
+    }
+
+    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour)
+    {
+        return new TranslationTextComponent(text).setStyle(new Style().setColor(colour));
+    }
+
+    public static ITextComponent makeFormattedCommandLink(final String text, final String command,
+            final TextFormatting colour, final boolean bold)
+    {
+        return new TranslationTextComponent(text).setStyle(new Style().setBold(bold).setColor(colour).setClickEvent(
+                new ClickEvent(Action.RUN_COMMAND, command)));
+    }
+
 }

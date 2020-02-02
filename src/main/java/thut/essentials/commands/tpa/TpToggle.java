@@ -1,4 +1,4 @@
-package thut.essentials.commands.land.util;
+package thut.essentials.commands.tpa;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -6,31 +6,30 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.land.LandManager;
-import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.PlayerDataHandler;
 
-public class Check
+public class TpToggle
 {
-
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
         // TODO configurable this.
-        final String name = "my_team";
+        final String name = "tptoggle";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL,
-                "Can the player see their own team's name.");
+        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
         LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
-        // No target argument version
-        command = command.executes(ctx -> Check.execute(ctx.getSource()));
+        // Register the execution.
+        command = command.executes(ctx -> TpToggle.execute(ctx.getSource()));
 
         // Actually register the command.
         commandDispatcher.register(command);
@@ -38,8 +37,15 @@ public class Check
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final LandTeam team = LandManager.getTeam(source.asPlayer());
-        source.sendFeedback(new TranslationTextComponent("thutessentials.team.my_team", team.teamName), true);
+        final PlayerEntity player = source.asPlayer();
+        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundNBT tpaTag = tag.getCompound("tpa");
+        final boolean ignore = !tpaTag.getBoolean("ignore");
+        tpaTag.putBoolean("ignore", ignore);
+        tag.put("tpa", tpaTag);
+        PlayerDataHandler.saveCustomData(player);
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.ignoreset" + ignore,
+                TextFormatting.DARK_GREEN, true));
         return 0;
     }
 }

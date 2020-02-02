@@ -38,9 +38,12 @@ public class Members
         // Setup with name and permission
         LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
-        // No target argument version
+
         command = command.then(Commands.argument("team_name", StringArgumentType.string()).executes(ctx -> Members
                 .execute(ctx.getSource(), StringArgumentType.getString(ctx, "team_name"))));
+
+        // Actually register the command.
+        commandDispatcher.register(command);
     }
 
     private static int execute(final CommandSource source, final String teamname)

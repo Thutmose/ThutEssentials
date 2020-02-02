@@ -1,5 +1,7 @@
 package thut.essentials.commands.land.util;
 
+import java.util.UUID;
+
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -8,10 +10,17 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.RuleManager;
 
 public class Chat
 {
@@ -32,14 +41,34 @@ public class Chat
         // Set up the command's arguments
         command = command.then(Commands.argument("message", StringArgumentType.greedyString()).executes(ctx -> Chat
                 .execute(ctx.getSource(), StringArgumentType.getString(ctx, "message"))));
+
+        // Actually register the command.
+        commandDispatcher.register(command);
     }
 
     private static int execute(final CommandSource source, final String message) throws CommandSyntaxException
     {
         final PlayerEntity sender = source.asPlayer();
-        // source.sendFeedback(new
-        // TranslationTextComponent("thutessentials.team.created", teamname),
-        // true);
+        final MinecraftServer server = source.getServer();
+        final LandTeam team = LandManager.getTeam(sender);
+
+        final ITextComponent mess = new StringTextComponent("[Team]" + sender.getDisplayName().getFormattedText()
+                + ": ");
+        mess.getStyle().setColor(TextFormatting.YELLOW);
+        mess.appendSibling(CommandManager.makeFormattedComponent(RuleManager.format(message), TextFormatting.AQUA,
+                false));
+
+        if (Essentials.config.logTeamChat) server.sendMessage(mess);
+        for (final UUID id : team.member)
+            try
+            {
+                final PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
+                if (player != null) player.sendMessage(mess);
+            }
+            catch (final Exception e)
+            {
+                e.printStackTrace();
+            }
         return 0;
     }
 }

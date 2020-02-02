@@ -31,6 +31,9 @@ public class Create
         // Set up the command's arguments
         command = command.then(Commands.argument("team_name", StringArgumentType.string()).executes(ctx -> Create
                 .execute(ctx.getSource(), StringArgumentType.getString(ctx, "team_name"))));
+
+        // Actually register the command.
+        commandDispatcher.register(command);
     }
 
     private static int execute(final CommandSource source, final String teamname)

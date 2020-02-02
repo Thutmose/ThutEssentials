@@ -9,8 +9,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandEventsHandler;
+import thut.essentials.land.LandManager;
+import thut.essentials.util.PlayerDataHandler;
 
 @Mod(Reference.MODID)
 @EventBusSubscriber
@@ -23,6 +26,7 @@ public class Essentials
     public Essentials()
     {
         MinecraftForge.EVENT_BUS.register(this);
+        thut.essentials.config.Config.setupConfigs(Essentials.config, Reference.MODID, Reference.MODID);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -30,5 +34,13 @@ public class Essentials
     {
         LandEventsHandler.TEAMMANAGER.registerPerms();
         CommandManager.register_commands(event.getCommandDispatcher());
+    }
+
+    @SubscribeEvent
+    public void serverUnload(final FMLServerStoppingEvent evt)
+    {
+        LandManager.clearInstance();
+        PlayerDataHandler.saveAll();
+        PlayerDataHandler.clear();
     }
 }

@@ -38,6 +38,9 @@ public class Teams
                 perm));
         // No target argument version
         command = command.executes(ctx -> Teams.execute(ctx.getSource()));
+
+        // Actually register the command.
+        commandDispatcher.register(command);
     }
 
     private static int execute(final CommandSource source)

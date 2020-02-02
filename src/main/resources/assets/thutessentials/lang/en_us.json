@@ -1,4 +1,31 @@
 {
     "_comment": "ThutEssentials Language Properties",
     "_comment": "@author Thutmose",
+    
+    
+    "_comment": "General Teleport Related",
+    
+    "thutessentials.tp.tosoon": "Too soon between teleport attempts!",
+    "thutessentials.tp.standstill": "You must remain still to teleport!",
+    "thutessentials.tp.dismount": "You must dismount to teleport!",
+    "thutessentials.tp.tele_init": "Please remain stationary while the teleport occurs.",
+    
+    "thutessentials.spawn.succeed": "You returned to Spawn.",
+    
+    "_comment": "Back Related",
+    
+    "thutessentials.back.noroom": "There is no room to go back there!",
+    "thutessentials.back.noback": "You have no valid return location.",
+    "thutessentials.back.succeed": "You went back to your previous location.",
+    
+    "_comment": "TPA Related",
+    
+    "thutessentials.tpa.accept": "Accept",
+    "thutessentials.tpa.deny": "Deny",
+    "thutessentials.tpa.requested": " requests to TPA to you",
+    "thutessentials.tpa.requestsent": " was sent a TPA request",
+    "thutessentials.tpa.accepted_user": "Your TPA request was accepted!",
+    "thutessentials.tpa.accepted_target": "You accepted the TPA request!",
+    "thutessentials.tpa.denied_user": "Your TPA request was denied!",
+    "thutessentials.tpa.denied_target": "You denied the TPA request!"
 }

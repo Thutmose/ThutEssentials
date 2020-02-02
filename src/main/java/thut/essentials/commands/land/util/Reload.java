@@ -30,6 +30,9 @@ public class Reload
                 perm));
         // No target argument version
         command = command.executes(ctx -> Reload.execute(ctx.getSource()));
+
+        // Actually register the command.
+        commandDispatcher.register(command);
     }
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
