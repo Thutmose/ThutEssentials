@@ -480,7 +480,7 @@ public class LandEventsHandler
         public void projectileImpact(final ProjectileImpactEvent evt)
         {
             if (evt.getEntity().getEntityWorld().isRemote) return;
-            if (!Essentials.config.shopsEnabled) return;
+            if (!Essentials.config.landEnabled) return;
             if (evt.getRayTraceResult().getType() == Type.MISS) return;
             if (!(evt.getRayTraceResult() instanceof EntityRayTraceResult)) return;
             final EntityRayTraceResult hit = (EntityRayTraceResult) evt.getRayTraceResult();

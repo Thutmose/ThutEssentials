@@ -26,7 +26,7 @@ public class SpawnDefuzzer
     public static void deFuzzRespawn(final PlayerRespawnEvent event)
     {
         if (!Essentials.config.defuzz) return;
-        if (event.getPlayer().getEntityWorld().isRemote || !event.getPlayer().getServer().isDedicatedServer()) return;
+        if (!(event.getPlayer() instanceof ServerPlayerEntity)) return;
         final BlockPos worldSpawn = event.getPlayer().getEntityWorld().getSpawnPoint();
         final BlockPos playerSpawn = event.getPlayer().getBedLocation(event.getPlayer().dimension);
         if (playerSpawn == null) PlayerMover.setMove(event.getPlayer(), 0, event.getPlayer().getEntityWorld()

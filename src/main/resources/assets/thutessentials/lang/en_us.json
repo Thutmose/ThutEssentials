@@ -3,6 +3,30 @@
     "_comment": "@author Thutmose",
     
     
+    "_comment": "Economy Related",
+    
+    "thutessentials.econ.not_allowed": "§cYou are not allowed to make that shop!",
+    "thutessentials.econ.not_allowed_link": "§cYou may not link that inventory to the shop!",
+    "thutessentials.econ.not_allowed_remove": "§cYou may not remove the shop!",
+    "thutessentials.econ.errored": "§cError creating the shop!",
+    "thutessentials.econ.no_storage": "§cNo Storage for the shop!",
+    "thutessentials.econ.no_items_you": "§cYou have Insufficient Items.",
+    "thutessentials.econ.no_items_shop": "§cShop has Insufficient Items.",
+    "thutessentials.econ.no_funds_you": "§cYou have Insufficient Funds.",
+    "thutessentials.econ.no_funds_shop": "§cShop has Insufficient Funds.",
+    "thutessentials.econ.no_recycle": "§cYou need to hold the item you want to recycle.",
+    
+    "thutessentials.econ.remove": "§aYou removed the shop.",
+    "thutessentials.econ.made": "§aSuccessfully created the shop.",
+    
+    "thutessentials.econ.balance.remaining": "§aRemaining Balance: §6%s",
+    "thutessentials.econ.balance.check": "§bYour Balance is: §6%s",
+    
+    "thutessentials.econ.pay.positive": "§cYou must pay more than 0",
+    "thutessentials.econ.pay.send": "§bYou sent §6%1$s§b to %2$s",
+    "thutessentials.econ.pay.got": "§bYou recieved §6%1$s§b from %2$s",
+    "thutessentials.econ.pay.notenough": "§cYou have Insufficient Funds.",
+    
     "_comment": "General Teleport Related",
     
     "thutessentials.tp.tosoon": "Too soon between teleport attempts!",
