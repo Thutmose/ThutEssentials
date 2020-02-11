@@ -16,9 +16,10 @@ import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.util.PlayerDataHandler;
 
-@Mod(Reference.MODID)
+@Mod(Essentials.MODID)
 public class Essentials
 {
+    public static final String MODID  = "thutessentials";
     public static final Config config = new Config();
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger();
@@ -26,7 +27,7 @@ public class Essentials
     public Essentials()
     {
         MinecraftForge.EVENT_BUS.register(this);
-        thut.essentials.config.Config.setupConfigs(Essentials.config, Reference.MODID, Reference.MODID);
+        thut.essentials.config.Config.setupConfigs(Essentials.config, Essentials.MODID, Essentials.MODID);
         if (Essentials.config.defuzz)
         {
             Essentials.LOGGER.info("Registering Defuzzer!");

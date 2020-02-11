@@ -15,3 +15,11 @@ authors="Thutmose" #optional
 description='''
 Essentials mod for Forge
 '''
+[[mods]]
+modId="thutperms"
+version="${file.jarVersion}"
+displayName="Thut Permissions"
+authors="Thutmose" #optional
+description='''
+Permissions mod for Forge
+'''

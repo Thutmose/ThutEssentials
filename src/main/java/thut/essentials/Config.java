@@ -79,7 +79,7 @@ public class Config extends ConfigData
 
     public Config()
     {
-        super(Reference.MODID);
+        super(Essentials.MODID);
     }
 
     @Override
