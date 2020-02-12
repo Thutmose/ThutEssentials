@@ -539,8 +539,8 @@ public class EconomyManager
         final boolean flag = entityplayer.inventory.addItemStackToInventory(itemstack);
         if (flag)
         {
-            entityplayer.world.playSound((ServerPlayerEntity) null, entityplayer.posX, entityplayer.posY,
-                    entityplayer.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((entityplayer
+            entityplayer.world.playSound((ServerPlayerEntity) null, entityplayer.getPosX(), entityplayer.getPosY(),
+                    entityplayer.getPosZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((entityplayer
                             .getRNG().nextFloat() - entityplayer.getRNG().nextFloat()) * 0.7F + 1.0F) * 2.0F);
             entityplayer.container.detectAndSendChanges();
         }

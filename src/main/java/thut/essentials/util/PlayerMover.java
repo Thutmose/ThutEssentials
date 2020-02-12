@@ -49,7 +49,7 @@ public class PlayerMover
             this.failMess = failMess;
             this.event = event;
             this.callback = callback;
-            this.start = new Vector4(player.posX, player.posY, player.posZ, dimension);
+            this.start = new Vector4(player.getPosX(), player.getPosY(), player.getPosZ(), dimension);
         }
 
         private void move()
@@ -110,7 +110,7 @@ public class PlayerMover
         if (PlayerMover.toMove.containsKey(tick.getEntity().getUniqueID()))
         {
             final Mover mover = PlayerMover.toMove.get(tick.getEntity().getUniqueID());
-            final Vector4 loc = new Vector4(mover.player.posX, mover.player.posY, mover.player.posZ,
+            final Vector4 loc = new Vector4(mover.player.getPosX(), mover.player.getPosY(), mover.player.getPosZ(),
                     mover.player.dimension.getId());
             final Vector4 diff = new Vector4(mover.start.x, mover.start.y, mover.start.z, mover.player.dimension
                     .getId());

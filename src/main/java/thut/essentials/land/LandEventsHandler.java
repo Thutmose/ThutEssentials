@@ -647,7 +647,7 @@ public class LandEventsHandler
 
                 // check if player is holding a public toggle.
                 if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Public Toggle") && evt.getPlayer().isSneaking())
+                        .equals("Public Toggle") && evt.getPlayer().isCrouching())
                 {
                     // If so, toggle whether the entity is public.
                     if (owner.public_mobs.contains(evt.getTarget().getUniqueID()))
@@ -670,7 +670,7 @@ public class LandEventsHandler
                 }
                 // check if player is holding a protect toggle.
                 if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Protect Toggle") && evt.getPlayer().isSneaking() && PermissionAPI.hasPermission(evt
+                        .equals("Protect Toggle") && evt.getPlayer().isCrouching() && PermissionAPI.hasPermission(evt
                                 .getPlayer(), LandEventsHandler.PERMPROTECTMOB))
                 {
                     // If so, toggle whether the entity is protected.
@@ -858,7 +858,7 @@ public class LandEventsHandler
             {
                 // Do stuff for toggling public
                 if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Public Toggle") && evt.getPlayer().isSneaking() && !owner.allPublic && LandManager
+                        .equals("Public Toggle") && evt.getPlayer().isCrouching() && !owner.allPublic && LandManager
                                 .getInstance().isAdmin(evt.getPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
@@ -879,7 +879,7 @@ public class LandEventsHandler
                 }
                 // Do stuff for toggling break
                 if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Break Toggle") && evt.getPlayer().isSneaking() && LandManager.getInstance().isAdmin(evt
+                        .equals("Break Toggle") && evt.getPlayer().isCrouching() && LandManager.getInstance().isAdmin(evt
                                 .getPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
@@ -901,7 +901,7 @@ public class LandEventsHandler
                 }
                 // Do stuff for toggling place
                 if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Place Toggle") && evt.getPlayer().isSneaking() && LandManager.getInstance().isAdmin(evt
+                        .equals("Place Toggle") && evt.getPlayer().isCrouching() && LandManager.getInstance().isAdmin(evt
                                 .getPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
