@@ -29,7 +29,7 @@ public class Config
         {
             final Field f = data.getClass().getField(field);
             final Object value = f.get(data);
-            source.sendFeedback(new TranslationTextComponent("thutcore.command.settings.check", field, value), true);
+            Essentials.config.sendFeedback(source, "thutcore.command.settings.check", true, field, value);
         }
         catch (final Exception e)
         {
@@ -59,24 +59,21 @@ public class Config
         if (val.equals("!set"))
         {
             Config.handleSet(data, args, value, f);
-            source.sendFeedback(new TranslationTextComponent("thutcore.command.settings.array.set", field, value),
-                    true);
+            Essentials.config.sendFeedback(source, "thutcore.command.settings.array.set", true, field, value);
             return 0;
         }
 
         if (val.equals("!add"))
         {
             Config.handleAdd(data, args, value, f);
-            source.sendFeedback(new TranslationTextComponent("thutcore.command.settings.array.add", field, value),
-                    true);
+            Essentials.config.sendFeedback(source, "thutcore.command.settings.array.add", true, field, value);
             return 0;
         }
 
         if (val.equals("!remove"))
         {
             Config.handleRemove(data, args, value, f);
-            source.sendFeedback(new TranslationTextComponent("thutcore.command.settings.array.remove", field, value),
-                    true);
+            Essentials.config.sendFeedback(source, "thutcore.command.settings.array.remove", true, field, value);
             return 0;
         }
 
@@ -91,7 +88,7 @@ public class Config
         {
             throw new CommandException(new StringTextComponent("Error with setting field name " + field));
         }
-        source.sendFeedback(new TranslationTextComponent("thutcore.command.settings.set", field, value), true);
+        Essentials.config.sendFeedback(source, "thutcore.command.settings.set", true, field, value);
 
         return 0;
     }

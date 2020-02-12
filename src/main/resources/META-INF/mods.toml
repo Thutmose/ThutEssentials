@@ -11,15 +11,7 @@ issueTrackerURL="https://github.com/Thutmose/Thut/issues"
 modId="thutessentials"
 version="${file.jarVersion}"
 displayName="Thut Essentials"
-authors="Thutmose" #optional
+authors="Thutmose"
 description='''
 Essentials mod for Forge
-'''
-[[mods]]
-modId="thutperms"
-version="${file.jarVersion}"
-displayName="Thut Permissions"
-authors="Thutmose" #optional
-description='''
-Permissions mod for Forge
 '''

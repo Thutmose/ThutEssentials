@@ -6,7 +6,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -39,7 +38,7 @@ public class Check
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
         final LandTeam team = LandManager.getTeam(source.asPlayer());
-        source.sendFeedback(new TranslationTextComponent("thutessentials.team.my_team", team.teamName), true);
+        Essentials.config.sendFeedback(source, "thutessentials.team.my_team", true, team.teamName);
         return 0;
     }
 }

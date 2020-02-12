@@ -15,7 +15,6 @@ import net.minecraft.command.Commands;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -51,10 +50,10 @@ public class Members
         final LandTeam team = LandManager.getInstance().getTeam(teamname, false);
         if (team == null)
         {
-            source.sendErrorMessage(new TranslationTextComponent("thutessentials.team.notfound"));
+            Essentials.config.sendError(source, "thutessentials.team.notfound");
             return 1;
         }
-        source.sendFeedback(new TranslationTextComponent("thutessentials.team.members", teamname), true);
+        Essentials.config.sendFeedback(source, "thutessentials.team.members", true, teamname);
         source.sendFeedback(Members.getMembers(source.getServer(), team, true), true);
         return 0;
     }

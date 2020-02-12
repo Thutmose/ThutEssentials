@@ -8,7 +8,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.TranslationTextComponent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandEventsHandler;
@@ -53,10 +52,10 @@ public class Create
         }
         catch (final IllegalArgumentException e)
         {
-            source.sendErrorMessage(new TranslationTextComponent(e.getMessage()));
+            Essentials.config.sendError(source, e.getMessage());
             return 1;
         }
-        source.sendFeedback(new TranslationTextComponent("thutessentials.team.created", teamname), true);
+        Essentials.config.sendFeedback(source, "thutessentials.team.created", true, teamname);
         return 0;
     }
 }

@@ -11,7 +11,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
@@ -45,7 +44,7 @@ public class Teams
 
     private static int execute(final CommandSource source)
     {
-        source.sendFeedback(new TranslationTextComponent("thutessentials.team.teams"), true);
+        Essentials.config.sendFeedback(source, "thutessentials.team.teams", true);
         final Map<String, LandTeam> teamMap = LandManager.getInstance()._teamMap;
         for (final String s : teamMap.keySet())
         {

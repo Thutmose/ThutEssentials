@@ -6,7 +6,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -37,7 +36,7 @@ public class Reload
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        source.sendFeedback(new TranslationTextComponent("thutessentials.teams.reloaded"), true);
+        Essentials.config.sendFeedback(source, "thutessentials.teams.reloaded", true);
         LandSaveHandler.loadGlobalData();
         return 0;
     }
