@@ -7,16 +7,23 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import net.minecraft.command.CommandSource;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.dimension.DimensionType;
 import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
+import thut.essentials.util.HomeManager;
+import thut.essentials.util.KitManager;
+import thut.essentials.util.WarpManager;
 
 public class Config extends ConfigData
 {
     public static final String LAND = "land";
     public static final String MISC = "misc";
+    public static final String HOME = "homes";
+    public static final String WARP = "warps";
+    public static final String KITS = "kits";
 
     @Configure(category = Config.LAND)
     public boolean defaultMessages    = true;
@@ -36,6 +43,23 @@ public class Config extends ConfigData
     public boolean logTeamChat        = true;
     @Configure(category = Config.LAND)
     public int     teamLandPerPlayer  = 125;
+
+    @Configure(category = Config.HOME)
+    public int maxHomes          = 2;
+    @Configure(category = Config.HOME)
+    public int homeActivateDelay = 50;
+    @Configure(category = Config.HOME)
+    public int homeReUseDelay    = 100;
+
+    @Configure(category = Config.HOME)
+    public int kitReuseDelay = -1;
+
+    @Configure(category = Config.WARP)
+    public List<String> warps             = Lists.newArrayList();
+    @Configure(category = Config.WARP)
+    public int          warpActivateDelay = 50;
+    @Configure(category = Config.WARP)
+    public int          warpReUseDelay    = 100;
 
     @Configure(category = Config.MISC)
     public boolean      shopsEnabled        = true;
@@ -59,10 +83,6 @@ public class Config extends ConfigData
     public boolean      defuzz              = true;
     @Configure(category = Config.MISC)
     public boolean      comandDisableSpam   = true;
-    @Configure(category = Config.MISC)
-    public int          homeActivateDelay   = 50;
-    @Configure(category = Config.MISC)
-    public int          homeReUseDelay      = 100;
     @Configure(category = Config.MISC)
     public boolean      log_teleports       = true;
     @Configure(category = Config.MISC)
@@ -92,18 +112,21 @@ public class Config extends ConfigData
 
     private final Map<String, String> lang_overrides_map = Maps.newHashMap();
 
+    public ITextComponent getMessage(final String key, final Object... args)
+    {
+        if (this.lang_overrides_map.containsKey(key)) return new StringTextComponent(String.format(
+                this.lang_overrides_map.get(key), args));
+        else return new TranslationTextComponent(key, args);
+    }
+
     public void sendFeedback(final CommandSource target, final String key, final boolean log, final Object... args)
     {
-        if (this.lang_overrides_map.containsKey(key)) target.sendFeedback(new StringTextComponent(String.format(
-                this.lang_overrides_map.get(key), args)), log);
-        else target.sendFeedback(new TranslationTextComponent(key, args), log);
+        target.sendFeedback(this.getMessage(key, args), log);
     }
 
     public void sendError(final CommandSource target, final String key, final Object... args)
     {
-        if (this.lang_overrides_map.containsKey(key)) target.sendErrorMessage(new StringTextComponent(String.format(
-                this.lang_overrides_map.get(key), args)));
-        else target.sendErrorMessage(new TranslationTextComponent(key, args));
+        target.sendErrorMessage(this.getMessage(key, args));
     }
 
     @Override
@@ -123,6 +146,9 @@ public class Config extends ConfigData
                 this.lang_overrides_map.put(args[0], value);
             }
         }
+        HomeManager.registerPerms();
+        WarpManager.init();
+        KitManager.init();
     }
 
 }

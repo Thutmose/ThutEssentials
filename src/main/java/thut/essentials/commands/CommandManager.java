@@ -25,7 +25,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
 import net.minecraftforge.common.MinecraftForge;
@@ -238,41 +237,44 @@ public class CommandManager
         }
     }
 
-    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
-            final boolean bold, final Object[] args)
-    {
-        return new TranslationTextComponent(text, args).setStyle(new Style().setBold(bold).setColor(colour));
-    }
-
-    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
-            final Object[] args)
-    {
-        return new TranslationTextComponent(text, args).setStyle(new Style().setColor(colour));
-    }
-
     public static ITextComponent makeFormattedCommandLink(final String text, final String command,
-            final TextFormatting colour, final boolean bold, final Object[] args)
+            final TextFormatting colour, final boolean bold, final Object... args)
     {
-        return new TranslationTextComponent(text, args).setStyle(new Style().setBold(bold).setColor(colour)
-                .setClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
+        final ITextComponent message = Essentials.config.getMessage(text, args);
+        return message.setStyle(new Style().setBold(bold).setColor(colour).setClickEvent(new ClickEvent(
+                Action.RUN_COMMAND, command)));
+    }
+
+    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
+            final boolean bold, final Object... args)
+    {
+        final ITextComponent message = Essentials.config.getMessage(text, args);
+        final Style style = new Style();
+        if (colour != null) style.setColor(null);
+        if (bold) style.setBold(bold);
+        return message.setStyle(style);
     }
 
     public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
             final boolean bold)
     {
-        return new TranslationTextComponent(text).setStyle(new Style().setBold(bold).setColor(colour));
+        return CommandManager.makeFormattedComponent(text, colour, bold, new Object[0]);
+    }
+
+    public static ITextComponent makeFormattedComponent(final String text)
+    {
+        return CommandManager.makeFormattedComponent(text, null, false, new Object[0]);
     }
 
     public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour)
     {
-        return new TranslationTextComponent(text).setStyle(new Style().setColor(colour));
+        return CommandManager.makeFormattedComponent(text, colour, false);
     }
 
     public static ITextComponent makeFormattedCommandLink(final String text, final String command,
             final TextFormatting colour, final boolean bold)
     {
-        return new TranslationTextComponent(text).setStyle(new Style().setBold(bold).setColor(colour).setClickEvent(
-                new ClickEvent(Action.RUN_COMMAND, command)));
+        return CommandManager.makeFormattedCommandLink(text, command, colour, bold, new Object[0]);
     }
 
 }

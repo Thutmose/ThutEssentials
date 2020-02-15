@@ -29,18 +29,56 @@
     
     "_comment": "General Teleport Related",
     
-    "thutessentials.tp.tosoon": "Too soon between teleport attempts!",
-    "thutessentials.tp.standstill": "You must remain still to teleport!",
-    "thutessentials.tp.dismount": "You must dismount to teleport!",
-    "thutessentials.tp.tele_init": "Please remain stationary while the teleport occurs.",
+    "thutessentials.tp.tosoon": "§cToo soon between teleport attempts!",
+    "thutessentials.tp.standstill": "§cYou must remain still to teleport!",
+    "thutessentials.tp.dismount": "§cYou must dismount to teleport!",
+    "thutessentials.tp.tele_init": "§bPlease remain stationary while the teleport occurs.",
     
-    "thutessentials.spawn.succeed": "You returned to Spawn.",
+    "thutessentials.spawn.succeed": "§aYou returned to Spawn.",
     
     "_comment": "Back Related",
     
-    "thutessentials.back.noroom": "There is no room to go back there!",
-    "thutessentials.back.noback": "You have no valid return location.",
-    "thutessentials.back.succeed": "You went back to your previous location.",
+    "thutessentials.back.noroom": "§cThere is no room to go back there!",
+    "thutessentials.back.noback": "§cYou have no valid return location.",
+    "thutessentials.back.succeed": "§aYou went back to your previous location.",
+    
+    "_comment": "Warp Related",
+    
+    "thutessentials.warps.header": "================\n      Warps     \n================",
+    "thutessentials.warps.entry": "%s",
+    "thutessentials.warps.footer": "================",
+    "thutessentials.warps.exists": "§cRequested warp already exist, try §del_warp 6%s§c to remove it.",
+    "thutessentials.warps.noexists_create": "§cRequested warp does not exist, try §/set_warp 6%s§c to create it.",
+    "thutessentials.warps.noexists_use": "§cRequested warp does not exist.",
+    "thutessentials.warps.noperms": "§cYou are not allowed to use that warp!",
+    "thutessentials.warps.added": "§aAdded warp §6%s",
+    "thutessentials.warps.removed": "§aRemoved warp §6%s",
+    "thutessentials.warps.warping": "§aWarping to §6%s",
+    "thutessentials.warps.warped": "§aWarped to §6%s",
+    
+    "_comment": "Home Related",
+    
+    "thutessentials.homes.header": "================\n      Homes     \n================",
+    "thutessentials.homes.entry": "%s",
+    "thutessentials.homes.footer": "================",
+    "thutessentials.homes.exists": "§cRequested home already exist, try §6/del_home %s§c to remove it.",
+    "thutessentials.homes.toomany": "§cYou already have the maximum number of homes!",
+    "thutessentials.homes.noperms": "§cYou may not have that many homes!",
+    "thutessentials.homes.noexists": "§cRequested home does not exist, try §6/set_home %s§c to create it.",
+    "thutessentials.homes.added": "§aAdded home §6%s",
+    "thutessentials.homes.removed": "§aRemoved home §6%s",
+    "thutessentials.homes.warping": "§aWarping to §6%s",
+    "thutessentials.homes.warped": "§aWarped to §6%s",
+    
+    "_comment": "Kits Related",
+    
+    "thutessentials.kits.header": "================\n      Kits      \n================",
+    "thutessentials.kits.entry": "%s",
+    "thutessentials.kits.footer": "================",
+    "thutessentials.kits.reloaded": "§aReloaded kits from configs.",
+    "thutessentials.kits.no_kit": "§cRequested kit does not exist.",
+    "thutessentials.kits.noperms": "§cYou are not allowed to get that kit",
+    "thutessentials.kits.too_soon": "§cThat kit is still on cooldown!.",
     
     "_comment": "TPA Related",
     
@@ -48,8 +86,8 @@
     "thutessentials.tpa.deny": "Deny",
     "thutessentials.tpa.requested": " requests to TPA to you",
     "thutessentials.tpa.requestsent": " was sent a TPA request",
-    "thutessentials.tpa.accepted_user": "Your TPA request was accepted!",
-    "thutessentials.tpa.accepted_target": "You accepted the TPA request!",
-    "thutessentials.tpa.denied_user": "Your TPA request was denied!",
-    "thutessentials.tpa.denied_target": "You denied the TPA request!"
+    "thutessentials.tpa.accepted_user": "§aYour TPA request was accepted!",
+    "thutessentials.tpa.accepted_target": "§aYou accepted the TPA request!",
+    "thutessentials.tpa.denied_user": "§cYour TPA request was denied!",
+    "thutessentials.tpa.denied_target": "§cYou denied the TPA request!"
 }
