@@ -55,8 +55,7 @@ public class Spawn
         }
         final MinecraftServer server = player.getServer();
         final BlockPos spawn = server.getWorld(Essentials.config.spawnDimension).getSpawnPoint();
-        final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.spawn.succeed",
-                TextFormatting.GREEN);
+        final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.spawn.succeed");
         PlayerMover.setMove(player, Essentials.config.spawnActivateDelay, Essentials.config.spawnDimension.getId(),
                 spawn, teleMess, PlayerMover.INTERUPTED);
         tptag.putLong("spawnDelay", time + Essentials.config.spawnReUseDelay);

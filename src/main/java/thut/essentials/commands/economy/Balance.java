@@ -7,7 +7,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -18,7 +17,6 @@ public class Balance
 {
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        // TODO configurable this.
         final String name = "bal";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
@@ -38,7 +36,8 @@ public class Balance
     {
         final ServerPlayerEntity player = source.asPlayer();
         final int amount = EconomyManager.getBalance(player);
-        player.sendMessage(new TranslationTextComponent("thutessentials.econ.balance.check", amount));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.check", null, false,
+                amount));
         return 0;
     }
 }
