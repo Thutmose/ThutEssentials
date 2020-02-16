@@ -24,6 +24,8 @@ public class Config extends ConfigData
     public static final String HOME = "homes";
     public static final String WARP = "warps";
     public static final String KITS = "kits";
+    public static final String BACK = "back";
+    public static final String ECON = "economy";
 
     @Configure(category = Config.LAND)
     public boolean defaultMessages    = true;
@@ -61,8 +63,20 @@ public class Config extends ConfigData
     @Configure(category = Config.WARP)
     public int          warpReUseDelay    = 100;
 
-    @Configure(category = Config.MISC)
-    public boolean      shopsEnabled        = true;
+    @Configure(category = Config.BACK)
+    public int     backRangeCheck    = 5;
+    @Configure(category = Config.BACK)
+    public int     backReUseDelay    = 100;
+    @Configure(category = Config.BACK)
+    public int     backActivateDelay = 50;
+    @Configure(category = Config.BACK)
+    public boolean back_on_death     = true;
+    @Configure(category = Config.BACK)
+    public boolean back_on_tp        = true;
+
+    @Configure(category = Config.ECON)
+    public boolean shopsEnabled = true;
+
     @Configure(category = Config.MISC)
     public boolean      log_interactions    = true;
     @Configure(category = Config.MISC)
@@ -91,12 +105,6 @@ public class Config extends ConfigData
     public int          spawnActivateDelay  = 50;
     @Configure(category = Config.MISC)
     public long         spawnReUseDelay     = 100;
-    @Configure(category = Config.MISC)
-    public int          backRangeCheck      = 5;
-    @Configure(category = Config.MISC)
-    public int          backReUseDelay      = 100;
-    @Configure(category = Config.MISC)
-    public int          backActivateDelay   = 50;
     @Configure(category = Config.MISC)
     public int          tpaActivateDelay    = 50;
 
