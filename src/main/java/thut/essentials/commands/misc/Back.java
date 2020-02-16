@@ -11,6 +11,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
@@ -38,14 +39,14 @@ public class Back
     @SubscribeEvent
     public static void move(final MoveEvent event)
     {
-        PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getCachedUniqueIdString()).putIntArray("prevPos",
-                event.getPos());
+        if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntityLiving()
+                .getCachedUniqueIdString()).putIntArray("prevPos", event.getPos());
     }
 
     @SubscribeEvent
     public static void death(final LivingDeathEvent event)
     {
-        if (event.getEntityLiving() instanceof PlayerEntity)
+        if (event.getEntityLiving() instanceof ServerPlayerEntity && Essentials.config.back_on_death)
         {
             final BlockPos pos = event.getEntityLiving().getPosition();
             final int[] loc = new int[] { pos.getX(), pos.getY(), pos.getZ(), event.getEntityLiving().dimension
