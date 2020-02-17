@@ -86,7 +86,7 @@ public class Back
         final PlayerEntity player = source.asPlayer();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
-        final long last = tptag.getLong("spawnDelay");
+        final long last = tptag.getLong("backDelay");
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
         if (last > time)
         {
