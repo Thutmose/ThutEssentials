@@ -19,7 +19,6 @@ public class TpToggle
 {
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        // TODO configurable this.
         final String name = "tptoggle";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
