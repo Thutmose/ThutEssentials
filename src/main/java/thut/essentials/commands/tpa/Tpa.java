@@ -23,7 +23,6 @@ public class Tpa
 {
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        // TODO configurable this.
         final String name = "tpa";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
@@ -53,7 +52,7 @@ public class Tpa
         target.sendMessage(header);
 
         ITextComponent tpMessage;
-        final String tpaccept = "tpaccept";// TODO config this.
+        final String tpaccept = "tpaccept";
         final ITextComponent accept = CommandManager.makeFormattedCommandLink("thutessentials.tpa.accept", "/"
                 + tpaccept + " " + player.getCachedUniqueIdString() + " accept", TextFormatting.GREEN, true);
         final ITextComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny", "/" + tpaccept
@@ -63,8 +62,8 @@ public class Tpa
         tpaTag.putString("R", player.getCachedUniqueIdString());
         tag.put("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(target);
-        player.sendMessage(CommandManager.makeFormattedComponent(target.getDisplayName().getFormattedText()
-                + "thutessentials.tpa.requestsent", TextFormatting.DARK_GREEN, true));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.requestsent",
+                TextFormatting.DARK_GREEN, true, target.getDisplayName()));
         return 0;
     }
 }
