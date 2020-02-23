@@ -36,7 +36,7 @@ public class Reload
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        Essentials.config.sendFeedback(source, "thutessentials.teams.reloaded", true);
+        Essentials.config.sendFeedback(source, "thutessentials.team.reloaded", false);
         LandSaveHandler.loadGlobalData();
         return 0;
     }

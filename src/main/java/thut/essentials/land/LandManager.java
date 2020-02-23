@@ -557,6 +557,7 @@ public class LandManager
         }
         else // We made with no member, so this team should be reserved.
             theTeam.reserved = true;
+        LandSaveHandler.saveTeam(team);
     }
 
     public List<String> getInvites(final UUID member)
@@ -639,9 +640,9 @@ public class LandManager
         return false;
     }
 
-    public void removeAdmin(final UUID member)
+    public void removeAdmin(final UUID member, final String teamName)
     {
-        final LandTeam t = this._playerTeams.get(member);
+        final LandTeam t = this._teamMap.get(teamName);
         if (t != null) t.admin.remove(member);
     }
 

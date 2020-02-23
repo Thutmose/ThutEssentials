@@ -26,7 +26,6 @@ public class Home
 
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        // TODO configurable this.
         final String name = "team_home";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
@@ -48,7 +47,11 @@ public class Home
         final PlayerEntity player = source.asPlayer();
         final LandTeam team = LandManager.getTeam(player);
 
-        if (team.home == null) throw new IllegalArgumentException("thutessentials.team.nohomeset");
+        if (team.home == null)
+        {
+            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.nohomeset"));
+            return 1;
+        }
 
         final int[] home = { team.home.x, team.home.y, team.home.z, team.home.dim };
 

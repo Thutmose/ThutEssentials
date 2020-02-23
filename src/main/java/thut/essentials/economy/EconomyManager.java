@@ -24,7 +24,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
@@ -34,6 +33,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
+import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.Coordinate;
 
@@ -101,7 +101,7 @@ public class EconomyManager
 
             if (this.recycle && heldStack.isEmpty())
             {
-                player.sendMessage(new TranslationTextComponent("thutessentials.econ.no_recycle"));
+                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_recycle"));
                 return false;
             }
             else if (stack.isEmpty())
@@ -114,7 +114,7 @@ public class EconomyManager
                 final int balance = EconomyManager.getBalance(player);
                 if (balance < this.cost)
                 {
-                    player.sendMessage(new TranslationTextComponent("thutessentials.econ.no_funds_you"));
+                    player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_you"));
                     return false;
                 }
                 stack = stack.copy();
@@ -147,7 +147,7 @@ public class EconomyManager
                     }
                     if (count < this.number || inv == null)
                     {
-                        player.sendMessage(new TranslationTextComponent("thutessentials.econ.no_items_you"));
+                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
                         return false;
                     }
                     int i = 0;
@@ -177,15 +177,15 @@ public class EconomyManager
                 EconomyManager.giveItem(player, stack);
                 EconomyManager.addBalance(shopAccount._id, this.cost);
                 EconomyManager.addBalance(player, -this.cost);
-                player.sendMessage(new TranslationTextComponent("thutessentials.econ.balance.remaining", EconomyManager
-                        .getBalance(player)));
+                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null,
+                        false, EconomyManager.getBalance(player)));
             }
             else
             {
                 final int balance = this.infinite ? Integer.MAX_VALUE : shopAccount.balance;
                 if (balance < this.cost)
                 {
-                    player.sendMessage(new TranslationTextComponent("thutessentials.econ.no_funds_shop"));
+                    player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_shop"));
                     return false;
                 }
                 int count = 0;
@@ -194,7 +194,7 @@ public class EconomyManager
                     count = heldStack.getCount();
                     if (count < this.number)
                     {
-                        player.sendMessage(new TranslationTextComponent("thutessentials.econ.no_items_you"));
+                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
                         return false;
                     }
                     stack = heldStack;
@@ -212,7 +212,7 @@ public class EconomyManager
                         }
                     if (count < this.number)
                     {
-                        player.sendMessage(new TranslationTextComponent("thutessentials.econ.no_items_you"));
+                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
                         return false;
                     }
                 }
@@ -220,7 +220,7 @@ public class EconomyManager
                 {
                     if (this.storage == null)
                     {
-                        player.sendMessage(new TranslationTextComponent("thutessentials.econ.no_storage"));
+                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_storage"));
                         return false;
                     }
                     final TileEntity te = player.world.getTileEntity(new BlockPos(this.storage.x, this.storage.y,
@@ -257,8 +257,8 @@ public class EconomyManager
                 player.inventory.clearMatchingItems((i) -> ItemStack.areItemStacksEqual(i, comp), this.number);
                 EconomyManager.addBalance(shopAccount._id, -this.cost);
                 EconomyManager.addBalance(player, this.cost);
-                player.sendMessage(new TranslationTextComponent("thutessentials.econ.balance.remaining", EconomyManager
-                        .getBalance(player)));
+                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null,
+                        false, EconomyManager.getBalance(player)));
             }
             return false;
         }
@@ -342,7 +342,8 @@ public class EconomyManager
                 final String permission = infinite ? EconomyManager.PERMMAKEINFSHOP : EconomyManager.PERMMAKESHOP;
                 if (!PermissionAPI.hasPermission(evt.getPlayer(), permission))
                 {
-                    evt.getPlayer().sendMessage(new TranslationTextComponent("thutessentials.econ.not_allowed"));
+                    evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent(
+                            "thutessentials.econ.not_allowed"));
                     return;
                 }
                 try
@@ -351,12 +352,12 @@ public class EconomyManager
                             "noTag");
                     shop = EconomyManager.addShop((ServerPlayerEntity) evt.getPlayer(), (ItemFrameEntity) evt
                             .getTarget(), c, infinite, noTag);
-                    evt.getPlayer().sendMessage(new TranslationTextComponent("thutessentials.econ.made"));
+                    evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.made"));
 
                 }
                 catch (final Exception e)
                 {
-                    evt.getPlayer().sendMessage(new TranslationTextComponent("thutessentials.econ.errored"));
+                    evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.errored"));
                     Essentials.LOGGER.error(e);
                 }
             }
@@ -400,9 +401,9 @@ public class EconomyManager
                 if (PermissionAPI.hasPermission(evt.getPlayer(), perm))
                 {
                     EconomyManager.removeShop(c);
-                    evt.getPlayer().sendMessage(new TranslationTextComponent("thutessentials.econ.remove"));
+                    evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.remove"));
                 }
-                else evt.getPlayer().sendMessage(new TranslationTextComponent(
+                else evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent(
                         "thutessentials.econ.not_allowed_remove"));
             }
         }
@@ -471,7 +472,7 @@ public class EconomyManager
                 MinecraftForge.EVENT_BUS.post(event);
                 if (event.isCanceled())
                 {
-                    owner.sendMessage(new TranslationTextComponent("thutessentials.econ.not_allowed_link"));
+                    owner.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.not_allowed_link"));
                     return null;
                 }
 

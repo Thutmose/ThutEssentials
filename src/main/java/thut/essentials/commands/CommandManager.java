@@ -132,11 +132,14 @@ public class CommandManager
         thut.essentials.commands.land.util.Teams.register(commandDispatcher);
 
         thut.essentials.commands.land.management.Create.register(commandDispatcher);
-        // thut.essentials.commands.land.management.Admins.register(commandDispatcher);
-        // thut.essentials.commands.land.management.Delete.register(commandDispatcher);
-        // thut.essentials.commands.land.management.Invite.register(commandDispatcher);
-        // thut.essentials.commands.land.management.Kick.register(commandDispatcher);
-        // thut.essentials.commands.land.management.Leave.register(commandDispatcher);
+        thut.essentials.commands.land.management.Invite.register(commandDispatcher);
+        thut.essentials.commands.land.management.Join.register(commandDispatcher);
+        thut.essentials.commands.land.management.Admins.register(commandDispatcher);
+        thut.essentials.commands.land.management.Delete.register(commandDispatcher);
+        thut.essentials.commands.land.management.Kick.register(commandDispatcher);
+        thut.essentials.commands.land.management.Edit.register(commandDispatcher);
+        thut.essentials.commands.land.management.Ranks.register(commandDispatcher);
+        thut.essentials.commands.land.management.Relations.register(commandDispatcher);
 
         thut.essentials.commands.land.claims.Claim.register(commandDispatcher);
         thut.essentials.commands.land.claims.Owner.register(commandDispatcher);
@@ -156,7 +159,7 @@ public class CommandManager
     {
         final ITextComponent message = Essentials.config.getMessage(text, args);
         final Style style = new Style();
-        if (colour != null) style.setColor(null);
+        if (colour != null) style.setColor(colour);
         if (bold) style.setBold(bold);
         return message.setStyle(style);
     }

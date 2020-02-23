@@ -29,7 +29,7 @@ public class Config
         {
             final Field f = data.getClass().getField(field);
             final Object value = f.get(data);
-            Essentials.config.sendFeedback(source, "thutcore.command.settings.check", true, field, value);
+            Essentials.config.sendFeedback(source, "thutcore.command.settings.check", false, field, value);
         }
         catch (final Exception e)
         {

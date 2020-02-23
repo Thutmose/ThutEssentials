@@ -63,7 +63,7 @@ public class Pay
             player.sendMessage(new TranslationTextComponent("thutessentials.econ.pay.got", toSend, source
                     .getDisplayName()));
             if (player != null) EconomyManager.addBalance(player, -toSend);
-            Essentials.config.sendFeedback(source, "thutessentials.econ.pay.send", true, toSend, payee
+            Essentials.config.sendFeedback(source, "thutessentials.econ.pay.send", false, toSend, payee
                     .getDisplayName());
             return 0;
         }

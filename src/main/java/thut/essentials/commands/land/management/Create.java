@@ -55,7 +55,7 @@ public class Create
             Essentials.config.sendError(source, e.getMessage());
             return 1;
         }
-        Essentials.config.sendFeedback(source, "thutessentials.team.created", true, teamname);
+        Essentials.config.sendFeedback(source, "thutessentials.team.created", false, teamname);
         return 0;
     }
 }

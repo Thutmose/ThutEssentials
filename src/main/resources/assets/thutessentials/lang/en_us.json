@@ -89,5 +89,70 @@
     "thutessentials.tpa.accepted_user": "§aYour TPA request was accepted!",
     "thutessentials.tpa.accepted_target": "§aYou accepted the TPA request!",
     "thutessentials.tpa.denied_user": "§cYour TPA request was denied!",
-    "thutessentials.tpa.denied_target": "§cYou denied the TPA request!"
+    "thutessentials.tpa.denied_target": "§cYou denied the TPA request!",
+    
+    "_comment": "Team and Claiming Related",
+    
+    "msg.team.deny": "§aYou are not allowed to do that in land owned by §6%s",
+    "msg.team.enterLand": "§cYou have entered land owned by §6%s",
+    "msg.team.exitLand": "§cYou have left land owned by §6%s",
+    "msg.team.nowildperms": "§aYou may not do that.",
+    
+    "thutessentials.team.created": "§cYou Created and joined Team §6%s",
+    "thutessentials.team.my_team": "§cYou are in Team §6%s",
+    "thutessentials.team.nohomeset": "§aYour team has not set a home location",
+    "thutessentials.team.notfound": "§aThere is no team by name §6%s",
+    "thutessentials.team.members": "§cMembers of Team §6%s§c:",
+    "thutessentials.team.teams": "§cList of Teams:",
+    
+    "thutessentials.team.notadmin": "§aYou must be a team admin to do that!",
+    "thutessentials.team.reloaded": "§cReloaded Teams from disk",
+    
+    "thutessentials.team.admins.header": "§cAdmins of §6%s§c:",
+    "thutessentials.team.admins.entry": "   §6%s",
+    
+    "thutessentials.team.admins.mustbeteam": "§aYou must be in the same team to do that!",
+    "thutessentials.team.admins.added": "§cAdded §6%s§c as an admin of §6%s",
+    "thutessentials.team.admins.removed": "§cRemoved §6%s§c as an admin of §6%s",
+    
+    "thutessentials.team.notinateam": "§aYou are not in a team where you can do that.",
+    "thutessentials.team.delete.done": "§aDeleted your current team!",
+    
+    "thutessentials.team.prefix.set": "§cSet the team prefix to §r%s",
+    "thutessentials.team.enter.set": "§cSet the team entry message to §r%s",
+    "thutessentials.team.exit.set": "§cSet the team exit message to §r%s",
+    "thutessentials.team.deny.set": "§cSet the team denial message to §r%s",
+    
+    "thutessentials.team.home.set": "§cSet the team Home to §6%s
+    
+    "thutessentials.team.frames.set": "§cSet Item Frame Protection to §6%s",
+    "thutessentials.team.reserve.set": "§cSet Empty Team Reservation to §6%s",
+    "thutessentials.team.ff.set": "§cSet Friendly Fire to §6%s",
+    "thutessentials.team.noplayerdamage.set": "§cSet No Player Damage to §6%s",
+    "thutessentials.team.nomobspawn.set": "§cSet No Mob Spawning to §6%s",
+    "thutessentials.team.nobooms.set": "§cSet No Explosions to §6%s",
+    "thutessentials.team.anybreak.set": "§cSet perm to allow anyone to break blocks to §6%s",
+    "thutessentials.team.fakeplayers.set": "§cSet perm to ignore fake players to §6%s",
+    "thutessentials.team.anyplace.set": "§cSet perm to allow anyone to place blocks to §6%s",
+    "thutessentials.team.public.set": "§cSet perm to allow anyone to access blocks to §6%s",
+    
+    "thutessentials.claim.notallowed.teamperms": "§cYou are not allowed to claim land for your team.",
+    "thutessentials.claim.notallowed.needmoreland": "§cYour team may not claim more land.",
+    "thutessentials.claim.notallowed.alreadyclaimedby": "§cThis land is already claimed by §6%s",
+    "thutessentials.claim.warn.alreadyclaimed": "§6%s§c of these chunk segments were already claimed!",
+    "thutessentials.claim.claimed": "§aYou claimed this land for §6%s",
+    "thutessentials.claim.claimed.num": "§aYou claimed §6%s§a chunk segments for §6%s",
+    "thutessentials.claim.claimed.failed": "§cYou were unable to claim that land.",
+    
+    "thutessentials.claim.ownedby": "§aThis Land is owned by §6%s",
+    "thutessentials.claim.unowned": "§aThis Land is not owned",
+    
+    "thutessentials.unclaim.notallowed.teamperms": "§cYou are not allowed to unclaim land for your team.",
+    "thutessentials.unclaim.notallowed.notowner": "§cYou are not allowed to unclaim land owned by §6%s",
+    "thutessentials.unclaim.notallowed.noowner": "§cThis land is unowned",
+    "thutessentials.unclaim.done": "§aYou unclaimed this land for §6%s",
+    "thutessentials.unclaim.done.num": "§aYou unclaimed §6%s§a chunk segments for §6%s",
+    "thutessentials.unclaim.done.failed": "§cYou were unable to unclaim that land."
+    
+    
 }
