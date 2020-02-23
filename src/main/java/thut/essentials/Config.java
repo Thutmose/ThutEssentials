@@ -13,6 +13,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.dimension.DimensionType;
 import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
+import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.KitManager;
 import thut.essentials.util.WarpManager;
@@ -45,6 +46,8 @@ public class Config extends ConfigData
     public boolean logTeamChat        = true;
     @Configure(category = Config.LAND)
     public int     teamLandPerPlayer  = 125;
+    @Configure(category = Config.LAND)
+    public int     prefixLength       = 12;
 
     @Configure(category = Config.HOME)
     public int maxHomes          = 2;
@@ -157,6 +160,7 @@ public class Config extends ConfigData
         HomeManager.registerPerms();
         WarpManager.init();
         KitManager.init();
+        if (this.landEnabled) LandEventsHandler.init();
     }
 
 }

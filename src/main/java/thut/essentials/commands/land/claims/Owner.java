@@ -47,7 +47,8 @@ public class Owner
         final int dim = player.dimension.getId();
         final Coordinate chunk = new Coordinate(x, y, z, dim);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        if (owner != null) player.sendMessage(new TranslationTextComponent("thutessentials.claim.ownedby", owner));
+        if (owner != null) player.sendMessage(new TranslationTextComponent("thutessentials.claim.ownedby",
+                owner.teamName));
         else player.sendMessage(new TranslationTextComponent("thutessentials.claim.unowned"));
         return 0;
     }

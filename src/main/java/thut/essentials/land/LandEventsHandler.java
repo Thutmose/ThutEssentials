@@ -25,7 +25,6 @@ import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.dimension.Dimension;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
@@ -54,6 +53,7 @@ import net.minecraftforge.fml.LogicalSidedProvider;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
+import thut.essentials.commands.CommandManager;
 import thut.essentials.events.DenyItemUseEvent;
 import thut.essentials.events.DenyItemUseEvent.UseType;
 import thut.essentials.land.LandManager.LandTeam;
@@ -738,7 +738,7 @@ public class LandEventsHandler
             {
                 if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMWILD)) return;
                 // TODO better message.
-                player.sendMessage(new StringTextComponent("Cannot use that."));
+                player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms"));
                 evt.setCanceled(true);
                 ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
                 return;
@@ -1156,20 +1156,20 @@ public class LandEventsHandler
     {
         if (team != null && !team.denyMessage.isEmpty()) return new StringTextComponent(team.denyMessage);
         if (!Essentials.config.defaultMessages) return null;
-        return new TranslationTextComponent("msg.team.deny", team.teamName);
+        return CommandManager.makeFormattedComponent("msg.team.deny", null, false, team.teamName);
     }
 
     private static ITextComponent getEnterMessage(final LandTeam team)
     {
         if (team != null && !team.enterMessage.isEmpty()) return new StringTextComponent(team.enterMessage);
         if (!Essentials.config.defaultMessages) return null;
-        return new TranslationTextComponent("msg.team.enterLand", team.teamName);
+        return CommandManager.makeFormattedComponent("msg.team.enterLand", null, false, team.teamName);
     }
 
     private static ITextComponent getExitMessage(final LandTeam team)
     {
         if (team != null && !team.exitMessage.isEmpty()) return new StringTextComponent(team.exitMessage);
         if (!Essentials.config.defaultMessages) return null;
-        return new TranslationTextComponent("msg.team.exitLand", team.teamName);
+        return CommandManager.makeFormattedComponent("msg.team.exitLand", null, false, team.teamName);
     }
 }

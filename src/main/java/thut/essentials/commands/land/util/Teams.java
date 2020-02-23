@@ -44,7 +44,7 @@ public class Teams
 
     private static int execute(final CommandSource source)
     {
-        Essentials.config.sendFeedback(source, "thutessentials.team.teams", true);
+        Essentials.config.sendFeedback(source, "thutessentials.team.teams", false);
         final Map<String, LandTeam> teamMap = LandManager.getInstance()._teamMap;
         for (final String s : teamMap.keySet())
         {
@@ -61,7 +61,7 @@ public class Teams
             message.setStyle(new Style());
             message.getStyle().setClickEvent(event);
             message.getStyle().setHoverEvent(event2);
-            source.sendFeedback(message, true);
+            source.sendFeedback(message, false);
         }
         return 0;
     }

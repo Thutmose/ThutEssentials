@@ -19,6 +19,7 @@ import thut.essentials.commands.CommandManager;
 import thut.essentials.events.ClaimLandEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.Coordinate;
 
 public class Claim
@@ -38,15 +39,29 @@ public class Claim
         // Setup with name and permission
         LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
-        // Register the execution.
-        command = command.executes(ctx -> Claim.execute(ctx.getSource()));
 
-        // Actually register the command.
+        // Entire chunk
+        command = command.executes(ctx -> Claim.execute(ctx.getSource(), true, true, false));
+        commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
+        command = command.then(Commands.literal("up").executes(ctx -> Claim.execute(ctx.getSource(), true, false,
+                false)));
+        commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
+        command = command.then(Commands.literal("down").executes(ctx -> Claim.execute(ctx.getSource(), false, true,
+                false)));
+        commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
+        command = command.then(Commands.literal("here").executes(ctx -> Claim.execute(ctx.getSource(), false, false,
+                true)));
         commandDispatcher.register(command);
     }
 
-    // Single claim version
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here)
+            throws CommandSyntaxException
     {
         final PlayerEntity player = source.asPlayer();
         final LandTeam team = LandManager.getTeam(player);
@@ -56,32 +71,72 @@ public class Claim
                     TextFormatting.RED));
             return 1;
         }
-        final int teamCount = team.member.size();
-        final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;
-        final int count = LandManager.getInstance().countLand(team.teamName);
-        if (count >= maxLand && !PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT))
-        {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.claim.notallowed.needmoreland",
-                    TextFormatting.RED));
-            return 1;
-        }
 
         final int x = MathHelper.floor(player.getPosition().getX() >> 4);
         final int y = MathHelper.floor(player.getPosition().getY() >> 4);
         final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
+
+        if (here) return Claim.claim(x, y, z, player, team, true);
+
+        final int min = down ? 0 : y;
+        final int max = up ? 16 : y;
+
+        boolean claimed = false;
+        int claimnum = 0;
+        int notclaimed = 0;
+        for (int i = min; i < max; i++)
+        {
+            final int check = Claim.claim(x, i, z, player, team, false);
+            if (check == 0)
+            {
+                claimed = true;
+                claimnum++;
+            }
+            else notclaimed++;
+            if (check == 3)
+            {
+                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.claim.notallowed.needmoreland",
+                        TextFormatting.RED));
+                break;
+            }
+        }
+        if (notclaimed > 0) player.sendMessage(new TranslationTextComponent("thutessentials.claim.warn.alreadyclaimed",
+                notclaimed));
+        if (claimed) player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed.num", claimnum,
+                team.teamName));
+        else player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed.failed", team.teamName));
+
+        LandSaveHandler.saveTeam(team.teamName);
+        return claimed ? 0 : 1;
+    }
+
+    private static int claim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
+            final boolean messages)
+    {
+        // TODO better bounds check to support say cubic chunks.
         if (y < 0 || y > 15) return 1;
         final int dim = player.dimension.getId();
         final Coordinate chunk = new Coordinate(x, y, z, dim);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner != null)
         {
-            player.sendMessage(new TranslationTextComponent("thutessentials.claim.notallowed.alreadyclaimedby", owner));
-            return 1;
+            if (messages) player.sendMessage(new TranslationTextComponent(
+                    "thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName));
+            return 2;
+        }
+        final int teamCount = team.member.size();
+        final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;
+        final int count = LandManager.getInstance().countLand(team.teamName);
+        if (count >= maxLand && !PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT))
+        {
+            if (messages) player.sendMessage(CommandManager.makeFormattedComponent(
+                    "thutessentials.claim.notallowed.needmoreland", TextFormatting.RED));
+            return 3;
         }
         final ClaimLandEvent event = new ClaimLandEvent(new BlockPos(x, y, z), dim, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().addTeamLand(team.teamName, chunk, true);
-        player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed", team.teamName));
+        if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed", team.teamName));
         return 0;
     }
 

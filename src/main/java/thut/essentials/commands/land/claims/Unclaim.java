@@ -19,6 +19,7 @@ import thut.essentials.commands.CommandManager;
 import thut.essentials.events.ClaimLandEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.Coordinate;
 
 public class Unclaim
@@ -38,15 +39,29 @@ public class Unclaim
         // Setup with name and permission
         LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
-        // Register the execution.
-        command = command.executes(ctx -> Unclaim.execute(ctx.getSource()));
 
-        // Actually register the command.
+        // Entire chunk
+        command = command.executes(ctx -> Unclaim.execute(ctx.getSource(), true, true, false));
+        commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
+        command = command.then(Commands.literal("up").executes(ctx -> Unclaim.execute(ctx.getSource(), true, false,
+                false)));
+        commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
+        command = command.then(Commands.literal("down").executes(ctx -> Unclaim.execute(ctx.getSource(), false, true,
+                false)));
+        commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
+        command = command.then(Commands.literal("here").executes(ctx -> Unclaim.execute(ctx.getSource(), false, false,
+                true)));
         commandDispatcher.register(command);
     }
 
-    // Single claim version
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here)
+            throws CommandSyntaxException
     {
         final PlayerEntity player = source.asPlayer();
         final LandTeam team = LandManager.getTeam(player);
@@ -60,24 +75,59 @@ public class Unclaim
         final int x = MathHelper.floor(player.getPosition().getX() >> 4);
         final int y = MathHelper.floor(player.getPosition().getY() >> 4);
         final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
+
+        if (here) return Unclaim.unclaim(x, y, z, player, team, true);
+
+        final int min = down ? 0 : y;
+        final int max = up ? 16 : y;
+
+        boolean claimed = false;
+        int claimnum = 0;
+        int owned_other = 0;
+        for (int i = min; i < max; i++)
+        {
+            final int check = Unclaim.unclaim(x, i, z, player, team, false);
+            if (check == 0)
+            {
+                claimed = true;
+                claimnum++;
+            }
+            else if (check == 3) owned_other++;
+        }
+        if (owned_other > 0) player.sendMessage(new TranslationTextComponent(
+                "thutessentials.unclaim.notallowed.notowner", owned_other));
+        if (claimed) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done.num", claimnum,
+                team.teamName));
+        else player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done.failed", claimnum,
+                team.teamName));
+
+        LandSaveHandler.saveTeam(team.teamName);
+        return claimed ? 0 : 1;
+    }
+
+    private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
+            final boolean messages)
+    {
+        // TODO better bounds check to support say cubic chunks.
         if (y < 0 || y > 15) return 1;
         final int dim = player.dimension.getId();
         final Coordinate chunk = new Coordinate(x, y, z, dim);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner == null)
         {
-            player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.notallowed.noowner"));
-            return 1;
+            if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.notallowed.noowner"));
+            return 2;
         }
         else if (owner != team && !PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM))
         {
-            player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.notallowed.notowner", owner));
-            return 1;
+            if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.notallowed.notowner",
+                    owner.teamName));
+            return 3;
         }
         final ClaimLandEvent event = new ClaimLandEvent(new BlockPos(x, y, z), dim, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().removeTeamLand(team.teamName, chunk);
-        player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done", team.teamName));
+        if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done", team.teamName));
         return 0;
     }
 }

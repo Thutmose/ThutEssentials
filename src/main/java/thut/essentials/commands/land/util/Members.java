@@ -53,15 +53,21 @@ public class Members
             Essentials.config.sendError(source, "thutessentials.team.notfound");
             return 1;
         }
-        Essentials.config.sendFeedback(source, "thutessentials.team.members", true, teamname);
-        source.sendFeedback(Members.getMembers(source.getServer(), team, true), true);
+        Essentials.config.sendFeedback(source, "thutessentials.team.members", false, teamname);
+        source.sendFeedback(Members.getMembers(source.getServer(), team, true), false);
         return 0;
     }
 
     public static ITextComponent getMembers(final MinecraftServer server, final LandTeam team, final boolean tabbed)
     {
-        final StringTextComponent mess = new StringTextComponent("");
         final Collection<UUID> c = team.member;
+        return Members.getMembers(server, c, tabbed);
+    }
+
+    public static ITextComponent getMembers(final MinecraftServer server, final Collection<UUID> c,
+            final boolean tabbed)
+    {
+        final StringTextComponent mess = new StringTextComponent("");
         final List<UUID> ids = Lists.newArrayList(c);
         for (int i = 0; i < ids.size(); i++)
         {
