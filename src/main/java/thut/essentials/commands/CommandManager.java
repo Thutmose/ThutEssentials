@@ -130,6 +130,7 @@ public class CommandManager
         thut.essentials.commands.land.util.Members.register(commandDispatcher);
         thut.essentials.commands.land.util.Reload.register(commandDispatcher);
         thut.essentials.commands.land.util.Teams.register(commandDispatcher);
+        thut.essentials.commands.land.util.Show.register(commandDispatcher);
 
         thut.essentials.commands.land.management.Create.register(commandDispatcher);
         thut.essentials.commands.land.management.Invite.register(commandDispatcher);

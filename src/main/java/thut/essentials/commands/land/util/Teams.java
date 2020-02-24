@@ -25,7 +25,6 @@ public class Teams
 
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        // TODO configurable this.
         final String name = "team_teams";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
@@ -54,7 +53,7 @@ public class Teams
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
             final ITextComponent message = new StringTextComponent(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
                     + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
-            // TODO use config for the /team_members call.
+
             final ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/team_members " + s);
             final ITextComponent tooltip = Members.getMembers(source.getServer(), team, false);
             final HoverEvent event2 = new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);

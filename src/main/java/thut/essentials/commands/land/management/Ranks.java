@@ -36,39 +36,45 @@ public class Ranks
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-        final LiteralArgumentBuilder<CommandSource> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSource> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
         LiteralArgumentBuilder<CommandSource> command;
 
         command = base.then(Commands.literal("list_ranks").executes(ctx -> Ranks.list_ranks(ctx.getSource())));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
         command = base.then(Commands.literal("list_members").then(Commands.argument("rank", StringArgumentType.string())
                 .executes(ctx -> Ranks.list_members(ctx.getSource(), StringArgumentType.getString(ctx, "rank")))));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
 
         command = base.then(Commands.literal("add_rank").then(Commands.argument("rank", StringArgumentType.string())
                 .executes(ctx -> Ranks.add_rank(ctx.getSource(), StringArgumentType.getString(ctx, "rank")))));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
         command = base.then(Commands.literal("del_rank").then(Commands.argument("rank", StringArgumentType.string())
                 .executes(ctx -> Ranks.del_rank(ctx.getSource(), StringArgumentType.getString(ctx, "rank")))));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
 
         command = base.then(Commands.literal("add_perm").then(Commands.argument("rank", StringArgumentType.string())
                 .then(Commands.argument("perm", StringArgumentType.string()).executes(ctx -> Ranks.add_perm(ctx
                         .getSource(), StringArgumentType.getString(ctx, "rank"), StringArgumentType.getString(ctx,
                                 "perm"))))));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
         command = base.then(Commands.literal("del_perm").then(Commands.argument("rank", StringArgumentType.string())
                 .then(Commands.argument("perm", StringArgumentType.string()).executes(ctx -> Ranks.del_perm(ctx
                         .getSource(), StringArgumentType.getString(ctx, "rank"), StringArgumentType.getString(ctx,
                                 "perm"))))));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
 
         command = base.then(Commands.literal("set_rank").then(Commands.argument("rank", StringArgumentType.string())
                 .then(Commands.argument("player", EntityArgument.player()).executes(ctx -> Ranks.set_rank(ctx
                         .getSource(), EntityArgument.getPlayer(ctx, "player"), StringArgumentType.getString(ctx,
                                 "perm"))))));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
         command = base.then(Commands.literal("rem_rank").then(Commands.argument("rank", StringArgumentType.string())
                 .then(Commands.argument("player", EntityArgument.player()).executes(ctx -> Ranks.rem_rank(ctx
                         .getSource(), EntityArgument.getPlayer(ctx, "player"), StringArgumentType.getString(ctx,
