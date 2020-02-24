@@ -18,6 +18,10 @@ import net.minecraft.entity.item.ItemFrameEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Items;
+import net.minecraft.network.IPacket;
+import net.minecraft.network.play.server.SSpawnParticlePacket;
+import net.minecraft.particles.IParticleData;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -26,6 +30,7 @@ import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.dimension.Dimension;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.TickEvent.Phase;
@@ -111,8 +116,7 @@ public class LandEventsHandler
             if (team == null)
             {
                 if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMPLACEWILD)) return;
-                // TODO better message.
-                player.sendMessage(new StringTextComponent("Cannot place that."));
+                player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.placeblock"));
                 evt.setCanceled(true);
                 ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
                 return;
@@ -161,8 +165,7 @@ public class LandEventsHandler
                 if (team == null)
                 {
                     if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMBREAKWILD)) return;
-                    // TODO better message.
-                    player.sendMessage(new StringTextComponent("Cannot break that."));
+                    player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.breakblock"));
                     evt.setCanceled(true);
                     return;
 
@@ -270,6 +273,57 @@ public class LandEventsHandler
 
     public static class EntityEventHandler
     {
+        public static Set<UUID> showLandSet = Sets.newHashSet();
+
+        private void sendNearbyChunks(final ServerPlayerEntity player)
+        {
+            final IParticleData otherowned = ParticleTypes.BARRIER;
+            final IParticleData owned = ParticleTypes.HAPPY_VILLAGER;
+            IParticleData show = null;
+            final LandTeam us = LandManager.getTeam(player);
+            int x, y, z;
+            int x1, y1, z1;
+            IPacket<?> packet;
+            final int dim = player.dimension.getId();
+            for (int i = -3; i <= 3; i++)
+                for (int j = -3; j <= 3; j++)
+                    for (int k = -3; k <= 3; k++)
+                    {
+                        x = player.chunkCoordX + i;
+                        y = player.chunkCoordY + j;
+                        z = player.chunkCoordZ + k;
+                        final Coordinate c = new Coordinate(x, y, z, dim);
+
+                        final LandTeam team = LandManager.getInstance().getLandOwner(c);
+                        show = team == null ? null : team == us ? owned : otherowned;
+
+                        if (show != null && y >= 0 && y < 16)
+                        {
+                            x1 = x * 16;
+                            y1 = y * 16;
+                            z1 = z * 16;
+
+                            for (int i1 = 1; i1 < 16; i1 += 4)
+                                for (int j1 = 1; j1 < 16; j1 += 4)
+                                {
+                                    packet = new SSpawnParticlePacket(show, false, x1 + i1, y1 + j1, z1 + 1, 0, 0, 0, 0,
+                                            1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + i1, y1 + j1, z1 + 15, 0, 0, 0,
+                                            0, 1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + 1, y1 + j1, z1 + i1, 0, 0, 0, 0,
+                                            1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + 15, y1 + j1, z1 + i1, 0, 0, 0,
+                                            0, 1);
+                                    player.connection.sendPacket(packet);
+                                }
+                        }
+                    }
+
+        }
+
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void death(final LivingDeathEvent evt)
         {
@@ -302,6 +356,7 @@ public class LandEventsHandler
             if (evt.getEntityLiving() instanceof ServerPlayerEntity && evt.getEntityLiving().ticksExisted > 10)
             {
                 final ServerPlayerEntity player = (ServerPlayerEntity) evt.getEntityLiving();
+                if (EntityEventHandler.showLandSet.contains(player.getUniqueID())) this.sendNearbyChunks(player);
                 BlockPos here;
                 BlockPos old;
                 here = new BlockPos(player.chasingPosX, player.chasingPosY, player.chasingPosZ);
@@ -328,8 +383,7 @@ public class LandEventsHandler
                     {
                         player.connection.setPlayerLocation(old.getX() + 0.5, old.getY(), old.getZ() + 0.5,
                                 player.rotationYaw, player.rotationPitch);
-                        // TODO better message.
-                        evt.getEntity().sendMessage(new StringTextComponent("You may not enter there."));
+                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.noenter"));
                         return;
                     }
                     final boolean owns = team != null && team.isMember(player);
@@ -337,8 +391,7 @@ public class LandEventsHandler
                     {
                         player.connection.setPlayerLocation(old.getX() + 0.5, old.getY(), old.getZ() + 0.5,
                                 player.rotationYaw, player.rotationPitch);
-                        // TODO better message.
-                        evt.getEntity().sendMessage(new StringTextComponent("You may not enter there."));
+                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.owned.noenter"));
                         return;
                     }
                     else if (isNewOwned && !owns && !PermissionAPI.hasPermission(player,
@@ -346,8 +399,7 @@ public class LandEventsHandler
                     {
                         player.connection.setPlayerLocation(old.getX() + 0.5, old.getY(), old.getZ() + 0.5,
                                 player.rotationYaw, player.rotationPitch);
-                        // TODO better message.
-                        evt.getEntity().sendMessage(new StringTextComponent("You may not enter there."));
+                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.other.noenter"));
                         return;
                     }
 
@@ -605,7 +657,8 @@ public class LandEventsHandler
 
             // Check if we own this, or we have team relation permissions for
             // this.
-            if (owner.canUseStuff(evt.getPlayer().getUniqueID(), b)) return;
+            if (owner.canUseStuff(evt.getPlayer().getUniqueID(), b) || owner.canBreakBlock(evt.getPlayer()
+                    .getUniqueID(), b)) return;
 
             // Check if this is a public location
             final Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
@@ -640,7 +693,7 @@ public class LandEventsHandler
 
             // If the player owns it, they can toggle whether the entity is
             // protected or not, Only team admins can do this.
-            if (owner.canUseStuff(evt.getPlayer().getUniqueID(), b) && owner.isAdmin(evt.getPlayer()))
+            if (owner.isAdmin(evt.getPlayer()))
             {
                 // No protecting players.
                 if (evt.getTarget() instanceof PlayerEntity) return;
@@ -697,8 +750,9 @@ public class LandEventsHandler
             // If all public, don't bother checking things below.
             if (owner.allPublic) return;
 
+            final boolean canUse = owner.canUseStuff(evt.getPlayer().getUniqueID(), b);
             // Check the teams relations settings
-            if (owner.canUseStuff(evt.getPlayer().getUniqueID(), b)) return;
+            if (canUse) return;
 
             // If not public, no use of mob.
             if (!owner.public_mobs.contains(evt.getTarget().getUniqueID()))
@@ -737,8 +791,7 @@ public class LandEventsHandler
             if (!ownedLand)
             {
                 if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMWILD)) return;
-                // TODO better message.
-                player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms"));
+                player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useitem"));
                 evt.setCanceled(true);
                 ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
                 return;
@@ -802,8 +855,7 @@ public class LandEventsHandler
             {
                 if (!PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEBLOCKWILD))
                 {
-                    // TODO better message.
-                    player.sendMessage(new StringTextComponent("Cannot use that."));
+                    player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"));
                     evt.setCanceled(true);
                     evt.setUseBlock(Result.DENY);
                     evt.setUseItem(Result.DENY);
@@ -830,7 +882,7 @@ public class LandEventsHandler
 
             // Check permission, Treat relation public perm as if we own this
             // for this check.
-            boolean owns = owner.canUseStuff(player.getUniqueID(), b);
+            boolean owns = owner.canUseStuff(player.getUniqueID(), b) || owner.canPlaceBlock(player.getUniqueID(), b);
 
             // Check if the block is public.
             Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
@@ -1134,19 +1186,36 @@ public class LandEventsHandler
     private static final byte ENTER = 1;
     private static final byte EXIT  = 2;
 
+    private static Map<UUID, Long> denyFloodControl  = Maps.newHashMap();
+    private static Map<UUID, Long> enterFloodControl = Maps.newHashMap();
+    private static Map<UUID, Long> exitFloodControl  = Maps.newHashMap();
+
+    private static long getTime(final Entity player)
+    {
+        return player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+    }
+
     private static void sendMessage(final Entity player, final LandTeam team, final byte index)
     {
         ITextComponent message = null;
+        final long time = LandEventsHandler.getTime(player);
+        final int delay = 10;
         switch (index)
         {
         case DENY:
             message = LandEventsHandler.getDenyMessage(team);
+            if (LandEventsHandler.denyFloodControl.getOrDefault(player.getUniqueID(), (long) 0) > time) message = null;
+            else LandEventsHandler.denyFloodControl.put(player.getUniqueID(), time + delay);
             break;
         case ENTER:
             message = LandEventsHandler.getEnterMessage(team);
+            if (LandEventsHandler.enterFloodControl.getOrDefault(player.getUniqueID(), (long) 0) > time) message = null;
+            else LandEventsHandler.enterFloodControl.put(player.getUniqueID(), time + delay);
             break;
         case EXIT:
             message = LandEventsHandler.getExitMessage(team);
+            if (LandEventsHandler.exitFloodControl.getOrDefault(player.getUniqueID(), (long) 0) > time) message = null;
+            else LandEventsHandler.exitFloodControl.put(player.getUniqueID(), time + delay);
             break;
         }
         if (message != null) player.sendMessage(message);

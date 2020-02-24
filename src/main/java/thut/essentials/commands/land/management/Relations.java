@@ -10,6 +10,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
@@ -37,6 +38,20 @@ public class Relations
         Collections.sort(Relations.perms);
     }
 
+    public static SuggestionProvider<CommandSource> suggestTeams()
+    {
+        final List<String> values = Lists.newArrayList();
+        for (final String s : LandManager.getInstance()._teamMap.keySet())
+            values.add(s);
+        Collections.sort(values);
+        return (ctx, sb) -> net.minecraft.command.ISuggestionProvider.suggest(values, sb);
+    }
+
+    public static SuggestionProvider<CommandSource> suggestPerms()
+    {
+        return (ctx, sb) -> net.minecraft.command.ISuggestionProvider.suggest(Relations.perms, sb);
+    }
+
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
         final String name = "team_relations";
@@ -45,29 +60,37 @@ public class Relations
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-        final LiteralArgumentBuilder<CommandSource> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSource> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
         LiteralArgumentBuilder<CommandSource> command;
 
         command = base.then(Commands.literal("list").executes(ctx -> Relations.list(ctx.getSource())));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
 
         command = base.then(Commands.literal("relations").then(Commands.argument("team", StringArgumentType.string())
-                .executes(ctx -> Relations.relations(ctx.getSource(), StringArgumentType.getString(ctx, "team")))));
+                .suggests(Relations.suggestTeams()).executes(ctx -> Relations.relations(ctx.getSource(),
+                        StringArgumentType.getString(ctx, "team")))));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
 
         command = base.then(Commands.literal("relations_all").executes(ctx -> Relations.relations_all(ctx
                 .getSource())));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
 
-        command = base.then(Commands.literal("set").then(Commands.argument("set", StringArgumentType.string()).then(
-                Commands.argument("perm", StringArgumentType.string()).executes(ctx -> Relations.set(ctx.getSource(),
-                        StringArgumentType.getString(ctx, "team"), StringArgumentType.getString(ctx, "perm"))))));
+        command = base.then(Commands.literal("set").then(Commands.argument("team", StringArgumentType.string())
+                .suggests(Relations.suggestTeams()).then(Commands.argument("perm", StringArgumentType.string())
+                        .suggests(Relations.suggestPerms()).executes(ctx -> Relations.set(ctx.getSource(),
+                                StringArgumentType.getString(ctx, "team"), StringArgumentType.getString(ctx,
+                                        "perm"))))));
         commandDispatcher.register(command);
+        base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
 
-        command = base.then(Commands.literal("unset").then(Commands.argument("set", StringArgumentType.string()).then(
-                Commands.argument("perm", StringArgumentType.string()).executes(ctx -> Relations.unset(ctx.getSource(),
-                        StringArgumentType.getString(ctx, "team"), StringArgumentType.getString(ctx, "perm"))))));
+        command = base.then(Commands.literal("unset").then(Commands.argument("team", StringArgumentType.string())
+                .suggests(Relations.suggestTeams()).then(Commands.argument("perm", StringArgumentType.string())
+                        .suggests(Relations.suggestPerms()).executes(ctx -> Relations.unset(ctx.getSource(),
+                                StringArgumentType.getString(ctx, "team"), StringArgumentType.getString(ctx,
+                                        "perm"))))));
         commandDispatcher.register(command);
     }
 
@@ -75,7 +98,7 @@ public class Relations
     {
         Essentials.config.sendFeedback(source, "thutessentials.team.relations.header", false);
         for (final String s : Relations.perms)
-            Essentials.config.sendFeedback(source, Relations.perm_info.get(s), false);
+            Essentials.config.sendFeedback(source, Relations.perm_info.get(s), false, s);
         return 0;
     }
 
@@ -84,6 +107,8 @@ public class Relations
         final ServerPlayerEntity player = source.asPlayer();
         final LandTeam landTeam = LandManager.getTeam(player);
         final List<String> keys = Lists.newArrayList(landTeam.relations.keySet());
+        if (keys.isEmpty()) player.sendMessage(CommandManager.makeFormattedComponent(
+                "thutessentials.team.relations.none"));
         for (final String team : keys)
             Relations.relations(source, team);
         return 0;
@@ -126,9 +151,9 @@ public class Relations
         Relation relation = landTeam.relations.get(other);
         if (relation == null) landTeam.relations.put(other, relation = new Relation());
         if (relation.perms.add(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relation.set", null, false, perm));
-        else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relation.had", null, false,
-                perm));
+                "thutessentials.team.relations.set", null, false, perm));
+        else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.had", null, false,
+                other));
         return 0;
     }
 
@@ -150,10 +175,10 @@ public class Relations
         }
         Relation relation = landTeam.relations.get(other);
         if (relation == null) landTeam.relations.put(other, relation = new Relation());
-        if (relation.perms.add(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relation.unset", null, false, perm));
-        else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relation.nohad", null, false,
-                perm));
+        if (relation.perms.remove(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
+                "thutessentials.team.relations.unset", null, false, perm, other));
+        else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.nohad", null,
+                false, other));
         return 0;
     }
 
