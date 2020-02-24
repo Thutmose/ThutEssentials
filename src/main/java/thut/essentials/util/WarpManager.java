@@ -87,7 +87,7 @@ public class WarpManager
         return 0;
     }
 
-    public static int delWarp(final String name) throws Exception
+    public static int delWarp(final String name)
     {
         final List<String> warps = Lists.newArrayList(Essentials.config.warps);
         for (final String s : warps)

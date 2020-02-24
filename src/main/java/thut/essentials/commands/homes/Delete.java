@@ -45,7 +45,7 @@ public class Delete
     {
         if (homeName == null) homeName = "Home";
         final ServerPlayerEntity player = source.asPlayer();
-        final int ret = HomeManager.setHome(player, homeName);
+        final int ret = HomeManager.removeHome(player, homeName);
         ITextComponent message;
         switch (ret)
         {
