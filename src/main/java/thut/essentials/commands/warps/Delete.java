@@ -7,13 +7,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.util.HomeManager;
+import thut.essentials.util.WarpManager;
 
 public class Delete
 {
@@ -41,21 +40,19 @@ public class Delete
         }
     }
 
-    private static int execute(final CommandSource source, String homeName) throws CommandSyntaxException
+    private static int execute(final CommandSource source, final String homeName) throws CommandSyntaxException
     {
-        if (homeName == null) homeName = "Home";
-        final ServerPlayerEntity player = source.asPlayer();
-        final int ret = HomeManager.setHome(player, homeName);
+        final int ret = WarpManager.delWarp(homeName);
         ITextComponent message;
         switch (ret)
         {
         case 0:
-            message = CommandManager.makeFormattedComponent("thutessentials.homes.removed", null, false, homeName);
-            player.sendMessage(message);
+            message = CommandManager.makeFormattedComponent("thutessentials.warps.removed", null, false, homeName);
+            source.sendFeedback(message, true);
             break;
         case 1:
-            message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null, false, homeName);
-            player.sendMessage(message);
+            message = CommandManager.makeFormattedComponent("thutessentials.warps.noexists", null, false, homeName);
+            source.sendFeedback(message, true);
             break;
         }
         return ret;
