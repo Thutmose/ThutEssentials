@@ -19,6 +19,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
+import thut.essentials.commands.admin.StaffChat;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.PlayerMover;
 
@@ -106,6 +107,8 @@ public class CommandManager
         // Register commands.
         thut.essentials.commands.economy.Balance.register(commandDispatcher);
         thut.essentials.commands.economy.Pay.register(commandDispatcher);
+
+        thut.essentials.commands.admin.StaffChat.register(commandDispatcher);
 
         thut.essentials.commands.homes.Homes.register(commandDispatcher);
         thut.essentials.commands.homes.Create.register(commandDispatcher);
