@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,6 +39,7 @@ public class Config extends ConfigData
     public static final String KITS = "kits";
     public static final String BACK = "back";
     public static final String ECON = "economy";
+    public static final String STAFF = "staff";
 
     @Configure(category = Config.LAND)
     public boolean defaultMessages    = true;
@@ -121,6 +123,9 @@ public class Config extends ConfigData
     public long         spawnReUseDelay     = 100;
     @Configure(category = Config.MISC)
     public int          tpaActivateDelay    = 50;
+
+    @Configure(category = Config.STAFF)
+    public List<String> staff               = Lists.newArrayList();
 
     @Configure(category = Config.MISC)
     public String lang_file = "en_us.json";
