@@ -80,7 +80,6 @@ public class NameManager extends DedicatedPlayerList
     public static void onLogin(final ServerPlayerEntity player, final MinecraftServer server)
     {
         final String name = PlayerDataHandler.getCustomDataTag(player).getString("nick");
-        System.out.println(name + " " + player.getCachedUniqueIdString());
         if (!name.isEmpty()) NameManager.setName(name, player.getGameProfile(), server);
     }
 
