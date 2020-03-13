@@ -101,11 +101,11 @@ public class NameManager extends DedicatedPlayerList
         {
             NameManager.setName(name, player.getGameProfile());
             PlayerDataHandler.getCustomDataTag(player).putString("nick", name);
-            if (!PlayerDataHandler.getCustomDataTag(player).contains("nick_orig")) PlayerDataHandler.getCustomDataTag(
-                    player).putString("nick_orig", name);
+            if (!PlayerDataHandler.getCustomDataTag(player).contains("nick_orig"))
+                PlayerDataHandler.getCustomDataTag(player).putString("nick_orig", name);
             PlayerDataHandler.saveCustomData(player);
-            server.getPlayerList().sendPacketToAllPlayers(new SPlayerListItemPacket(
-                    SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
+            server.getPlayerList().sendPacketToAllPlayers(
+                    new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
         }
         else NameManager.setName(name, profile);
     }
@@ -118,15 +118,15 @@ public class NameManager extends DedicatedPlayerList
     @Override
     public void initializeConnectionToPlayer(final NetworkManager netManager, final ServerPlayerEntity playerIn)
     {
-        final GameProfile gameprofile = playerIn.getGameProfile();
-        final PlayerProfileCache playerprofilecache = this.getServer().getPlayerProfileCache();
+        GameProfile gameprofile = playerIn.getGameProfile();
+        PlayerProfileCache playerprofilecache = this.getServer().getPlayerProfileCache();
 
         NameManager.onLogin(playerIn, this.getServer());
 
-        final GameProfile gameprofile1 = playerprofilecache.getProfileByUUID(gameprofile.getId());
-        final String s = gameprofile1 == null ? gameprofile.getName() : gameprofile1.getName();
+        GameProfile gameprofile1 = playerprofilecache.getProfileByUUID(gameprofile.getId());
+        String s = gameprofile1 == null ? gameprofile.getName() : gameprofile1.getName();
         playerprofilecache.addEntry(gameprofile);
-        final CompoundNBT compoundnbt = this.readPlayerDataFromFile(playerIn);
+        CompoundNBT compoundnbt = this.readPlayerDataFromFile(playerIn);
         ServerWorld serverworld = this.getServer().getWorld(playerIn.dimension);
 
         // Forge: Make sure the dimension hasn't been deleted, if so stick them
@@ -142,24 +142,29 @@ public class NameManager extends DedicatedPlayerList
         playerIn.setWorld(serverworld);
         playerIn.interactionManager.setWorld((ServerWorld) playerIn.world);
         String s1 = "local";
-        if (netManager.getRemoteAddress() != null) s1 = netManager.getRemoteAddress().toString();
+        if (netManager.getRemoteAddress() != null)
+        {
+            s1 = netManager.getRemoteAddress().toString();
+        }
 
         Essentials.LOGGER.info("{}[{}] logged in with entity id {} at ({}, {}, {})", playerIn.getName().getString(), s1,
-                playerIn.getEntityId(), playerIn.posX, playerIn.posY, playerIn.posZ);
-        final WorldInfo worldinfo = serverworld.getWorldInfo();
+                playerIn.getEntityId(), playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ());
+        WorldInfo worldinfo = serverworld.getWorldInfo();
         this.setPlayerGameTypeBasedOnOther(playerIn, (ServerPlayerEntity) null, serverworld);
-        final ServerPlayNetHandler serverplaynethandler = new ServerPlayNetHandler(this.getServer(), netManager,
-                playerIn);
+        ServerPlayNetHandler serverplaynethandler = new ServerPlayNetHandler(this.getServer(), netManager, playerIn);
         net.minecraftforge.fml.network.NetworkHooks.sendMCRegistryPackets(netManager, "PLAY_TO_CLIENT");
         net.minecraftforge.fml.network.NetworkHooks.sendDimensionDataPacket(netManager, playerIn);
-        serverplaynethandler.sendPacket(new SJoinGamePacket(playerIn.getEntityId(), playerIn.interactionManager
-                .getGameType(), worldinfo.isHardcore(), serverworld.dimension.getType(), this.getMaxPlayers(), worldinfo
-                        .getGenerator(), this.getViewDistance(), serverworld.getGameRules().getBoolean(
-                                GameRules.REDUCED_DEBUG_INFO)));
-        serverplaynethandler.sendPacket(new SCustomPayloadPlayPacket(SCustomPayloadPlayPacket.BRAND, new PacketBuffer(
-                Unpooled.buffer()).writeString(this.getServer().getServerModName())));
-        serverplaynethandler.sendPacket(new SServerDifficultyPacket(worldinfo.getDifficulty(), worldinfo
-                .isDifficultyLocked()));
+        GameRules gamerules = serverworld.getGameRules();
+        boolean flag = gamerules.getBoolean(GameRules.DO_IMMEDIATE_RESPAWN);
+        boolean flag1 = gamerules.getBoolean(GameRules.REDUCED_DEBUG_INFO);
+        serverplaynethandler.sendPacket(new SJoinGamePacket(playerIn.getEntityId(),
+                playerIn.interactionManager.getGameType(), WorldInfo.byHashing(worldinfo.getSeed()),
+                worldinfo.isHardcore(), serverworld.dimension.getType(), this.getMaxPlayers(), worldinfo.getGenerator(),
+                this.getViewDistance(), flag1, !flag));
+        serverplaynethandler.sendPacket(new SCustomPayloadPlayPacket(SCustomPayloadPlayPacket.BRAND,
+                (new PacketBuffer(Unpooled.buffer())).writeString(this.getServer().getServerModName())));
+        serverplaynethandler
+                .sendPacket(new SServerDifficultyPacket(worldinfo.getDifficulty(), worldinfo.isDifficultyLocked()));
         serverplaynethandler.sendPacket(new SPlayerAbilitiesPacket(playerIn.abilities));
         serverplaynethandler.sendPacket(new SHeldItemChangePacket(playerIn.inventory.currentItem));
         serverplaynethandler.sendPacket(new SUpdateRecipesPacket(this.getServer().getRecipeManager().getRecipes()));
@@ -170,58 +175,78 @@ public class NameManager extends DedicatedPlayerList
         this.sendScoreboard(serverworld.getScoreboard(), playerIn);
         this.getServer().refreshStatusNextTick();
         ITextComponent itextcomponent;
-        if (playerIn.getGameProfile().getName().equalsIgnoreCase(s)) itextcomponent = new TranslationTextComponent(
-                "multiplayer.player.joined", playerIn.getDisplayName());
-        else itextcomponent = new TranslationTextComponent("multiplayer.player.joined.renamed", playerIn
-                .getDisplayName(), s);
+        if (playerIn.getGameProfile().getName().equalsIgnoreCase(s))
+        {
+            itextcomponent = new TranslationTextComponent("multiplayer.player.joined", playerIn.getDisplayName());
+        }
+        else
+        {
+            itextcomponent = new TranslationTextComponent("multiplayer.player.joined.renamed",
+                    playerIn.getDisplayName(), s);
+        }
 
         this.sendMessage(itextcomponent.applyTextStyle(TextFormatting.YELLOW));
-        serverplaynethandler.setPlayerLocation(playerIn.posX, playerIn.posY, playerIn.posZ, playerIn.rotationYaw,
-                playerIn.rotationPitch);
+        serverplaynethandler.setPlayerLocation(playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ(),
+                playerIn.rotationYaw, playerIn.rotationPitch);
         this.addPlayer(playerIn);
         this.uuidToPlayerMap.put(playerIn.getUniqueID(), playerIn);
         this.sendPacketToAllPlayers(new SPlayerListItemPacket(SPlayerListItemPacket.Action.ADD_PLAYER, playerIn));
 
         for (int i = 0; i < this.getPlayers().size(); ++i)
-            playerIn.connection.sendPacket(new SPlayerListItemPacket(SPlayerListItemPacket.Action.ADD_PLAYER, this
-                    .getPlayers().get(i)));
+        {
+            playerIn.connection.sendPacket(
+                    new SPlayerListItemPacket(SPlayerListItemPacket.Action.ADD_PLAYER, this.getPlayers().get(i)));
+        }
 
         serverworld.addNewPlayer(playerIn);
         this.getServer().getCustomBossEvents().onPlayerLogin(playerIn);
         this.sendWorldInfo(playerIn, serverworld);
-        if (!this.getServer().getResourcePackUrl().isEmpty()) playerIn.loadResourcePack(this.getServer()
-                .getResourcePackUrl(), this.getServer().getResourcePackHash());
+        if (!this.getServer().getResourcePackUrl().isEmpty())
+        {
+            playerIn.loadResourcePack(this.getServer().getResourcePackUrl(), this.getServer().getResourcePackHash());
+        }
 
-        for (final EffectInstance effectinstance : playerIn.getActivePotionEffects())
+        for (EffectInstance effectinstance : playerIn.getActivePotionEffects())
+        {
             serverplaynethandler.sendPacket(new SPlayEntityEffectPacket(playerIn.getEntityId(), effectinstance));
+        }
 
         if (compoundnbt != null && compoundnbt.contains("RootVehicle", 10))
         {
-            final CompoundNBT compoundnbt1 = compoundnbt.getCompound("RootVehicle");
+            CompoundNBT compoundnbt1 = compoundnbt.getCompound("RootVehicle");
             final ServerWorld worldf = serverworld;
-            final Entity entity1 = EntityType.func_220335_a(compoundnbt1.getCompound("Entity"), serverworld, (
-                    p_217885_1_) ->
+            Entity entity1 = EntityType.func_220335_a(compoundnbt1.getCompound("Entity"), serverworld, (p_217885_1_) ->
             {
                 return !worldf.summonEntity(p_217885_1_) ? null : p_217885_1_;
             });
             if (entity1 != null)
             {
-                final UUID uuid = compoundnbt1.getUniqueId("Attach");
-                if (entity1.getUniqueID().equals(uuid)) playerIn.startRiding(entity1, true);
-                else for (final Entity entity : entity1.getRecursivePassengers())
-                    if (entity.getUniqueID().equals(uuid))
+                UUID uuid = compoundnbt1.getUniqueId("Attach");
+                if (entity1.getUniqueID().equals(uuid))
+                {
+                    playerIn.startRiding(entity1, true);
+                }
+                else
+                {
+                    for (Entity entity : entity1.getRecursivePassengers())
                     {
-                        playerIn.startRiding(entity, true);
-                        break;
+                        if (entity.getUniqueID().equals(uuid))
+                        {
+                            playerIn.startRiding(entity, true);
+                            break;
+                        }
                     }
+                }
 
                 if (!playerIn.isPassenger())
                 {
                     Essentials.LOGGER.warn("Couldn't reattach entity to player");
                     serverworld.removeEntity(entity1);
 
-                    for (final Entity entity2 : entity1.getRecursivePassengers())
+                    for (Entity entity2 : entity1.getRecursivePassengers())
+                    {
                         serverworld.removeEntity(entity2);
+                    }
                 }
             }
         }

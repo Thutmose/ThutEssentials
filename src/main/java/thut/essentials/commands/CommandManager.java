@@ -19,7 +19,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
-import thut.essentials.commands.admin.StaffChat;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.PlayerMover;
 
