@@ -54,7 +54,7 @@ public class Essentials
         if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.getInstance();
         LandEventsHandler.TEAMMANAGER.registerPerms();
-        CommandManager.register_commands(event.getCommandDispatcher());
+        CommandManager.register_commands(event.getCommandDispatcher(), event.getServer());
     }
 
     @SubscribeEvent

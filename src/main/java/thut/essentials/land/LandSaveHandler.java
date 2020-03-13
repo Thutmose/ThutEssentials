@@ -60,11 +60,9 @@ public class LandSaveHandler
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         final String folder = server.getFolderName();
-        // TODO see if this works?
-        final File saveFolder = new File(folder);
-        final File teamsFolder = new File(saveFolder, "land");
-        if (!teamsFolder.exists()) teamsFolder.mkdirs();
-        return teamsFolder;
+        final File file = server.getActiveAnvilConverter().getFile(folder, "land");
+        if (!file.exists()) file.mkdirs();
+        return file;
     }
 
     public static File getTeamFolder()

@@ -40,10 +40,9 @@ public class EconomySaveHandler
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         final String folder = server.getFolderName();
-        final File saveFolder = new File(folder);
-        final File teamsFolder = new File(saveFolder, "economy");
-        if (!teamsFolder.exists()) teamsFolder.mkdirs();
-        return teamsFolder;
+        final File file = server.getActiveAnvilConverter().getFile(folder, "economy");
+        if (!file.exists()) file.mkdirs();
+        return file;
     }
 
     public static void saveGlobalData()
