@@ -19,7 +19,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
-import thut.essentials.commands.admin.StaffChat;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.PlayerMover;
 
@@ -100,7 +99,8 @@ public class CommandManager
         return PermissionAPI.hasPermission(player, permission);
     }
 
-    public static void register_commands(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register_commands(final CommandDispatcher<CommandSource> commandDispatcher,
+            final MinecraftServer server)
     {
         // We do this first, as commands might need it.
         MinecraftForge.EVENT_BUS.register(new PlayerMover());
@@ -126,6 +126,7 @@ public class CommandManager
         thut.essentials.commands.misc.Config.register(commandDispatcher);
         thut.essentials.commands.misc.Kits.register(commandDispatcher);
         thut.essentials.commands.misc.Spawn.register(commandDispatcher);
+        thut.essentials.commands.misc.Nick.register(commandDispatcher, server);
 
         thut.essentials.commands.land.util.Chat.register(commandDispatcher);
         thut.essentials.commands.land.util.Check.register(commandDispatcher);
