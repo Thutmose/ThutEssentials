@@ -136,6 +136,11 @@ public class CommandManager
         thut.essentials.commands.land.util.Teams.register(commandDispatcher);
         thut.essentials.commands.land.util.Show.register(commandDispatcher);
 
+        thut.essentials.commands.util.Speed.register(commandDispatcher);
+        thut.essentials.commands.util.Repair.register(commandDispatcher);
+        thut.essentials.commands.util.Heal.register(commandDispatcher);
+        thut.essentials.commands.util.RAM.register(commandDispatcher);
+
         thut.essentials.commands.land.management.Create.register(commandDispatcher);
         thut.essentials.commands.land.management.Invite.register(commandDispatcher);
         thut.essentials.commands.land.management.Join.register(commandDispatcher);

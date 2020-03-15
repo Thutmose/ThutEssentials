@@ -24,7 +24,6 @@ public class Spawn
 {
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        // TODO configurable this.
         final String name = "spawn";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
