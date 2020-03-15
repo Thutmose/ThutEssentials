@@ -122,6 +122,8 @@ public class Config extends ConfigData
     public long         spawnReUseDelay     = 100;
     @Configure(category = Config.MISC)
     public int          tpaActivateDelay    = 50;
+    @Configure(category = Config.MISC)
+    public double       maxSpeed            = 10;
 
     @Configure(category = Config.STAFF)
     public List<String> staff = Lists.newArrayList();
