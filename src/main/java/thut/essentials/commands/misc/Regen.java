@@ -18,10 +18,10 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MutableBoundingBox;
+import net.minecraft.util.palette.UpgradeData;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.chunk.UpgradeData;
 import net.minecraft.world.gen.WorldGenRegion;
 import net.minecraft.world.gen.feature.structure.StructureStart;
 import net.minecraft.world.server.ServerWorld;
@@ -99,7 +99,8 @@ public class Regen
                             primers.add(chunk2);
                         }
                     final WorldGenRegion world = new WorldGenRegion(worldIn, primers);
-                    structurestart.generateStructure(world, rand, box, chunkpos);
+                    structurestart.func_225565_a_(world, worldIn.getChunkProvider().getChunkGenerator(), rand, box,
+                            chunkpos);
                     for (int i = box.minX; i <= box.maxX; i++)
                         for (int j = box.minY; j <= box.maxY; j++)
                             for (int k = box.minZ; k <= box.maxZ; k++)
