@@ -147,7 +147,8 @@ public class EconomyManager
                     }
                     if (count < this.number || inv == null)
                     {
-                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
+                        System.out.println(this.number + " " + count + " " + this.storage);
+                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_shop"));
                         return false;
                     }
                     int i = 0;
@@ -476,7 +477,7 @@ public class EconomyManager
                     return null;
                 }
 
-                shop.storage = new Coordinate(location.x + dx, location.y + dy, location.z + dz, location.dim);
+                shop.storage = new Coordinate(location.x + dx, location.y - 1 + dy, location.z + dz, location.dim);
             }
             else shop.storage = new Coordinate(location.x, location.y - 1, location.z, location.dim);
         }
