@@ -356,7 +356,8 @@ public class LandEventsHandler
             if (evt.getEntityLiving() instanceof ServerPlayerEntity && evt.getEntityLiving().ticksExisted > 10)
             {
                 final ServerPlayerEntity player = (ServerPlayerEntity) evt.getEntityLiving();
-                if (EntityEventHandler.showLandSet.contains(player.getUniqueID())) this.sendNearbyChunks(player);
+                if (EntityEventHandler.showLandSet.contains(player.getUniqueID()) && player.ticksExisted % 20 == 0) this
+                        .sendNearbyChunks(player);
                 BlockPos here;
                 BlockPos old;
                 here = new BlockPos(player.chasingPosX, player.chasingPosY, player.chasingPosZ);
