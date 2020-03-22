@@ -172,6 +172,7 @@
     "thutessentials.claim.claimed": "§aYou claimed this land for §6%s",
     "thutessentials.claim.claimed.num": "§aYou claimed §6%s§a chunk segments for §6%s",
     "thutessentials.claim.claimed.failed": "§cYou were unable to claim that land.",
+    "thutessentials.claim.claimed.count": "§aYour team has claimed §6%s§a chunk segments, with a maximum of §6%s§a",
     
     "thutessentials.claim.ownedby": "§aThis Land is owned by §6%s",
     "thutessentials.claim.unowned": "§aThis Land is not owned",
