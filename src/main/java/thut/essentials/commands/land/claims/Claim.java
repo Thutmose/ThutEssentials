@@ -79,6 +79,10 @@ public class Claim
         command = command.then(Commands.literal("auto").requires(cs -> CommandManager.hasPerm(cs, Claim.AUTOCLAIM))
                 .executes(ctx -> Claim.executeAuto(ctx.getSource())));
         commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
+        command = command.then(Commands.literal("check").executes(ctx -> Claim.executeCheck(ctx.getSource())));
+        commandDispatcher.register(command);
     }
 
     @SubscribeEvent
@@ -109,6 +113,17 @@ public class Claim
         Claim.autoclaimers.clear();
         Claim.claimstarts.clear();
         MinecraftForge.EVENT_BUS.unregister(Claim.class);
+    }
+
+    private static int executeCheck(final CommandSource source) throws CommandSyntaxException
+    {
+        final PlayerEntity player = source.asPlayer();
+        final LandTeam team = LandManager.getTeam(player);
+        final int count = LandManager.getInstance().countLand(team.teamName);
+        final int teamCount = team.member.size();
+        final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;
+        player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed.count", count, maxLand));
+        return 0;
     }
 
     private static int executeAuto(final CommandSource source) throws CommandSyntaxException
