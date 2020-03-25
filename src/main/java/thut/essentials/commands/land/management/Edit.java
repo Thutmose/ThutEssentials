@@ -27,6 +27,7 @@ public class Edit
     private static final String PERMTOGGLEEXPLODE      = "thutessentials.land.toggle.explode";
     private static final String PERMTOGGLEFF           = "thutessentials.land.toggle.friendlyfire";
     private static final String PERMTOGGLEPLAYERDAMAGE = "thutessentials.land.toggle.playerdamage";
+    private static final String PERMTOGGLENPCDAMAGE    = "thutessentials.land.toggle.npcdamage";
     private static final String PERMTOGGLEFAKEPLAYERS  = "thutessentials.land.toggle.fakeplayers";
 
     public static boolean adminUse(final CommandSource source, final String perm)
@@ -72,6 +73,8 @@ public class Edit
                 "Allowed to toggle friendly fire on/off for their team");
         PermissionAPI.registerNode(Edit.PERMTOGGLEPLAYERDAMAGE, DefaultPermissionLevel.OP,
                 "Allowed to toggle player damage on/off in their team land");
+        PermissionAPI.registerNode(Edit.PERMTOGGLENPCDAMAGE, DefaultPermissionLevel.ALL,
+                "Allowed to toggle npc damage on/off in their team land");
         PermissionAPI.registerNode(Edit.PERMTOGGLEFAKEPLAYERS, DefaultPermissionLevel.ALL,
                 "Allowed to toggle whether fakeplayers are ignored for land stuff.");
 
@@ -111,6 +114,10 @@ public class Edit
 
         command = base.then(Commands.literal("no_player_damage").requires(cs -> Edit.adminUse(cs,
                 Edit.PERMTOGGLEPLAYERDAMAGE)).executes(ctx -> Edit.toggle_no_player_damage(ctx.getSource())));
+        commandDispatcher.register(command);
+
+        command = base.then(Commands.literal("no_npc_damage").requires(cs -> Edit.adminUse(cs,
+                Edit.PERMTOGGLENPCDAMAGE)).executes(ctx -> Edit.toggle_no_npc_damage(ctx.getSource())));
         commandDispatcher.register(command);
 
         command = base.then(Commands.literal("friendly_fire").requires(cs -> Edit.adminUse(cs, Edit.PERMTOGGLEFF))
@@ -250,6 +257,17 @@ public class Edit
         landTeam.noPlayerDamage = !landTeam.noPlayerDamage;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.noplayerdamage.set", null, false,
                 landTeam.noPlayerDamage));
+        LandSaveHandler.saveTeam(landTeam.teamName);
+        return 0;
+    }
+
+    private static int toggle_no_npc_damage(final CommandSource source) throws CommandSyntaxException
+    {
+        final ServerPlayerEntity player = source.asPlayer();
+        final LandTeam landTeam = LandManager.getTeam(player);
+        landTeam.noNPCDamage = !landTeam.noNPCDamage;
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nonpcdamage.set", null, false,
+                landTeam.noNPCDamage));
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }

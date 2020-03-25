@@ -129,6 +129,8 @@ public class LandManager
         public boolean                 players        = false;
         /** If true, players cannot take damage here. */
         public boolean                 noPlayerDamage = false;
+        /** If true, INPCs cannot take damage here. */
+        public boolean                 noNPCDamage    = false;
         /** If true, fakeplayers can run. */
         public boolean                 fakePlayers    = false;
         /** If true, mobs cannot spawn here. */

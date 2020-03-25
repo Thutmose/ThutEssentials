@@ -13,6 +13,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.INPC;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemFrameEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -275,6 +276,15 @@ public class LandEventsHandler
     {
         public static Set<UUID> showLandSet = Sets.newHashSet();
 
+        private boolean canTakeDamage(final Entity in, final LandTeam land_owner)
+        {
+            if (land_owner == null) return true;
+            if (in instanceof ServerPlayerEntity) return !land_owner.noPlayerDamage;
+            if (in instanceof INPC) return !land_owner.noNPCDamage;
+            if (in instanceof ItemFrameEntity) return !land_owner.protectFrames;
+            return true;
+        }
+
         private void sendNearbyChunks(final ServerPlayerEntity player)
         {
             final IParticleData otherowned = ParticleTypes.BARRIER;
@@ -453,12 +463,12 @@ public class LandEventsHandler
             // TODO possible perms for attacking things in unclaimed land?
             if (owner == null) return;
 
-            // No player damage allowed here.
-            if (evt.getTarget() instanceof PlayerEntity && owner.noPlayerDamage)
+            if (!this.canTakeDamage(evt.getTarget(), owner))
             {
                 evt.setCanceled(true);
                 return;
             }
+
             final PlayerEntity attacker = evt.getPlayer();
 
             // Check if the team allows fakeplayers
@@ -509,13 +519,11 @@ public class LandEventsHandler
                         return;
                     }
                 }
-
-                // Check if player is protected by team settings
-                if (owner.noPlayerDamage)
-                {
-                    evt.setCanceled(true);
-                    return;
-                }
+            }
+            if (!this.canTakeDamage(evt.getEntity(), owner))
+            {
+                evt.setCanceled(true);
+                return;
             }
 
             // Check if the team allows fakeplayers
@@ -547,15 +555,7 @@ public class LandEventsHandler
             // TODO maybe add a perm for combat in non-claimed land?
             if (owner == null) return;
 
-            // Check if player is protected by team settings.
-            if (owner.noPlayerDamage && target instanceof PlayerEntity)
-            {
-                evt.setCanceled(true);
-                return;
-            }
-
-            // Protect item frames from projectiles regardless.
-            if (target instanceof ItemFrameEntity && owner.protectFrames)
+            if (!this.canTakeDamage(target, owner))
             {
                 evt.setCanceled(true);
                 return;
@@ -582,8 +582,7 @@ public class LandEventsHandler
             // TODO maybe add a perm for combat in non-claimed land?
             if (owner == null) return;
 
-            // Check if player is protected by team settings.
-            if (owner.noPlayerDamage && evt.getEntity() instanceof PlayerEntity)
+            if (!this.canTakeDamage(evt.getEntity(), owner))
             {
                 evt.setCanceled(true);
                 return;
