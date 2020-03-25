@@ -18,6 +18,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemFrameEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.play.server.SSpawnParticlePacket;
@@ -103,6 +104,11 @@ public class LandEventsHandler
         LandEventsHandler.invuln.clear();
         for (final String s : Essentials.config.invulnMobs)
             LandEventsHandler.invuln.add(new ResourceLocation(s));
+    }
+
+    private static boolean isPublicToggle(final ItemStack stack)
+    {
+        return stack.getDisplayName().getUnformattedComponentText().equalsIgnoreCase("public toggle");
     }
 
     public static class BlockEventHandler
@@ -710,8 +716,8 @@ public class LandEventsHandler
                 if (evt.getTarget() instanceof PlayerEntity) return;
 
                 // check if player is holding a public toggle.
-                if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Public Toggle") && evt.getPlayer().isCrouching())
+                if (!evt.getWorld().isRemote && LandEventsHandler.isPublicToggle(evt.getItemStack()) && evt.getPlayer()
+                        .isCrouching())
                 {
                     // If so, toggle whether the entity is public.
                     if (owner.public_mobs.contains(evt.getTarget().getUniqueID()))
@@ -733,9 +739,8 @@ public class LandEventsHandler
                     return;
                 }
                 // check if player is holding a protect toggle.
-                if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Protect Toggle") && evt.getPlayer().isCrouching() && PermissionAPI.hasPermission(evt
-                                .getPlayer(), LandEventsHandler.PERMPROTECTMOB))
+                if (!evt.getWorld().isRemote && LandEventsHandler.isPublicToggle(evt.getItemStack()) && evt.getPlayer()
+                        .isCrouching() && PermissionAPI.hasPermission(evt.getPlayer(), LandEventsHandler.PERMPROTECTMOB))
                 {
                     // If so, toggle whether the entity is protected.
                     if (owner.protected_mobs.contains(evt.getTarget().getUniqueID()))
@@ -920,9 +925,9 @@ public class LandEventsHandler
             if (owns)
             {
                 // Do stuff for toggling public
-                if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Public Toggle") && evt.getPlayer().isCrouching() && !owner.allPublic && LandManager
-                                .getInstance().isAdmin(evt.getPlayer().getUniqueID()))
+                if (!evt.getWorld().isRemote && LandEventsHandler.isPublicToggle(evt.getItemStack()) && evt.getPlayer()
+                        .isCrouching() && !owner.allPublic && LandManager.getInstance().isAdmin(evt.getPlayer()
+                                .getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
                     if (LandManager.getInstance().isPublic(blockLoc, owner))
@@ -941,9 +946,8 @@ public class LandEventsHandler
                                     + " " + evt.getPlayer().getName());
                 }
                 // Do stuff for toggling break
-                if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Break Toggle") && evt.getPlayer().isCrouching() && LandManager.getInstance().isAdmin(evt
-                                .getPlayer().getUniqueID()))
+                if (!evt.getWorld().isRemote && LandEventsHandler.isPublicToggle(evt.getItemStack()) && evt.getPlayer()
+                        .isCrouching() && LandManager.getInstance().isAdmin(evt.getPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
                     if (owner.anyBreakSet.contains(blockLoc))
@@ -963,9 +967,8 @@ public class LandEventsHandler
                                     + evt.getPlayer().getName());
                 }
                 // Do stuff for toggling place
-                if (!evt.getWorld().isRemote && evt.getItemStack() != null && evt.getItemStack().getDisplayName()
-                        .equals("Place Toggle") && evt.getPlayer().isCrouching() && LandManager.getInstance().isAdmin(evt
-                                .getPlayer().getUniqueID()))
+                if (!evt.getWorld().isRemote && LandEventsHandler.isPublicToggle(evt.getItemStack()) && evt.getPlayer()
+                        .isCrouching() && LandManager.getInstance().isAdmin(evt.getPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
                     if (owner.anyPlaceSet.contains(blockLoc))
