@@ -24,6 +24,7 @@ import net.minecraft.network.play.server.SSpawnParticlePacket;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.EntityRayTraceResult;
@@ -75,6 +76,8 @@ public class LandEventsHandler
     public static Set<String> blockBreakWhiteList = Sets.newHashSet();
     public static Set<String> blockPlaceWhiteList = Sets.newHashSet();
 
+    public static Set<ResourceLocation> invuln = Sets.newHashSet();
+
     public static void init()
     {
         MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER);
@@ -97,6 +100,9 @@ public class LandEventsHandler
         MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.interact_handler);
         MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.entity_handler);
         MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.block_handler);
+        LandEventsHandler.invuln.clear();
+        for (final String s : Essentials.config.invulnMobs)
+            LandEventsHandler.invuln.add(new ResourceLocation(s));
     }
 
     public static class BlockEventHandler
@@ -278,7 +284,11 @@ public class LandEventsHandler
 
         private boolean canTakeDamage(final Entity in, final LandTeam land_owner)
         {
-            if (land_owner == null) return true;
+            if (land_owner == null)
+            {
+                if (in != null && LandEventsHandler.invuln.contains(in.getType().getRegistryName())) return false;
+                return true;
+            }
             if (in instanceof ServerPlayerEntity) return !land_owner.noPlayerDamage;
             if (in instanceof INPC) return !land_owner.noNPCDamage;
             if (in instanceof ItemFrameEntity) return !land_owner.protectFrames;
@@ -460,14 +470,14 @@ public class LandEventsHandler
                     .getPlayer().dimension.getId());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
-            // TODO possible perms for attacking things in unclaimed land?
-            if (owner == null) return;
-
             if (!this.canTakeDamage(evt.getTarget(), owner))
             {
                 evt.setCanceled(true);
                 return;
             }
+
+            // TODO possible perms for attacking things in unclaimed land?
+            if (owner == null) return;
 
             final PlayerEntity attacker = evt.getPlayer();
 
@@ -502,6 +512,12 @@ public class LandEventsHandler
                     .getEntity().dimension.getId());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
+            if (!this.canTakeDamage(evt.getEntity(), owner))
+            {
+                evt.setCanceled(true);
+                return;
+            }
+
             // TODO maybe add a perm for combat in non-claimed land?
             if (owner == null) return;
 
@@ -519,11 +535,6 @@ public class LandEventsHandler
                         return;
                     }
                 }
-            }
-            if (!this.canTakeDamage(evt.getEntity(), owner))
-            {
-                evt.setCanceled(true);
-                return;
             }
 
             // Check if the team allows fakeplayers
@@ -552,14 +563,14 @@ public class LandEventsHandler
                     .getEntity().dimension.getId());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
-            // TODO maybe add a perm for combat in non-claimed land?
-            if (owner == null) return;
-
             if (!this.canTakeDamage(target, owner))
             {
                 evt.setCanceled(true);
                 return;
             }
+
+            // TODO maybe add a perm for combat in non-claimed land?
+            if (owner == null) return;
 
             // check if entity is protected by team
             if (owner.protected_mobs.contains(target.getUniqueID()))
@@ -579,14 +590,14 @@ public class LandEventsHandler
                     .getEntity().dimension.getId());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
-            // TODO maybe add a perm for combat in non-claimed land?
-            if (owner == null) return;
-
             if (!this.canTakeDamage(evt.getEntity(), owner))
             {
                 evt.setCanceled(true);
                 return;
             }
+
+            // TODO maybe add a perm for combat in non-claimed land?
+            if (owner == null) return;
 
             // check if entity is protected by team
             if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
