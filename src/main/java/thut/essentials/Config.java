@@ -107,6 +107,8 @@ public class Config extends ConfigData
     @Configure(category = Config.MISC)
     public List<String> rules               = Lists.newArrayList();
     @Configure(category = Config.MISC)
+    public List<String> invulnMobs          = Lists.newArrayList();
+    @Configure(category = Config.MISC)
     public boolean      debug               = false;
     @Configure(category = Config.MISC)
     public boolean      defuzz              = true;
