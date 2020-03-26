@@ -85,7 +85,7 @@ public class Homes
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("homeDelay");
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
-        if (last > time)
+        if (last > time && Essentials.config.homeReUseDelay > 0)
         {
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
             player.sendMessage(message);

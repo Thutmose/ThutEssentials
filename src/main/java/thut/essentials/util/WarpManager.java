@@ -138,7 +138,8 @@ public class WarpManager
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("warpDelay");
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
-        if (last > time) return 1; // Too Soon
+        // Too Soon
+        if (last > time && Essentials.config.warpReUseDelay > 0) return 1;
         if (warp != null)
         {
             final IPermissionHandler manager = PermissionAPI.getPermissionHandler();

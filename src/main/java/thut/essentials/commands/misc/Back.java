@@ -88,7 +88,7 @@ public class Back
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("backDelay");
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
-        if (last > time)
+        if (last > time && Essentials.config.backReUseDelay > 0)
         {
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
                     false));
