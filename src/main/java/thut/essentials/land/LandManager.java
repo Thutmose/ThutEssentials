@@ -16,7 +16,6 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
 import thut.essentials.Essentials;
@@ -210,6 +209,7 @@ public class LandManager
 
         public boolean hasRankPerm(final UUID player, final String perm)
         {
+            if (this == LandManager.getDefaultTeam()) return false;
             if (this.admin.contains(player)) return true;
             final PlayerRank rank = this._ranksMembers.get(player);
             if (rank == null) return false;
@@ -319,7 +319,7 @@ public class LandManager
     public static class TeamLand
     {
         public HashSet<Coordinate> land   = Sets.newHashSet();
-        public int                 loaded = 0;
+        public HashSet<Coordinate> loaded = Sets.newHashSet();
 
         public boolean addLand(final Coordinate land)
         {
@@ -333,7 +333,14 @@ public class LandManager
 
         public boolean removeLand(final Coordinate land)
         {
+            this.loaded.remove(land);
             return this.land.remove(land);
+        }
+
+        public HashSet<Coordinate> getLoaded()
+        {
+            if (this.loaded == null) this.loaded = Sets.newHashSet();
+            return this.loaded;
         }
     }
 
@@ -688,22 +695,21 @@ public class LandManager
         LandSaveHandler.saveTeam(owner.teamName);
     }
 
-    public void loadLand(final World world, final Coordinate chunk, final LandTeam team)
+    public void loadLand(final Coordinate chunk, final LandTeam team)
     {
-        // if (LandEventsHandler.ChunkLoadHandler.addChunks(world, chunk,
-        // team.uuid))
-        // { TODO chunk loading
-        // team.land.loaded++;
-        // LandSaveHandler.saveTeam(team.teamName);
-        // }
+        if (LandEventsHandler.ChunkLoadHandler.addChunks(chunk, team.uuid))
+        {
+            team.land.getLoaded().add(chunk);
+            LandSaveHandler.saveTeam(team.teamName);
+        }
     }
 
     public void unLoadLand(final Coordinate chunk, final LandTeam team)
     {
-        // if (LandEventsHandler.ChunkLoadHandler.removeChunks(chunk))
-        // { TODO chunk loading
-        // team.land.loaded--;
-        // LandSaveHandler.saveTeam(team.teamName);
-        // }
+        if (LandEventsHandler.ChunkLoadHandler.removeChunks(chunk))
+        {
+            team.land.getLoaded().remove(chunk);
+            LandSaveHandler.saveTeam(team.teamName);
+        }
     }
 }

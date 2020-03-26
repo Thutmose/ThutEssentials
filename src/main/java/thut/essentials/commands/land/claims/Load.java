@@ -8,6 +8,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -17,11 +18,13 @@ import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.Coordinate;
 
-public class Owner
+public class Load
 {
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        final String name = "land_owner";
+        if (!Essentials.config.chunkLoading) return;
+
+        final String name = "chunkload";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
@@ -30,7 +33,7 @@ public class Owner
         LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
-        command = command.executes(ctx -> Owner.execute(ctx.getSource()));
+        command = command.executes(ctx -> Load.execute(ctx.getSource()));
 
         // Actually register the command.
         commandDispatcher.register(command);
@@ -39,6 +42,20 @@ public class Owner
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
         final PlayerEntity player = source.asPlayer();
+        final LandTeam team = LandManager.getTeam(player);
+        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        {
+            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.claim.notallowed.teamperms",
+                    TextFormatting.RED));
+            return 1;
+        }
+        final int maxLoaded = team.maxLoaded != -1 ? team.maxLoaded : Essentials.config.maxChunkloads;
+        if (team.land.getLoaded().size() >= maxLoaded)
+        {
+            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.claim.load.maxexceeded",
+                    TextFormatting.RED));
+            return 1;
+        }
         final int x = MathHelper.floor(player.getPosition().getX() >> 4);
         final int y = MathHelper.floor(player.getPosition().getY() >> 4);
         final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
@@ -46,9 +63,17 @@ public class Owner
         final int dim = player.dimension.getId();
         final Coordinate chunk = new Coordinate(x, y, z, dim);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        if (owner != null) player.sendMessage(new TranslationTextComponent("thutessentials.claim.ownedby",
-                owner.teamName));
-        else player.sendMessage(new TranslationTextComponent("thutessentials.claim.unowned"));
+
+        if (owner == team)
+        {
+            LandManager.getInstance().loadLand(chunk, team);
+            player.sendMessage(new TranslationTextComponent("thutessentials.claim.loaded"));
+        }
+        else
+        {
+            // TODO failed message here.
+        }
+
         return 0;
     }
 }

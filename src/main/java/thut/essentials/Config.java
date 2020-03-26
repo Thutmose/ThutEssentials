@@ -60,6 +60,8 @@ public class Config extends ConfigData
     public int     teamLandPerPlayer  = 125;
     @Configure(category = Config.LAND)
     public int     prefixLength       = 12;
+    @Configure(category = Config.LAND)
+    public int     maxChunkloads      = 9;
 
     @Configure(category = Config.HOME)
     public int maxHomes          = 2;
