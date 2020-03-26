@@ -319,7 +319,7 @@ public class LandManager
     public static class TeamLand
     {
         public HashSet<Coordinate> land   = Sets.newHashSet();
-        public HashSet<Coordinate> loaded = Sets.newHashSet();
+        public HashSet<Coordinate> forced = Sets.newHashSet();
 
         public boolean addLand(final Coordinate land)
         {
@@ -333,14 +333,14 @@ public class LandManager
 
         public boolean removeLand(final Coordinate land)
         {
-            this.loaded.remove(land);
+            this.forced.remove(land);
             return this.land.remove(land);
         }
 
         public HashSet<Coordinate> getLoaded()
         {
-            if (this.loaded == null) this.loaded = Sets.newHashSet();
-            return this.loaded;
+            if (this.forced == null) this.forced = Sets.newHashSet();
+            return this.forced;
         }
     }
 
