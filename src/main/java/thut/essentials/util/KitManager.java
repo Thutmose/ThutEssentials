@@ -239,10 +239,11 @@ public class KitManager
                     false, "Default");
             player.sendMessage(message.setStyle(style));
         }
-        for (final String s : KitManager.kits.keySet())
+        for (String s : KitManager.kits.keySet())
         {
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.kit." + s, context)) continue;
             style = new Style();
+            if (s.contains(" ")) s = "\"" + s + "\"";
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit " + s));
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null,
                     false, s);

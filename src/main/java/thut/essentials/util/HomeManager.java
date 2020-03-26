@@ -78,9 +78,10 @@ public class HomeManager
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT homes = tag.getCompound("homes");
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.header"));
-        for (final String s : homes.keySet())
+        for (String s : homes.keySet())
         {
             final Style style = new Style();
+            if (s.contains(" ")) s = "\"" + s + "\"";
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home " + s));
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.entry", null,
                     false, s);

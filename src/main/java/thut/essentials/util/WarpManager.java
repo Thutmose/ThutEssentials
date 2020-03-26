@@ -122,6 +122,7 @@ public class WarpManager
             final String[] args = s.split(":");
             s = args[0];
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
+            if (s.contains(" ")) s = "\"" + s + "\"";
             final Style style = new Style();
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.warps.entry", null,
