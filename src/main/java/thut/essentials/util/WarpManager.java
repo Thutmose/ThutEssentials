@@ -122,6 +122,7 @@ public class WarpManager
             final String[] args = s.split(":");
             s = args[0];
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
+            if (s.contains(" ")) s = "\"" + s + "\"";
             final Style style = new Style();
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.warps.entry", null,
@@ -138,7 +139,8 @@ public class WarpManager
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("warpDelay");
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
-        if (last > time) return 1; // Too Soon
+        // Too Soon
+        if (last > time && Essentials.config.warpReUseDelay > 0) return 1;
         if (warp != null)
         {
             final IPermissionHandler manager = PermissionAPI.getPermissionHandler();

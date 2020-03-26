@@ -46,7 +46,7 @@ public class Spawn
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("spawnDelay");
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
-        if (last > time)
+        if (last > time && Essentials.config.spawnReUseDelay > 0)
         {
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
                     false));
