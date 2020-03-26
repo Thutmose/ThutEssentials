@@ -28,12 +28,14 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.dimension.Dimension;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.TickEvent.Phase;
@@ -1004,24 +1006,29 @@ public class LandEventsHandler
 
     public static class ChunkLoadHandler
     {
-        // public static HashMap<Coordinate, Ticket> chunks = Maps.newHashMap();
-        //
-        // public static boolean removeChunks(final Coordinate location)
-        // {
-        // final Ticket ticket = ChunkLoadHandler.chunks.remove(location);
-        // if (ticket != null) // TODO chunk loading?
-        // return true;
-        // return false;
-        // }
-        //
-        // public static boolean addChunks(final World world, final Coordinate
-        // location, final UUID placer)
-        // {
-        // if (!Essentials.config.chunkLoading) return false;
-        //
-        // // TODO chunk loading?
-        // return false;
-        // }
+        public static MinecraftServer server;
+
+        public static boolean removeChunks(final Coordinate location)
+        {
+            if (!Essentials.config.chunkLoading) return false;
+            final DimensionType dim = DimensionType.getById(location.dim);
+            if (dim == null) return false;
+            final ServerWorld world = ChunkLoadHandler.server.getWorld(dim);
+            if (world == null) return false;
+            world.getChunkProvider().forceChunk(new ChunkPos(location.x, location.z), false);
+            return true;
+        }
+
+        public static boolean addChunks(final Coordinate location, final UUID placer)
+        {
+            if (!Essentials.config.chunkLoading) return false;
+            final DimensionType dim = DimensionType.getById(location.dim);
+            if (dim == null) return false;
+            final ServerWorld world = ChunkLoadHandler.server.getWorld(dim);
+            if (world == null) return false;
+            world.getChunkProvider().forceChunk(new ChunkPos(location.x, location.z), true);
+            return true;
+        }
     }
 
     public static boolean sameTeam(final Entity a, final Entity b)
