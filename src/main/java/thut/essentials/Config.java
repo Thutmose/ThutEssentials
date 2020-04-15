@@ -27,6 +27,7 @@ import thut.essentials.config.Configure;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.KitManager;
+import thut.essentials.util.PlayerMover;
 import thut.essentials.util.WarpManager;
 
 public class Config extends ConfigData
@@ -194,6 +195,7 @@ public class Config extends ConfigData
         HomeManager.registerPerms();
         WarpManager.init();
         KitManager.init();
+        PlayerMover.INTERUPTED = this.getMessage("thutessentials.tp.standstill");
         if (this.landEnabled) LandEventsHandler.init();
     }
 

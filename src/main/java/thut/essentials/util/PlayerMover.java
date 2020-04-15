@@ -21,7 +21,7 @@ import thut.essentials.util.Transporter.Vector4;
 public class PlayerMover
 
 {
-    public static final ITextComponent INTERUPTED = new TranslationTextComponent("thutessentials.tp.standstill");
+    public static ITextComponent INTERUPTED = new TranslationTextComponent("thutessentials.tp.standstill");
 
     private static Vector4 offset = new Vector4(0.5, 0.5, 0.5, 0);
 
@@ -83,7 +83,7 @@ public class PlayerMover
     {
         if (player.getRidingEntity() != null || player.isBeingRidden())
         {
-            player.sendMessage(new TranslationTextComponent("thutessentials.tp.dismount"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.dismount"));
             return;
         }
         player.getServer().runImmediately(() ->
@@ -93,7 +93,7 @@ public class PlayerMover
                 long time = moveTime;
                 if (time > 0)
                 {
-                    player.sendMessage(new TranslationTextComponent("thutessentials.tp.tele_init"));
+                    player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tele_init"));
                     time += player.getEntityWorld().getGameTime();
                 }
                 PlayerMover.toMove.put(player.getUniqueID(), new Mover(player, time, dimension, moveTo, message,
