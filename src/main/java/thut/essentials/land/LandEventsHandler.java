@@ -163,16 +163,24 @@ public class LandEventsHandler
                 final boolean owns = team.canPlaceBlock(player.getUniqueID(), b);
                 if (owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMPLACEOWN))
                 {
-                    LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
                     evt.setCanceled(true);
-                    ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
+                    if (!(player instanceof FakePlayer))
+                    {
+                        LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
+                        ((ServerPlayerEntity) player).sendAllContents(player.container, player.container
+                                .getInventory());
+                    }
                     return;
                 }
                 if (!owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMPLACEOTHER))
                 {
-                    LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
                     evt.setCanceled(true);
-                    ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
+                    if (!(player instanceof FakePlayer))
+                    {
+                        LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
+                        ((ServerPlayerEntity) player).sendAllContents(player.container, player.container
+                                .getInventory());
+                    }
                     return;
                 }
             }
