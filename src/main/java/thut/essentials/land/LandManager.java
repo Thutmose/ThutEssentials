@@ -1,7 +1,6 @@
 package thut.essentials.land;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -403,13 +402,13 @@ public class LandManager
         return LandManager.getTeam(player).equals(LandManager.getInstance().getLandOwner(chunk));
     }
 
-    public HashMap<String, LandTeam>        _teamMap        = Maps.newHashMap();
-    protected HashMap<Coordinate, LandTeam> _landMap        = Maps.newHashMap();
-    protected HashMap<UUID, LandTeam>       _playerTeams    = Maps.newHashMap();
-    protected HashMap<UUID, Invites>        invites         = Maps.newHashMap();
-    protected Map<UUID, LandTeam>           _protected_mobs = Maps.newHashMap();
-    protected Map<UUID, LandTeam>           _public_mobs    = Maps.newHashMap();
-    public int                              version         = LandManager.VERSION;
+    public Map<String, LandTeam>        _teamMap        = Maps.newConcurrentMap();
+    protected Map<Coordinate, LandTeam> _landMap        = Maps.newConcurrentMap();
+    protected Map<UUID, LandTeam>       _playerTeams    = Maps.newConcurrentMap();
+    protected Map<UUID, Invites>        invites         = Maps.newHashMap();
+    protected Map<UUID, LandTeam>       _protected_mobs = Maps.newConcurrentMap();
+    protected Map<UUID, LandTeam>       _public_mobs    = Maps.newConcurrentMap();
+    public int                          version         = LandManager.VERSION;
 
     LandManager()
     {
