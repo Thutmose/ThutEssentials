@@ -582,8 +582,8 @@ public class LandEventsHandler
 
             final Entity target = hit.getEntity();
 
-            final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(), evt
-                    .getEntity().dimension.getId());
+            final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(target.getPosition(), evt.getEntity().dimension
+                    .getId());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
             if (!this.canTakeDamage(target, owner))
