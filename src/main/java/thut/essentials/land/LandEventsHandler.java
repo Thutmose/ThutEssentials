@@ -152,8 +152,9 @@ public class LandEventsHandler
                 return;
 
             }
+            final boolean isFakePlayer = player instanceof FakePlayer;
             // Check if the team allows fakeplayers
-            if (team.fakePlayers && player instanceof FakePlayer)
+            if (team.fakePlayers && isFakePlayer)
             {
 
             }
@@ -164,7 +165,7 @@ public class LandEventsHandler
                 if (owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMPLACEOWN))
                 {
                     evt.setCanceled(true);
-                    if (!(player instanceof FakePlayer))
+                    if (!isFakePlayer)
                     {
                         LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
                         ((ServerPlayerEntity) player).sendAllContents(player.container, player.container
@@ -175,7 +176,7 @@ public class LandEventsHandler
                 if (!owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMPLACEOTHER))
                 {
                     evt.setCanceled(true);
-                    if (!(player instanceof FakePlayer))
+                    if (!isFakePlayer)
                     {
                         LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
                         ((ServerPlayerEntity) player).sendAllContents(player.container, player.container
