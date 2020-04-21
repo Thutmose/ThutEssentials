@@ -1,5 +1,8 @@
 package thut.essentials.commands.land.claims;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -16,7 +19,7 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.events.ClaimLandEvent;
+import thut.essentials.events.UnclaimLandEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
@@ -41,27 +44,31 @@ public class Unclaim
                 perm));
 
         // Entire chunk
-        command = command.executes(ctx -> Unclaim.execute(ctx.getSource(), true, true, false));
+        command = command.executes(ctx -> Unclaim.execute(ctx.getSource(), true, true, false, false));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
         command = command.then(Commands.literal("up").executes(ctx -> Unclaim.execute(ctx.getSource(), true, false,
-                false)));
+                false, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
         command = command.then(Commands.literal("down").executes(ctx -> Unclaim.execute(ctx.getSource(), false, true,
-                false)));
+                false, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
         command = command.then(Commands.literal("here").executes(ctx -> Unclaim.execute(ctx.getSource(), false, false,
-                true)));
+                true, false)));
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
+        command = command.then(Commands.literal("everything").executes(ctx -> Unclaim.execute(ctx.getSource(), false,
+                false, false, true)));
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here)
-            throws CommandSyntaxException
+    private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here,
+            final boolean all) throws CommandSyntaxException
     {
         final PlayerEntity player = source.asPlayer();
         final LandTeam team = LandManager.getTeam(player);
@@ -70,6 +77,16 @@ public class Unclaim
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.unclaim.notallowed.teamperms",
                     TextFormatting.RED));
             return 1;
+        }
+
+        if (all)
+        {
+            final List<Coordinate> allLand = Lists.newArrayList(team.land.land);
+            for (final Coordinate c : allLand)
+                Unclaim.unclaim(c, player, team, false);
+            player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done.num", allLand.size(),
+                    team.teamName));
+            return 0;
         }
 
         final int x = MathHelper.floor(player.getPosition().getX() >> 4);
@@ -105,13 +122,9 @@ public class Unclaim
         return claimed ? 0 : 1;
     }
 
-    private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final Coordinate chunk, final PlayerEntity player, final LandTeam team,
             final boolean messages)
     {
-        // TODO better bounds check to support say cubic chunks.
-        if (y < 0 || y > 15) return 1;
-        final int dim = player.dimension.getId();
-        final Coordinate chunk = new Coordinate(x, y, z, dim);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner == null)
         {
@@ -124,10 +137,21 @@ public class Unclaim
                     owner.teamName));
             return 3;
         }
-        final ClaimLandEvent event = new ClaimLandEvent(new BlockPos(x, y, z), dim, player, team.teamName);
+        final UnclaimLandEvent event = new UnclaimLandEvent(new BlockPos(chunk.x, chunk.y, chunk.z), chunk.dim, player,
+                team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().removeTeamLand(team.teamName, chunk);
         if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done", team.teamName));
         return 0;
+    }
+
+    private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
+            final boolean messages)
+    {
+        // TODO better bounds check to support say cubic chunks.
+        if (y < 0 || y > 15) return 1;
+        final int dim = player.dimension.getId();
+        final Coordinate chunk = new Coordinate(x, y, z, dim);
+        return Unclaim.unclaim(chunk, player, team, messages);
     }
 }
