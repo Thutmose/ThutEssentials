@@ -198,6 +198,8 @@ public class LandManager
 
         public boolean isAdmin(final UUID id)
         {
+            // True for any team with no admins, if not default team
+            if (this.admin.isEmpty() && !this.teamName.equals(Essentials.config.defaultTeamName)) return true;
             return this.admin.contains(id);
         }
 
@@ -209,7 +211,7 @@ public class LandManager
         public boolean hasRankPerm(final UUID player, final String perm)
         {
             if (this == LandManager.getDefaultTeam()) return false;
-            if (this.admin.contains(player)) return true;
+            if (this.isAdmin(player)) return true;
             final PlayerRank rank = this._ranksMembers.get(player);
             if (rank == null) return false;
             return rank.perms.contains(perm);

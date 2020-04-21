@@ -93,7 +93,7 @@ public class Admins
             return 1;
         }
         final String teamName = teamA.teamName;
-        LandManager.getInstance().addAdmin(player.getId(), teamName);
+        LandManager.getInstance().removeAdmin(player.getId(), teamName);
         source.sendFeedback(CommandManager.makeFormattedComponent("thutessentials.team.admin.removed", null, false,
                 player.getName(), teamName), false);
         return 0;
