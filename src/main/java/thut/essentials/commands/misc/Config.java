@@ -220,8 +220,8 @@ public class Config
     {
         final String prefix = "teconfig";
         String name = "";
-        name = prefix + "_check";
-        final String perm1 = "command." + name;
+        name = prefix;
+        final String perm1 = "command." + name + ".check";
         final ConfigData data = Essentials.config;
         PermissionAPI.registerNode(perm1, DefaultPermissionLevel.OP, "Is the player allowed to check configs for "
                 + data.MODID);
@@ -232,16 +232,15 @@ public class Config
                                 "option"))));
         commandDispatcher.register(command);
 
-        name = prefix + "_set";
-        final String perm2 = "command." + name;
+        final String perm2 = "command." + name + ".set";
         PermissionAPI.registerNode(perm2, DefaultPermissionLevel.OP, "Is the player allowed to set configs for "
                 + data.MODID);
 
-        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm2)).then(Commands.argument(
-                "option", StringArgumentType.string()).suggests(Config.MakeProvider(data)).then(Commands.argument(
-                        "value", StringArgumentType.greedyString()).executes(ctx -> Config.execute(data, ctx
-                                .getSource(), StringArgumentType.getString(ctx, "option"), StringArgumentType.getString(
-                                        ctx, "value")))));
+        command = Commands.literal(name).then(Commands.argument("option", StringArgumentType.string()).suggests(Config
+                .MakeProvider(data)).then(Commands.argument("value", StringArgumentType.greedyString()).requires(
+                        cs -> CommandManager.hasPerm(cs, perm2)).executes(ctx -> Config.execute(data, ctx.getSource(),
+                                StringArgumentType.getString(ctx, "option"), StringArgumentType.getString(ctx,
+                                        "value")))));
         commandDispatcher.register(command);
     }
 }
