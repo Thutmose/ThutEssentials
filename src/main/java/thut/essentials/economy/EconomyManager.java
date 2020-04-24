@@ -3,6 +3,7 @@ package thut.essentials.economy;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -147,7 +148,7 @@ public class EconomyManager
                     }
                     if (count < this.number || inv == null)
                     {
-                        System.out.println(this.number + " " + count + " " + this.storage);
+                        Essentials.LOGGER.debug(this.number + " " + count + " " + this.storage);
                         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_shop"));
                         return false;
                     }
@@ -190,6 +191,14 @@ public class EconomyManager
                     return false;
                 }
                 int count = 0;
+                final ItemStack toTest = stack.copy();
+                toTest.setCount(1);
+                final Predicate<ItemStack> valid = i ->
+                {
+                    final ItemStack temp = i.copy();
+                    temp.setCount(1);
+                    return ItemStack.areItemStacksEqual(temp, toTest);
+                };
                 if (this.recycle)
                 {
                     count = heldStack.getCount();
@@ -205,12 +214,7 @@ public class EconomyManager
                     stack = stack.copy();
                     stack.setCount(this.number);
                     for (final ItemStack item : player.inventory.mainInventory)
-                        if (!item.isEmpty())
-                        {
-                            final ItemStack test = item.copy();
-                            test.setCount(this.number);
-                            if (ItemStack.areItemStacksEqual(test, stack)) count += item.getCount();
-                        }
+                        if (!item.isEmpty()) if (valid.test(item)) count += item.getCount();
                     if (count < this.number)
                     {
                         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
@@ -254,8 +258,8 @@ public class EconomyManager
                         }
                     }
                 }
-                final ItemStack comp = stack;
-                player.inventory.clearMatchingItems((i) -> ItemStack.areItemStacksEqual(i, comp), this.number);
+                player.inventory.clearMatchingItems(valid, this.number);
+                player.container.detectAndSendChanges();
                 EconomyManager.addBalance(shopAccount._id, -this.cost);
                 EconomyManager.addBalance(player, this.cost);
                 player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null,
