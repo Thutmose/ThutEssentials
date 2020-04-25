@@ -38,8 +38,9 @@ public class Nick
         NameManager.init(server);
     }
 
-    private static int execute(final CommandSource source, final Collection<GameProfile> target, final String nick)
+    private static int execute(final CommandSource source, final Collection<GameProfile> target, String nick)
     {
+        if (nick.length() > 16) nick = nick.substring(0, 16);
         for (final GameProfile p : target)
             NameManager.setName(nick, p, source.getServer());
         return 0;
