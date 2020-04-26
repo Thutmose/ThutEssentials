@@ -1,6 +1,8 @@
 package thut.essentials;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,9 +34,20 @@ public class Essentials
     {
         MinecraftForge.EVENT_BUS.register(this);
         thut.essentials.config.Config.setupConfigs(Essentials.config, Essentials.MODID, Essentials.MODID);
-
         final File logfile = FMLPaths.GAMEDIR.get().resolve("logs").resolve(Essentials.MODID + ".log").toFile();
-        if (logfile.exists()) logfile.delete();
+        if (logfile.exists())
+        {
+            FMLPaths.GAMEDIR.get().resolve("logs").resolve(Essentials.MODID).toFile().mkdirs();
+            try
+            {
+                Files.move(FMLPaths.GAMEDIR.get().resolve("logs").resolve(Essentials.MODID + ".log"), FMLPaths.GAMEDIR
+                        .get().resolve("logs").resolve(Essentials.MODID).resolve(logfile.lastModified() + ".log"));
+            }
+            catch (final IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
         final org.apache.logging.log4j.core.Logger logger = (org.apache.logging.log4j.core.Logger) Essentials.LOGGER;
         final FileAppender appender = FileAppender.newBuilder().withFileName(logfile.getAbsolutePath()).setName(
                 Essentials.MODID).build();
@@ -56,6 +69,7 @@ public class Essentials
         LandEventsHandler.TEAMMANAGER.registerPerms();
         LandEventsHandler.ChunkLoadHandler.server = event.getServer();
         CommandManager.register_commands(event.getCommandDispatcher(), event.getServer());
+        Essentials.LOGGER.info("Server Started");
     }
 
     @SubscribeEvent
@@ -66,5 +80,6 @@ public class Essentials
         LandManager.clearInstance();
         PlayerDataHandler.saveAll();
         PlayerDataHandler.clear();
+        Essentials.LOGGER.info("Server Stopped");
     }
 }
