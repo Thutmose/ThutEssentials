@@ -49,6 +49,7 @@ import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
@@ -250,7 +251,7 @@ public class LandEventsHandler
                 player = (PlayerEntity) test;
             this.checkBreak(evt, player);
             if (!evt.isCanceled() && Essentials.config.log_interactions) Essentials.LOGGER.trace(c + " trample " + evt
-                    .getPos() + " " + trampler.getUniqueID() + " " + trampler.getName());
+                    .getPos() + " " + trampler.getUniqueID() + " " + trampler.getName().getFormattedText());
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -264,7 +265,8 @@ public class LandEventsHandler
                 final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getWorld()
                         .getDimension());
                 Essentials.LOGGER.trace(c + " place " + evt.getPos() + " " + evt.getPlacedAgainst() + " " + evt
-                        .getPlacedBlock() + " " + evt.getEntity().getUniqueID() + " " + evt.getEntity().getName());
+                        .getPlacedBlock() + " " + evt.getEntity().getUniqueID() + " " + evt.getEntity().getName()
+                                .getFormattedText());
             }
         }
 
@@ -280,7 +282,7 @@ public class LandEventsHandler
                 final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getWorld()
                         .getDimension());
                 Essentials.LOGGER.trace(c + " break " + evt.getPos() + " " + evt.getState() + " " + evt.getPlayer()
-                        .getUniqueID() + " " + evt.getPlayer().getName());
+                        .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
             }
         }
 
@@ -305,7 +307,7 @@ public class LandEventsHandler
                 final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getWorld()
                         .getDimension());
                 Essentials.LOGGER.trace(c + " bucket " + evt.getPos() + " " + player.getUniqueID() + " " + player
-                        .getName() + " " + event.getFilledBucket() + " " + event.getEmptyBucket());
+                        .getName().getFormattedText() + " " + event.getFilledBucket() + " " + event.getEmptyBucket());
             }
         }
     }
@@ -713,7 +715,7 @@ public class LandEventsHandler
                         LandEventsHandler.DENY);
                 if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                         "Cancelled interact due to not allowed to left click that." + c + " " + evt.getPlayer()
-                                .getUniqueID() + " " + evt.getPlayer().getName());
+                                .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
             }
             evt.setUseItem(Result.DENY);
         }
@@ -761,7 +763,7 @@ public class LandEventsHandler
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to toggling public mob." + c + " " + evt.getPlayer().getUniqueID()
-                                    + " " + evt.getPlayer().getName());
+                                    + " " + evt.getPlayer().getName().getFormattedText());
                     return;
                 }
                 // check if player is holding a protect toggle.
@@ -784,7 +786,7 @@ public class LandEventsHandler
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to toggling protected mob." + c + " " + evt.getPlayer()
-                                    .getUniqueID() + " " + evt.getPlayer().getName());
+                                    .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
                     return;
                 }
             }
@@ -802,7 +804,7 @@ public class LandEventsHandler
                 evt.setCanceled(true);
                 if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                         "Cancelled interact due to not public mob." + c + " " + evt.getPlayer().getUniqueID() + " "
-                                + evt.getPlayer().getName());
+                                + evt.getPlayer().getName().getFormattedText());
                 return;
             }
         }
@@ -905,7 +907,7 @@ public class LandEventsHandler
                             .sendAllContents(player.container, player.container.getInventory());
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to not allowed to use wild." + c + " " + evt.getPlayer()
-                                    .getUniqueID() + " " + evt.getPlayer().getName());
+                                    .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
                     return;
                 }
                 return;
@@ -943,7 +945,7 @@ public class LandEventsHandler
                 ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
                 if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                         "Cancelled interact due to not allowed to use. owns?: " + owns + ", " + c + " " + evt
-                                .getPlayer().getUniqueID() + " " + evt.getPlayer().getName());
+                                .getPlayer().getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
                 return;
             }
             // If we own this, we can return here, first check public toggle
@@ -969,7 +971,7 @@ public class LandEventsHandler
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to public toggling. " + c + " " + evt.getPlayer().getUniqueID()
-                                    + " " + evt.getPlayer().getName());
+                                    + " " + evt.getPlayer().getName().getFormattedText());
                 }
                 // Do stuff for toggling break
                 if (!evt.getWorld().isRemote && LandEventsHandler.isBreakToggle(evt.getItemStack()) && evt.getPlayer()
@@ -990,7 +992,7 @@ public class LandEventsHandler
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to break toggling. " + c + " " + evt.getPlayer().getUniqueID() + " "
-                                    + evt.getPlayer().getName());
+                                    + evt.getPlayer().getName().getFormattedText());
                 }
                 // Do stuff for toggling place
                 if (!evt.getWorld().isRemote && LandEventsHandler.isPlaceToggle(evt.getItemStack()) && evt.getPlayer()
@@ -1011,7 +1013,7 @@ public class LandEventsHandler
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to place toggling. " + c + " " + evt.getPlayer().getUniqueID() + " "
-                                    + evt.getPlayer().getName());
+                                    + evt.getPlayer().getName().getFormattedText());
                 }
                 return;
             }
@@ -1024,7 +1026,7 @@ public class LandEventsHandler
             ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
             if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                     "Cancelled interact due to not allowed to use block." + c + " " + evt.getPlayer().getUniqueID()
-                            + " " + evt.getPlayer().getName());
+                            + " " + evt.getPlayer().getName().getFormattedText());
         }
     }
 
@@ -1187,6 +1189,15 @@ public class LandEventsHandler
 
     @SubscribeEvent
     public void login(final PlayerLoggedInEvent evt)
+    {
+        final PlayerEntity entityPlayer = evt.getPlayer();
+        final LandTeam team = LandManager.getTeam(entityPlayer);
+        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        team.lastSeen = server.getServerTime();
+    }
+
+    @SubscribeEvent
+    public void logout(final PlayerLoggedOutEvent evt)
     {
         final PlayerEntity entityPlayer = evt.getPlayer();
         final LandTeam team = LandManager.getTeam(entityPlayer);

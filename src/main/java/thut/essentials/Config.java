@@ -26,6 +26,7 @@ import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.HomeManager;
+import thut.essentials.util.InventoryLogger;
 import thut.essentials.util.KitManager;
 import thut.essentials.util.PlayerMover;
 import thut.essentials.util.WarpManager;
@@ -40,6 +41,7 @@ public class Config extends ConfigData
     public static final String BACK  = "back";
     public static final String ECON  = "economy";
     public static final String STAFF = "staff";
+    public static final String LOGS  = "logging";
 
     @Configure(category = Config.LAND)
     public boolean defaultMessages    = true;
@@ -95,8 +97,15 @@ public class Config extends ConfigData
     @Configure(category = Config.ECON)
     public boolean shopsEnabled = true;
 
-    @Configure(category = Config.MISC)
-    public boolean      log_interactions    = true;
+    @Configure(category = Config.LOGS)
+    public List<String> inventory_log_blacklist = Lists.newArrayList();
+    @Configure(category = Config.LOGS)
+    public boolean      log_interactions        = true;
+    @Configure(category = Config.LOGS)
+    public boolean      log_teleports           = true;
+    @Configure(category = Config.LOGS)
+    public boolean      log_inventory_use       = true;
+
     @Configure(category = Config.MISC)
     public List<String> itemUseWhitelist    = Lists.newArrayList();
     @Configure(category = Config.MISC)
@@ -117,8 +126,6 @@ public class Config extends ConfigData
     public boolean      defuzz              = true;
     @Configure(category = Config.MISC)
     public boolean      comandDisableSpam   = true;
-    @Configure(category = Config.MISC)
-    public boolean      log_teleports       = true;
     @Configure(category = Config.MISC)
     public int          spawnDim            = 0;
     @Configure(category = Config.MISC)
@@ -192,6 +199,10 @@ public class Config extends ConfigData
         {
             Essentials.LOGGER.error("Error loading lang json from config!", e);
         }
+
+        if (this.log_inventory_use) InventoryLogger.enable();
+        else InventoryLogger.disable();
+
         HomeManager.registerPerms();
         WarpManager.init();
         KitManager.init();
