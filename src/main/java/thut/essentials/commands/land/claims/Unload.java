@@ -24,7 +24,7 @@ public class Unload
     {
         if (!Essentials.config.chunkLoading) return;
 
-        final String name = "chunkload";
+        final String name = "unchunkload";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
