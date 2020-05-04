@@ -11,7 +11,6 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
@@ -20,61 +19,30 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.events.MoveEvent;
 import thut.essentials.util.Coordinate;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
 
-public class Back
+public class Bed
 {
-    @SubscribeEvent
-    public static void move(final MoveEvent event)
-    {
-        if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntityLiving()
-                .getCachedUniqueIdString()).putIntArray("prevPos", event.getPos());
-    }
-
-    @SubscribeEvent
-    public static void death(final LivingDeathEvent event)
-    {
-        if (event.getEntityLiving() instanceof ServerPlayerEntity && Essentials.config.back_on_death)
-        {
-            final BlockPos pos = event.getEntityLiving().getPosition();
-            final int[] loc = new int[] { pos.getX(), pos.getY(), pos.getZ(), event.getEntityLiving().dimension
-                    .getId() };
-            PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getCachedUniqueIdString()).putIntArray("prevPos",
-                    loc);
-            PlayerDataHandler.saveCustomData(event.getEntityLiving().getCachedUniqueIdString());
-        }
-    }
-
-    private static boolean registered = false;
-
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        final String name = "back";
+        final String name = "bed";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
-
-        // Register to bus
-        if (!Back.registered) MinecraftForge.EVENT_BUS.register(Back.class);
-        Back.registered = true;
 
         // Setup with name and permission
         LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
-        command = command.executes(ctx -> Back.execute(ctx.getSource()));
+        command = command.executes(ctx -> Bed.execute(ctx.getSource()));
 
         // Actually register the command.
         commandDispatcher.register(command);
@@ -85,65 +53,59 @@ public class Back
         final PlayerEntity player = source.asPlayer();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
-        final long last = tptag.getLong("backDelay");
+        final long last = tptag.getLong("bedDelay");
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
-        if (last > time && Essentials.config.backReUseDelay > 0)
+        if (last > time && Essentials.config.bedReUseDelay > 0)
         {
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
                     false));
             return 1;
         }
-        if (tag.contains("prevPos"))
+        final Coordinate spot = Bed.getBedSpot(player);
+        if (spot != null)
         {
-            final int[] pos = tag.getIntArray("prevPos");
-            final Coordinate spot = Back.getBackSpot(pos);
-            if (spot == null)
-            {
-
-                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.back.noroom",
-                        TextFormatting.RED, false));
-                return 1;
-
-            }
             final Predicate<Entity> callback = t ->
             {
                 if (!(t instanceof PlayerEntity)) return false;
-                PlayerDataHandler.getCustomDataTag(t.getCachedUniqueIdString()).remove("prevPos");
-                tptag.putLong("backDelay", time + Essentials.config.backReUseDelay);
+                tptag.putLong("bedDelay", time + Essentials.config.bedReUseDelay);
                 tag.put("tp", tptag);
                 PlayerDataHandler.saveCustomData((PlayerEntity) t);
                 return true;
             };
-            final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.back.succeed",
+            final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.bed.succeed",
                     TextFormatting.GREEN);
-            PlayerMover.setMove(player, Essentials.config.backActivateDelay, spot.dim, new BlockPos(spot.x, spot.y,
+            PlayerMover.setMove(player, Essentials.config.bedActivateDelay, spot.dim, new BlockPos(spot.x, spot.y,
                     spot.z), teleMess, PlayerMover.INTERUPTED, callback, false);
             return 0;
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.back.noback", TextFormatting.RED,
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.bed.nobed", TextFormatting.RED,
                 false));
         return 1;
     }
 
-    private static Coordinate getBackSpot(final int[] pos)
+    private static Coordinate getBedSpot(final PlayerEntity player)
     {
-        Coordinate spot = new Coordinate(pos[0], pos[1], pos[2], pos[3]);
+        DimensionType dim = player.dimension;
+        BlockPos bed = player.getBedLocation(dim);
+        if (bed == null) bed = player.getBedLocation(dim = player.getSpawnDimension());
+        if (bed == null) return null;
+        Coordinate spot = new Coordinate(bed.getX(), bed.getY(), bed.getZ(), dim.getId());
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final ServerWorld world = server.getWorld(DimensionType.getById(pos[3]));
+        final ServerWorld world = server.getWorld(dim);
         if (world == null) return null;
         BlockPos check = new BlockPos(spot.x, spot.y, spot.z);
-        if (Back.valid(check, world)) return spot;
+        if (Bed.valid(check, world)) return spot;
         final int r = Essentials.config.backRangeCheck;
         for (int j = 0; j < r; j++)
             for (int i = 0; i < r; i++)
                 for (int k = 0; k < r; k++)
                 {
-                    spot = new Coordinate(pos[0] + i, pos[1] + j, pos[2] + k, pos[3]);
+                    spot = new Coordinate(bed.getX() + i, bed.getY() + j, bed.getZ() + k, dim.getId());
                     check = new BlockPos(spot.x, spot.y, spot.z);
-                    if (Back.valid(check, world)) return spot;
-                    spot = new Coordinate(pos[0] - i, pos[1] + j, pos[2] - k, pos[3]);
+                    if (Bed.valid(check, world)) return spot;
+                    spot = new Coordinate(bed.getX() - i, bed.getY() + j, bed.getZ() - k, dim.getId());
                     check = new BlockPos(spot.x, spot.y, spot.z);
-                    if (Back.valid(check, world)) return spot;
+                    if (Bed.valid(check, world)) return spot;
                 }
         return null;
     }

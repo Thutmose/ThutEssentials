@@ -123,6 +123,7 @@ public class CommandManager
         thut.essentials.commands.tpa.TpToggle.register(commandDispatcher);
 
         thut.essentials.commands.misc.Back.register(commandDispatcher);
+        thut.essentials.commands.misc.Bed.register(commandDispatcher);
         thut.essentials.commands.misc.Config.register(commandDispatcher);
         thut.essentials.commands.misc.Kits.register(commandDispatcher);
         thut.essentials.commands.misc.Spawn.register(commandDispatcher);
