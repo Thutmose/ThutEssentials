@@ -39,6 +39,7 @@ public class Config extends ConfigData
     public static final String WARP  = "warps";
     public static final String KITS  = "kits";
     public static final String BACK  = "back";
+    public static final String BED   = "bed";
     public static final String ECON  = "economy";
     public static final String STAFF = "staff";
     public static final String LOGS  = "logging";
@@ -93,6 +94,11 @@ public class Config extends ConfigData
     public boolean back_on_death     = true;
     @Configure(category = Config.BACK)
     public boolean back_on_tp        = true;
+
+    @Configure(category = Config.BED)
+    public int bedReUseDelay    = 100;
+    @Configure(category = Config.BED)
+    public int bedActivateDelay = 50;
 
     @Configure(category = Config.ECON)
     public boolean shopsEnabled = true;

@@ -42,6 +42,11 @@
     "thutessentials.back.noback": "§cYou have no valid return location.",
     "thutessentials.back.succeed": "§aYou went back to your previous location.",
     
+    "_comment": "Bed Related",
+    
+    "thutessentials.bed.nobed": "§cYou have no valid bed location.",
+    "thutessentials.bed.succeed": "§aYou went back to your bed location.",
+    
     "_comment": "Warp Related",
     
     "thutessentials.warps.header": "================\n      Warps     \n================",
@@ -97,7 +102,6 @@
     "msg.team.enterLand": "§aYou have entered land owned by §6%s",
     "msg.team.exitLand": "§aYou have left land owned by §6%s",
     
-    
     "thutessentials.team.landdisplay.set": "§aEnabled Land Ownership Particles",
     "thutessentials.team.landdisplay.unset": "§aDisabled Land Ownership Particles",
     
@@ -116,6 +120,18 @@
     "thutessentials.team.notfound": "§cThere is no team by name §6%s",
     "thutessentials.team.members": "§aMembers of Team §6%s§c:",
     "thutessentials.team.teams": "§aList of Teams:",
+    
+    "thutessentials.team.invite.none": "§cYou have no team invites.",
+    "thutessentials.team.invite.noself": "§cYou cannot invite your self to your own team!",
+    "thutessentials.team.invite.alreadyin": "%s§c is already in to your team!",
+    "thutessentials.team.invite.noteamperms": "§cYou do not have the team rank to do that!",
+    "thutessentials.team.invite.alreadyinvited": "%s§c is already invited to your team!",
+    "thutessentials.team.invite.failed": "§cThe invite failed to send!",
+    "thutessentials.team.invite.invited_sent": "§aAn invite was sent to §6%s",
+    "thutessentials.team.invite.invited_recieve": "§a%2$s§a has invited you to §6%1$s",
+    "thutessentials.team.invites": "================\n  Team Invites  \n================",
+    "thutessentials.team.invite.link": "%s",
+    "thutessentials.team.joined": "You joined team §6%s",
     
     "thutessentials.team.notadmin": "§cYou must be a team admin to do that!",
     "thutessentials.team.reloaded": "§aReloaded Teams from disk",
