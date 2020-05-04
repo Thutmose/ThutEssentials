@@ -1,0 +1,204 @@
+{
+    "_comment": "ThutEssentials Language Properties",
+    "_comment": "@author Thutmose",
+    
+    
+    "_comment": "Economy Related",
+    
+    "thutessentials.econ.not_allowed": "§c你没有权限制作一个商店!",
+    "thutessentials.econ.not_allowed_link": "§c你没有权限连接物品栏至商店!",
+    "thutessentials.econ.not_allowed_remove": "§c你没有权限来删除这个商店!",
+    "thutessentials.econ.errored": "§c创建商店失败，错误!",
+    "thutessentials.econ.no_storage": "§c这个商店没有库存!",
+    "thutessentials.econ.no_items_you": "§c你没有足够的物品.",
+    "thutessentials.econ.no_items_shop": "§c商店没有足够的物品.",
+    "thutessentials.econ.no_funds_you": "§c你没有足够资金.",
+    "thutessentials.econ.no_funds_shop": "§c商店没有足够的资金.",
+    "thutessentials.econ.no_recycle": "§c你必须手持你想要回收的物品.",
+    
+    "thutessentials.econ.remove": "§a你已经删除了这个商店.",
+    "thutessentials.econ.made": "§a成功创建了商店.",
+    
+    "thutessentials.econ.balance.remaining": "§a余额: §6%s",
+    "thutessentials.econ.balance.check": "§b账面金额: §6%s",
+    
+    "thutessentials.econ.pay.positive": "§c你必须支付大于 0",
+    "thutessentials.econ.pay.send": "§b你支付了 §6%1$s§b 给 %2$s",
+    "thutessentials.econ.pay.got": "§b你收到了 §6%1$s§b 从%2$s",
+    "thutessentials.econ.pay.notenough": "§c你没有足够的余额.",
+    
+    "_comment": "General Teleport Related",
+    
+    "thutessentials.tp.tosoon": "§c请等待片刻再进行下次传送!",
+    "thutessentials.tp.standstill": "§c传送时请保持不动!",
+    "thutessentials.tp.dismount": "§c你必须下马才能传送!",
+    "thutessentials.tp.tele_init": "§b传送时请保持不动.",
+    
+    "thutessentials.spawn.succeed": "§a你已经回到出生点.",
+    
+    "_comment": "Back Related",
+    
+    "thutessentials.back.noroom": "§c没有足够的空间回到上一个位置!",
+    "thutessentials.back.noback": "§c你没有可用的上一位置.",
+    "thutessentials.back.succeed": "§a你已经回到上一个位置.",
+    
+    "_comment": "Bed Related",
+    
+    "thutessentials.bed.nobed": "§cYou have no valid bed location.",
+    "thutessentials.bed.succeed": "§aYou went back to your bed location.",
+    
+    "_comment": "Warp Related",
+    
+    "thutessentials.warps.header": "================\n      传送点     \n================",
+    "thutessentials.warps.entry": "%s",
+    "thutessentials.warps.footer": "================",
+    "thutessentials.warps.exists": "§c传送点已存在, 尝试输入 §del_warp 6%s§c 来取消.",
+    "thutessentials.warps.noexists_create": "§c传送点不存在, 尝试输入 §/set_warp 6%s§c 来创建一个.",
+    "thutessentials.warps.noexists_use": "§c传送点不存在.",
+    "thutessentials.warps.noperms": "§c你没有权限去使用那个传送点!",
+    "thutessentials.warps.added": "§a添加传送点 §6%s",
+    "thutessentials.warps.removed": "§a删除传送点 §6%s",
+    "thutessentials.warps.warping": "§a正在传送到 §6%s",
+    "thutessentials.warps.warped": "§a已传送到 §6%s",
+    
+    "_comment": "Home Related",
+    
+    "thutessentials.homes.header": "================\n      家     \n================",
+    "thutessentials.homes.entry": "%s",
+    "thutessentials.homes.footer": "================",
+    "thutessentials.homes.exists": "§c这个家已经存在, 尝试输入 §6/del_home %s§c 来删除.",
+    "thutessentials.homes.toomany": "§c你创建的家的数量已到达上限!",
+    "thutessentials.homes.noperms": "§c你没有改权限!",
+    "thutessentials.homes.noexists": "§c你输入的家不存在, 尝试输入 §6/set_home %s§c 创建一个家.",
+    "thutessentials.homes.added": "§a创建家 §6%s",
+    "thutessentials.homes.removed": "§a删除家 §6%s",
+    "thutessentials.homes.warping": "§a正在传送到 §6%s",
+    "thutessentials.homes.warped": "§a已经传送到 §6%s",
+    
+    "_comment": "Kits Related",
+    
+    "thutessentials.kits.header": "================\n      礼包      \n================",
+    "thutessentials.kits.entry": "%s",
+    "thutessentials.kits.footer": "================",
+    "thutessentials.kits.reloaded": "§a从cofig重载礼包完毕.",
+    "thutessentials.kits.no_kit": "§c输入的礼包不存在.",
+    "thutessentials.kits.noperms": "§c你没有权限去获得这个礼包",
+    "thutessentials.kits.too_soon": "§c这个礼包仍然在冷却!.",
+    
+    "_comment": "TPA Related",
+    
+    "thutessentials.tpa.accept": "接受",
+    "thutessentials.tpa.deny": "拒绝",
+    "thutessentials.tpa.requested": " 请求传送到你身边",
+    "thutessentials.tpa.requestsent": " 向你发送传送到你位置的请求",
+    "thutessentials.tpa.accepted_user": "§a你的传送请求已被接受!",
+    "thutessentials.tpa.accepted_target": "§a你接受了传送请求!",
+    "thutessentials.tpa.denied_user": "§c你的传送请求已被拒绝!",
+    "thutessentials.tpa.denied_target": "§c你拒绝了传送请求!",
+    
+    "_comment": "Team and Claiming Related",
+    
+    "msg.team.deny": "§c你的行为不被允许，土地所有者为 §6%s",
+    "msg.team.enterLand": "§a你进入了一个领地，领主为 §6%s",
+    "msg.team.exitLand": "§a你离开了一个领地，领主为 §6%s",
+    
+    "thutessentials.team.landdisplay.set": "§a开启了Land Ownership Particles",
+    "thutessentials.team.landdisplay.unset": "§a关闭了 Land Ownership Particles",
+    
+    "msg.team.nowildperms.useitem": "§c你没有权限那样做.",
+    "msg.team.nowildperms.useblock": "§c你没有权限那样做.",
+    "msg.team.nowildperms.placeblock": "§c你没有权限那样做.",
+    "msg.team.nowildperms.breakblock": "§c你没有权限那样做.",
+    "msg.team.nowildperms.noenter": "§c你没有权限进入!",
+    
+    "msg.team.owned.noenter": "§c你不被允许进入!",
+    "msg.team.other.noenter": "§c你不被允许进入!",
+    
+    "thutessentials.team.created": "§a你创建并加入了 §6%s",
+    "thutessentials.team.my_team": "§a你的组是 §6%s",
+    "thutessentials.team.nohomeset": "§c你的组并没有设定一个组的家",
+    "thutessentials.team.notfound": "§c没有组叫 §6%s",
+    "thutessentials.team.members": "§a组员数 §6%s§c:",
+    "thutessentials.team.teams": "§a组员名单:",
+    
+    "thutessentials.team.invite.none": "§cYou have no team invites.",
+    "thutessentials.team.invite.noself": "§cYou cannot invite your self to your own team!",
+    "thutessentials.team.invite.alreadyin": "%s§c is already in to your team!",
+    "thutessentials.team.invite.noteamperms": "§cYou do not have the team rank to do that!",
+    "thutessentials.team.invite.alreadyinvited": "%s§c is already invited to your team!",
+    "thutessentials.team.invite.failed": "§cThe invite failed to send!",
+    "thutessentials.team.invite.invited_sent": "§aAn invite was sent to §6%s",
+    "thutessentials.team.invite.invited_recieve": "§a%2$s§a has invited you to §6%1$s",
+    "thutessentials.team.invites": "================\n  Team Invites  \n================",
+    "thutessentials.team.invite.link": "%s",
+    "thutessentials.team.joined": "You joined team §6%s",
+    
+    "thutessentials.team.notadmin": "§c你必须是组长!",
+    "thutessentials.team.reloaded": "§a重载该组",
+    
+    "thutessentials.team.admins.header": "§a §6%s§a 的组长:",
+    "thutessentials.team.admins.entry": "   §6%s",
+    
+    "thutessentials.team.admins.mustbeteam": "§c你们必须在同一个组!",
+    "thutessentials.team.admins.added": "§a添加 §6%s§a 作为组长管理 §6%s",
+    "thutessentials.team.admins.removed": "§a移除 §6%s§a 作为组长管理 §6%s",
+    
+    "thutessentials.team.notinateam": "§c你不在一个组中.",
+    "thutessentials.team.delete.done": "§c删除你所在的组!",
+    
+    "thutessentials.team.prefix.set": "§a设置组员前绰为 §r%s",
+    "thutessentials.team.enter.set": "§a设置进入组消息为 §r%s",
+    "thutessentials.team.exit.set": "§a设置离开组消息为 §r%s",
+    "thutessentials.team.deny.set": "§a设置拒绝消息为 §r%s",
+    "thutessentials.team.home.set": "§a设置组的家为 §6%s",
+    
+    "thutessentials.team.frames.set": "§a设置物品展示框保护 §6%s",
+    "thutessentials.team.reserve.set": "§a设置无人组保留 §6%s",
+    "thutessentials.team.ff.set": "§a设置友好的火为 §6%s",
+    "thutessentials.team.noplayerdamage.set": "§a设置无玩家伤害为 §6%s",
+    "thutessentials.team.nomobspawn.set": "§a设置无生物生成为 §6%s",
+    "thutessentials.team.nobooms.set": "§a设置无爆炸为 §6%s",
+    "thutessentials.team.anybreak.set": "§a设置所有人可破坏为 §6%s",
+    "thutessentials.team.fakeplayers.set": "§a设置假玩家为 §6%s",
+    "thutessentials.team.anyplace.set": "§a设置所有人可破坏为 §6%s",
+    "thutessentials.team.public.set": "§a设置所有人可以使用方块 §6%s",
+    
+    "thutessentials.team.relations.none": "§c你的组没有任何联系.",
+    "thutessentials.team.relations.notfound": "§c你的组没有联系关于 §6%s",
+    "thutessentials.team.relations.noperm": "§6这不是一个可用的组联系（无权限）",
+    
+    "thutessentials.team.relations.with": "§aRelations with §6%s§a:",
+    "thutessentials.team.relations.entry": "   §6%s",
+    
+    "thutessentials.team.relations.set": "§a设置权限 §6%s§a 为 §6%s",
+    "thutessentials.team.relations.had": "§6%s§c 已经拥有权限!",
+    "thutessentials.team.relations.unset": "§a删除权限 §6%s§a 为 §6%s",
+    "thutessentials.team.relations.nohad": "§6%s§c 没有该权限!",
+    
+    "thutessentials.team.relations.header": "§a允许的权限:",
+    "thutessentials.team.info.ally": "§a   §6%s§a - 算作 \"同盟\" 任何使用它的组.",
+    "thutessentials.team.info.break": "§a   §6%s§a - 允许破坏我们组的方块.",
+    "thutessentials.team.info.place": "§a   §6%s§a - 允许在我们组建筑.",
+    "thutessentials.team.info.public": "§a   §6%s§a - 允许使用我们组的任何方块.",
+    
+    "thutessentials.claim.notallowed.teamperms": "§c你不被允许领取领地.",
+    "thutessentials.claim.notallowed.needmoreland": "§c你的组不能领取更多领地.",
+    "thutessentials.claim.notallowed.alreadyclaimedby": "§c这块地已经是别人的领土，拥有者为 §6%s",
+    "thutessentials.claim.warn.alreadyclaimed": "§6%s§c 在这的区块的部分已经被别人拥有!",
+    "thutessentials.claim.claimed": "§a你领取了这块地为 §6%s",
+    "thutessentials.claim.claimed.num": "§a你领取了 §6%s§a 区块为 §6%s",
+    "thutessentials.claim.claimed.failed": "§c你不能领取这块地.",
+    "thutessentials.claim.claimed.count": "§a你的组已经领取了 §6%s§a 区块, 最大量为 §6%s§a",
+    
+    "thutessentials.claim.ownedby": "§a该领土的主人为 §6%s",
+    "thutessentials.claim.unowned": "§a这块地没有领主",
+    
+    "thutessentials.unclaim.notallowed.teamperms": "§c你不被允许取消领地.",
+    "thutessentials.unclaim.notallowed.notowner": "§c你不被允许取消不是你的领地，主人为 §6%s",
+    "thutessentials.unclaim.notallowed.noowner": "§c这块地未被领取",
+    "thutessentials.unclaim.done": "§a你取消了领地为 §6%s",
+    "thutessentials.unclaim.done.num": "§a你取消了 §6%s§a 区块为 §6%s",
+    "thutessentials.unclaim.done.failed": "§c取消领地失败."
+    
+    
+}
