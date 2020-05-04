@@ -44,13 +44,13 @@
     
     "_comment": "Bed Related",
     
-    "thutessentials.bed.nobed": "§cYou have no valid bed location.",
-    "thutessentials.bed.succeed": "§aYou went back to your bed location.",
+    "thutessentials.bed.nobed": "§c你没有可有的床/或床已遗失.",
+    "thutessentials.bed.succeed": "§a你传送到了你的床边.",
     
     "_comment": "RTP Related",
     
-    "thutessentials.rtp.fail": "§cRTP failed to find a valid destination.",
-    "thutessentials.rtp.succeed": "§aYou teleport to a random location.",
+    "thutessentials.rtp.fail": "§c未能找到一个可用的随机传送点.",
+    "thutessentials.rtp.succeed": "§a你传送到了一个随机的位置.",
     
     "_comment": "Warp Related",
     
@@ -107,8 +107,8 @@
     "msg.team.enterLand": "§a你进入了一个领地，领主为 §6%s",
     "msg.team.exitLand": "§a你离开了一个领地，领主为 §6%s",
     
-    "thutessentials.team.landdisplay.set": "§a开启了Land Ownership Particles",
-    "thutessentials.team.landdisplay.unset": "§a关闭了 Land Ownership Particles",
+    "thutessentials.team.landdisplay.set": "§a开启了显示领地粒子效果",
+    "thutessentials.team.landdisplay.unset": "§a关闭了 领地粒子效果",
     
     "msg.team.nowildperms.useitem": "§c你没有权限那样做.",
     "msg.team.nowildperms.useblock": "§c你没有权限那样做.",
@@ -126,17 +126,17 @@
     "thutessentials.team.members": "§a组员数 §6%s§c:",
     "thutessentials.team.teams": "§a组员名单:",
     
-    "thutessentials.team.invite.none": "§cYou have no team invites.",
-    "thutessentials.team.invite.noself": "§cYou cannot invite your self to your own team!",
-    "thutessentials.team.invite.alreadyin": "%s§c is already in to your team!",
-    "thutessentials.team.invite.noteamperms": "§cYou do not have the team rank to do that!",
-    "thutessentials.team.invite.alreadyinvited": "%s§c is already invited to your team!",
-    "thutessentials.team.invite.failed": "§cThe invite failed to send!",
-    "thutessentials.team.invite.invited_sent": "§aAn invite was sent to §6%s",
-    "thutessentials.team.invite.invited_recieve": "§a%2$s§a has invited you to §6%1$s",
-    "thutessentials.team.invites": "================\n  Team Invites  \n================",
+    "thutessentials.team.invite.none": "§c你没有收到邀请.",
+    "thutessentials.team.invite.noself": "§c你不能邀请自己!",
+    "thutessentials.team.invite.alreadyin": "%s§c 已经在你的组了!",
+    "thutessentials.team.invite.noteamperms": "§c你没有足够高的组内职位!",
+    "thutessentials.team.invite.alreadyinvited": "%s§c 已经被邀请到你的组!",
+    "thutessentials.team.invite.failed": "§c邀请失败!",
+    "thutessentials.team.invite.invited_sent": "§a一份邀请被送至 §6%s",
+    "thutessentials.team.invite.invited_recieve": "§a%2$s§a 邀请你进入组 §6%1$s",
+    "thutessentials.team.invites": "================\n  组邀请  \n================",
     "thutessentials.team.invite.link": "%s",
-    "thutessentials.team.joined": "You joined team §6%s",
+    "thutessentials.team.joined": "你加入了 §6%s",
     
     "thutessentials.team.notadmin": "§c你必须是组长!",
     "thutessentials.team.reloaded": "§a重载该组",
@@ -172,7 +172,7 @@
     "thutessentials.team.relations.notfound": "§c你的组没有联系关于 §6%s",
     "thutessentials.team.relations.noperm": "§6这不是一个可用的组联系（无权限）",
     
-    "thutessentials.team.relations.with": "§aRelations with §6%s§a:",
+    "thutessentials.team.relations.with": "§a你的关系与 §6%s§a:",
     "thutessentials.team.relations.entry": "   §6%s",
     
     "thutessentials.team.relations.set": "§a设置权限 §6%s§a 为 §6%s",
