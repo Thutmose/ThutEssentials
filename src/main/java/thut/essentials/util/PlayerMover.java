@@ -11,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -107,6 +108,7 @@ public class PlayerMover
     @SubscribeEvent
     public void playerTick(final LivingUpdateEvent tick)
     {
+        if (!(tick.getEntity().world instanceof ServerWorld)) return;
         if (PlayerMover.toMove.containsKey(tick.getEntity().getUniqueID()))
         {
             final Mover mover = PlayerMover.toMove.get(tick.getEntity().getUniqueID());
@@ -115,16 +117,16 @@ public class PlayerMover
             final Vector4 diff = new Vector4(mover.start.x, mover.start.y, mover.start.z, mover.player.dimension
                     .getId());
             diff.sub(loc);
-            if (diff.lengthSquared() > 0.0 && mover.moveTime > 0)
-            {
-                if (mover.failMess != null) tick.getEntity().sendMessage(mover.failMess);
-                PlayerMover.toMove.remove(tick.getEntity().getUniqueID());
-                return;
-            }
             if (tick.getEntity().getEntityWorld().getGameTime() > mover.moveTime)
             {
                 mover.move();
                 PlayerMover.toMove.remove(tick.getEntity().getUniqueID());
+            }
+            else if (diff.lengthSquared() > 0.0 && mover.moveTime > 0)
+            {
+                if (mover.failMess != null) tick.getEntity().sendMessage(mover.failMess);
+                PlayerMover.toMove.remove(tick.getEntity().getUniqueID());
+                return;
             }
         }
     }

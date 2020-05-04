@@ -17,6 +17,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import net.minecraft.command.CommandSource;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -45,6 +46,7 @@ public class Config extends ConfigData
     public static final String STAFF = "staff";
     public static final String LOGS  = "logging";
     public static final String CHAT  = "chat";
+    public static final String RTP   = "rtp";
 
     @Configure(category = Config.LAND)
     public boolean defaultMessages    = true;
@@ -101,6 +103,21 @@ public class Config extends ConfigData
     public int bedReUseDelay    = 100;
     @Configure(category = Config.BED)
     public int bedActivateDelay = 50;
+
+    @Configure(category = Config.RTP)
+    public int rtpReUseDelay    = 100;
+    @Configure(category = Config.RTP)
+    public int rtpActivateDelay = 50;
+
+    @Configure(category = Config.RTP)
+    public String rtpCentre = "0,0";
+
+    @Configure(category = Config.RTP)
+    public int     rtpDistance      = 5000;
+    @Configure(category = Config.RTP)
+    public boolean rtpSpawnCentred  = true;
+    @Configure(category = Config.RTP)
+    public boolean rtpPlayerCentred = false;
 
     @Configure(category = Config.ECON)
     public boolean shopsEnabled = true;
@@ -215,6 +232,20 @@ public class Config extends ConfigData
 
         if (this.log_inventory_use) InventoryLogger.enable();
         else InventoryLogger.disable();
+
+        if (this.rtpSpawnCentred) thut.essentials.commands.misc.RTP.centre = null;
+        else try
+        {
+            final String[] args = this.rtpCentre.split(",");
+            final int x = Integer.parseInt(args[0]);
+            final int z = Integer.parseInt(args[1]);
+            thut.essentials.commands.misc.RTP.centre = new BlockPos(x, 0, z);
+        }
+        catch (final Exception e)
+        {
+            Essentials.LOGGER.error("Error with value in rtpCentre, defaulting to spawn centred!");
+            thut.essentials.commands.misc.RTP.centre = null;
+        }
 
         HomeManager.registerPerms();
         WarpManager.init();
