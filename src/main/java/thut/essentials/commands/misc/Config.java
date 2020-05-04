@@ -14,7 +14,6 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -211,7 +210,7 @@ public class Config
         }
         catch (final NumberFormatException var2)
         {
-            throw new CommandException(new TranslationTextComponent("commands.generic.num.invalid", new Object[] {
+            throw new CommandException(Essentials.config.getMessage("commands.generic.num.invalid", new Object[] {
                     input }));
         }
     }

@@ -30,7 +30,6 @@ import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
@@ -169,9 +168,9 @@ public class NameManager extends DedicatedPlayerList
         this.sendScoreboard(serverworld.getScoreboard(), playerIn);
         this.getServer().refreshStatusNextTick();
         ITextComponent itextcomponent;
-        if (playerIn.getGameProfile().getName().equalsIgnoreCase(s)) itextcomponent = new TranslationTextComponent(
+        if (playerIn.getGameProfile().getName().equalsIgnoreCase(s)) itextcomponent = Essentials.config.getMessage(
                 "multiplayer.player.joined", playerIn.getDisplayName());
-        else itextcomponent = new TranslationTextComponent("multiplayer.player.joined.renamed", playerIn
+        else itextcomponent = Essentials.config.getMessage("multiplayer.player.joined.renamed", playerIn
                 .getDisplayName(), s);
 
         this.sendMessage(itextcomponent.applyTextStyle(TextFormatting.YELLOW));
@@ -181,9 +180,8 @@ public class NameManager extends DedicatedPlayerList
         this.uuidToPlayerMap.put(playerIn.getUniqueID(), playerIn);
         this.sendPacketToAllPlayers(new SPlayerListItemPacket(SPlayerListItemPacket.Action.ADD_PLAYER, playerIn));
 
-        for (int i = 0; i < this.getPlayers().size(); ++i)
-            playerIn.connection.sendPacket(new SPlayerListItemPacket(SPlayerListItemPacket.Action.ADD_PLAYER, this
-                    .getPlayers().get(i)));
+        for (final ServerPlayerEntity element : this.getPlayers())
+            playerIn.connection.sendPacket(new SPlayerListItemPacket(SPlayerListItemPacket.Action.ADD_PLAYER, element));
 
         serverworld.addNewPlayer(playerIn);
         this.getServer().getCustomBossEvents().onPlayerLogin(playerIn);

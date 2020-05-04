@@ -13,7 +13,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -84,7 +83,7 @@ public class Unclaim
             final List<Coordinate> allLand = Lists.newArrayList(team.land.land);
             for (final Coordinate c : allLand)
                 Unclaim.unclaim(c, player, team, false);
-            player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done.num", allLand.size(),
+            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", allLand.size(),
                     team.teamName));
             return 0;
         }
@@ -111,11 +110,11 @@ public class Unclaim
             }
             else if (check == 3) owned_other++;
         }
-        if (owned_other > 0) player.sendMessage(new TranslationTextComponent(
+        if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
                 "thutessentials.unclaim.notallowed.notowner", owned_other));
-        if (claimed) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done.num", claimnum,
+        if (claimed) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
                 team.teamName));
-        else player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done.failed", claimnum,
+        else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
                 team.teamName));
 
         LandSaveHandler.saveTeam(team.teamName);
@@ -128,12 +127,12 @@ public class Unclaim
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner == null)
         {
-            if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.notallowed.noowner"));
+            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"));
             return 2;
         }
         else if (owner != team && !PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM))
         {
-            if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.notallowed.notowner",
+            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner",
                     owner.teamName));
             return 3;
         }
@@ -141,7 +140,7 @@ public class Unclaim
                 team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().removeTeamLand(team.teamName, chunk);
-        if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.unclaim.done", team.teamName));
+        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
         return 0;
     }
 

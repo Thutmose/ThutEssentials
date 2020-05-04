@@ -9,7 +9,6 @@ import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -60,7 +59,7 @@ public class Unload
         if (owner == team)
         {
             LandManager.getInstance().unLoadLand(chunk, team);
-            player.sendMessage(new TranslationTextComponent("thutessentials.claim.unloaded"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unloaded"));
         }
         else
         {
