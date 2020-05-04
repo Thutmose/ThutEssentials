@@ -95,8 +95,14 @@ task sourcesJar(type: Jar) {
 	from sourceSets.main.allJava
 }
 
+task deobfJar(type: Jar) {	
+    from sourceSets.main.output	
+    classifier = 'deobf'	
+}
+
 artifacts {
 	archives sourcesJar
+    archives deobfJar
 }
 
 def cleanTOML()
