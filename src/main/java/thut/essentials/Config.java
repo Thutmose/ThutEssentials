@@ -25,6 +25,7 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
 import thut.essentials.land.LandEventsHandler;
+import thut.essentials.util.ChatManager;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.InventoryLogger;
 import thut.essentials.util.KitManager;
@@ -43,6 +44,7 @@ public class Config extends ConfigData
     public static final String ECON  = "economy";
     public static final String STAFF = "staff";
     public static final String LOGS  = "logging";
+    public static final String CHAT  = "chat";
 
     @Configure(category = Config.LAND)
     public boolean defaultMessages    = true;
@@ -102,6 +104,11 @@ public class Config extends ConfigData
 
     @Configure(category = Config.ECON)
     public boolean shopsEnabled = true;
+
+    @Configure(category = Config.CHAT)
+    public boolean useChatFormat = true;
+    @Configure(category = Config.CHAT)
+    public String  chatFormat    = "<%s> %s";
 
     @Configure(category = Config.LOGS)
     public List<String> inventory_log_blacklist = Lists.newArrayList();
@@ -212,6 +219,7 @@ public class Config extends ConfigData
         HomeManager.registerPerms();
         WarpManager.init();
         KitManager.init();
+        ChatManager.init();
         PlayerMover.INTERUPTED = this.getMessage("thutessentials.tp.standstill");
         if (this.landEnabled) LandEventsHandler.init();
     }
