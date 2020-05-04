@@ -47,6 +47,11 @@
     "thutessentials.bed.nobed": "§cYou have no valid bed location.",
     "thutessentials.bed.succeed": "§aYou went back to your bed location.",
     
+    "_comment": "RTP Related",
+    
+    "thutessentials.rtp.fail": "§cRTP failed to find a valid destination.",
+    "thutessentials.rtp.succeed": "§aYou teleport to a random location.",
+    
     "_comment": "Warp Related",
     
     "thutessentials.warps.header": "================\n      Warps     \n================",
