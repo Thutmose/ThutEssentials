@@ -8,7 +8,6 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -46,9 +45,9 @@ public class Owner
         final int dim = player.dimension.getId();
         final Coordinate chunk = new Coordinate(x, y, z, dim);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        if (owner != null) player.sendMessage(new TranslationTextComponent("thutessentials.claim.ownedby",
+        if (owner != null) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.ownedby",
                 owner.teamName));
-        else player.sendMessage(new TranslationTextComponent("thutessentials.claim.unowned"));
+        else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unowned"));
         return 0;
     }
 }

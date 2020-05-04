@@ -10,7 +10,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -22,7 +21,7 @@ import thut.essentials.util.Transporter.Vector4;
 public class PlayerMover
 
 {
-    public static ITextComponent INTERUPTED = new TranslationTextComponent("thutessentials.tp.standstill");
+    public static ITextComponent INTERUPTED;
 
     private static Vector4 offset = new Vector4(0.5, 0.5, 0.5, 0);
 

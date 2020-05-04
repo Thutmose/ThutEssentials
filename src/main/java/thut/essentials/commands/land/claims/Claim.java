@@ -17,7 +17,6 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -122,7 +121,7 @@ public class Claim
         final int count = LandManager.getInstance().countLand(team.teamName);
         final int teamCount = team.member.size();
         final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;
-        player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed.count", count, maxLand));
+        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.count", count, maxLand));
         return 0;
     }
 
@@ -182,11 +181,11 @@ public class Claim
                 break;
             }
         }
-        if (notclaimed > 0) player.sendMessage(new TranslationTextComponent("thutessentials.claim.warn.alreadyclaimed",
+        if (notclaimed > 0) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.warn.alreadyclaimed",
                 notclaimed));
-        if (claimed) player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed.num", claimnum,
+        if (claimed) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.num", claimnum,
                 team.teamName));
-        else player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed.failed", team.teamName));
+        else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.failed", team.teamName));
 
         LandSaveHandler.saveTeam(team.teamName);
         return claimed ? 0 : 1;
@@ -202,7 +201,7 @@ public class Claim
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner != null)
         {
-            if (messages) player.sendMessage(new TranslationTextComponent(
+            if (messages) player.sendMessage(Essentials.config.getMessage(
                     "thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName));
             return 2;
         }
@@ -218,7 +217,7 @@ public class Claim
         final ClaimLandEvent event = new ClaimLandEvent(new BlockPos(x, y, z), dim, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().addTeamLand(team.teamName, chunk, true);
-        if (messages) player.sendMessage(new TranslationTextComponent("thutessentials.claim.claimed", team.teamName));
+        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed", team.teamName));
         return 0;
     }
 

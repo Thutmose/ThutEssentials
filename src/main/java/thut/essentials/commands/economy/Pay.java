@@ -9,7 +9,6 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -54,20 +53,20 @@ public class Pay
         }
         if (toSend <= 0)
         {
-            player.sendMessage(new TranslationTextComponent("thutessentials.econ.pay.positive"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.positive"));
             return 1;
         }
         if (toSend <= senderBalance)
         {
             EconomyManager.addBalance(payee, toSend);
-            player.sendMessage(new TranslationTextComponent("thutessentials.econ.pay.got", toSend, source
+            player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.got", toSend, source
                     .getDisplayName()));
             if (player != null) EconomyManager.addBalance(player, -toSend);
             Essentials.config.sendFeedback(source, "thutessentials.econ.pay.send", false, toSend, payee
                     .getDisplayName());
             return 0;
         }
-        player.sendMessage(new TranslationTextComponent("thutessentials.econ.pay.notenough"));
+        player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.notenough"));
         return 1;
     }
 }
