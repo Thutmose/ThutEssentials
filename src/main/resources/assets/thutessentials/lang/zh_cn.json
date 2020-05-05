@@ -58,7 +58,7 @@
     "thutessentials.warps.entry": "%s",
     "thutessentials.warps.footer": "================",
     "thutessentials.warps.exists": "§c传送点已存在, 尝试输入 §del_warp 6%s§c 来取消.",
-    "thutessentials.warps.noexists_create": "§c传送点不存在, 尝试输入 §/set_warp 6%s§c 来创建一个.",
+    "thutessentials.warps.noexists_create": "§c传送点不存在, 尝试输入 §6/set_warp %s§c 来创建一个.",
     "thutessentials.warps.noexists_use": "§c传送点不存在.",
     "thutessentials.warps.noperms": "§c你没有权限去使用那个传送点!",
     "thutessentials.warps.added": "§a添加传送点 §6%s",

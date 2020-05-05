@@ -58,7 +58,7 @@
     "thutessentials.warps.entry": "%s",
     "thutessentials.warps.footer": "================",
     "thutessentials.warps.exists": "§cRequested warp already exist, try §del_warp 6%s§c to remove it.",
-    "thutessentials.warps.noexists_create": "§cRequested warp does not exist, try §/set_warp 6%s§c to create it.",
+    "thutessentials.warps.noexists_create": "§cRequested warp does not exist, try §6/set_warp %s§c to create it.",
     "thutessentials.warps.noexists_use": "§cRequested warp does not exist.",
     "thutessentials.warps.noperms": "§cYou are not allowed to use that warp!",
     "thutessentials.warps.added": "§aAdded warp §6%s",

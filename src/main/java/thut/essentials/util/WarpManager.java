@@ -73,7 +73,7 @@ public class WarpManager
         for (final String s : warps)
         {
             final String[] args = s.split(":");
-            if (args[0].equals(s)) return 1;
+            if (args[0].equals(name)) return 1;
         }
         final String warp = name + ":" + center.getX() + " " + center.getY() + " " + center.getZ() + " " + dimension;
         warps.add(warp);
@@ -82,7 +82,7 @@ public class WarpManager
         final String node = "thutessentials.warp." + name;
         if (!manager.getRegisteredNodes().contains(node)) manager.registerNode(node, DefaultPermissionLevel.ALL,
                 "Warp to " + name);
-        Essentials.config.warps.add(warp);
+        Essentials.config.warps = warps;
         Essentials.config.write();
         return 0;
     }
@@ -97,9 +97,7 @@ public class WarpManager
             {
                 warps.remove(s);
                 WarpManager.warpLocs.remove(name);
-                Essentials.config.warps.clear();
-                for (final String s1 : warps)
-                    Essentials.config.warps.add(s1);
+                Essentials.config.warps = warps;
                 Essentials.config.write();
                 return 0;
             }
@@ -122,11 +120,11 @@ public class WarpManager
             final String[] args = s.split(":");
             s = args[0];
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
+            final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.warps.entry", null,
+                    false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
             final Style style = new Style();
             style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
-            final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.warps.entry", null,
-                    false, s);
             player.sendMessage(message.setStyle(style));
         }
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.footer"));

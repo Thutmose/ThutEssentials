@@ -1,9 +1,13 @@
 package thut.essentials.commands.warps;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
@@ -16,6 +20,14 @@ import thut.essentials.util.WarpManager;
 
 public class Delete
 {
+    private static SuggestionProvider<CommandSource> SUGGEST_NAMES = (ctx, sb) ->
+    {
+        final List<String> opts = Lists.newArrayList();
+        opts.addAll(WarpManager.warpLocs.keySet());
+        opts.replaceAll(s -> s.contains(" ") ? "\"" + s + "\"" : s);
+        return net.minecraft.command.ISuggestionProvider.suggest(opts, sb);
+    };
+
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
         final String name = "del_warp";
@@ -29,13 +41,8 @@ public class Delete
                     .hasPerm(cs, perm));
 
             // Home name argument version.
-            command = command.then(Commands.argument("home_name", StringArgumentType.string()).executes(ctx -> Delete
-                    .execute(ctx.getSource(), StringArgumentType.getString(ctx, "home_name"))));
-            commandDispatcher.register(command);
-
-            // No argument version.
-            command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-            command = command.executes(ctx -> Delete.execute(ctx.getSource(), null));
+            command = command.then(Commands.argument("warp", StringArgumentType.string()).suggests(Delete.SUGGEST_NAMES)
+                    .executes(ctx -> Delete.execute(ctx.getSource(), StringArgumentType.getString(ctx, "warp"))));
             commandDispatcher.register(command);
         }
     }
@@ -51,7 +58,7 @@ public class Delete
             source.sendFeedback(message, true);
             break;
         case 1:
-            message = CommandManager.makeFormattedComponent("thutessentials.warps.noexists", null, false, homeName);
+            message = CommandManager.makeFormattedComponent("thutessentials.warps.noexists_use", null, false, homeName);
             source.sendFeedback(message, true);
             break;
         }
