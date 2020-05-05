@@ -133,6 +133,7 @@ public class Kits
             EconomyManager.giveItem(player, stack.copy());
             PlayerDataHandler.getCustomDataTag(player).putLong(kitTag, server.getWorld(DimensionType.OVERWORLD)
                     .getGameTime() + delay);
+            PlayerDataHandler.saveCustomData(player);
         }
         return 0;
     }

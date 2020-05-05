@@ -114,7 +114,7 @@ public class KitManager
                     }
                     catch (final Exception e)
                     {
-                        set.cooldown = 0;
+                        set.cooldown = Essentials.config.kitReuseDelay;
                     }
                     final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
                     final String node = "thutessentials.kit." + name;
