@@ -1,22 +1,39 @@
 package thut.essentials.commands.homes;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.util.HomeManager;
+import thut.essentials.util.PlayerDataHandler;
 
 public class Delete
 {
+    private static SuggestionProvider<CommandSource> SUGGEST_NAMES = (ctx, sb) ->
+    {
+        final ServerPlayerEntity player = ctx.getSource().asPlayer();
+        final List<String> opts = Lists.newArrayList();
+        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundNBT homes = tag.getCompound("homes");
+        opts.addAll(homes.keySet());
+        opts.replaceAll(s -> s.contains(" ") ? "\"" + s + "\"" : s);
+        return net.minecraft.command.ISuggestionProvider.suggest(opts, sb);
+    };
+
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
         final String name = "del_home";
@@ -30,8 +47,9 @@ public class Delete
                     .hasPerm(cs, perm));
 
             // Home name argument version.
-            command = command.then(Commands.argument("home_name", StringArgumentType.string()).executes(ctx -> Delete
-                    .execute(ctx.getSource(), StringArgumentType.getString(ctx, "home_name"))));
+            command = command.then(Commands.argument("home_name", StringArgumentType.string()).suggests(
+                    Delete.SUGGEST_NAMES).executes(ctx -> Delete.execute(ctx.getSource(), StringArgumentType.getString(
+                            ctx, "home_name"))));
             commandDispatcher.register(command);
 
             // No argument version.
