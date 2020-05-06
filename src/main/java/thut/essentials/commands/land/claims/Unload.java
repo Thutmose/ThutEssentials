@@ -51,14 +51,13 @@ public class Unload
         final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
         if (y < 0 || y > 15) return 1;
         final int dim = player.dimension.getId();
-        final Coordinate chunk = new Coordinate(x, y, z, dim);
+        final Coordinate chunk = new Coordinate(x, 0, z, dim);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
 
-        if (owner == team)
-        {
-            LandManager.getInstance().unLoadLand(chunk, team);
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unloaded"));
-        }
+        final int maxLoaded = team.maxLoaded != -1 ? team.maxLoaded : Essentials.config.maxChunkloads;
+        if (owner == team && team.land.getLoaded().contains(chunk) && LandManager.getInstance().unLoadLand(chunk, team))
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unloaded", maxLoaded - team.land
+                    .getLoaded().size()));
         else
         {
             // TODO failed message here.
