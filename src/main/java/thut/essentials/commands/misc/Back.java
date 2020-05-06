@@ -89,8 +89,7 @@ public class Back
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.backReUseDelay > 0)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
-                    false));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
             return 1;
         }
         if (tag.contains("prevPos"))

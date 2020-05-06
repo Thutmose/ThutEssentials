@@ -146,6 +146,9 @@ public class Config extends ConfigData
     @Configure(category = Config.TPA)
     public int tpaReUseDelay    = 100;
 
+    @Configure(category = Config.TPA)
+    public boolean tpaCrossDim = true;
+
     @Configure(category = Config.MISC)
     public List<String> itemUseWhitelist    = Lists.newArrayList();
     @Configure(category = Config.MISC)

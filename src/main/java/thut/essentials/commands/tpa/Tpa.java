@@ -44,6 +44,11 @@ public class Tpa
             throws CommandSyntaxException
     {
         final PlayerEntity player = source.asPlayer();
+        if (!Essentials.config.tpaCrossDim && target.dimension != player.dimension)
+        {
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.wrongdim"));
+            return 1;
+        }
         CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         CompoundNBT tpaTag = tag.getCompound("tpa");
 
@@ -51,8 +56,7 @@ public class Tpa
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.tpaReUseDelay > 0)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
-                    false));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
             return 1;
         }
         tpaTag.putLong("tpaDelay", time + Essentials.config.tpaReUseDelay);
