@@ -8,7 +8,6 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -44,15 +43,13 @@ public class Load
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.claim.notallowed.teamperms",
-                    TextFormatting.RED));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return 1;
         }
         final int maxLoaded = team.maxLoaded != -1 ? team.maxLoaded : Essentials.config.maxChunkloads;
         if (team.land.getLoaded().size() >= maxLoaded)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.claim.load.maxexceeded",
-                    TextFormatting.RED));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.load.maxexceeded"));
             return 1;
         }
         final int x = MathHelper.floor(player.getPosition().getX() >> 4);

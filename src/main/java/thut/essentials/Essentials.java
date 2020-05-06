@@ -19,6 +19,7 @@ import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.land.LandEventsHandler;
+import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.util.PlayerDataHandler;
 
@@ -53,6 +54,9 @@ public class Essentials
                 Essentials.MODID).build();
         logger.addAppender(appender);
         appender.start();
+
+        // This won't actually do anything unless config is enabled.
+        MinecraftForge.EVENT_BUS.register(ChunkLoadHandler.class);
 
         if (Essentials.config.defuzz)
         {

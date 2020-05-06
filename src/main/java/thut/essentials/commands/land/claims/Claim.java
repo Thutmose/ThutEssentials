@@ -16,7 +16,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -99,11 +98,13 @@ public class Claim
         final Coordinate newChunk = Coordinate.getChunkCoordFromWorldCoord(here, player.dimension.getId());
         final Coordinate oldChunk = Coordinate.getChunkCoordFromWorldCoord(old, player.getEntityWorld().getDimension());
         if (newChunk.equals(oldChunk)) return;
+        final int dim = player.dimension.getId();
 
         final int x = MathHelper.floor(player.getPosition().getX() >> 4);
         final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
+        final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
         for (int i = 0; i < 16; i++)
-            Claim.claim(x, i, z, player, team, false);
+            Claim.claim(x, i, z, dim, player, team, false, noLimit);
     }
 
     @SubscribeEvent
@@ -148,16 +149,17 @@ public class Claim
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.claim.notallowed.teamperms",
-                    TextFormatting.RED));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return 1;
         }
+        final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
 
-        final int x = MathHelper.floor(player.getPosition().getX() >> 4);
-        final int y = MathHelper.floor(player.getPosition().getY() >> 4);
-        final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
+        final int x = player.getPosition().getX() >> 4;
+        final int y = player.getPosition().getY() >> 4;
+        final int z = player.getPosition().getZ() >> 4;
+        final int dim = player.dimension.getId();
 
-        if (here) return Claim.claim(x, y, z, player, team, true);
+        if (here) return Claim.claim(x, y, z, dim, player, team, true, noLimit);
 
         final int min = down ? 0 : y;
         final int max = up ? 16 : y;
@@ -167,7 +169,7 @@ public class Claim
         int notclaimed = 0;
         for (int i = min; i < max; i++)
         {
-            final int check = Claim.claim(x, i, z, player, team, false);
+            final int check = Claim.claim(x, i, z, dim, player, team, false, noLimit);
             if (check == 0)
             {
                 claimed = true;
@@ -176,8 +178,7 @@ public class Claim
             else notclaimed++;
             if (check == 3)
             {
-                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.claim.notallowed.needmoreland",
-                        TextFormatting.RED));
+                player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"));
                 break;
             }
         }
@@ -191,13 +192,18 @@ public class Claim
         return claimed ? 0 : 1;
     }
 
-    private static int claim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
-            final boolean messages)
+    public static int claim(final int x, final int y, final int z, final int dim, final PlayerEntity player,
+            final LandTeam team, final boolean messages, final boolean noLimit)
+    {
+        final Coordinate chunk = new Coordinate(x, y, z, dim);
+        return Claim.claim(chunk, player, team, messages, noLimit);
+    }
+
+    public static int claim(final Coordinate chunk, final PlayerEntity player, final LandTeam team,
+            final boolean messages, final boolean noLimit)
     {
         // TODO better bounds check to support say cubic chunks.
-        if (y < 0 || y > 15) return 1;
-        final int dim = player.dimension.getId();
-        final Coordinate chunk = new Coordinate(x, y, z, dim);
+        if (chunk.y < 0 || chunk.y > 15) return 1;
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner != null)
         {
@@ -208,13 +214,14 @@ public class Claim
         final int teamCount = team.member.size();
         final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;
         final int count = LandManager.getInstance().countLand(team.teamName);
-        if (count >= maxLand && !PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT))
+        if (count >= maxLand && !noLimit)
         {
-            if (messages) player.sendMessage(CommandManager.makeFormattedComponent(
-                    "thutessentials.claim.notallowed.needmoreland", TextFormatting.RED));
+            if (messages) player.sendMessage(Essentials.config.getMessage(
+                    "thutessentials.claim.notallowed.needmoreland"));
             return 3;
         }
-        final ClaimLandEvent event = new ClaimLandEvent(new BlockPos(x, y, z), dim, player, team.teamName);
+        final ClaimLandEvent event = new ClaimLandEvent(new BlockPos(chunk.x, chunk.y, chunk.z), chunk.dim, player,
+                team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().addTeamLand(team.teamName, chunk, true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed", team.teamName));

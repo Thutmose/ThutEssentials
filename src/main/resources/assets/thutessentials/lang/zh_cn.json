@@ -116,6 +116,10 @@
     
     "msg.team.renamed": "§aYou have renamed your team from §6%s§r to §6%s",
     
+    "thutessentials.deed.for": "§aThis is a deed for §6%s§a subchunk(s), located at [§6%s,%s§a]",
+    "thutessentials.deed.noperms": "§cYou are not allowed to redeem deeds",
+    "thutessentials.deed.claimed": "§aYou claimed §6%s§a subchunk(s) for team §6%s§a by using the deed.",
+    
     "msg.team.deny": "§c你的行为不被允许，土地所有者为 §6%s",
     "msg.team.enterLand": "§a你进入了一个领地，领主为 §6%s",
     "msg.team.exitLand": "§a你离开了一个领地，领主为 §6%s",

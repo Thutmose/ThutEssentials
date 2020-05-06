@@ -10,7 +10,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -49,7 +48,7 @@ public class Home
 
         if (team.home == null)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.nohomeset"));
+            source.sendErrorMessage(Essentials.config.getMessage("thutessentials.team.nohomeset"));
             return 1;
         }
 
@@ -61,13 +60,11 @@ public class Home
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.homeReUseDelay > 0)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
-                    false));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
             return 1;
         }
 
-        final ITextComponent teleMess = CommandManager.makeFormattedComponent("Warping to your Team's Home",
-                TextFormatting.GREEN);
+        final ITextComponent teleMess = Essentials.config.getMessage("Warping to your Team's Home");
         tptag.putLong("homeDelay", time + Essentials.config.homeReUseDelay);
         tag.put("tp", tptag);
         PlayerDataHandler.saveCustomData(player);

@@ -642,13 +642,6 @@ public class LandManager
         return team.allPublic || team.anyUse.contains(c);
     }
 
-    public boolean isTeamLand(final Coordinate chunk, final String team)
-    {
-        final LandTeam t = this._teamMap.get(team);
-        if (t != null) return t.land.land.contains(chunk);
-        return false;
-    }
-
     public void removeAdmin(final UUID member, final String teamName)
     {
         final LandTeam t = this._teamMap.get(teamName);
@@ -697,7 +690,7 @@ public class LandManager
 
     public void loadLand(final Coordinate chunk, final LandTeam team)
     {
-        if (LandEventsHandler.ChunkLoadHandler.addChunks(chunk, team.uuid))
+        if (LandEventsHandler.ChunkLoadHandler.addChunks(chunk))
         {
             team.land.getLoaded().add(chunk);
             LandSaveHandler.saveTeam(team.teamName);

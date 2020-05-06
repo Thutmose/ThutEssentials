@@ -15,7 +15,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
@@ -57,8 +56,7 @@ public class Bed
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.bedReUseDelay > 0)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
-                    false));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
             return 1;
         }
         final Coordinate spot = Bed.getBedSpot(player);
@@ -72,14 +70,12 @@ public class Bed
                 PlayerDataHandler.saveCustomData((PlayerEntity) t);
                 return true;
             };
-            final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.bed.succeed",
-                    TextFormatting.GREEN);
+            final ITextComponent teleMess = Essentials.config.getMessage("thutessentials.bed.succeed");
             PlayerMover.setMove(player, Essentials.config.bedActivateDelay, spot.dim, new BlockPos(spot.x, spot.y,
                     spot.z), teleMess, PlayerMover.INTERUPTED, callback, false);
             return 0;
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.bed.nobed", TextFormatting.RED,
-                false));
+        player.sendMessage(Essentials.config.getMessage("thutessentials.bed.nobed"));
         return 1;
     }
 
