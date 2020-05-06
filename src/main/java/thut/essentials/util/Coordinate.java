@@ -1,7 +1,6 @@
 package thut.essentials.util;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.dimension.Dimension;
 import net.minecraft.world.dimension.DimensionType;
 
@@ -26,9 +25,9 @@ public class Coordinate implements Comparable<Coordinate>
 
     public static Coordinate getChunkCoordFromWorldCoord(final int x, final int y, final int z, final int dim)
     {
-        final int i = MathHelper.floor(x / 16.0D);
-        final int j = MathHelper.floor(y / 16.0D);
-        final int k = MathHelper.floor(z / 16.0D);
+        final int i = x >> 4;
+        final int j = y >> 4;
+        final int k = z >> 4;
         return new Coordinate(i, j, k, dim);
     }
 

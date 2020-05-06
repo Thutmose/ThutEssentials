@@ -103,6 +103,19 @@
     
     "_comment": "Team and Claiming Related",
     
+    "msg.team.setpublic.block.true": "§aYou Set this block to public use",
+    "msg.team.setpublic.block.false": "§aYou Set this block to private use",
+    "msg.team.setbreak.block.true": "§aYou Set this block to breakable by anyone",
+    "msg.team.setbreak.block.false": "§aYou Set this block to breakable by team only",
+    "msg.team.setplace.block.true": "§aYou Set this block to placeable by anyone",
+    "msg.team.setplace.block.false": "§aYou Set this block to placeable by team only",
+    "msg.team.setmob.public.true": "§aYou Set this mob to public use",
+    "msg.team.setmob.public.false": "§aYou Set this mob to private use",
+    "msg.team.setmob.protect.true": "§aYou Set this mob to protected by claims",
+    "msg.team.setmob.protect.false": "§aYou Set this mob to unprotected by claims",
+    
+    "msg.team.renamed": "§aYou have renamed your team from §6%s§r to §6%s",
+    
     "msg.team.deny": "§cYou are not allowed to do that in land owned by §6%s",
     "msg.team.enterLand": "§aYou have entered land owned by §6%s",
     "msg.team.exitLand": "§aYou have left land owned by §6%s",
@@ -112,6 +125,7 @@
     
     "msg.team.nowildperms.useitem": "§cYou may not do that.",
     "msg.team.nowildperms.useblock": "§cYou may not do that.",
+    "msg.team.nowildperms.usemob": "§cYou may not do that.",
     "msg.team.nowildperms.placeblock": "§cYou may not do that.",
     "msg.team.nowildperms.breakblock": "§cYou may not do that.",
     "msg.team.nowildperms.noenter": "§cYou shall not pass!",
@@ -121,6 +135,7 @@
     
     "thutessentials.team.created": "§aYou Created and joined Team §6%s",
     "thutessentials.team.my_team": "§aYou are in Team §6%s",
+    "thutessentials.error.teamexists": "§cThat team already exists!",
     "thutessentials.team.nohomeset": "§cYour team has not set a home location",
     "thutessentials.team.notfound": "§cThere is no team by name §6%s",
     "thutessentials.team.members": "§aMembers of Team §6%s§c:",

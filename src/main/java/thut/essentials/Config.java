@@ -141,6 +141,8 @@ public class Config extends ConfigData
     @Configure(category = Config.MISC)
     public List<String> blockUseWhitelist   = Lists.newArrayList();
     @Configure(category = Config.MISC)
+    public List<String> mobUseWhitelist     = Lists.newArrayList();
+    @Configure(category = Config.MISC)
     public List<String> blockBreakWhitelist = Lists.newArrayList();
     @Configure(category = Config.MISC)
     public List<String> blockPlaceWhitelist = Lists.newArrayList();
