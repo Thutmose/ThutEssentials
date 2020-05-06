@@ -214,6 +214,9 @@
     "thutessentials.claim.claimed.failed": "§c你不能领取这块地.",
     "thutessentials.claim.claimed.count": "§a你的组已经领取了 §6%s§a 区块, 最大量为 §6%s§a",
     
+    "thutessentials.claim.loaded": "§aYou marked this chunk for chunkloading, §6%s§a remaining.",
+    "thutessentials.claim.unloaded": "§aYou unmarked this chunk for chunkloading, §6%s§a remaining.",
+    
     "thutessentials.claim.ownedby": "§a该领土的主人为 §6%s",
     "thutessentials.claim.unowned": "§a这块地没有领主",
     

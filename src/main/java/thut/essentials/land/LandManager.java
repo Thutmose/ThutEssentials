@@ -688,21 +688,25 @@ public class LandManager
         LandSaveHandler.saveTeam(owner.teamName);
     }
 
-    public void loadLand(final Coordinate chunk, final LandTeam team)
+    public boolean loadLand(final Coordinate chunk, final LandTeam team)
     {
         if (LandEventsHandler.ChunkLoadHandler.addChunks(chunk))
         {
             team.land.getLoaded().add(chunk);
             LandSaveHandler.saveTeam(team.teamName);
+            return true;
         }
+        return false;
     }
 
-    public void unLoadLand(final Coordinate chunk, final LandTeam team)
+    public boolean unLoadLand(final Coordinate chunk, final LandTeam team)
     {
         if (LandEventsHandler.ChunkLoadHandler.removeChunks(chunk))
         {
             team.land.getLoaded().remove(chunk);
             LandSaveHandler.saveTeam(team.teamName);
+            return true;
         }
+        return false;
     }
 }

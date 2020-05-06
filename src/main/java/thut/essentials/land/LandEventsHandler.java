@@ -352,20 +352,50 @@ public class LandEventsHandler
         {
             final IParticleData otherowned = ParticleTypes.BARRIER;
             final IParticleData owned = ParticleTypes.HAPPY_VILLAGER;
+            final IParticleData chunkloaded = ParticleTypes.HEART;
             IParticleData show = null;
             final LandTeam us = LandManager.getTeam(player);
             int x, y, z;
             int x1, y1, z1;
             IPacket<?> packet;
             final int dim = player.dimension.getId();
-            for (int i = -3; i <= 3; i++)
-                for (int j = -3; j <= 3; j++)
-                    for (int k = -3; k <= 3; k++)
+            for (int dx = -3; dx <= 3; dx++)
+                for (int dz = -3; dz <= 3; dz++)
+                {
+                    x = player.chunkCoordX + dx;
+                    z = player.chunkCoordZ + dz;
+                    Coordinate c = new Coordinate(x, 0, z, dim);
+                    y = player.chunkCoordY;
+                    final boolean cl = ChunkLoadHandler.allLoaded.contains(c);
+
+                    for (int dy = -3; dy <= 3; dy++)
                     {
-                        x = player.chunkCoordX + i;
-                        y = player.chunkCoordY + j;
-                        z = player.chunkCoordZ + k;
-                        final Coordinate c = new Coordinate(x, y, z, dim);
+                        y = player.chunkCoordY + dy;
+                        c = new Coordinate(x, y, z, dim);
+
+                        if (cl)
+                        {
+                            show = chunkloaded;
+                            x1 = x * 16;
+                            y1 = y * 16;
+                            z1 = z * 16;
+                            for (int i1 = 3; i1 < 14; i1 += 4)
+                                for (int j1 = 3; j1 < 14; j1 += 4)
+                                {
+                                    packet = new SSpawnParticlePacket(show, false, x1 + i1, y1 + j1, z1 + 3, 0, 0, 0, 0,
+                                            1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + i1, y1 + j1, z1 + 13, 0, 0, 0,
+                                            0, 1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + 3, y1 + j1, z1 + i1, 0, 0, 0, 0,
+                                            1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + 13, y1 + j1, z1 + i1, 0, 0, 0,
+                                            0, 1);
+                                    player.connection.sendPacket(packet);
+                                }
+                        }
 
                         final LandTeam team = LandManager.getInstance().getLandOwner(c);
                         show = team == null ? null : team == us ? owned : otherowned;
@@ -394,6 +424,7 @@ public class LandEventsHandler
                                 }
                         }
                     }
+                }
 
         }
 
@@ -1132,7 +1163,7 @@ public class LandEventsHandler
 
         public static Set<ServerWorld> worlds = Sets.newConcurrentHashSet();
 
-        public static Map<DimensionType, Set<Coordinate>> coordsByDim = Maps.newConcurrentMap();
+        public static Set<Coordinate> allLoaded = Sets.newConcurrentHashSet();
 
         @SubscribeEvent
         public static void ServerLoaded(final FMLServerStartedEvent event)
@@ -1148,24 +1179,28 @@ public class LandEventsHandler
             }));
         }
 
-        public static boolean removeChunks(final Coordinate location)
+        public static boolean removeChunks(Coordinate location)
         {
             if (!Essentials.config.chunkLoading) return false;
             final DimensionType dim = DimensionType.getById(location.dim);
             if (dim == null) return false;
             final ServerWorld world = ChunkLoadHandler.server.getWorld(dim);
             if (world == null) return false;
+            if (location.y != 0) location = new Coordinate(location.x, 0, location.z, location.dim);
+            if (!ChunkLoadHandler.allLoaded.remove(location)) return false;
             world.getChunkProvider().forceChunk(new ChunkPos(location.x, location.z), false);
             return true;
         }
 
-        public static boolean addChunks(final Coordinate location)
+        public static boolean addChunks(Coordinate location)
         {
             if (!Essentials.config.chunkLoading) return false;
             final DimensionType dim = DimensionType.getById(location.dim);
             if (dim == null) return false;
             final ServerWorld world = ChunkLoadHandler.server.getWorld(dim);
             if (world == null) return false;
+            if (location.y != 0) location = new Coordinate(location.x, 0, location.z, location.dim);
+            if (!ChunkLoadHandler.allLoaded.add(location)) return false;
             world.getChunkProvider().forceChunk(new ChunkPos(location.x, location.z), true);
             return true;
         }

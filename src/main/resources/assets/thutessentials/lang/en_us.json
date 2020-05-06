@@ -214,6 +214,9 @@
     "thutessentials.claim.claimed.failed": "§cYou were unable to claim that land.",
     "thutessentials.claim.claimed.count": "§aYour team has claimed §6%s§a chunk segments, with a maximum of §6%s§a",
     
+    "thutessentials.claim.loaded": "§aYou marked this chunk for chunkloading, §6%s§a remaining.",
+    "thutessentials.claim.unloaded": "§aYou unmarked this chunk for chunkloading, §6%s§a remaining.",
+    
     "thutessentials.claim.ownedby": "§aThis Land is owned by §6%s",
     "thutessentials.claim.unowned": "§aThis Land is not owned",
     
