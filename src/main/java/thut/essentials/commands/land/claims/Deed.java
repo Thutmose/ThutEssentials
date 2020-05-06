@@ -33,7 +33,7 @@ public class Deed
     {
         if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
         final ItemStack stack = evt.getItemStack();
-        if (!stack.hasTag() && stack.getTag().getBoolean("isDeed")) return;
+        if (!stack.hasTag() || !stack.getTag().getBoolean("isDeed")) return;
 
         final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
         if (!PermissionAPI.hasPermission(player, Deed.CANREDEEMDEEDS))
