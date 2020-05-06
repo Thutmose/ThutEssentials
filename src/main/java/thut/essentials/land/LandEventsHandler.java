@@ -366,35 +366,36 @@ public class LandEventsHandler
                     z = player.chunkCoordZ + dz;
                     Coordinate c = new Coordinate(x, 0, z, dim);
                     y = player.chunkCoordY;
-
-                    if (ChunkLoadHandler.allLoaded.contains(c))
-                    {
-                        x1 = x * 16;
-                        y1 = y * 16;
-                        z1 = z * 16;
-
-                        show = chunkloaded;
-
-                        for (int i1 = 1; i1 < 16; i1 += 4)
-                            for (int j1 = 1; j1 < 16; j1 += 4)
-                            {
-                                packet = new SSpawnParticlePacket(show, false, x1 + i1, y1 + j1, z1 + 1, 0, 0, 0, 0, 1);
-                                player.connection.sendPacket(packet);
-                                packet = new SSpawnParticlePacket(show, false, x1 + i1, y1 + j1, z1 + 15, 0, 0, 0, 0,
-                                        1);
-                                player.connection.sendPacket(packet);
-                                packet = new SSpawnParticlePacket(show, false, x1 + 1, y1 + j1, z1 + i1, 0, 0, 0, 0, 1);
-                                player.connection.sendPacket(packet);
-                                packet = new SSpawnParticlePacket(show, false, x1 + 15, y1 + j1, z1 + i1, 0, 0, 0, 0,
-                                        1);
-                                player.connection.sendPacket(packet);
-                            }
-                    }
+                    final boolean cl = ChunkLoadHandler.allLoaded.contains(c);
 
                     for (int dy = -3; dy <= 3; dy++)
                     {
                         y = player.chunkCoordY + dy;
                         c = new Coordinate(x, y, z, dim);
+
+                        if (cl)
+                        {
+                            show = chunkloaded;
+                            x1 = x * 16;
+                            y1 = y * 16;
+                            z1 = z * 16;
+                            for (int i1 = 3; i1 < 14; i1 += 4)
+                                for (int j1 = 3; j1 < 14; j1 += 4)
+                                {
+                                    packet = new SSpawnParticlePacket(show, false, x1 + i1, y1 + j1, z1 + 3, 0, 0, 0, 0,
+                                            1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + i1, y1 + j1, z1 + 13, 0, 0, 0,
+                                            0, 1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + 3, y1 + j1, z1 + i1, 0, 0, 0, 0,
+                                            1);
+                                    player.connection.sendPacket(packet);
+                                    packet = new SSpawnParticlePacket(show, false, x1 + 13, y1 + j1, z1 + i1, 0, 0, 0,
+                                            0, 1);
+                                    player.connection.sendPacket(packet);
+                                }
+                        }
 
                         final LandTeam team = LandManager.getInstance().getLandOwner(c);
                         show = team == null ? null : team == us ? owned : otherowned;
