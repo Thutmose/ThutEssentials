@@ -120,7 +120,11 @@ public class Config extends ConfigData
     public boolean rtpPlayerCentred = false;
 
     @Configure(category = Config.ECON)
-    public boolean shopsEnabled = true;
+    public boolean      shopsEnabled = true;
+    @Configure(category = Config.ECON)
+    public List<String> sellTags     = Lists.newArrayList("Sell", "Sells", "Sale");
+    @Configure(category = Config.ECON)
+    public List<String> recycleTags  = Lists.newArrayList("Recycle");
 
     @Configure(category = Config.CHAT)
     public boolean useChatFormat = true;
