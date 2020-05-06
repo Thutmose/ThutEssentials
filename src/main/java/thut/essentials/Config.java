@@ -47,6 +47,7 @@ public class Config extends ConfigData
     public static final String LOGS  = "logging";
     public static final String CHAT  = "chat";
     public static final String RTP   = "rtp";
+    public static final String TPA   = "tpa";
 
     @Configure(category = Config.LAND)
     public boolean defaultMessages    = true;
@@ -140,6 +141,11 @@ public class Config extends ConfigData
     @Configure(category = Config.LOGS)
     public boolean      log_inventory_use       = true;
 
+    @Configure(category = Config.TPA)
+    public int tpaActivateDelay = 50;
+    @Configure(category = Config.TPA)
+    public int tpaReUseDelay    = 100;
+
     @Configure(category = Config.MISC)
     public List<String> itemUseWhitelist    = Lists.newArrayList();
     @Configure(category = Config.MISC)
@@ -168,8 +174,6 @@ public class Config extends ConfigData
     public int          spawnActivateDelay  = 50;
     @Configure(category = Config.MISC)
     public long         spawnReUseDelay     = 100;
-    @Configure(category = Config.MISC)
-    public int          tpaActivateDelay    = 50;
     @Configure(category = Config.MISC)
     public double       maxSpeed            = 10;
 

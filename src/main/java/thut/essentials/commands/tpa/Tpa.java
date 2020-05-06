@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -43,8 +44,23 @@ public class Tpa
             throws CommandSyntaxException
     {
         final PlayerEntity player = source.asPlayer();
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(target);
-        final CompoundNBT tpaTag = tag.getCompound("tpa");
+        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundNBT tpaTag = tag.getCompound("tpa");
+
+        final long last = tag.getLong("tpaDelay");
+        final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+        if (last > time && Essentials.config.tpaReUseDelay > 0)
+        {
+            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
+                    false));
+            return 1;
+        }
+        tpaTag.putLong("tpaDelay", time + Essentials.config.tpaReUseDelay);
+        tag.put("tpa", tpaTag);
+        PlayerDataHandler.saveCustomData(player);
+
+        tag = PlayerDataHandler.getCustomDataTag(target);
+        tpaTag = tag.getCompound("tpa");
         if (tpaTag.getBoolean("ignore")) return 1;
 
         final ITextComponent header = player.getDisplayName().appendSibling(CommandManager.makeFormattedComponent(
