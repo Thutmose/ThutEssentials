@@ -103,6 +103,19 @@
     
     "_comment": "Team and Claiming Related",
     
+    "msg.team.setpublic.block.true": "§aYou Set this block to public use",
+    "msg.team.setpublic.block.false": "§aYou Set this block to private use",
+    "msg.team.setbreak.block.true": "§aYou Set this block to breakable by anyone",
+    "msg.team.setbreak.block.false": "§aYou Set this block to breakable by team only",
+    "msg.team.setplace.block.true": "§aYou Set this block to placeable by anyone",
+    "msg.team.setplace.block.false": "§aYou Set this block to placeable by team only",
+    "msg.team.setmob.public.true": "§aYou Set this mob to public use",
+    "msg.team.setmob.public.false": "§aYou Set this mob to private use",
+    "msg.team.setmob.protect.true": "§aYou Set this mob to protected by claims",
+    "msg.team.setmob.protect.false": "§aYou Set this mob to unprotected by claims",
+    
+    "msg.team.renamed": "§aYou have renamed your team from §6%s§r to §6%s",
+    
     "msg.team.deny": "§c你的行为不被允许，土地所有者为 §6%s",
     "msg.team.enterLand": "§a你进入了一个领地，领主为 §6%s",
     "msg.team.exitLand": "§a你离开了一个领地，领主为 §6%s",
@@ -112,6 +125,7 @@
     
     "msg.team.nowildperms.useitem": "§c你没有权限那样做.",
     "msg.team.nowildperms.useblock": "§c你没有权限那样做.",
+    "msg.team.nowildperms.usemob": "§c你没有权限那样做.",
     "msg.team.nowildperms.placeblock": "§c你没有权限那样做.",
     "msg.team.nowildperms.breakblock": "§c你没有权限那样做.",
     "msg.team.nowildperms.noenter": "§c你没有权限进入!",
@@ -121,6 +135,7 @@
     
     "thutessentials.team.created": "§a你创建并加入了 §6%s",
     "thutessentials.team.my_team": "§a你的组是 §6%s",
+    "thutessentials.team.teamexists": "§cThat team already exists!",
     "thutessentials.team.nohomeset": "§c你的组并没有设定一个组的家",
     "thutessentials.team.notfound": "§c没有组叫 §6%s",
     "thutessentials.team.members": "§a组员数 §6%s§c:",

@@ -73,9 +73,8 @@ public class EconomyManager
                 return false;
             }
             final SignTileEntity sign = (SignTileEntity) tile;
-            this.sell = sign.signText[0].getUnformattedComponentText().contains("Sell") || sign.signText[0]
-                    .getUnformattedComponentText().contains("Sale");
-            this.recycle = sign.signText[0].getUnformattedComponentText().contains("Recycle");
+            this.sell = Essentials.config.sellTags.contains(sign.signText[0].getUnformattedComponentText());
+            this.recycle = Essentials.config.recycleTags.contains(sign.signText[0].getUnformattedComponentText());
             try
             {
                 this.number = Integer.parseInt(sign.signText[1].getUnformattedComponentText());

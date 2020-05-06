@@ -120,7 +120,11 @@ public class Config extends ConfigData
     public boolean rtpPlayerCentred = false;
 
     @Configure(category = Config.ECON)
-    public boolean shopsEnabled = true;
+    public boolean      shopsEnabled = true;
+    @Configure(category = Config.ECON)
+    public List<String> sellTags     = Lists.newArrayList("Sell", "Sells", "Sale");
+    @Configure(category = Config.ECON)
+    public List<String> recycleTags  = Lists.newArrayList("Recycle");
 
     @Configure(category = Config.CHAT)
     public boolean useChatFormat = true;
@@ -140,6 +144,8 @@ public class Config extends ConfigData
     public List<String> itemUseWhitelist    = Lists.newArrayList();
     @Configure(category = Config.MISC)
     public List<String> blockUseWhitelist   = Lists.newArrayList();
+    @Configure(category = Config.MISC)
+    public List<String> mobUseWhitelist     = Lists.newArrayList();
     @Configure(category = Config.MISC)
     public List<String> blockBreakWhitelist = Lists.newArrayList();
     @Configure(category = Config.MISC)

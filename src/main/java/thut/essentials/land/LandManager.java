@@ -448,10 +448,9 @@ public class LandManager
 
     public void renameTeam(final String oldName, final String newName) throws IllegalArgumentException
     {
-        if (this._teamMap.containsKey(newName)) throw new IllegalArgumentException(
-                "Error, new team name already in use");
+        if (this._teamMap.containsKey(newName)) throw new IllegalArgumentException("thutessentials.team.teamexists");
         final LandTeam team = this._teamMap.remove(oldName);
-        if (team == null) throw new IllegalArgumentException("Error, specified team not found");
+        if (team == null) throw new IllegalArgumentException("thutessentials.team.notfound");
         this._teamMap.put(newName, team);
         for (final Invites i : this.invites.values())
             if (i.teams.remove(oldName)) i.teams.add(newName);
@@ -558,7 +557,7 @@ public class LandManager
 
     public void createTeam(final UUID member, final String team) throws IllegalArgumentException
     {
-        if (this._teamMap.containsKey(team)) throw new IllegalArgumentException("thutessentials.error.teamexists");
+        if (this._teamMap.containsKey(team)) throw new IllegalArgumentException("thutessentials.team.teamexists");
         final LandTeam theTeam = this.getTeam(team, true);
         if (member != null)
         {

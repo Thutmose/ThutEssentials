@@ -145,6 +145,7 @@ public class CommandManager
         thut.essentials.commands.util.RAM.register(commandDispatcher);
 
         thut.essentials.commands.land.management.Create.register(commandDispatcher);
+        thut.essentials.commands.land.management.Rename.register(commandDispatcher);
         thut.essentials.commands.land.management.Invite.register(commandDispatcher);
         thut.essentials.commands.land.management.Join.register(commandDispatcher);
         thut.essentials.commands.land.management.Admins.register(commandDispatcher);

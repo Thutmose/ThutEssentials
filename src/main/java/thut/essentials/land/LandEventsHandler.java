@@ -10,7 +10,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.INPC;
@@ -20,17 +19,21 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.play.server.SSpawnParticlePacket;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.dimension.Dimension;
@@ -70,15 +73,27 @@ import thut.essentials.events.DenyItemUseEvent.UseType;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.Coordinate;
 import thut.essentials.util.OwnerManager;
+import thut.essentials.util.PlayerDataHandler;
 
 public class LandEventsHandler
 {
+    public static enum DenyReason
+    {
+        NONE, WILD, OTHER, OURS;
+
+        public boolean test()
+        {
+            return this == NONE;
+        }
+    }
+
     public static final LandEventsHandler TEAMMANAGER = new LandEventsHandler();
 
-    public static Set<String> itemUseWhitelist    = Sets.newHashSet();
-    public static Set<String> blockUseWhiteList   = Sets.newHashSet();
-    public static Set<String> blockBreakWhiteList = Sets.newHashSet();
-    public static Set<String> blockPlaceWhiteList = Sets.newHashSet();
+    public static Set<ResourceLocation> mobUseWhitelist     = Sets.newHashSet();
+    public static Set<ResourceLocation> itemUseWhitelist    = Sets.newHashSet();
+    public static Set<ResourceLocation> blockUseWhiteList   = Sets.newHashSet();
+    public static Set<ResourceLocation> blockBreakWhiteList = Sets.newHashSet();
+    public static Set<ResourceLocation> blockPlaceWhiteList = Sets.newHashSet();
 
     public static Set<ResourceLocation> invuln = Sets.newHashSet();
 
@@ -90,16 +105,18 @@ public class LandEventsHandler
         MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.block_handler);
         LandEventsHandler.itemUseWhitelist.clear();
         for (final String s : Essentials.config.itemUseWhitelist)
-            LandEventsHandler.itemUseWhitelist.add(s);
+            LandEventsHandler.itemUseWhitelist.add(new ResourceLocation(s));
         LandEventsHandler.blockUseWhiteList.clear();
         for (final String s : Essentials.config.blockUseWhitelist)
-            LandEventsHandler.blockUseWhiteList.add(s);
+            LandEventsHandler.blockUseWhiteList.add(new ResourceLocation(s));
         LandEventsHandler.blockBreakWhiteList.clear();
         for (final String s : Essentials.config.blockBreakWhitelist)
-            LandEventsHandler.blockBreakWhiteList.add(s);
+            LandEventsHandler.blockBreakWhiteList.add(new ResourceLocation(s));
         LandEventsHandler.blockPlaceWhiteList.clear();
         for (final String s : Essentials.config.blockPlaceWhitelist)
-            LandEventsHandler.blockPlaceWhiteList.add(s);
+            LandEventsHandler.blockPlaceWhiteList.add(new ResourceLocation(s));
+        for (final String s : Essentials.config.mobUseWhitelist)
+            LandEventsHandler.mobUseWhitelist.add(new ResourceLocation(s));
         MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
         MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.interact_handler);
         MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.entity_handler);
@@ -135,8 +152,8 @@ public class LandEventsHandler
         {
             if (!(player instanceof ServerPlayerEntity)) return;
             // check whitelist first.
-            final String name = evt.getWorld().getBlockState(evt.getPos()).getBlock().getRegistryName().toString();
-            if (LandEventsHandler.blockPlaceWhiteList.contains(name)) return;
+            if (LandEventsHandler.blockPlaceWhiteList.contains(evt.getWorld().getBlockState(evt.getPos()).getBlock()
+                    .getRegistryName())) return;
             // Chunk Coordinate
             final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), player.dimension.getId());
             // Block coordinate
@@ -193,8 +210,8 @@ public class LandEventsHandler
             if (Essentials.config.landEnabled && player != null)
             {
                 // check whitelist first.
-                final String name = evt.getWorld().getBlockState(evt.getPos()).getBlock().getRegistryName().toString();
-                if (LandEventsHandler.blockBreakWhiteList.contains(name)) return;
+                if (LandEventsHandler.blockBreakWhiteList.contains(evt.getWorld().getBlockState(evt.getPos()).getBlock()
+                        .getRegistryName())) return;
                 // Chunk Coordinate
                 final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), player.dimension.getId());
                 // Block coordinate
@@ -416,17 +433,43 @@ public class LandEventsHandler
                 BlockPos old;
                 here = new BlockPos(player.chasingPosX, player.chasingPosY, player.chasingPosZ);
                 old = new BlockPos(player.prevChasingPosX, player.prevChasingPosY, player.prevChasingPosZ);
+
+                if (old.equals(here)) return;
+
                 final Coordinate newChunk = Coordinate.getChunkCoordFromWorldCoord(here, player.dimension.getId());
                 final Coordinate oldChunk = Coordinate.getChunkCoordFromWorldCoord(old, player.getEntityWorld()
                         .getDimension());
-                if (newChunk.equals(oldChunk) || !Essentials.config.landEnabled) return;
                 final boolean isNewOwned = LandManager.getInstance().isOwned(newChunk);
                 final boolean isOldOwned = LandManager.getInstance().isOwned(oldChunk);
 
-                if (isNewOwned || isOldOwned)
+                final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+                final CompoundNBT entry_log = tag.getCompound("last_entered_chunk");
+                BlockPos entry_point = old;
+                Coordinate last_chunk = oldChunk;
+
+                if (!(isNewOwned || isOldOwned))
+                {
+                    entry_point = old;
+                    entry_log.put("from", NBTUtil.writeBlockPos(entry_point));
+                    final BlockPos p = new BlockPos(newChunk.x, newChunk.y, newChunk.z);
+                    final CompoundNBT prev_chunk = NBTUtil.writeBlockPos(p);
+                    prev_chunk.putInt("W", newChunk.dim);
+                    entry_log.put("chunk", prev_chunk);
+                    tag.put("last_entered_chunk", entry_log);
+                    PlayerDataHandler.saveCustomData(player);
+                }
+                else
                 {
                     final LandTeam team = LandManager.getInstance().getLandOwner(newChunk);
                     final LandTeam team1 = LandManager.getInstance().getLandOwner(oldChunk);
+
+                    if (!entry_log.isEmpty())
+                    {
+                        entry_point = NBTUtil.readBlockPos(entry_log.getCompound("from"));
+                        final CompoundNBT prev_chunk = entry_log.getCompound("chunk");
+                        last_chunk = new Coordinate(NBTUtil.readBlockPos(prev_chunk), prev_chunk.getInt("W"));
+                    }
+
                     if (!LandEventsHandler.lastLeaveMessage.containsKey(evt.getEntity().getUniqueID()))
                         LandEventsHandler.lastLeaveMessage.put(evt.getEntity().getUniqueID(), System.currentTimeMillis()
                                 - 1);
@@ -434,29 +477,43 @@ public class LandEventsHandler
                         LandEventsHandler.lastEnterMessage.put(evt.getEntity().getUniqueID(), System.currentTimeMillis()
                                 - 1);
 
-                    if (!isNewOwned && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMENTERWILD))
-                    {
-                        player.connection.setPlayerLocation(old.getX() + 0.5, old.getY(), old.getZ() + 0.5,
-                                player.rotationYaw, player.rotationPitch);
-                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.noenter"));
-                        return;
-                    }
+                    ITextComponent message = null;
+
                     final boolean owns = team != null && team.isMember(player);
-                    if (isNewOwned && owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMENTEROWN))
-                    {
-                        player.connection.setPlayerLocation(old.getX() + 0.5, old.getY(), old.getZ() + 0.5,
-                                player.rotationYaw, player.rotationPitch);
-                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.owned.noenter"));
-                        return;
-                    }
+                    if (!isNewOwned && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMENTERWILD))
+                        message = CommandManager.makeFormattedComponent("msg.team.nowildperms.noenter");
+                    else if (isNewOwned && owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMENTEROWN))
+                        message = CommandManager.makeFormattedComponent("msg.team.owned.noenter");
                     else if (isNewOwned && !owns && !PermissionAPI.hasPermission(player,
-                            LandEventsHandler.PERMENTEROTHER))
+                            LandEventsHandler.PERMENTEROTHER)) message = CommandManager.makeFormattedComponent(
+                                    "msg.team.other.noenter");
+                    if (message != null)
                     {
-                        player.connection.setPlayerLocation(old.getX() + 0.5, old.getY(), old.getZ() + 0.5,
+                        if (!last_chunk.equals(newChunk))
+                        {
+                            entry_point = old;
+                            // entry_log.putString("last_name", last_name);
+                            entry_log.put("from", NBTUtil.writeBlockPos(entry_point));
+                            final BlockPos p = new BlockPos(newChunk.x, newChunk.y, newChunk.z);
+                            final CompoundNBT prev_chunk = NBTUtil.writeBlockPos(p);
+                            prev_chunk.putInt("W", newChunk.dim);
+                            entry_log.put("chunk", prev_chunk);
+                            tag.put("last_entered_chunk", entry_log);
+                            PlayerDataHandler.saveCustomData(player);
+                        }
+                        final Vec3d oldV = new Vec3d(entry_point);
+                        player.connection.setPlayerLocation(oldV.x + 0.5, oldV.y + 0.5, oldV.z + 0.5,
                                 player.rotationYaw, player.rotationPitch);
-                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.other.noenter"));
+                        player.sendMessage(message);
                         return;
                     }
+
+                    // If we got to here, it means this is a valid location, so
+                    // lets save it and current team.
+                    // entry_log.putString("last_name", last_name);
+                    entry_log.put("from", NBTUtil.writeBlockPos(here));
+                    tag.put("last_entered_chunk", entry_log);
+                    PlayerDataHandler.saveCustomData(player);
 
                     messages:
                     {
@@ -677,47 +734,152 @@ public class LandEventsHandler
 
     public static class InteractEventHandler
     {
-        @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void interact(final PlayerInteractEvent.LeftClickBlock evt)
+        private DenyReason canUseBlock(final PlayerInteractEvent evt)
         {
-            if (evt.getEntity().getEntityWorld().isRemote) return;
-            if (!Essentials.config.landEnabled) return;
+            final BlockState state = evt.getWorld().getBlockState(evt.getPos());
+            if (LandEventsHandler.blockUseWhiteList.contains(state.getBlock().getRegistryName()))
+                return DenyReason.NONE;
+
+            final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
             // Chunk Coordinate
             final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
                     .getId());
             // Block coordinate
             final Coordinate b = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-
-            // TODO potentially have perms for unowned use here?
-            if (owner == null) return;
-
-            // Check if the team allows fakeplayers
-            if (owner.fakePlayers && evt.getPlayer() instanceof FakePlayer) return;
-
-            // check if this is in the global whitelist.
-            final Block block = evt.getWorld().getBlockState(evt.getPos()).getBlock();
-            final String name = block.getRegistryName().toString();
-            if (LandEventsHandler.blockBreakWhiteList.contains(name)) return;
-
-            // Check if we own this, or we have team relation permissions for
-            // this.
-            if (owner.canUseStuff(evt.getPlayer().getUniqueID(), b) || owner.canBreakBlock(evt.getPlayer()
-                    .getUniqueID(), b)) return;
-
-            // Check if this is a public location
-            final Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
-            if (!LandManager.getInstance().isPublic(blockLoc, owner))
+            if (owner == null)
             {
-                evt.setUseBlock(Result.DENY);
-                evt.setCanceled(true);
-                if (!evt.getWorld().isRemote) LandEventsHandler.sendMessage(evt.getEntity(), owner,
-                        LandEventsHandler.DENY);
+                if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEBLOCKWILD)) return DenyReason.NONE;
+                return DenyReason.WILD;
+            }
+            final boolean isFakePlayer = player instanceof FakePlayer;
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && isFakePlayer) return DenyReason.NONE;
+            else // Otherwise check normal behaviour
+            {
+                // Treat relation place perm as owning the land.
+                final boolean owns = owner.canUseStuff(player.getUniqueID(), b);
+                if (owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEBLOCKOWN))
+                    return DenyReason.OURS;
+                if (!owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEBLOCKOTHER))
+                    return DenyReason.OTHER;
+            }
+            return DenyReason.NONE;
+        }
+
+        private DenyReason canUseItem(final PlayerInteractEvent evt)
+        {
+            // Check our global whitelist
+            if (LandEventsHandler.itemUseWhitelist.contains(evt.getItemStack().getItem().getRegistryName()))
+                return DenyReason.NONE;
+
+            // Check our specific event allowances
+            if (MinecraftForge.EVENT_BUS.post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(),
+                    UseType.RIGHTCLICKBLOCK))) return DenyReason.NONE;
+
+            final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
+            // Chunk Coordinate
+            final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
+                    .getId());
+            // Block coordinate
+            final Coordinate b = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
+            final LandTeam owner = LandManager.getInstance().getLandOwner(c);
+            if (owner == null)
+            {
+                if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMWILD)) return DenyReason.NONE;
+                return DenyReason.WILD;
+            }
+            final boolean isFakePlayer = player instanceof FakePlayer;
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && isFakePlayer) return DenyReason.NONE;
+            else // Otherwise check normal behaviour
+            {
+                // Treat relation place perm as owning the land.
+                final boolean owns = owner.canUseStuff(player.getUniqueID(), b);
+                if (owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMOWN))
+                    return DenyReason.OURS;
+                if (!owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMOTHER))
+                    return DenyReason.OTHER;
+            }
+            return DenyReason.NONE;
+        }
+
+        private DenyReason canUseMob(final PlayerInteractEvent evt, final Entity mob)
+        {
+            // Check our global whitelist
+            if (LandEventsHandler.mobUseWhitelist.contains(mob.getType().getRegistryName())) return DenyReason.NONE;
+
+            // Check our specific event allowances
+            if (MinecraftForge.EVENT_BUS.post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(),
+                    UseType.RIGHTCLICKBLOCK))) return DenyReason.NONE;
+
+            final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
+            // Chunk Coordinate
+            final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
+                    .getId());
+            // Block coordinate
+            final Coordinate b = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
+            final LandTeam owner = LandManager.getInstance().getLandOwner(c);
+            if (owner == null)
+            {
+                if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMWILD)) return DenyReason.NONE;
+                return DenyReason.WILD;
+            }
+            final boolean isFakePlayer = player instanceof FakePlayer;
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && isFakePlayer) return DenyReason.NONE;
+            else // Otherwise check normal behaviour
+            {
+                // Treat relation place perm as owning the land.
+                final boolean owns = owner.canUseStuff(player.getUniqueID(), b);
+                if (owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMOWN))
+                    return DenyReason.OURS;
+                if (!owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMOTHER))
+                    return DenyReason.OTHER;
+            }
+            return DenyReason.NONE;
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public void interact(final PlayerInteractEvent.LeftClickBlock evt)
+        {
+            if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
+            if (!Essentials.config.landEnabled) return;
+            final DenyReason rsult = this.canUseBlock(evt);
+            // First check if we do not have permission to act here.
+            if (!rsult.test())
+            {
+                // Chunk Coordinate
+                final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
+                        .getId());
+                final boolean isFakePlayer = evt.getPlayer() instanceof FakePlayer;
+                if (!isFakePlayer)
+                {
+                    final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
+                    switch (rsult)
+                    {
+                    case OTHER:
+                    case OURS:
+                        final LandTeam owner = LandManager.getInstance().getLandOwner(c);
+                        LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
+                        break;
+                    case WILD:
+                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"));
+                        break;
+                    default:
+                        break;
+                    }
+                    player.sendAllContents(player.container, player.container.getInventory());
+                }
                 if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                         "Cancelled interact due to not allowed to left click that." + c + " " + evt.getPlayer()
                                 .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
+                evt.setCanceled(true);
+                evt.setUseBlock(Result.DENY);
+                evt.setUseItem(Result.DENY);
+                return;
             }
-            evt.setUseItem(Result.DENY);
+
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -725,16 +887,48 @@ public class LandEventsHandler
         {
             if (evt.getSide() == LogicalSide.CLIENT) return;
             if (!Essentials.config.landEnabled) return;
+            final DenyReason rsult = this.canUseMob(evt, evt.getTarget());
+            // First check if we do not have permission to act here.
+            if (!rsult.test())
+            {
+                // Chunk Coordinate
+                final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
+                        .getId());
+                final boolean isFakePlayer = evt.getPlayer() instanceof FakePlayer;
+                if (!isFakePlayer)
+                {
+                    final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
+                    switch (rsult)
+                    {
+                    case OTHER:
+                    case OURS:
+                        final LandTeam owner = LandManager.getInstance().getLandOwner(c);
+                        LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
+                        break;
+                    case WILD:
+                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.usemob"));
+                        break;
+                    default:
+                        break;
+                    }
+                    player.sendAllContents(player.container, player.container.getInventory());
+                }
+                if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
+                        "Cancelled interact due to not allowed to use that mob." + c + " " + evt.getPlayer()
+                                .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
+                evt.setCanceled(true);
+                evt.setCancellationResult(ActionResultType.FAIL);
+                return;
+            }
+
             // Chunk Coordinate
             final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
                     .getId());
-            // Block coordinate
-            final Coordinate b = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
             if (owner == null) return;
 
-            // Check if the team allows fakeplayers
-            if (owner.fakePlayers && evt.getPlayer() instanceof FakePlayer) return;
+            // Not letting these manage this stuff.
+            if (evt.getPlayer() instanceof FakePlayer) return;
 
             // If the player owns it, they can toggle whether the entity is
             // protected or not, Only team admins can do this.
@@ -748,18 +942,10 @@ public class LandEventsHandler
                         .isCrouching())
                 {
                     // If so, toggle whether the entity is public.
-                    if (owner.public_mobs.contains(evt.getTarget().getUniqueID()))
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Removed from public: " + evt.getTarget()
-                                .getName()));
-                        LandManager.getInstance().toggleMobPublic(evt.getTarget().getUniqueID(), owner);
-                    }
-                    else
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Added to Public: " + evt.getTarget()
-                                .getName()));
-                        LandManager.getInstance().toggleMobPublic(evt.getTarget().getUniqueID(), owner);
-                    }
+                    final UUID id = evt.getTarget().getUniqueID();
+                    final boolean isPublic = owner.public_mobs.contains(id);
+                    LandManager.getInstance().toggleMobPublic(id, owner);
+                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setmob.public." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to toggling public mob." + c + " " + evt.getPlayer().getUniqueID()
@@ -771,18 +957,10 @@ public class LandEventsHandler
                         .isCrouching() && PermissionAPI.hasPermission(evt.getPlayer(), LandEventsHandler.PERMPROTECTMOB))
                 {
                     // If so, toggle whether the entity is protected.
-                    if (owner.protected_mobs.contains(evt.getTarget().getUniqueID()))
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Removed from protected: " + evt.getTarget()
-                                .getName()));
-                        LandManager.getInstance().toggleMobProtect(evt.getTarget().getUniqueID(), owner);
-                    }
-                    else
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Added to protected: " + evt.getTarget()
-                                .getName()));
-                        LandManager.getInstance().toggleMobProtect(evt.getTarget().getUniqueID(), owner);
-                    }
+                    final UUID id = evt.getTarget().getUniqueID();
+                    final boolean isPublic = owner.protected_mobs.contains(id);
+                    LandManager.getInstance().toggleMobProtect(id, owner);
+                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setmob.protect." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to toggling protected mob." + c + " " + evt.getPlayer()
@@ -790,102 +968,55 @@ public class LandEventsHandler
                     return;
                 }
             }
-
-            // If all public, don't bother checking things below.
-            if (owner.allPublic) return;
-
-            final boolean canUse = owner.canUseStuff(evt.getPlayer().getUniqueID(), b);
-            // Check the teams relations settings
-            if (canUse) return;
-
-            // If not public, no use of mob.
-            if (!owner.public_mobs.contains(evt.getTarget().getUniqueID()))
-            {
-                evt.setCanceled(true);
-                if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
-                        "Cancelled interact due to not public mob." + c + " " + evt.getPlayer().getUniqueID() + " "
-                                + evt.getPlayer().getName().getFormattedText());
-                return;
-            }
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void interact(final PlayerInteractEvent.RightClickItem evt)
         {
-            if (evt.getSide() == LogicalSide.CLIENT) return;
+            if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
             if (evt.getItemStack().getItem().isFood() || evt.getItemStack().getItem() == Items.WRITTEN_BOOK || evt
                     .getItemStack().getItem() == Items.WRITABLE_BOOK || !Essentials.config.landEnabled || evt
                             .getEntity().world.isRemote) return;
 
-            final PlayerEntity player = evt.getPlayer();
-            final String name = evt.getItemStack().getItem().getRegistryName().toString();
-
-            // Check global config for whitelisted items.
-            if (LandEventsHandler.itemUseWhitelist.contains(name)) return;
-            // Check if any mods decide that the item should be whitelisted
-            // regardless of team.
-            if (MinecraftForge.EVENT_BUS.post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(),
-                    UseType.RIGHTCLICKBLOCK))) return;
-            // Chunk Coordinate
-            final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), player.getEntityWorld()
-                    .getDimension());
-            // Block coordinate
-            final Coordinate b = new Coordinate(evt.getPos(), player.dimension.getId());
-            final boolean ownedLand = LandManager.getInstance().isOwned(c);
-            if (!ownedLand)
+            final DenyReason rsult = this.canUseItem(evt);
+            // First check if we do not have permission to act here.
+            if (!rsult.test())
             {
-                if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMWILD)) return;
-                player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useitem"));
+                // Chunk Coordinate
+                final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
+                        .getId());
+                final boolean isFakePlayer = evt.getPlayer() instanceof FakePlayer;
+                if (!isFakePlayer)
+                {
+                    final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
+                    switch (rsult)
+                    {
+                    case OTHER:
+                    case OURS:
+                        final LandTeam owner = LandManager.getInstance().getLandOwner(c);
+                        LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
+                        break;
+                    case WILD:
+                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"));
+                        break;
+                    default:
+                        break;
+                    }
+                    player.sendAllContents(player.container, player.container.getInventory());
+                }
+                if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
+                        "Cancelled interact due to not allowed to right click with that." + c + " " + evt.getPlayer()
+                                .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
+                evt.setCancellationResult(ActionResultType.FAIL);
                 evt.setCanceled(true);
-                ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
-                return;
-
-            }
-            final LandTeam team = LandManager.getInstance().getLandOwner(c);
-
-            // If all public, don't bother checking things below.
-            if (team.allPublic) return;
-
-            // Check if the team allows fakeplayers
-            if (team.fakePlayers && evt.getPlayer() instanceof FakePlayer) return;
-
-            // Treat the relations settings as whether the player owns this.
-            final boolean owns = team.canUseStuff(player.getUniqueID(), b);
-
-            // check permission
-            final String perm = owns ? LandEventsHandler.PERMUSEITEMOWN : LandEventsHandler.PERMUSEITEMOTHER;
-            final boolean permission = PermissionAPI.hasPermission(player, perm);
-            if (!permission)
-            {
-                LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
-                evt.setResult(Result.DENY);
-                evt.setCanceled(true);
-                ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
                 return;
             }
-            // Return here if we own this.
-            else if (owns) return;
-
-            // Allow use if public block.
-            final Coordinate blockLoc = new Coordinate(evt.getPos(), player.dimension.getId());
-            if (LandManager.getInstance().isPublic(blockLoc, team))
-            {
-                evt.setResult(Result.DENY);
-                return;
-            }
-
-            // If we got to here, deny the use.
-            LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
-            evt.setResult(Result.DENY);
-            evt.setCanceled(true);
-            ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
-
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void interact(final PlayerInteractEvent.RightClickBlock evt)
         {
-            if (evt.getSide() == LogicalSide.CLIENT) return;
+            if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
             if (!Essentials.config.landEnabled) return;
             // Chunk Coordinate
             final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
@@ -893,61 +1024,50 @@ public class LandEventsHandler
             // Block coordinate
             final Coordinate b = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-
-            final PlayerEntity player = evt.getPlayer();
-            if (owner == null)
+            final DenyReason rsult = this.canUseBlock(evt);
+            // First check if we do not have permission to act here.
+            if (!rsult.test())
             {
-                if (!PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEBLOCKWILD))
+                final boolean isFakePlayer = evt.getPlayer() instanceof FakePlayer;
+                if (!isFakePlayer)
                 {
-                    player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"));
-                    evt.setCanceled(true);
-                    evt.setUseBlock(Result.DENY);
-                    evt.setUseItem(Result.DENY);
-                    if (player.container != null && player.inventory != null) ((ServerPlayerEntity) player)
-                            .sendAllContents(player.container, player.container.getInventory());
-                    if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
-                            "Cancelled interact due to not allowed to use wild." + c + " " + evt.getPlayer()
-                                    .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
-                    return;
+                    final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
+
+                    switch (rsult)
+                    {
+                    case OTHER:
+                    case OURS:
+                        LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
+                        break;
+                    case WILD:
+                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"));
+                        break;
+                    default:
+                        break;
+                    }
+                    player.sendAllContents(player.container, player.container.getInventory());
                 }
-                return;
-            }
-            // If all public, don't bother checking things below.
-            if (owner.allPublic) return;
-
-            Block block = null;
-            final BlockState state = evt.getWorld().getBlockState(evt.getPos());
-            block = state.getBlock();
-            final String name = block.getRegistryName().toString();
-            if (LandEventsHandler.blockUseWhiteList.contains(name)) return;
-
-            // Check if the team allows fakeplayers
-            if (owner.fakePlayers && evt.getPlayer() instanceof FakePlayer) return;
-
-            // Check permission, Treat relation public perm as if we own this
-            // for this check.
-            boolean owns = owner.canUseStuff(player.getUniqueID(), b) || owner.canPlaceBlock(player.getUniqueID(), b);
-
-            // Check if the block is public.
-            Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
-            final boolean freeuse = LandManager.getInstance().isPublic(blockLoc, owner);
-            owns = owns || freeuse;
-
-            final String perm = owns ? LandEventsHandler.PERMUSEBLOCKOWN : LandEventsHandler.PERMUSEBLOCKOTHER;
-            final boolean permission = PermissionAPI.hasPermission(player, perm);
-
-            if (!permission)
-            {
-                LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
+                if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
+                        "Cancelled interact due to not allowed to right click that." + c + " " + evt.getPlayer()
+                                .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
                 evt.setCanceled(true);
                 evt.setUseBlock(Result.DENY);
                 evt.setUseItem(Result.DENY);
-                ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
-                if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
-                        "Cancelled interact due to not allowed to use. owns?: " + owns + ", " + c + " " + evt
-                                .getPlayer().getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
                 return;
             }
+            // We don't care about anything else beyond here is unowned
+            if (owner == null) return;
+
+            final PlayerEntity player = evt.getPlayer();
+
+            // Don't allow fake players to act below
+            if (evt.getPlayer() instanceof FakePlayer) return;
+            // Check permission, Treat relation public perm as if we own this
+            // for this check.
+            final boolean owns = owner.canUseStuff(player.getUniqueID(), b) || owner.canPlaceBlock(player.getUniqueID(),
+                    b);
+            // Check if the block is public.
+            Coordinate blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
             // If we own this, we can return here, first check public toggle
             // though.
             if (owns)
@@ -958,16 +1078,10 @@ public class LandEventsHandler
                                 .getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
-                    if (LandManager.getInstance().isPublic(blockLoc, owner))
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Set Block to Team Only"));
-                        LandManager.getInstance().unsetPublic(blockLoc, owner);
-                    }
-                    else
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Set Block to Public Use"));
-                        LandManager.getInstance().setPublic(blockLoc, owner);
-                    }
+                    final boolean isPublic = LandManager.getInstance().isPublic(blockLoc, owner);
+                    if (isPublic) LandManager.getInstance().unsetPublic(blockLoc, owner);
+                    else LandManager.getInstance().setPublic(blockLoc, owner);
+                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setpublic.block." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
                             "Cancelled interact due to public toggling. " + c + " " + evt.getPlayer().getUniqueID()
@@ -978,16 +1092,10 @@ public class LandEventsHandler
                         .isCrouching() && LandManager.getInstance().isAdmin(evt.getPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
-                    if (owner.anyBreakSet.contains(blockLoc))
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Set Block to Team Breaking Only"));
-                        owner.anyBreakSet.remove(blockLoc);
-                    }
-                    else
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Set Block to Public Breaking"));
-                        owner.anyBreakSet.add(blockLoc);
-                    }
+                    final boolean isPublic = owner.anyBreakSet.contains(blockLoc);
+                    if (owner.anyBreakSet.contains(blockLoc)) owner.anyBreakSet.remove(blockLoc);
+                    else owner.anyBreakSet.add(blockLoc);
+                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setbreak.block." + !isPublic));
                     LandSaveHandler.saveTeam(owner.teamName);
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
@@ -999,16 +1107,10 @@ public class LandEventsHandler
                         .isCrouching() && LandManager.getInstance().isAdmin(evt.getPlayer().getUniqueID()))
                 {
                     blockLoc = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
-                    if (owner.anyPlaceSet.contains(blockLoc))
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Set Block to Team Placing Only"));
-                        owner.anyPlaceSet.remove(blockLoc);
-                    }
-                    else
-                    {
-                        evt.getPlayer().sendMessage(new StringTextComponent("Set Block to Public Placing"));
-                        owner.anyPlaceSet.add(blockLoc);
-                    }
+                    final boolean isPublic = owner.anyPlaceSet.contains(blockLoc);
+                    if (owner.anyPlaceSet.contains(blockLoc)) owner.anyPlaceSet.remove(blockLoc);
+                    else owner.anyPlaceSet.add(blockLoc);
+                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setplace.block." + !isPublic));
                     LandSaveHandler.saveTeam(owner.teamName);
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
@@ -1017,16 +1119,6 @@ public class LandEventsHandler
                 }
                 return;
             }
-
-            // If we got here, then nothing allows use.
-            LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
-            evt.setCanceled(true);
-            evt.setUseBlock(Result.DENY);
-            evt.setUseItem(Result.DENY);
-            ((ServerPlayerEntity) player).sendAllContents(player.container, player.container.getInventory());
-            if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
-                    "Cancelled interact due to not allowed to use block." + c + " " + evt.getPlayer().getUniqueID()
-                            + " " + evt.getPlayer().getName().getFormattedText());
         }
     }
 
@@ -1077,6 +1169,10 @@ public class LandEventsHandler
     public static final String PERMUSEBLOCKWILD  = "thutessentials.land.useblock.unowned";
     public static final String PERMUSEBLOCKOWN   = "thutessentials.land.useblock.owned.self";
     public static final String PERMUSEBLOCKOTHER = "thutessentials.land.useblock.owned.other";
+
+    public static final String PERMUSEMOBWILD  = "thutessentials.land.usemob.unowned";
+    public static final String PERMUSEMOBOWN   = "thutessentials.land.usemob.owned.self";
+    public static final String PERMUSEMOBOTHER = "thutessentials.land.usemob.owned.other";
 
     public static final String PERMENTERWILD  = "thutessentials.land.enter.unowned";
     public static final String PERMENTEROWN   = "thutessentials.land.enter.owned.self";
@@ -1136,6 +1232,13 @@ public class LandEventsHandler
                 "Can the player use items in their own land.");
         PermissionAPI.registerNode(LandEventsHandler.PERMUSEBLOCKOTHER, DefaultPermissionLevel.OP,
                 "Can the player use items in other player's land.");
+
+        PermissionAPI.registerNode(LandEventsHandler.PERMUSEMOBWILD, DefaultPermissionLevel.ALL,
+                "Can the player interact with mobs in unowned land.");
+        PermissionAPI.registerNode(LandEventsHandler.PERMUSEMOBOWN, DefaultPermissionLevel.ALL,
+                "Can the player interact with mobs in their own land.");
+        PermissionAPI.registerNode(LandEventsHandler.PERMUSEMOBOTHER, DefaultPermissionLevel.ALL,
+                "Can the player interact with mobs in other player's land.");
 
         PermissionAPI.registerNode(LandEventsHandler.PERMENTERWILD, DefaultPermissionLevel.ALL,
                 "Can the player enter unowned land.");
