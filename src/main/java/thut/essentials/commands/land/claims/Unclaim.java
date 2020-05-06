@@ -12,7 +12,6 @@ import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -26,11 +25,10 @@ import thut.essentials.util.Coordinate;
 
 public class Unclaim
 {
-    private static final String GLOBALPERM = "thutessentials.land.unclaim.any";
+    public static final String GLOBALPERM = "thutessentials.land.unclaim.any";
 
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
-        // TODO configurable this.
         final String name = "unclaim";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
@@ -59,6 +57,7 @@ public class Unclaim
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
         command = command.then(Commands.literal("here").executes(ctx -> Unclaim.execute(ctx.getSource(), false, false,
                 true, false)));
+        commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
         command = command.then(Commands.literal("everything").executes(ctx -> Unclaim.execute(ctx.getSource(), false,
@@ -71,10 +70,11 @@ public class Unclaim
     {
         final PlayerEntity player = source.asPlayer();
         final LandTeam team = LandManager.getTeam(player);
-        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
+        final boolean canUnclaimAnything = PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM);
+
+        if (!canUnclaimAnything && !team.hasRankPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.unclaim.notallowed.teamperms",
-                    TextFormatting.RED));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"));
             return 1;
         }
 
@@ -82,7 +82,7 @@ public class Unclaim
         {
             final List<Coordinate> allLand = Lists.newArrayList(team.land.land);
             for (final Coordinate c : allLand)
-                Unclaim.unclaim(c, player, team, false);
+                Unclaim.unclaim(c, player, team, false, canUnclaimAnything);
             player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", allLand.size(),
                     team.teamName));
             return 0;
@@ -92,37 +92,37 @@ public class Unclaim
         final int y = MathHelper.floor(player.getPosition().getY() >> 4);
         final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
 
-        if (here) return Unclaim.unclaim(x, y, z, player, team, true);
+        if (here) return Unclaim.unclaim(x, y, z, player, team, true, canUnclaimAnything);
 
         final int min = down ? 0 : y;
         final int max = up ? 16 : y;
 
-        boolean claimed = false;
+        boolean done = false;
         int claimnum = 0;
         int owned_other = 0;
         for (int i = min; i < max; i++)
         {
-            final int check = Unclaim.unclaim(x, i, z, player, team, false);
+            final int check = Unclaim.unclaim(x, i, z, player, team, false, canUnclaimAnything);
             if (check == 0)
             {
-                claimed = true;
+                done = true;
                 claimnum++;
             }
             else if (check == 3) owned_other++;
         }
         if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
                 "thutessentials.unclaim.notallowed.notowner", owned_other));
-        if (claimed) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
+        if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
                 team.teamName));
         else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
                 team.teamName));
 
         LandSaveHandler.saveTeam(team.teamName);
-        return claimed ? 0 : 1;
+        return done ? 0 : 1;
     }
 
     private static int unclaim(final Coordinate chunk, final PlayerEntity player, final LandTeam team,
-            final boolean messages)
+            final boolean messages, final boolean canUnclaimAnything)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner == null)
@@ -130,7 +130,7 @@ public class Unclaim
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"));
             return 2;
         }
-        else if (owner != team && !PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM))
+        else if (owner != team && !canUnclaimAnything)
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner",
                     owner.teamName));
@@ -145,12 +145,12 @@ public class Unclaim
     }
 
     private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
-            final boolean messages)
+            final boolean messages, final boolean canUnclaimAnything)
     {
         // TODO better bounds check to support say cubic chunks.
         if (y < 0 || y > 15) return 1;
         final int dim = player.dimension.getId();
         final Coordinate chunk = new Coordinate(x, y, z, dim);
-        return Unclaim.unclaim(chunk, player, team, messages);
+        return Unclaim.unclaim(chunk, player, team, messages, canUnclaimAnything);
     }
 }

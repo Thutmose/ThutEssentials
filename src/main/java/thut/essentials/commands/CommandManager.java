@@ -158,6 +158,7 @@ public class CommandManager
         thut.essentials.commands.land.claims.Claim.register(commandDispatcher);
         thut.essentials.commands.land.claims.Owner.register(commandDispatcher);
         thut.essentials.commands.land.claims.Unclaim.register(commandDispatcher);
+        thut.essentials.commands.land.claims.Deed.register(commandDispatcher);
     }
 
     public static ITextComponent makeFormattedCommandLink(final String text, final String command,
@@ -187,11 +188,6 @@ public class CommandManager
     public static ITextComponent makeFormattedComponent(final String text)
     {
         return CommandManager.makeFormattedComponent(text, null, false, new Object[0]);
-    }
-
-    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour)
-    {
-        return CommandManager.makeFormattedComponent(text, colour, false);
     }
 
     public static ITextComponent makeFormattedCommandLink(final String text, final String command,

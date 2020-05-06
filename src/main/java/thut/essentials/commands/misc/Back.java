@@ -16,7 +16,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
@@ -99,8 +98,7 @@ public class Back
             if (spot == null)
             {
 
-                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.back.noroom",
-                        TextFormatting.RED, false));
+                player.sendMessage(Essentials.config.getMessage("thutessentials.back.noroom"));
                 return 1;
 
             }
@@ -113,14 +111,12 @@ public class Back
                 PlayerDataHandler.saveCustomData((PlayerEntity) t);
                 return true;
             };
-            final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.back.succeed",
-                    TextFormatting.GREEN);
+            final ITextComponent teleMess = Essentials.config.getMessage("thutessentials.back.succeed");
             PlayerMover.setMove(player, Essentials.config.backActivateDelay, spot.dim, new BlockPos(spot.x, spot.y,
                     spot.z), teleMess, PlayerMover.INTERUPTED, callback, false);
             return 0;
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.back.noback", TextFormatting.RED,
-                false));
+        player.sendMessage(Essentials.config.getMessage("thutessentials.back.noback"));
         return 1;
     }
 

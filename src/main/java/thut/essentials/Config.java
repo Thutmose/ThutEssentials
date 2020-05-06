@@ -72,6 +72,19 @@ public class Config extends ConfigData
     @Configure(category = Config.LAND)
     public int     maxChunkloads      = 9;
 
+    @Configure(category = Config.LAND)
+    public List<String> itemUseWhitelist    = Lists.newArrayList();
+    @Configure(category = Config.LAND)
+    public List<String> blockUseWhitelist   = Lists.newArrayList();
+    @Configure(category = Config.LAND)
+    public List<String> mobUseWhitelist     = Lists.newArrayList();
+    @Configure(category = Config.LAND)
+    public List<String> blockBreakWhitelist = Lists.newArrayList();
+    @Configure(category = Config.LAND)
+    public List<String> blockPlaceWhitelist = Lists.newArrayList();
+    @Configure(category = Config.LAND)
+    public boolean      foodWhitelisted     = true;
+
     @Configure(category = Config.HOME)
     public int maxHomes          = 2;
     @Configure(category = Config.HOME)
@@ -150,35 +163,25 @@ public class Config extends ConfigData
     public boolean tpaCrossDim = true;
 
     @Configure(category = Config.MISC)
-    public List<String> itemUseWhitelist    = Lists.newArrayList();
+    public List<String> commandBlacklist   = Lists.newArrayList();
     @Configure(category = Config.MISC)
-    public List<String> blockUseWhitelist   = Lists.newArrayList();
+    public List<String> rules              = Lists.newArrayList();
     @Configure(category = Config.MISC)
-    public List<String> mobUseWhitelist     = Lists.newArrayList();
+    public List<String> invulnMobs         = Lists.newArrayList();
     @Configure(category = Config.MISC)
-    public List<String> blockBreakWhitelist = Lists.newArrayList();
+    public boolean      debug              = false;
     @Configure(category = Config.MISC)
-    public List<String> blockPlaceWhitelist = Lists.newArrayList();
+    public boolean      defuzz             = true;
     @Configure(category = Config.MISC)
-    public List<String> commandBlacklist    = Lists.newArrayList();
+    public boolean      comandDisableSpam  = true;
     @Configure(category = Config.MISC)
-    public List<String> rules               = Lists.newArrayList();
+    public int          spawnDim           = 0;
     @Configure(category = Config.MISC)
-    public List<String> invulnMobs          = Lists.newArrayList();
+    public int          spawnActivateDelay = 50;
     @Configure(category = Config.MISC)
-    public boolean      debug               = false;
+    public long         spawnReUseDelay    = 100;
     @Configure(category = Config.MISC)
-    public boolean      defuzz              = true;
-    @Configure(category = Config.MISC)
-    public boolean      comandDisableSpam   = true;
-    @Configure(category = Config.MISC)
-    public int          spawnDim            = 0;
-    @Configure(category = Config.MISC)
-    public int          spawnActivateDelay  = 50;
-    @Configure(category = Config.MISC)
-    public long         spawnReUseDelay     = 100;
-    @Configure(category = Config.MISC)
-    public double       maxSpeed            = 10;
+    public double       maxSpeed           = 10;
 
     @Configure(category = Config.STAFF)
     public List<String> staff = Lists.newArrayList();

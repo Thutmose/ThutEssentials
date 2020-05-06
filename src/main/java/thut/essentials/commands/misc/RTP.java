@@ -15,7 +15,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.Heightmap.Type;
@@ -57,8 +56,7 @@ public class RTP
         final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.rtpReUseDelay > 0)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
-                    false));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
             return 1;
         }
         final Coordinate spot = RTP.getRTPSpot(player);
@@ -72,13 +70,12 @@ public class RTP
                 PlayerDataHandler.saveCustomData((PlayerEntity) t);
                 return true;
             };
-            final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.rtp.succeed",
-                    TextFormatting.GREEN);
+            final ITextComponent teleMess = Essentials.config.getMessage("thutessentials.rtp.succeed");
             PlayerMover.setMove(player, Essentials.config.rtpActivateDelay, spot.dim, new BlockPos(spot.x, spot.y,
                     spot.z), teleMess, PlayerMover.INTERUPTED, callback, false);
             return 0;
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.rtp.fail", TextFormatting.RED, false));
+        player.sendMessage(Essentials.config.getMessage("thutessentials.rtp.fail"));
         return 1;
     }
 

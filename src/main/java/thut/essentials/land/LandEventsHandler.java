@@ -18,7 +18,6 @@ import net.minecraft.entity.item.ItemFrameEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.IPacket;
@@ -28,6 +27,7 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.concurrent.TickDelayedTask;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.ChunkPos;
@@ -64,6 +64,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -72,6 +73,7 @@ import thut.essentials.events.DenyItemUseEvent;
 import thut.essentials.events.DenyItemUseEvent.UseType;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.Coordinate;
+import thut.essentials.util.ItemList;
 import thut.essentials.util.OwnerManager;
 import thut.essentials.util.PlayerDataHandler;
 
@@ -773,6 +775,12 @@ public class LandEventsHandler
             if (LandEventsHandler.itemUseWhitelist.contains(evt.getItemStack().getItem().getRegistryName()))
                 return DenyReason.NONE;
 
+            // See if is food and should be explicitly whitelisted
+            if (Essentials.config.foodWhitelisted && evt.getItemStack().isFood()) return DenyReason.NONE;
+
+            // Check the tag for the item as well
+            if (ItemList.is(LandEventsHandler.ITEMUSEWHTETAG, evt.getItemStack())) return DenyReason.NONE;
+
             // Check our specific event allowances
             if (MinecraftForge.EVENT_BUS.post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(),
                     UseType.RIGHTCLICKBLOCK))) return DenyReason.NONE;
@@ -974,10 +982,6 @@ public class LandEventsHandler
         public void interact(final PlayerInteractEvent.RightClickItem evt)
         {
             if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
-            if (evt.getItemStack().getItem().isFood() || evt.getItemStack().getItem() == Items.WRITTEN_BOOK || evt
-                    .getItemStack().getItem() == Items.WRITABLE_BOOK || !Essentials.config.landEnabled || evt
-                            .getEntity().world.isRemote) return;
-
             final DenyReason rsult = this.canUseItem(evt);
             // First check if we do not have permission to act here.
             if (!rsult.test())
@@ -1126,6 +1130,24 @@ public class LandEventsHandler
     {
         public static MinecraftServer server;
 
+        public static Set<ServerWorld> worlds = Sets.newConcurrentHashSet();
+
+        public static Map<DimensionType, Set<Coordinate>> coordsByDim = Maps.newConcurrentMap();
+
+        @SubscribeEvent
+        public static void ServerLoaded(final FMLServerStartedEvent event)
+        {
+            if (!Essentials.config.chunkLoading) return;
+            ChunkLoadHandler.server.enqueue(new TickDelayedTask(1, () ->
+            {
+                LandManager.getInstance()._teamMap.forEach((s, t) ->
+                {
+                    for (final Coordinate c : t.land.getLoaded())
+                        ChunkLoadHandler.addChunks(c);
+                });
+            }));
+        }
+
         public static boolean removeChunks(final Coordinate location)
         {
             if (!Essentials.config.chunkLoading) return false;
@@ -1137,7 +1159,7 @@ public class LandEventsHandler
             return true;
         }
 
-        public static boolean addChunks(final Coordinate location, final UUID placer)
+        public static boolean addChunks(final Coordinate location)
         {
             if (!Essentials.config.chunkLoading) return false;
             final DimensionType dim = DimensionType.getById(location.dim);
@@ -1153,6 +1175,8 @@ public class LandEventsHandler
     {
         return LandManager.getTeam(a) == LandManager.getTeam(b);
     }
+
+    public static final ResourceLocation ITEMUSEWHTETAG = new ResourceLocation(Essentials.MODID, "land_whitelist");
 
     public static final String PERMBREAKWILD  = "thutessentials.land.break.unowned";
     public static final String PERMBREAKOWN   = "thutessentials.land.break.owned.self";

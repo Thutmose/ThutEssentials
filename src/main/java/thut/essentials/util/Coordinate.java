@@ -1,5 +1,6 @@
 package thut.essentials.util;
 
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.dimension.Dimension;
 import net.minecraft.world.dimension.DimensionType;
@@ -57,6 +58,21 @@ public class Coordinate implements Comparable<Coordinate>
         this.y = y;
         this.z = z;
         this.dim = dim;
+    }
+
+    public Coordinate(final CompoundNBT tag)
+    {
+        this(tag.getInt("X"), tag.getInt("Y"), tag.getInt("Z"), tag.getInt("W"));
+    }
+
+    public CompoundNBT serializeNBT()
+    {
+        final CompoundNBT tag = new CompoundNBT();
+        tag.putInt("X", this.x);
+        tag.putInt("Y", this.y);
+        tag.putInt("Z", this.z);
+        tag.putInt("W", this.dim);
+        return tag;
     }
 
     @Override
