@@ -89,6 +89,7 @@ public class NameManager extends DedicatedPlayerList
             Essentials.LOGGER.warn("Setting custom name currently disabled.");
             return;
         }
+        name = RuleManager.format(name);
         final ServerPlayerEntity player = server.getPlayerList().getPlayerByUUID(profile.getId());
         if ("_".equals(name) && player != null) if (PlayerDataHandler.getCustomDataTag(player).contains("nick_orig"))
             name = PlayerDataHandler.getCustomDataTag(player).getString("nick_orig");
