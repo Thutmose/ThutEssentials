@@ -22,6 +22,7 @@ import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.util.PlayerDataHandler;
+import thut.essentials.util.world.WorldStructures;
 
 @Mod(Essentials.MODID)
 public class Essentials
@@ -63,6 +64,9 @@ public class Essentials
             Essentials.LOGGER.info("Registering Defuzzer!");
             MinecraftForge.EVENT_BUS.register(SpawnDefuzzer.class);
         }
+
+        // Initialize the world structure tracker
+        WorldStructures.setup();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

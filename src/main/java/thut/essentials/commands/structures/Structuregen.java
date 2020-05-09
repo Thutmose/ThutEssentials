@@ -41,14 +41,19 @@ import net.minecraft.world.gen.Heightmap;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import net.minecraft.world.gen.feature.Feature;
 import net.minecraft.world.gen.feature.structure.Structure;
+import net.minecraft.world.gen.feature.structure.StructurePiece;
 import net.minecraft.world.gen.feature.structure.StructureStart;
 import net.minecraft.world.gen.feature.template.TemplateManager;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.world.IHasStructures;
+import thut.essentials.util.world.WorldGenRegionWrapper;
+import thut.essentials.util.world.WorldStructures;
 
 public class Structuregen
 {
@@ -89,7 +94,8 @@ public class Structuregen
     };
 
     public static void regenerateChunks(final CommandSource source, final List<IChunk> primers,
-            final List<Chunk> originals, final WorldGenRegionWrapper worldRegion, final boolean doStructures)
+            final List<Chunk> originals, final WorldGenRegionWrapper worldRegion, final int minY, final int maxY,
+            final boolean doStructures)
     {
         final ServerWorld worldIn = worldRegion.world;
         final TemplateManager templateManager = worldIn.getSaveHandler().getStructureTemplateManager();
@@ -121,14 +127,26 @@ public class Structuregen
             generator.func_225550_a_(bman, c, Carving.LIQUID);
         source.sendFeedback(new StringTextComponent("Initializing Chunks " + s++), false);
 
+        final MutableBoundingBox box = MutableBoundingBox.getNewBoundingBox();
+        box.minY = minY;
+        box.maxY = maxY;
+
+        final LazyOptional<IHasStructures> structs = worldIn.getCapability(WorldStructures.CAPABILITY);
+
         for (int i = 0; i < primers.size(); i++)
         {
             final ChunkPrimer c = (ChunkPrimer) primers.get(i);
             final Chunk o = originals.get(i);
             final ChunkPos p = o.getPos();
-            for (int y = 0; y < (o.getSections().length << 4) + 15; y++)
-                for (int x = p.getXStart(); x <= p.getXEnd(); x++)
-                    for (int z = p.getZStart(); z <= p.getZEnd(); z++)
+
+            box.minX = p.getXStart();
+            box.minZ = p.getZStart();
+            box.maxX = p.getXEnd();
+            box.maxZ = p.getZEnd();
+            structs.ifPresent(holder -> holder.removeStructures(null, box));
+            for (int y = minY; y < maxY; y++)
+                for (int x = box.minX; x <= box.maxX; x++)
+                    for (int z = box.minZ; z <= box.maxZ; z++)
                     {
                         final BlockPos pos = new BlockPos(x, y, z);
                         final BlockState newstate = c.getBlockState(pos);
@@ -232,7 +250,7 @@ public class Structuregen
                 originals.add((Chunk) chunk);
             }
         final WorldGenRegionWrapper worldRegion = new WorldGenRegionWrapper(worldIn, primers_for_starts);
-        Structuregen.regenerateChunks(source, primers, originals, worldRegion, true);
+        Structuregen.regenerateChunks(source, primers, originals, worldRegion, 0, chunk.getHeight(), true);
         source.sendFeedback(new StringTextComponent("Done"), false);
         return 0;
     }
@@ -288,8 +306,14 @@ public class Structuregen
                     originals.add((Chunk) chunk);
                 }
             final WorldGenRegionWrapper worldRegion = new WorldGenRegionWrapper(worldIn, primers_for_starts);
-            Structuregen.regenerateChunks(source, primers, originals, worldRegion, true);
+            Structuregen.regenerateChunks(source, primers, originals, worldRegion, box.minY, box.maxY + 1, true);
             source.sendFeedback(new StringTextComponent("Generating Requested Structure"), false);
+            final LazyOptional<IHasStructures> structs = worldIn.getCapability(WorldStructures.CAPABILITY);
+            structs.ifPresent(holder ->
+            {
+                for (final StructurePiece p : start.getComponents())
+                    holder.putStructure(key, p.getBoundingBox());
+            });
             start.func_225565_a_(worldRegion, generator, rand, box, chunkpos);
             source.sendFeedback(new StringTextComponent("Done"), false);
             return 0;

@@ -1,4 +1,4 @@
-package thut.essentials.commands.structures;
+package thut.essentials.util.world;
 
 import java.util.List;
 
