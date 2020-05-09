@@ -130,6 +130,7 @@ public class CommandManager
         thut.essentials.commands.misc.Spawn.register(commandDispatcher);
         thut.essentials.commands.misc.Nick.register(commandDispatcher, server);
         thut.essentials.commands.misc.Regen.register(commandDispatcher);
+        thut.essentials.commands.misc.Structuregen.register(commandDispatcher);
 
         thut.essentials.commands.land.util.Chat.register(commandDispatcher);
         thut.essentials.commands.land.util.Check.register(commandDispatcher);
