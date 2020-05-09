@@ -12,8 +12,10 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
@@ -65,6 +67,11 @@ public class Essentials
             MinecraftForge.EVENT_BUS.register(SpawnDefuzzer.class);
         }
 
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+    }
+
+    public void setup(final FMLCommonSetupEvent event)
+    {
         // Initialize the world structure tracker
         WorldStructures.setup();
     }
