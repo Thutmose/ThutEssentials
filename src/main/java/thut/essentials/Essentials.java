@@ -23,6 +23,7 @@ import thut.essentials.economy.EconomyManager;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.LandManager;
+import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.world.WorldStructures;
 
@@ -60,6 +61,9 @@ public class Essentials
 
         // This won't actually do anything unless config is enabled.
         MinecraftForge.EVENT_BUS.register(ChunkLoadHandler.class);
+
+        // Register the mob grief preventer
+        MinecraftForge.EVENT_BUS.register(MobManager.class);
 
         if (Essentials.config.defuzz)
         {

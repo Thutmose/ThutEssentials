@@ -43,6 +43,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.ServerTickEvent;
+import net.minecraftforge.event.entity.EntityMobGriefingEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -74,6 +75,7 @@ import thut.essentials.events.DenyItemUseEvent.UseType;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.Coordinate;
 import thut.essentials.util.ItemList;
+import thut.essentials.util.MobManager;
 import thut.essentials.util.OwnerManager;
 import thut.essentials.util.PlayerDataHandler;
 
@@ -625,6 +627,22 @@ public class LandEventsHandler
                 evt.setCanceled(true);
                 return;
             }
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public void mobGriefing(final EntityMobGriefingEvent evt)
+        {
+            if (evt.getEntity().getEntityWorld().isRemote) return;
+            if (!Essentials.config.landEnabled) return;
+            if (!Essentials.config.noMobGriefing) return;
+            if (MobManager.isWhitelistedForGriefing(evt.getEntity())) return;
+            final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getEntity().getPosition(), evt
+                    .getEntity().dimension.getId());
+            final LandTeam owner = LandManager.getInstance().getLandOwner(c);
+            if (owner == null) return;
+            // Check if the team allows fakeplayers
+            if (owner.fakePlayers && evt.getEntity() instanceof FakePlayer) return;
+            evt.setResult(Result.DENY);
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)

@@ -17,6 +17,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import net.minecraft.command.CommandSource;
+import net.minecraft.entity.EntityType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -30,6 +31,7 @@ import thut.essentials.util.ChatManager;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.InventoryLogger;
 import thut.essentials.util.KitManager;
+import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerMover;
 import thut.essentials.util.WarpManager;
 
@@ -48,6 +50,7 @@ public class Config extends ConfigData
     public static final String CHAT  = "chat";
     public static final String RTP   = "rtp";
     public static final String TPA   = "tpa";
+    public static final String MOBS  = "mobs";
 
     @Configure(category = Config.LAND)
     public boolean defaultMessages    = true;
@@ -71,6 +74,8 @@ public class Config extends ConfigData
     public int     prefixLength       = 12;
     @Configure(category = Config.LAND)
     public int     maxChunkloads      = 9;
+    @Configure(category = Config.LAND)
+    public boolean noMobGriefing      = true;
 
     @Configure(category = Config.LAND)
     public List<String> itemUseWhitelist    = Lists.newArrayList();
@@ -189,6 +194,22 @@ public class Config extends ConfigData
     @Configure(category = Config.MISC)
     public String lang_file = "en_us.json";
 
+    @Configure(category = Config.MOBS)
+    public List<String> mobSpawnBlacklist = Lists.newArrayList();
+    @Configure(category = Config.MOBS)
+    public List<String> mobSpawnWhitelist = Lists.newArrayList();
+
+    @Configure(category = Config.MOBS)
+    public boolean mobSpawnUsesWhitelist = false;
+
+    @Configure(category = Config.MOBS)
+    public List<String> mobGriefAllowBlacklist = Lists.newArrayList();
+    @Configure(category = Config.MOBS)
+    public List<String> mobGriefAllowWhitelist = Lists.newArrayList(EntityType.VILLAGER.getRegistryName().toString());
+
+    @Configure(category = Config.MOBS)
+    public boolean mobGriefAllowUsesWhitelist = true;
+
     public DimensionType spawnDimension = DimensionType.OVERWORLD;
 
     private final Path configpath;
@@ -267,6 +288,7 @@ public class Config extends ConfigData
         WarpManager.init();
         KitManager.init();
         ChatManager.init();
+        MobManager.init();
         PlayerMover.INTERUPTED = this.getMessage("thutessentials.tp.standstill");
         if (this.landEnabled) LandEventsHandler.init();
     }
