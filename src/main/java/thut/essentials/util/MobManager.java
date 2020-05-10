@@ -9,6 +9,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.entity.EntityMobGriefingEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent.CheckSpawn;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent.SpecialSpawn;
+import net.minecraftforge.event.world.WorldEvent.PotentialSpawns;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
@@ -67,11 +68,8 @@ public class MobManager
             final boolean valid = MobManager.spawnWhitelist.contains(evt.getEntity().getType().getRegistryName());
             evt.setResult(valid ? Result.ALLOW : Result.DEFAULT);
         }
-        else
-        {
-            final boolean valid = MobManager.spawnBlacklist.contains(evt.getEntity().getType().getRegistryName());
-            evt.setResult(valid ? Result.DENY : Result.DEFAULT);
-        }
+        final boolean valid = MobManager.spawnBlacklist.contains(evt.getEntity().getType().getRegistryName());
+        evt.setResult(valid ? Result.DENY : Result.DEFAULT);
     }
 
     @SubscribeEvent
@@ -82,10 +80,15 @@ public class MobManager
             final boolean valid = MobManager.spawnWhitelist.contains(evt.getEntity().getType().getRegistryName());
             evt.setResult(valid ? Result.ALLOW : Result.DEFAULT);
         }
-        else
-        {
-            final boolean valid = MobManager.spawnBlacklist.contains(evt.getEntity().getType().getRegistryName());
-            evt.setResult(valid ? Result.DENY : Result.DEFAULT);
-        }
+        final boolean valid = MobManager.spawnBlacklist.contains(evt.getEntity().getType().getRegistryName());
+        evt.setResult(valid ? Result.DENY : Result.DEFAULT);
+    }
+
+    @SubscribeEvent
+    public static void checkSpawns(final PotentialSpawns evt)
+    {
+        evt.getList().removeIf(e -> MobManager.spawnBlacklist.contains(e.entityType.getRegistryName()));
+        if (Essentials.config.mobSpawnUsesWhitelist) evt.getList().removeIf(e -> !MobManager.spawnWhitelist.contains(
+                e.entityType.getRegistryName()));
     }
 }
