@@ -42,6 +42,7 @@ public class MobManager
 
     public static boolean isWhitelistedForGriefing(final Entity mob)
     {
+        if (mob == null) return false;
         return MobManager.griefWhitelist.contains(mob.getType().getRegistryName());
     }
 
@@ -50,12 +51,14 @@ public class MobManager
     {
         if (Essentials.config.mobGriefAllowUsesWhitelist)
         {
-            final boolean valid = MobManager.griefWhitelist.contains(evt.getEntity().getType().getRegistryName());
+            final boolean valid = evt.getEntity() != null && MobManager.griefWhitelist.contains(evt.getEntity()
+                    .getType().getRegistryName());
             evt.setResult(valid ? Result.ALLOW : Result.DEFAULT);
         }
         else
         {
-            final boolean valid = MobManager.griefBlacklist.contains(evt.getEntity().getType().getRegistryName());
+            final boolean valid = evt.getEntity() != null && MobManager.griefBlacklist.contains(evt.getEntity()
+                    .getType().getRegistryName());
             evt.setResult(valid ? Result.DENY : Result.DEFAULT);
         }
     }
