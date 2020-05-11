@@ -632,6 +632,7 @@ public class LandEventsHandler
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void mobGriefing(final EntityMobGriefingEvent evt)
         {
+            if (evt.getEntity() == null) return;
             if (evt.getEntity().getEntityWorld().isRemote) return;
             if (!Essentials.config.landEnabled) return;
             if (!Essentials.config.noMobGriefing) return;
