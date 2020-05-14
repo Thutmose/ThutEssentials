@@ -1,17 +1,11 @@
 package thut.essentials.util;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAnyAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
 
 import com.google.common.collect.Lists;
@@ -37,6 +31,10 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.context.PlayerContext;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.xml.bind.Factory;
+import thut.essentials.xml.bind.annotation.XmlAnyAttribute;
+import thut.essentials.xml.bind.annotation.XmlElement;
+import thut.essentials.xml.bind.annotation.XmlRootElement;
 
 public class KitManager
 {
@@ -87,14 +85,16 @@ public class KitManager
         // Load Kits
         if (newKits) try
         {
-            final JAXBContext jaxbContext = JAXBContext.newInstance(Kits.class);
-            final Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            final FileReader reader = new FileReader(kitsfile);
-            final Object obj = unmarshaller.unmarshal(reader);
-
-            final Kits database = obj instanceof Kits ? (Kits) obj : new Kits();
-            if (obj instanceof XMLStarterItems) database.kits.add((XMLStarterItems) obj);
-            reader.close();
+            final FileInputStream stream = new FileInputStream(kitsfile);
+            final Kits database = Factory.make(stream, Kits.class);
+            try
+            {
+                stream.close();
+            }
+            catch (final Exception e1)
+            {
+                e1.printStackTrace();
+            }
 
             for (final XMLStarterItems items : database.kits)
                 if (items.values.containsKey(ident))
@@ -149,18 +149,7 @@ public class KitManager
             init.values.put(new QName("n"), "5");
             items.drops.add(init);
             kit.kits.add(items);
-            try
-            {
-                final JAXBContext jaxbContext = JAXBContext.newInstance(Kits.class);
-                final Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-                // output pretty printed
-                jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-                jaxbMarshaller.marshal(kit, kitsfile);
-            }
-            catch (final Exception e)
-            {
-                e.printStackTrace();
-            }
+            // TODO serialize and write out the kit
         }
 
     }
