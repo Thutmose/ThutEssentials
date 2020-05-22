@@ -186,6 +186,7 @@ public class Transporter
             {
 
                 final ServerPlayerEntity player = (ServerPlayerEntity) entity;
+                player.invulnerableDimensionChange = true;
                 player.teleport(destWorld, dest.x, dest.y, dest.z, entity.rotationYaw, entity.rotationPitch);
                 if (sound)
                 {
@@ -193,6 +194,7 @@ public class Transporter
                             SoundCategory.BLOCKS, 1.0F, 1.0F, false);
                     player.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
                 }
+                player.invulnerableDimensionChange = false;
                 return player;
             }
             else // Schedule the transfer for end of tick.
@@ -204,27 +206,28 @@ public class Transporter
 
     private static void transferMob(final ServerWorld destWorld, final Vector4 dest, final Entity entity)
     {
+        ServerPlayerEntity player = null;
+        if (entity instanceof ServerPlayerEntity)
+        {
+            player = (ServerPlayerEntity) entity;
+            player.invulnerableDimensionChange = true;
+        }
         final ServerWorld serverworld = (ServerWorld) entity.getEntityWorld();
         entity.dimension = destWorld.dimension.getType();
-        Transporter.removeMob(serverworld, entity, true); // Forge: The
-                                                          // player
-        // entity itself is moved,
-        // and not cloned. So we
-        // need to keep the data
-        // alive with no matching
-        // invalidate call later.
+        Transporter.removeMob(serverworld, entity, true);
         entity.revive();
         entity.setLocationAndAngles(dest.x, dest.y, dest.z, entity.rotationYaw, entity.rotationPitch);
         entity.setWorld(destWorld);
         Transporter.addMob(destWorld, entity);
+        if (player != null) player.invulnerableDimensionChange = false;
     }
 
     private static void addMob(final ServerWorld world, final Entity entity)
     {
         if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
                 new net.minecraftforge.event.entity.EntityJoinWorldEvent(entity, world))) return;
-        final IChunk ichunk = world.getChunk(MathHelper.floor(entity.getPosX() / 16.0D), MathHelper.floor(entity.getPosZ()
-                / 16.0D), ChunkStatus.FULL, true);
+        final IChunk ichunk = world.getChunk(MathHelper.floor(entity.getPosX() / 16.0D), MathHelper.floor(entity
+                .getPosZ() / 16.0D), ChunkStatus.FULL, true);
         if (ichunk instanceof Chunk) ichunk.addEntity(entity);
         world.addEntityIfNotDuplicate(entity);
     }

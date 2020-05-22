@@ -118,7 +118,7 @@ public class Structuregen
             generator.makeBase(worldRegion, c);
         source.sendFeedback(new StringTextComponent("Initializing Chunks " + s++), false);
         for (final IChunk c : primers)
-            generator.func_225551_a_(worldRegion, c);
+            generator.generateSurface(worldRegion, c);
         source.sendFeedback(new StringTextComponent("Initializing Chunks " + s++), false);
         for (final IChunk c : primers)
             generator.func_225550_a_(bman, c, Carving.AIR);
@@ -314,7 +314,7 @@ public class Structuregen
                 for (final StructurePiece p : start.getComponents())
                     holder.putStructure(key, p.getBoundingBox());
             });
-            start.func_225565_a_(worldRegion, generator, rand, box, chunkpos);
+            start.generateStructure(worldRegion, generator, rand, box, chunkpos);
             source.sendFeedback(new StringTextComponent("Done"), false);
             return 0;
         }
