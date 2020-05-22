@@ -103,22 +103,22 @@
     
     "_comment": "Team and Claiming Related",
     
-    "msg.team.setpublic.block.true": "§aYou Set this block to public use",
-    "msg.team.setpublic.block.false": "§aYou Set this block to private use",
-    "msg.team.setbreak.block.true": "§aYou Set this block to breakable by anyone",
-    "msg.team.setbreak.block.false": "§aYou Set this block to breakable by team only",
-    "msg.team.setplace.block.true": "§aYou Set this block to placeable by anyone",
-    "msg.team.setplace.block.false": "§aYou Set this block to placeable by team only",
-    "msg.team.setmob.public.true": "§aYou Set this mob to public use",
-    "msg.team.setmob.public.false": "§aYou Set this mob to private use",
-    "msg.team.setmob.protect.true": "§aYou Set this mob to protected by claims",
-    "msg.team.setmob.protect.false": "§aYou Set this mob to unprotected by claims",
+    "msg.team.setpublic.block.true": "§a你设置该方块为公开使用",
+    "msg.team.setpublic.block.false": "§a你设置该方块为私人使用",
+    "msg.team.setbreak.block.true": "§a你设置该方块可以被任何人破坏",
+    "msg.team.setbreak.block.false": "§a你设置该方块只可以被你的组员破坏",
+    "msg.team.setplace.block.true": "§a你设置该方块可以被任意玩家放置",
+    "msg.team.setplace.block.false": "§a你设置该方块只可以被你的组员放置",
+    "msg.team.setmob.public.true": "§a你设置该生物为公开使用",
+    "msg.team.setmob.public.false": "§a你设置该生物为私人使用",
+    "msg.team.setmob.protect.true": "§a你设置该生物被领地保护",
+    "msg.team.setmob.protect.false": "§a你设置该生物不被领地保护",
     
-    "msg.team.renamed": "§aYou have renamed your team from §6%s§r to §6%s",
+    "msg.team.renamed": "§a你将队伍名称从 §6%s§r 改为了 §6%s",
     
-    "thutessentials.deed.for": "§aThis is a deed for §6%s§a subchunk(s), located at [§6%s,%s§a]",
-    "thutessentials.deed.noperms": "§cYou are not allowed to redeem deeds",
-    "thutessentials.deed.claimed": "§aYou claimed §6%s§a subchunk(s) for team §6%s§a by using the deed.",
+    "thutessentials.deed.for": "§a这是一个装转让协议，有着 §6%s§a 小区快, 位于 [§6%s,%s§a]",
+    "thutessentials.deed.noperms": "§c你不被允许进行赎回协议",
+    "thutessentials.deed.claimed": "§a你获取了 §6%s§a 小区快，给你的组 §6%s§a 通过使用转让协议.",
     
     "msg.team.deny": "§c你的行为不被允许，土地所有者为 §6%s",
     "msg.team.enterLand": "§a你进入了一个领地，领主为 §6%s",
@@ -214,8 +214,8 @@
     "thutessentials.claim.claimed.failed": "§c你不能领取这块地.",
     "thutessentials.claim.claimed.count": "§a你的组已经领取了 §6%s§a 区块, 最大量为 §6%s§a",
     
-    "thutessentials.claim.loaded": "§aYou marked this chunk for chunkloading, §6%s§a remaining.",
-    "thutessentials.claim.unloaded": "§aYou unmarked this chunk for chunkloading, §6%s§a remaining.",
+    "thutessentials.claim.loaded": "§a你已经标记该区块为加载区块, §6%s§a 剩余.",
+    "thutessentials.claim.unloaded": "§a你已取消该区块为加载区块, §6%s§a 剩余.",
     
     "thutessentials.claim.ownedby": "§a该领土的主人为 §6%s",
     "thutessentials.claim.unowned": "§a这块地没有领主",
