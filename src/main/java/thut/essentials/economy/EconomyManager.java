@@ -380,7 +380,7 @@ public class EconomyManager
         final Entity target = hit.getEntity();
         if (target instanceof ItemFrameEntity)
         {
-            final Coordinate c = new Coordinate(target.getPosition().down(2), target.dimension);
+            final Coordinate c = new Coordinate(target.getPosition().down(), target.dimension);
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null) evt.setCanceled(true);
         }
@@ -393,7 +393,7 @@ public class EconomyManager
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrameEntity)
         {
-            final Coordinate c = new Coordinate(evt.getTarget().getPosition().down(2), evt.getTarget().dimension);
+            final Coordinate c = new Coordinate(evt.getTarget().getPosition().down(), evt.getTarget().dimension);
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null)
             {
