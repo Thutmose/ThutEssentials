@@ -1432,7 +1432,7 @@ public class LandEventsHandler
         return player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
     }
 
-    private static void sendMessage(final Entity player, final LandTeam team, final byte index)
+    private static void sendMessage(final PlayerEntity player, final LandTeam team, final byte index)
     {
         ITextComponent message = null;
         final long time = LandEventsHandler.getTime(player);
@@ -1455,7 +1455,7 @@ public class LandEventsHandler
             else LandEventsHandler.exitFloodControl.put(player.getUniqueID(), time + delay);
             break;
         }
-        if (message != null) player.sendMessage(message);
+        if (message != null) player.sendStatusMessage(message, true);
     }
 
     private static ITextComponent getDenyMessage(final LandTeam team)
