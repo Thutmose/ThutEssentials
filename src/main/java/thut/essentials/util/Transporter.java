@@ -15,6 +15,7 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class Transporter
@@ -137,6 +138,36 @@ public class Transporter
         }
     }
 
+    private static class InvulnTicker
+    {
+        private final ServerWorld overworld;
+
+        private final Entity entity;
+        private final long   start;
+
+        public InvulnTicker(final Entity entity)
+        {
+            this.entity = entity;
+            this.overworld = entity.getServer().getWorld(DimensionType.OVERWORLD);
+            this.start = this.overworld.getGameTime();
+            MinecraftForge.EVENT_BUS.register(this);
+        }
+
+        @SubscribeEvent
+        public void damage(final LivingHurtEvent event)
+        {
+            if (event.getEntity() != this.entity) return;
+            final long time = this.overworld.getGameTime();
+            if (time - this.start > 20)
+            {
+                MinecraftForge.EVENT_BUS.unregister(this);
+                return;
+            }
+            event.setCanceled(true);
+        }
+
+    }
+
     private static class TransferTicker
     {
         private final Entity      entity;
@@ -180,6 +211,7 @@ public class Transporter
     {
         if (entity.getEntityWorld() instanceof ServerWorld)
         {
+            new InvulnTicker(entity);
             if (dest.w == entity.dimension.getId()) return Transporter.moveMob(entity, dest);
             final ServerWorld destWorld = entity.getServer().getWorld(DimensionType.getById((int) dest.w));
             if (entity instanceof ServerPlayerEntity)

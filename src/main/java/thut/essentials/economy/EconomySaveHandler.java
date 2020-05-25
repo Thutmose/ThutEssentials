@@ -67,35 +67,35 @@ public class EconomySaveHandler
     public static void loadGlobalData()
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        if (server == null) return;
-        final File teamsFile = new File(EconomySaveHandler.getGlobalFolder(), "economy.json");
-        if (teamsFile.exists()) try
+        if (server != null)
         {
-            final Gson gson = new GsonBuilder().addDeserializationExclusionStrategy(EconomySaveHandler.exclusion)
-                    .setPrettyPrinting().create();
-            final String json = FileUtils.readFileToString(teamsFile, "UTF-8");
-            EconomyManager.instance = gson.fromJson(json, EconomyManager.class);
-            for (final Entry<UUID, Account> entry : EconomyManager.instance.bank.entrySet())
+            final File teamsFile = new File(EconomySaveHandler.getGlobalFolder(), "economy.json");
+            if (teamsFile.exists()) try
             {
-                final Account account = entry.getValue();
-                final UUID id = entry.getKey();
-                account._id = id;
-                EconomyManager.instance._revBank.put(account, id);
-                for (final Shop shop : account.shops)
+                final Gson gson = new GsonBuilder().addDeserializationExclusionStrategy(EconomySaveHandler.exclusion)
+                        .setPrettyPrinting().create();
+                final String json = FileUtils.readFileToString(teamsFile, "UTF-8");
+                EconomyManager.instance = gson.fromJson(json, EconomyManager.class);
+                for (final Entry<UUID, Account> entry : EconomyManager.instance.bank.entrySet())
                 {
-                    account._shopMap.put(shop.location, shop);
-                    EconomyManager.instance._shopMap.put(shop.location, account);
+                    final Account account = entry.getValue();
+                    final UUID id = entry.getKey();
+                    account._id = id;
+                    EconomyManager.instance._revBank.put(account, id);
+                    for (final Shop shop : account.shops)
+                    {
+                        account._shopMap.put(shop.location, shop);
+                        EconomyManager.instance._shopMap.put(shop.location, account);
+                    }
                 }
+                return;
+            }
+            catch (final Exception e)
+            {
+                e.printStackTrace();
             }
         }
-        catch (final Exception e)
-        {
-            e.printStackTrace();
-        }
-        else
-        {
-            if (EconomyManager.instance == null) EconomyManager.instance = new EconomyManager();
-            EconomySaveHandler.saveGlobalData();
-        }
+        if (EconomyManager.instance == null) EconomyManager.instance = new EconomyManager();
+        EconomySaveHandler.saveGlobalData();
     }
 }
