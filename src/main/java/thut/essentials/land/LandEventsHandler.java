@@ -107,6 +107,9 @@ public class LandEventsHandler
         MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.interact_handler);
         MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.entity_handler);
         MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.block_handler);
+
+        if (!Essentials.config.landEnabled) return;
+
         LandEventsHandler.itemUseWhitelist.clear();
         for (final String s : Essentials.config.itemUseWhitelist)
             LandEventsHandler.itemUseWhitelist.add(new ResourceLocation(s));
@@ -591,7 +594,8 @@ public class LandEventsHandler
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void attack(final AttackEntityEvent evt)
         {
-            if (evt.getEntity().getEntityWorld().isRemote || !Essentials.config.landEnabled) return;
+            if (evt.getEntity().getEntityWorld().isRemote) return;
+            if (!Essentials.config.landEnabled) return;
             final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getTarget().getPosition(), evt
                     .getPlayer().dimension.getId());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
