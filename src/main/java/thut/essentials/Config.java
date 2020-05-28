@@ -33,6 +33,7 @@ import thut.essentials.util.InventoryLogger;
 import thut.essentials.util.KitManager;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerMover;
+import thut.essentials.util.PvPManager;
 import thut.essentials.util.WarpManager;
 
 public class Config extends ConfigData
@@ -168,25 +169,31 @@ public class Config extends ConfigData
     public boolean tpaCrossDim = true;
 
     @Configure(category = Config.MISC)
-    public List<String> commandBlacklist   = Lists.newArrayList();
+    public List<String> commandBlacklist = Lists.newArrayList();
     @Configure(category = Config.MISC)
-    public List<String> rules              = Lists.newArrayList();
+    public List<String> rules            = Lists.newArrayList();
     @Configure(category = Config.MISC)
-    public List<String> invulnMobs         = Lists.newArrayList();
+    public List<String> invulnMobs       = Lists.newArrayList();
+
     @Configure(category = Config.MISC)
-    public boolean      debug              = false;
+    public boolean debug             = false;
     @Configure(category = Config.MISC)
-    public boolean      defuzz             = true;
+    public boolean defuzz            = true;
     @Configure(category = Config.MISC)
-    public boolean      comandDisableSpam  = true;
+    public boolean comandDisableSpam = true;
+
     @Configure(category = Config.MISC)
-    public int          spawnDim           = 0;
+    public boolean pvpPerms = false;
+
     @Configure(category = Config.MISC)
-    public int          spawnActivateDelay = 50;
+    public int  spawnDim           = 0;
     @Configure(category = Config.MISC)
-    public long         spawnReUseDelay    = 100;
+    public int  spawnActivateDelay = 50;
     @Configure(category = Config.MISC)
-    public double       maxSpeed           = 10;
+    public long spawnReUseDelay    = 100;
+
+    @Configure(category = Config.MISC)
+    public double maxSpeed = 10;
 
     @Configure(category = Config.STAFF)
     public List<String> staff = Lists.newArrayList();
@@ -290,7 +297,8 @@ public class Config extends ConfigData
         ChatManager.init();
         MobManager.init();
         PlayerMover.INTERUPTED = this.getMessage("thutessentials.tp.standstill");
-        if (this.landEnabled) LandEventsHandler.init();
+        LandEventsHandler.init();
+        PvPManager.init();
     }
 
 }
