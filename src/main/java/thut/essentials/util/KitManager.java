@@ -47,8 +47,9 @@ public class KitManager
 
     public static class KitSet
     {
-        public Integer         cooldown = null;
-        public List<ItemStack> stacks   = null;
+        public Integer cooldown = null;
+
+        public List<ItemStack> stacks = null;
     }
 
     @XmlRootElement(name = "Items")
@@ -56,11 +57,12 @@ public class KitManager
     {
         @XmlAnyAttribute
         public Map<QName, String> values = Maps.newHashMap();
+
         @XmlElement(name = "Item")
-        private final List<Drop>  drops  = Lists.newArrayList();
+        public List<Drop> drops = Lists.newArrayList();
     }
 
-    @XmlRootElement(name = "Drop")
+    @XmlRootElement(name = "Item")
     public static class Drop
     {
         @XmlAnyAttribute
