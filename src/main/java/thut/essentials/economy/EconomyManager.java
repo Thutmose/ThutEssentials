@@ -30,6 +30,7 @@ import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -418,13 +419,17 @@ public class EconomyManager
      *
      * @param evt
      */
-    @SubscribeEvent(receiveCanceled = true)
+    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGH)
     public void interactRightClickBlock(final PlayerInteractEvent.RightClickBlock evt)
     {
         if (!(evt.getPlayer() instanceof ServerPlayerEntity) || !Essentials.config.shopsEnabled) return;
         final Coordinate c = new Coordinate(evt.getPos(), evt.getPlayer().dimension);
         final Shop shop = EconomyManager.getShop(c);
-        if (shop != null) shop.transact((ServerPlayerEntity) evt.getPlayer(), evt.getItemStack(), this._shopMap.get(c));
+        if (shop != null)
+        {
+            shop.transact((ServerPlayerEntity) evt.getPlayer(), evt.getItemStack(), this._shopMap.get(c));
+            evt.setCanceled(true);
+        }
     }
 
     public Account getAccount(final UUID player)
