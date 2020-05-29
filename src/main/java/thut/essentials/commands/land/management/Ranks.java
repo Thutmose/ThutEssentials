@@ -143,7 +143,7 @@ public class Ranks
             return 1;
         }
         if (rank.perms.add(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.rank.perm.set", null, false, rankName));
+                "thutessentials.team.rank.perm.set", null, false, rankName, perm));
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.perm.had", null, false,
                 rankName));
         LandSaveHandler.saveTeam(landTeam.teamName);
