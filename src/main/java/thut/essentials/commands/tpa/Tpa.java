@@ -68,15 +68,15 @@ public class Tpa
         if (tpaTag.getBoolean("ignore")) return 1;
 
         final ITextComponent header = player.getDisplayName().appendSibling(CommandManager.makeFormattedComponent(
-                "thutessentials.tpa.requested", TextFormatting.YELLOW, true));
+                "thutessentials.tpa.requested"));
         target.sendMessage(header);
 
         ITextComponent tpMessage;
         final String tpaccept = "tpaccept";
         final ITextComponent accept = CommandManager.makeFormattedCommandLink("thutessentials.tpa.accept", "/"
-                + tpaccept + " " + player.getCachedUniqueIdString() + " accept", TextFormatting.GREEN, true);
+                + tpaccept + " " + player.getCachedUniqueIdString() + " accept");
         final ITextComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny", "/" + tpaccept
-                + " " + player.getCachedUniqueIdString() + " deny", TextFormatting.RED, true);
+                + " " + player.getCachedUniqueIdString() + " deny");
         tpMessage = accept.appendSibling(new StringTextComponent("      /      ")).appendSibling(deny);
         target.sendMessage(tpMessage);
         tpaTag.putString("R", player.getCachedUniqueIdString());
