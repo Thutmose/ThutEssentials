@@ -279,10 +279,13 @@ public class EconomyManager
 
     public static final UUID DEFAULT_ID = new UUID(0, 0);
 
-    public static EconomyManager    instance;
-    private static boolean          init     = false;
-    public int                      version  = EconomyManager.VERSION;
-    public int                      initial  = 1000;
+    public static EconomyManager instance;
+
+    private static boolean init = false;
+
+    public int version = EconomyManager.VERSION;
+    public int initial = 1000;
+
     public Map<UUID, Account>       bank     = Maps.newHashMap();
     public Map<Coordinate, Account> _shopMap = Maps.newHashMap();
     public Map<Account, UUID>       _revBank = Maps.newHashMap();
@@ -302,6 +305,7 @@ public class EconomyManager
         if (EconomyManager.instance == null)
         {
             EconomySaveHandler.loadGlobalData();
+            EconomyManager.instance.initial = Essentials.config.initialBalance;
             if (!EconomyManager.init)
             {
                 EconomyManager.init = true;

@@ -112,7 +112,7 @@ def cleanTOML()
 
 def gitVersion(value) {
     def raw = grgit.describe(longDescr: true)
-    def desc = (raw == null ? 'unknown-offset-hash' : grgit.describe(longDescr: true)).split('-') as List
+    def desc = (raw == null ? '0-0-0' : grgit.describe(longDescr: true)).split('-') as List
     def vers = desc.get(1)
     def offset = vers.split(/[.]/)[2]
     def ver = offset.toInteger() + 1

@@ -164,19 +164,20 @@ public class CommandManager
         thut.essentials.commands.land.claims.Unload.register(commandDispatcher);
     }
 
-    public static ITextComponent makeFormattedCommandLink(final String text, final String command,
-            final TextFormatting colour, final boolean bold, final Object... args)
+    public static ITextComponent makeFormattedCommandLink(final String text, final String command, final Object... args)
     {
         final ITextComponent message = Essentials.config.getMessage(text, args);
-        return message.setStyle(new Style().setBold(bold).setColor(colour).setClickEvent(new ClickEvent(
-                Action.RUN_COMMAND, command)));
+        Style style = message.getStyle();
+        if (style == null) style = new Style();
+        return message.setStyle(style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
     }
 
     public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
             final boolean bold, final Object... args)
     {
         final ITextComponent message = Essentials.config.getMessage(text, args);
-        final Style style = new Style();
+        Style style = message.getStyle();
+        if (style == null) style = new Style();
         if (colour != null) style.setColor(colour);
         if (bold) style.setBold(bold);
         return message.setStyle(style);
@@ -193,10 +194,9 @@ public class CommandManager
         return CommandManager.makeFormattedComponent(text, null, false, new Object[0]);
     }
 
-    public static ITextComponent makeFormattedCommandLink(final String text, final String command,
-            final TextFormatting colour, final boolean bold)
+    public static ITextComponent makeFormattedCommandLink(final String text, final String command)
     {
-        return CommandManager.makeFormattedCommandLink(text, command, colour, bold, new Object[0]);
+        return CommandManager.makeFormattedCommandLink(text, command, new Object[0]);
     }
 
 }
