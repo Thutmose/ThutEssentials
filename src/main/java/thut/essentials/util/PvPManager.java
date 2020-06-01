@@ -34,7 +34,7 @@ public class PvPManager
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void attack(final AttackEntityEvent evt)
+    public static void attack(final AttackEntityEvent evt)
     {
         if (evt.getEntity().getEntityWorld().isRemote) return;
         if (!Essentials.config.pvpPerms) return;
@@ -48,7 +48,7 @@ public class PvPManager
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void attack(final LivingAttackEvent evt)
+    public static void attack(final LivingAttackEvent evt)
     {
         if (evt.getEntity().getEntityWorld().isRemote) return;
         if (!Essentials.config.pvpPerms) return;
@@ -59,6 +59,5 @@ public class PvPManager
         if (PermissionAPI.hasPermission(attacker, PvPManager.PERMPVP) && PermissionAPI.hasPermission(attacked,
                 PvPManager.PERMPVP)) return;
         evt.setCanceled(true);
-
     }
 }
