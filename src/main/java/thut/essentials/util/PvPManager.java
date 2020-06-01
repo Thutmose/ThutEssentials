@@ -18,6 +18,7 @@ public class PvPManager
         MinecraftForge.EVENT_BUS.unregister(PvPManager.class);
         if (!Essentials.config.pvpPerms) return;
         MinecraftForge.EVENT_BUS.register(PvPManager.class);
+        PvPManager.registerPerms();
     }
 
     private static boolean registered = false;
