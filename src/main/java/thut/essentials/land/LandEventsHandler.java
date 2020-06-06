@@ -884,7 +884,7 @@ public class LandEventsHandler
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
             if (owner == null)
             {
-                if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMWILD)) return DenyReason.NONE;
+                if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEMOBWILD)) return DenyReason.NONE;
                 return DenyReason.WILD;
             }
             final boolean isFakePlayer = player instanceof FakePlayer;
@@ -894,9 +894,9 @@ public class LandEventsHandler
             {
                 // Treat relation place perm as owning the land.
                 final boolean owns = owner.canUseStuff(player.getUniqueID(), b);
-                if (owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMOWN))
+                if (owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEMOBOWN))
                     return DenyReason.OURS;
-                if (!owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMOTHER))
+                if (!owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEMOBOTHER))
                     return DenyReason.OTHER;
             }
             return DenyReason.NONE;
@@ -942,6 +942,46 @@ public class LandEventsHandler
                 return;
             }
 
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public void interact(final PlayerInteractEvent.EntityInteractSpecific evt)
+        {
+            if (evt.getSide() == LogicalSide.CLIENT) return;
+            if (!Essentials.config.landEnabled) return;
+            final DenyReason rsult = this.canUseMob(evt, evt.getTarget());
+            // First check if we do not have permission to act here.
+            if (!rsult.test())
+            {
+                // Chunk Coordinate
+                final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(evt.getPos(), evt.getPlayer().dimension
+                        .getId());
+                final boolean isFakePlayer = evt.getPlayer() instanceof FakePlayer;
+                if (!isFakePlayer)
+                {
+                    final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
+                    switch (rsult)
+                    {
+                    case OTHER:
+                    case OURS:
+                        final LandTeam owner = LandManager.getInstance().getLandOwner(c);
+                        LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
+                        break;
+                    case WILD:
+                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.usemob"));
+                        break;
+                    default:
+                        break;
+                    }
+                    player.sendAllContents(player.container, player.container.getInventory());
+                }
+                if (Essentials.config.log_interactions) Essentials.LOGGER.trace(
+                        "Cancelled interact due to not allowed to use that mob." + c + " " + evt.getPlayer()
+                                .getUniqueID() + " " + evt.getPlayer().getName().getFormattedText());
+                evt.setCanceled(true);
+                evt.setCancellationResult(ActionResultType.FAIL);
+                return;
+            }
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)

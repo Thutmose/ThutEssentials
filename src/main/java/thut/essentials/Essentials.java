@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.appender.FileAppender;
@@ -11,10 +12,13 @@ import org.apache.logging.log4j.core.appender.FileAppender;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.network.FMLNetworkConstants;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
@@ -67,6 +71,9 @@ public class Essentials
             Essentials.LOGGER.info("Registering Defuzzer!");
             MinecraftForge.EVENT_BUS.register(SpawnDefuzzer.class);
         }
+
+        ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(
+                () -> FMLNetworkConstants.IGNORESERVERONLY, (in, net) -> true));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
