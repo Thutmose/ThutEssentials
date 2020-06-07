@@ -88,8 +88,31 @@ public class Config extends ConfigData
     public List<String> blockBreakWhitelist = Lists.newArrayList();
     @Configure(category = Config.LAND)
     public List<String> blockPlaceWhitelist = Lists.newArrayList();
+
     @Configure(category = Config.LAND)
-    public boolean      foodWhitelisted     = true;
+    public List<String> customMobUsePerms = Lists.newArrayList(
+    //@formatter:off
+            "minecraft:armor_stand->"
+            + "thutessentials.land.useblock.unowned,"
+            + "thutessentials.land.useblock.owned.self,"
+            + "thutessentials.land.useblock.owned.other",
+            "minecraft:item_frame->"
+            + "thutessentials.land.useblock.unowned,"
+            + "thutessentials.land.useblock.owned.self,"
+            + "thutessentials.land.useblock.owned.other",
+            "minecraft:chest_minecart->"
+            + "thutessentials.land.useblock.unowned,"
+            + "thutessentials.land.useblock.owned.self,"
+            + "thutessentials.land.useblock.owned.other",
+            "minecraft:furnace_minecart->"
+            + "thutessentials.land.useblock.unowned,"
+            + "thutessentials.land.useblock.owned.self,"
+            + "thutessentials.land.useblock.owned.other"
+    //@formatter:on
+    );
+
+    @Configure(category = Config.LAND)
+    public boolean foodWhitelisted = true;
 
     @Configure(category = Config.HOME)
     public int maxHomes          = 2;

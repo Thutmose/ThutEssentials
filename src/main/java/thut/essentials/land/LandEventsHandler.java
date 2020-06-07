@@ -101,6 +101,11 @@ public class LandEventsHandler
 
     public static Set<ResourceLocation> invuln = Sets.newHashSet();
 
+    public static Map<ResourceLocation, String[]> customMobPerms = Maps.newHashMap();
+
+    public static final String[] defaultMobPerms = { LandEventsHandler.PERMUSEMOBWILD, LandEventsHandler.PERMUSEMOBOWN,
+            LandEventsHandler.PERMUSEMOBOTHER };
+
     public static void init()
     {
         MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER);
@@ -109,6 +114,14 @@ public class LandEventsHandler
         MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.block_handler);
 
         if (!Essentials.config.landEnabled) return;
+
+        LandEventsHandler.customMobPerms.clear();
+        for (final String s : Essentials.config.customMobUsePerms)
+        {
+            final String[] args = s.split("->");
+            final String[] perms = args[1].split(",");
+            LandEventsHandler.customMobPerms.put(new ResourceLocation(args[0]), perms);
+        }
 
         LandEventsHandler.itemUseWhitelist.clear();
         for (final String s : Essentials.config.itemUseWhitelist)
@@ -869,7 +882,10 @@ public class LandEventsHandler
         private DenyReason canUseMob(final PlayerInteractEvent evt, final Entity mob)
         {
             // Check our global whitelist
-            if (LandEventsHandler.mobUseWhitelist.contains(mob.getType().getRegistryName())) return DenyReason.NONE;
+            final ResourceLocation reg = mob.getType().getRegistryName();
+            if (LandEventsHandler.mobUseWhitelist.contains(reg)) return DenyReason.NONE;
+            final String[] perms = LandEventsHandler.customMobPerms.getOrDefault(reg,
+                    LandEventsHandler.defaultMobPerms);
 
             // Check our specific event allowances
             if (MinecraftForge.EVENT_BUS.post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(),
@@ -884,7 +900,8 @@ public class LandEventsHandler
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
             if (owner == null)
             {
-                if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEMOBWILD)) return DenyReason.NONE;
+                final String wildUse = perms[0];
+                if (PermissionAPI.hasPermission(player, wildUse)) return DenyReason.NONE;
                 return DenyReason.WILD;
             }
             final boolean isFakePlayer = player instanceof FakePlayer;
@@ -894,10 +911,8 @@ public class LandEventsHandler
             {
                 // Treat relation place perm as owning the land.
                 final boolean owns = owner.canUseStuff(player.getUniqueID(), b);
-                if (owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEMOBOWN))
-                    return DenyReason.OURS;
-                if (!owns && !PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEMOBOTHER))
-                    return DenyReason.OTHER;
+                if (owns && !PermissionAPI.hasPermission(player, perms[1])) return DenyReason.OURS;
+                if (!owns && !PermissionAPI.hasPermission(player, perms[2])) return DenyReason.OTHER;
             }
             return DenyReason.NONE;
         }
