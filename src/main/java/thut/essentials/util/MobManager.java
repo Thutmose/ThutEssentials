@@ -66,10 +66,12 @@ public class MobManager
     @SubscribeEvent
     public static void mobSpawning(final CheckSpawn evt)
     {
+        if (evt.getResult() != Result.DEFAULT) return;
         if (Essentials.config.mobSpawnUsesWhitelist)
         {
             final boolean valid = MobManager.spawnWhitelist.contains(evt.getEntity().getType().getRegistryName());
-            evt.setResult(valid ? Result.ALLOW : Result.DEFAULT);
+            evt.setResult(valid ? Result.DEFAULT : Result.DENY);
+            return;
         }
         final boolean valid = MobManager.spawnBlacklist.contains(evt.getEntity().getType().getRegistryName());
         evt.setResult(valid ? Result.DENY : Result.DEFAULT);
@@ -78,10 +80,12 @@ public class MobManager
     @SubscribeEvent
     public static void mobSpawning(final SpecialSpawn evt)
     {
+        if (evt.getResult() != Result.DEFAULT) return;
         if (Essentials.config.mobSpawnUsesWhitelist)
         {
             final boolean valid = MobManager.spawnWhitelist.contains(evt.getEntity().getType().getRegistryName());
-            evt.setResult(valid ? Result.ALLOW : Result.DEFAULT);
+            evt.setResult(valid ? Result.DEFAULT : Result.DENY);
+            return;
         }
         final boolean valid = MobManager.spawnBlacklist.contains(evt.getEntity().getType().getRegistryName());
         evt.setResult(valid ? Result.DENY : Result.DEFAULT);
