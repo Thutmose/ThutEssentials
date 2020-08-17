@@ -72,13 +72,13 @@ public class Ranks
         command = base.then(Commands.literal("set_rank").then(Commands.argument("rank", StringArgumentType.string())
                 .then(Commands.argument("player", EntityArgument.player()).executes(ctx -> Ranks.set_rank(ctx
                         .getSource(), EntityArgument.getPlayer(ctx, "player"), StringArgumentType.getString(ctx,
-                                "perm"))))));
+                                "rank"))))));
         commandDispatcher.register(command);
         base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
         command = base.then(Commands.literal("rem_rank").then(Commands.argument("rank", StringArgumentType.string())
                 .then(Commands.argument("player", EntityArgument.player()).executes(ctx -> Ranks.rem_rank(ctx
                         .getSource(), EntityArgument.getPlayer(ctx, "player"), StringArgumentType.getString(ctx,
-                                "perm"))))));
+                                "rank"))))));
         commandDispatcher.register(command);
 
     }
