@@ -10,6 +10,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -57,17 +58,18 @@ public class Invite
         final List<String> c = LandManager.getInstance().getInvites(player.getUniqueID());
         if (c.isEmpty())
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.none"));
+            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.none"),
+                    Util.DUMMY_UUID);
             return 1;
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invites"));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invites"), Util.DUMMY_UUID);
         final String cmd = "join_team";
         for (final String element : c)
         {
             final String command = "/" + cmd + " " + element;
             final ITextComponent message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link",
                     command, null, false, c);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
         }
         return 0;
     }
@@ -87,7 +89,7 @@ public class Invite
         if (landTeam == oldTeam)
         {
             source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyin", null,
-                    false, invitee.getDisplayName().getFormattedText()));
+                    false, invitee.getDisplayName().getString()));
             return 1;
         }
         if (!landTeam.hasRankPerm(inviter.getUniqueID(), LandTeam.INVITE))
@@ -99,7 +101,7 @@ public class Invite
         if (LandManager.getInstance().hasInvite(invitee.getUniqueID(), team))
         {
             source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyinvited",
-                    null, false, invitee.getDisplayName().getFormattedText()));
+                    null, false, invitee.getDisplayName().getString()));
             return 1;
         }
         final boolean invite = LandManager.getInstance().invite(inviter.getUniqueID(), invitee.getUniqueID());
@@ -115,10 +117,10 @@ public class Invite
                 "thutessentials.team.invite.invited_recieve", null, false, landTeam.teamName, inviter.getDisplayName());
         final ITextComponent message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link",
                 command, null, false, landTeam.teamName);
-        invitee.sendMessage(header);
-        invitee.sendMessage(message);
+        invitee.sendMessage(header, Util.DUMMY_UUID);
+        invitee.sendMessage(message, Util.DUMMY_UUID);
         inviter.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.invited_sent", null,
-                false, invitee.getDisplayName().getFormattedText()));
+                false, invitee.getDisplayName().getString()), Util.DUMMY_UUID);
 
         return 0;
     }

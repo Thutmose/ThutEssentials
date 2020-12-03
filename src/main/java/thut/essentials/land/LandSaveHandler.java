@@ -2,6 +2,7 @@ package thut.essentials.land;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,11 +17,16 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.world.World;
+import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
 import thut.essentials.Essentials;
+import thut.essentials.land.LandManager.Coordinate;
 import thut.essentials.land.LandManager.LandTeam;
-import thut.essentials.util.Coordinate;
 
 public class LandSaveHandler
 {
@@ -59,8 +65,8 @@ public class LandSaveHandler
     public static File getGlobalFolder()
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final String folder = server.getFolderName();
-        final File file = server.getActiveAnvilConverter().getFile(folder, "land");
+        final Path path = server.func_240776_a_(new FolderName("land"));
+        final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
         return file;
     }
@@ -133,9 +139,19 @@ public class LandSaveHandler
                 final LandTeam team = LandSaveHandler.LOAD_GSON.fromJson(json, LandTeam.class);
                 LandManager.getInstance()._teamMap.put(team.teamName, team);
                 team.init(server);
-                final List<Coordinate> toAdd = Lists.newArrayList(team.land.land);
+
+                // Here we convert over the old land to the new format.
+                final List<GlobalPos> toAdd = Lists.newArrayList(team.land.claims);
+                for (final Coordinate old : team.land.land)
+                {
+                    final BlockPos b = new BlockPos(old.x, old.y, old.z);
+                    final RegistryKey<World> dim = Coordinate.fromOld(old.dim);
+                    if (dim != null) toAdd.add(GlobalPos.getPosition(dim, b));
+                }
+                team.land.land.clear();
+
                 if (Essentials.config.debug) Essentials.LOGGER.info("Processing " + team.teamName);
-                for (final Coordinate land : toAdd)
+                for (final GlobalPos land : toAdd)
                     LandManager.getInstance().addTeamLand(team.teamName, land, false);
             }
             catch (final Exception e)

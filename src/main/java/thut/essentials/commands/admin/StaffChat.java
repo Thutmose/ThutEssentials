@@ -16,6 +16,7 @@ import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.command.arguments.MessageArgument;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
@@ -53,7 +54,7 @@ public class StaffChat
             .then(Commands.literal("remove").then(Commands.argument("target", GameProfileArgument.gameProfile())
                 .suggests((context, builder) -> ISuggestionProvider
                     .suggest(Essentials.config.staff.stream().map(UUID::fromString).map(id -> context.getSource().getServer().getPlayerList().getPlayerByUUID(id))
-                        .map(player -> player != null ? player.getName().getFormattedText() : "Unknown").collect(Collectors.toList()), builder))
+                        .map(player -> player != null ? player.getName().getString() : "Unknown").collect(Collectors.toList()), builder))
                 .executes(context -> StaffChat.removeStaff(context.getSource(), GameProfileArgument.getGameProfiles(context, "target")))))
             .then(Commands.argument("message", MessageArgument.message())
                 .executes(context -> StaffChat.execute(context.getSource(), MessageArgument.getMessage(context, "message")))));
@@ -74,12 +75,13 @@ public class StaffChat
             Essentials.config.staff = staffList;
             Essentials.config.onUpdated();
             Essentials.config.write();
-            player.sendMessage(CommandManager.makeFormattedComponent("Removed form Staff: " + gameProfile.getName()));
+            player.sendMessage(CommandManager.makeFormattedComponent("Removed form Staff: " + gameProfile.getName()),
+                    Util.DUMMY_UUID);
             return 1;
         }
         catch (final Exception e)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("Error removing a Staff"));
+            player.sendMessage(CommandManager.makeFormattedComponent("Error removing a Staff"), Util.DUMMY_UUID);
             e.printStackTrace();
             return 0;
         }
@@ -100,12 +102,13 @@ public class StaffChat
             Essentials.config.staff = staffList;
             Essentials.config.onUpdated();
             Essentials.config.write();
-            player.sendMessage(CommandManager.makeFormattedComponent("Added to Staff: " + gameProfile.getName()));
+            player.sendMessage(CommandManager.makeFormattedComponent("Added to Staff: " + gameProfile.getName()),
+                    Util.DUMMY_UUID);
             return 1;
         }
         catch (final Exception e)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("Error adding to Staff"));
+            player.sendMessage(CommandManager.makeFormattedComponent("Error adding to Staff"), Util.DUMMY_UUID);
             e.printStackTrace();
             return 0;
         }
@@ -115,15 +118,15 @@ public class StaffChat
     {
         final PlayerEntity sender = source.asPlayer();
         final ITextComponent textComponent = CommandManager.makeFormattedComponent("[Staff] <" + sender.getName()
-                .getFormattedText() + "> " + message.getFormattedText(), TextFormatting.YELLOW, false);
-        source.getServer().sendMessage(textComponent);
+                .getString() + "> " + message.getString(), TextFormatting.YELLOW, false);
+        source.getServer().sendMessage(textComponent, Util.DUMMY_UUID);
         Essentials.config.staff.forEach(s ->
         {
             try
             {
                 final UUID id = UUID.fromString(s);
                 final PlayerEntity player = source.getServer().getPlayerList().getPlayerByUUID(id);
-                if (player != null) player.sendMessage(textComponent);
+                if (player != null) player.sendMessage(textComponent, Util.DUMMY_UUID);
             }
             catch (final Exception e)
             {

@@ -11,7 +11,9 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.Color;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
@@ -52,18 +54,18 @@ public class Chat
         final MinecraftServer server = source.getServer();
         final LandTeam team = LandManager.getTeam(sender);
 
-        final ITextComponent mess = new StringTextComponent("[Team]" + sender.getDisplayName().getFormattedText()
+        final IFormattableTextComponent mess = new StringTextComponent("[Team]" + sender.getDisplayName()
+                .getString()
                 + ": ");
-        mess.getStyle().setColor(TextFormatting.YELLOW);
-        mess.appendSibling(CommandManager.makeFormattedComponent(RuleManager.format(message), TextFormatting.AQUA,
-                false));
+        mess.setStyle(mess.getStyle().setColor(Color.fromTextFormatting(TextFormatting.YELLOW)));
+        mess.append(CommandManager.makeFormattedComponent(RuleManager.format(message), TextFormatting.AQUA, false));
 
-        if (Essentials.config.logTeamChat) server.sendMessage(mess);
+        if (Essentials.config.logTeamChat) server.sendMessage(mess, Util.DUMMY_UUID);
         for (final UUID id : team.member)
             try
             {
                 final PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
-                if (player != null) player.sendMessage(mess);
+                if (player != null) player.sendMessage(mess, Util.DUMMY_UUID);
             }
             catch (final Exception e)
             {

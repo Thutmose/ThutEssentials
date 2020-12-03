@@ -1,6 +1,7 @@
 modLoader="javafml"
-loaderVersion="[25,)"
+loaderVersion="[31,)"
 issueTrackerURL="https://github.com/Thutmose/ThutEssentials/issues"
+license="All rights reserved"
 
 [[mods]]
     modId="thutessentials"

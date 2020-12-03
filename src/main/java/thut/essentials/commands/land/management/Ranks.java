@@ -15,6 +15,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -96,7 +97,7 @@ public class Ranks
         rank.members.add(player.getUniqueID());
         landTeam._ranksMembers.put(player.getUniqueID(), rank);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.set", null, false, player
-                .getDisplayName(), rankName));
+                .getDisplayName(), rankName), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -114,7 +115,7 @@ public class Ranks
         rank.members.remove(player.getUniqueID());
         landTeam._ranksMembers.remove(player.getUniqueID());
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.rem", null, false, player
-                .getDisplayName(), rankName));
+                .getDisplayName(), rankName), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -123,11 +124,12 @@ public class Ranks
     {
         final ServerPlayerEntity player = source.asPlayer();
         final LandTeam landTeam = LandManager.getTeam(player);
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.header"));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.header"), Util.DUMMY_UUID);
         final List<String> ranks = Lists.newArrayList(landTeam.rankMap.keySet());
         Collections.sort(ranks);
         for (final String s : ranks)
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.entry", null, false, s));
+            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.entry", null, false, s),
+                    Util.DUMMY_UUID);
         return 0;
     }
 
@@ -143,9 +145,9 @@ public class Ranks
             return 1;
         }
         if (rank.perms.add(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.rank.perm.set", null, false, rankName, perm));
+                "thutessentials.team.rank.perm.set", null, false, rankName, perm), Util.DUMMY_UUID);
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.perm.had", null, false,
-                rankName));
+                rankName), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -162,9 +164,9 @@ public class Ranks
             return 1;
         }
         if (rank.perms.remove(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.rank.perm.unset", null, false, rankName));
+                "thutessentials.team.rank.perm.unset", null, false, rankName), Util.DUMMY_UUID);
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.perm.nohad", null,
-                false, rankName));
+                false, rankName), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -181,7 +183,7 @@ public class Ranks
         }
         landTeam.rankMap.put(rankName, new PlayerRank());
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.added", null, false,
-                rankName));
+                rankName), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -198,7 +200,7 @@ public class Ranks
         }
         landTeam.rankMap.remove(rankName);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.deleted", null, false,
-                rankName));
+                rankName), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -215,9 +217,9 @@ public class Ranks
         }
         final Collection<UUID> c = rank.members;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.memheader", null, false,
-                rankName));
+                rankName), Util.DUMMY_UUID);
         final ITextComponent list = Members.getMembers(source.getServer(), c, false);
-        player.sendMessage(list);
+        player.sendMessage(list, Util.DUMMY_UUID);
         return 0;
     }
 }

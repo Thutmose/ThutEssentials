@@ -16,11 +16,11 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.tags.ITag;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.Tag;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -194,7 +194,7 @@ public class KitManager
         Item item = ForgeRegistries.ITEMS.getValue(loc);
         if (item == null)
         {
-            final Tag<Item> tags = ItemTags.getCollection().get(loc);
+            final ITag<Item> tags = ItemTags.getCollection().getTagByID(loc);
             if (tags != null)
             {
                 item = tags.getRandomElement(new Random(2));
@@ -219,27 +219,23 @@ public class KitManager
     {
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         final PlayerContext context = new PlayerContext(player);
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.header"));
-        Style style = new Style();
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.header"), Util.DUMMY_UUID);
+        IFormattableTextComponent message;
         if (!KitManager.kit.isEmpty() && manager.hasPermission(player.getGameProfile(), "thutessentials.kit.default",
                 context))
         {
-            style = new Style();
-            style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit Default"));
-            final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null,
-                    false, "Default");
-            player.sendMessage(message.setStyle(style));
+            message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, "Default");
+            message.setStyle(message.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit Default")));
+            player.sendMessage(message, Util.DUMMY_UUID);
         }
         for (String s : KitManager.kits.keySet())
         {
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.kit." + s, context)) continue;
-            style = new Style();
             if (s.contains(" ")) s = "\"" + s + "\"";
-            style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit " + s));
-            final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null,
-                    false, s);
-            player.sendMessage(message.setStyle(style));
+            message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, s);
+            message.setStyle(message.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit " + s)));
+            player.sendMessage(message, Util.DUMMY_UUID);
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.footer"));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.footer"), Util.DUMMY_UUID);
     }
 }

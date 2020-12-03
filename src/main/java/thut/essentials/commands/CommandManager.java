@@ -10,7 +10,8 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Color;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
@@ -99,8 +100,7 @@ public class CommandManager
         return PermissionAPI.hasPermission(player, permission);
     }
 
-    public static void register_commands(final CommandDispatcher<CommandSource> commandDispatcher,
-            final MinecraftServer server)
+    public static void register_commands(final CommandDispatcher<CommandSource> commandDispatcher)
     {
         // We do this first, as commands might need it.
         MinecraftForge.EVENT_BUS.register(new PlayerMover());
@@ -128,7 +128,7 @@ public class CommandManager
         thut.essentials.commands.misc.Config.register(commandDispatcher);
         thut.essentials.commands.misc.Kits.register(commandDispatcher);
         thut.essentials.commands.misc.Spawn.register(commandDispatcher);
-        thut.essentials.commands.misc.Nick.register(commandDispatcher, server);
+        thut.essentials.commands.misc.Nick.register(commandDispatcher);
 
         thut.essentials.commands.structures.Structuregen.register(commandDispatcher);
 
@@ -164,37 +164,37 @@ public class CommandManager
         thut.essentials.commands.land.claims.Unload.register(commandDispatcher);
     }
 
-    public static ITextComponent makeFormattedCommandLink(final String text, final String command, final Object... args)
+    public static IFormattableTextComponent makeFormattedCommandLink(final String text, final String command,
+            final Object... args)
     {
-        final ITextComponent message = Essentials.config.getMessage(text, args);
-        Style style = message.getStyle();
-        if (style == null) style = new Style();
-        return message.setStyle(style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
+        final IFormattableTextComponent message = Essentials.config.getMessage(text, args);
+        return message.setStyle(message.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
     }
 
-    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
+    public static IFormattableTextComponent makeFormattedComponent(final String text,
+            final TextFormatting colour,
             final boolean bold, final Object... args)
     {
-        final ITextComponent message = Essentials.config.getMessage(text, args);
+        final IFormattableTextComponent message = Essentials.config.getMessage(text, args);
         Style style = message.getStyle();
-        if (style == null) style = new Style();
-        if (colour != null) style.setColor(colour);
-        if (bold) style.setBold(bold);
+        if (colour != null) style = style.setColor(Color.fromTextFormatting(colour));
+        if (bold) style = style.setBold(bold);
         return message.setStyle(style);
     }
 
-    public static ITextComponent makeFormattedComponent(final String text, final TextFormatting colour,
+    public static IFormattableTextComponent makeFormattedComponent(final String text,
+            final TextFormatting colour,
             final boolean bold)
     {
         return CommandManager.makeFormattedComponent(text, colour, bold, new Object[0]);
     }
 
-    public static ITextComponent makeFormattedComponent(final String text)
+    public static IFormattableTextComponent makeFormattedComponent(final String text)
     {
         return CommandManager.makeFormattedComponent(text, null, false, new Object[0]);
     }
 
-    public static ITextComponent makeFormattedCommandLink(final String text, final String command)
+    public static IFormattableTextComponent makeFormattedCommandLink(final String text, final String command)
     {
         return CommandManager.makeFormattedCommandLink(text, command, new Object[0]);
     }

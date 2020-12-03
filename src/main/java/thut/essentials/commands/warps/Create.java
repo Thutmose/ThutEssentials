@@ -8,9 +8,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -38,20 +41,20 @@ public class Create
     }
 
     private static int execute(final CommandSource source, final String warpName, final BlockPos center,
-            final DimensionType dimension) throws CommandSyntaxException
+            final RegistryKey<World> registryKey) throws CommandSyntaxException
     {
         final ServerPlayerEntity player = source.asPlayer();
-        final int ret = WarpManager.setWarp(center, dimension.getId(), warpName);
+        final int ret = WarpManager.setWarp(GlobalPos.getPosition(registryKey, center), warpName);
         ITextComponent message;
         switch (ret)
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.added", null, false, warpName);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.exists", null, false, warpName);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         }
         return ret;
@@ -59,7 +62,6 @@ public class Create
 
     private static int execute(final CommandSource source, final String warpName) throws CommandSyntaxException
     {
-        return Create.execute(source, warpName, new BlockPos(source.getPos()), source.getWorld().getDimension()
-                .getType());
+        return Create.execute(source, warpName, new BlockPos(source.getPos()), source.getWorld().getDimensionKey());
     }
 }

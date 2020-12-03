@@ -8,9 +8,9 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -46,21 +46,19 @@ public class Home
         final PlayerEntity player = source.asPlayer();
         final LandTeam team = LandManager.getTeam(player);
 
-        if (team.home == null)
+        if (team.team_home == null)
         {
             source.sendErrorMessage(Essentials.config.getMessage("thutessentials.team.nohomeset"));
             return 1;
         }
 
-        final int[] home = { team.home.x, team.home.y, team.home.z, team.home.dim };
-
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("homeDelay");
-        final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.homeReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
             return 1;
         }
 
@@ -68,8 +66,8 @@ public class Home
         tptag.putLong("homeDelay", time + Essentials.config.homeReUseDelay);
         tag.put("tp", tptag);
         PlayerDataHandler.saveCustomData(player);
-        PlayerMover.setMove(player, Essentials.config.homeActivateDelay, home[3], new BlockPos(home[0], home[1],
-                home[2]), teleMess, PlayerMover.INTERUPTED);
+        PlayerMover.setMove(player, Essentials.config.homeActivateDelay, team.team_home, teleMess,
+                PlayerMover.INTERUPTED);
         return 0;
     }
 }

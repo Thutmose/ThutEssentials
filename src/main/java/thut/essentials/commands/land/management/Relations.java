@@ -15,6 +15,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -40,11 +41,14 @@ public class Relations
 
     public static SuggestionProvider<CommandSource> suggestTeams()
     {
-        final List<String> values = Lists.newArrayList();
-        for (final String s : LandManager.getInstance()._teamMap.keySet())
-            values.add(s);
-        Collections.sort(values);
-        return (ctx, sb) -> net.minecraft.command.ISuggestionProvider.suggest(values, sb);
+        return (ctx, sb) ->
+        {
+            final List<String> values = Lists.newArrayList();
+            for (final String s : LandManager.getInstance()._teamMap.keySet())
+                values.add(s);
+            Collections.sort(values);
+            return net.minecraft.command.ISuggestionProvider.suggest(values, sb);
+        };
     }
 
     public static SuggestionProvider<CommandSource> suggestPerms()
@@ -108,7 +112,7 @@ public class Relations
         final LandTeam landTeam = LandManager.getTeam(player);
         final List<String> keys = Lists.newArrayList(landTeam.relations.keySet());
         if (keys.isEmpty()) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.none"));
+                "thutessentials.team.relations.none"), Util.DUMMY_UUID);
         for (final String team : keys)
             Relations.relations(source, team);
         return 0;
@@ -125,10 +129,10 @@ public class Relations
             return 1;
         }
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.with", null, false,
-                team));
+                team), Util.DUMMY_UUID);
         for (final String s : relate.perms)
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.entry", null, false,
-                    s));
+                    s), Util.DUMMY_UUID);
         return 0;
     }
 
@@ -151,9 +155,9 @@ public class Relations
         Relation relation = landTeam.relations.get(other);
         if (relation == null) landTeam.relations.put(other, relation = new Relation());
         if (relation.perms.add(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.set", null, false, perm));
+                "thutessentials.team.relations.set", null, false, perm), Util.DUMMY_UUID);
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.had", null, false,
-                other));
+                other), Util.DUMMY_UUID);
         return 0;
     }
 
@@ -176,9 +180,9 @@ public class Relations
         Relation relation = landTeam.relations.get(other);
         if (relation == null) landTeam.relations.put(other, relation = new Relation());
         if (relation.perms.remove(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.unset", null, false, perm, other));
+                "thutessentials.team.relations.unset", null, false, perm, other), Util.DUMMY_UUID);
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.nohad", null,
-                false, other));
+                false, other), Util.DUMMY_UUID);
         return 0;
     }
 

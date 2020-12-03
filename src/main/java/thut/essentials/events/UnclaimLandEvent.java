@@ -1,22 +1,20 @@
 package thut.essentials.events;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraftforge.eventbus.api.Event;
 
 @Cancelable
 public class UnclaimLandEvent extends Event
 {
-    public final BlockPos     land;
+    public final GlobalPos    land;
     public final String       team;
     public final PlayerEntity claimer;
-    public final int          dimension;
 
-    public UnclaimLandEvent(final BlockPos land, final int dimension, final PlayerEntity claimer, final String team)
+    public UnclaimLandEvent(final GlobalPos land, final PlayerEntity claimer, final String team)
     {
         this.land = land;
-        this.dimension = dimension;
         this.team = team;
         this.claimer = claimer;
     }

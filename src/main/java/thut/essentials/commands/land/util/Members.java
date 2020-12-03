@@ -13,7 +13,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -58,13 +58,14 @@ public class Members
         return 0;
     }
 
-    public static ITextComponent getMembers(final MinecraftServer server, final LandTeam team, final boolean tabbed)
+    public static IFormattableTextComponent getMembers(final MinecraftServer server, final LandTeam team,
+            final boolean tabbed)
     {
         final Collection<UUID> c = team.member;
         return Members.getMembers(server, c, tabbed);
     }
 
-    public static ITextComponent getMembers(final MinecraftServer server, final Collection<UUID> c,
+    public static IFormattableTextComponent getMembers(final MinecraftServer server, final Collection<UUID> c,
             final boolean tabbed)
     {
         final StringTextComponent mess = new StringTextComponent("");
@@ -74,10 +75,10 @@ public class Members
             final UUID o = ids.get(i);
             if (o == null) continue;
             final GameProfile profile = CommandManager.getProfile(server, o);
-            if (tabbed) mess.appendText("    ");
-            if (profile.getName() != null) mess.appendText(profile.getName());
-            else mess.appendText("<unknown> " + o);
-            if (i < ids.size() - 1) mess.appendText("\n");
+            if (tabbed) mess.appendString("    ");
+            if (profile.getName() != null) mess.appendString(profile.getName());
+            else mess.appendString("<unknown> " + o);
+            if (i < ids.size() - 1) mess.appendString("\n");
         }
         return mess;
     }

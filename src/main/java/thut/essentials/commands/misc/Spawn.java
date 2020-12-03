@@ -9,10 +9,11 @@ import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -45,18 +46,18 @@ public class Spawn
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("spawnDelay");
-        final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.spawnReUseDelay > 0)
         {
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
-                    false));
+                    false), Util.DUMMY_UUID);
             return 1;
         }
         final MinecraftServer server = player.getServer();
-        final BlockPos spawn = server.getWorld(Essentials.config.spawnDimension).getSpawnPoint();
+        final GlobalPos spawn = GlobalPos.getPosition(Essentials.config.spawnDimension, server
+                .getWorld(Essentials.config.spawnDimension).getSpawnPoint());
         final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.spawn.succeed");
-        PlayerMover.setMove(player, Essentials.config.spawnActivateDelay, Essentials.config.spawnDimension.getId(),
-                spawn, teleMess, PlayerMover.INTERUPTED);
+        PlayerMover.setMove(player, Essentials.config.spawnActivateDelay, spawn, teleMess, PlayerMover.INTERUPTED);
         tptag.putLong("spawnDelay", time + Essentials.config.spawnReUseDelay);
         tag.put("tp", tptag);
         PlayerDataHandler.saveCustomData(player);

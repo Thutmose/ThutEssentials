@@ -8,6 +8,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -44,7 +45,7 @@ public class TpToggle
         tag.put("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.ignoreset" + ignore,
-                TextFormatting.DARK_GREEN, true));
+                TextFormatting.DARK_GREEN, true), Util.DUMMY_UUID);
         return 0;
     }
 }

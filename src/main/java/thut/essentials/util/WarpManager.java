@@ -9,12 +9,14 @@ import com.google.common.collect.Maps;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -25,8 +27,9 @@ import thut.essentials.commands.CommandManager;
 
 public class WarpManager
 {
-    public static Map<String, int[]> warpLocs;
-    final static Field               warpsField;
+    public static Map<String, GlobalPos> warpLocs;
+
+    final static Field warpsField;
 
     static
     {
@@ -47,8 +50,9 @@ public class WarpManager
         WarpManager.warpLocs = Maps.newHashMap();
         for (final String s : Essentials.config.warps)
         {
-            final String[] args = s.split(":");
-            WarpManager.warpLocs.put(args[0], WarpManager.getInt(args[1]));
+            final String[] args = s.split("->");
+            final GlobalPos warp = CoordinateUtls.fromString(args[1]);
+            if (warp != null) WarpManager.warpLocs.put(args[0], warp);
         }
 
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
@@ -67,7 +71,7 @@ public class WarpManager
         return new int[] { Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]), dim };
     }
 
-    public static int setWarp(final BlockPos center, final int dimension, final String name)
+    public static int setWarp(final GlobalPos pos, final String name)
     {
         final List<String> warps = Lists.newArrayList(Essentials.config.warps);
         for (final String s : warps)
@@ -75,9 +79,14 @@ public class WarpManager
             final String[] args = s.split(":");
             if (args[0].equals(name)) return 1;
         }
-        final String warp = name + ":" + center.getX() + " " + center.getY() + " " + center.getZ() + " " + dimension;
+        warps.removeIf(s ->
+        {
+            if (!s.contains("->")) return true;
+            return CoordinateUtls.fromString(s) == null;
+        });
+        final String warp = name + ":" + CoordinateUtls.toString(pos);
         warps.add(warp);
-        WarpManager.warpLocs.put(name, new int[] { center.getX(), center.getY(), center.getZ(), dimension });
+        WarpManager.warpLocs.put(name, pos);
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         final String node = "thutessentials.warp." + name;
         if (!manager.getRegisteredNodes().contains(node)) manager.registerNode(node, DefaultPermissionLevel.ALL,
@@ -105,7 +114,7 @@ public class WarpManager
         return 1;
     }
 
-    public static int[] getWarp(final String name)
+    public static GlobalPos getWarp(final String name)
     {
         return WarpManager.warpLocs.get(name);
     }
@@ -114,29 +123,29 @@ public class WarpManager
     {
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         final PlayerContext context = new PlayerContext(player);
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.header"));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.header"), Util.DUMMY_UUID);
         for (String s : Essentials.config.warps)
         {
             final String[] args = s.split(":");
             s = args[0];
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
-            final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.warps.entry", null,
-                    false, s);
+            final IFormattableTextComponent message = CommandManager.makeFormattedComponent(
+                    "thutessentials.warps.entry", null, false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
-            final Style style = new Style();
-            style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
-            player.sendMessage(message.setStyle(style));
+            Style style = message.getStyle();
+            style = style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
+            player.sendMessage(message.setStyle(style), Util.DUMMY_UUID);
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.footer"));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.footer"), Util.DUMMY_UUID);
     }
 
     public static int attemptWarp(final ServerPlayerEntity player, final String warpName)
     {
-        final int[] warp = WarpManager.getWarp(warpName);
+        final GlobalPos warp = WarpManager.getWarp(warpName);
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("warpDelay");
-        final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
         // Too Soon
         if (last > time && Essentials.config.warpReUseDelay > 0) return 1;
         if (warp != null)
@@ -147,8 +156,7 @@ public class WarpManager
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + warpName, context)) return 2;
             final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.warps.warped", null,
                     false, warpName);
-            PlayerMover.setMove(player, Essentials.config.warpActivateDelay, warp[3], new BlockPos(warp[0], warp[1],
-                    warp[2]), teleMess, PlayerMover.INTERUPTED);
+            PlayerMover.setMove(player, Essentials.config.warpActivateDelay, warp, teleMess, PlayerMover.INTERUPTED);
             tptag.putLong("warpDelay", time + Essentials.config.warpReUseDelay);
             tag.put("tp", tptag);
             PlayerDataHandler.saveCustomData(player);

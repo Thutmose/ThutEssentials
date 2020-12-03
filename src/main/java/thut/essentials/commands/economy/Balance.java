@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -37,7 +38,7 @@ public class Balance
         final ServerPlayerEntity player = source.asPlayer();
         final int amount = EconomyManager.getBalance(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.check", null, false,
-                amount));
+                amount), Util.DUMMY_UUID);
         return 0;
     }
 }

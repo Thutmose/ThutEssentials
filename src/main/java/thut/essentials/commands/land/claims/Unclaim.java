@@ -10,8 +10,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -21,7 +25,6 @@ import thut.essentials.events.UnclaimLandEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
-import thut.essentials.util.Coordinate;
 
 public class Unclaim
 {
@@ -74,17 +77,18 @@ public class Unclaim
 
         if (!canUnclaimAnything && !team.hasRankPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"),
+                    Util.DUMMY_UUID);
             return 1;
         }
 
         if (all)
         {
-            final List<Coordinate> allLand = Lists.newArrayList(team.land.land);
-            for (final Coordinate c : allLand)
+            final List<GlobalPos> allLand = Lists.newArrayList(team.land.claims);
+            for (final GlobalPos c : allLand)
                 Unclaim.unclaim(c, player, team, false, canUnclaimAnything);
             player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", allLand.size(),
-                    team.teamName));
+                    team.teamName), Util.DUMMY_UUID);
             return 0;
         }
 
@@ -111,36 +115,37 @@ public class Unclaim
             else if (check == 3) owned_other++;
         }
         if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
-                "thutessentials.unclaim.notallowed.notowner", owned_other));
+                "thutessentials.unclaim.notallowed.notowner", owned_other), Util.DUMMY_UUID);
         if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
-                team.teamName));
+                team.teamName), Util.DUMMY_UUID);
         else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
-                team.teamName));
+                team.teamName), Util.DUMMY_UUID);
 
         LandSaveHandler.saveTeam(team.teamName);
         return done ? 0 : 1;
     }
 
-    private static int unclaim(final Coordinate chunk, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final GlobalPos chunk, final PlayerEntity player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner == null)
         {
-            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"));
+            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
+                    Util.DUMMY_UUID);
             return 2;
         }
         else if (owner != team && !canUnclaimAnything)
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner",
-                    owner.teamName));
+                    owner.teamName), Util.DUMMY_UUID);
             return 3;
         }
-        final UnclaimLandEvent event = new UnclaimLandEvent(new BlockPos(chunk.x, chunk.y, chunk.z), chunk.dim, player,
-                team.teamName);
+        final UnclaimLandEvent event = new UnclaimLandEvent(chunk, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().removeTeamLand(team.teamName, chunk);
-        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
+        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
+                Util.DUMMY_UUID);
         return 0;
     }
 
@@ -149,8 +154,9 @@ public class Unclaim
     {
         // TODO better bounds check to support say cubic chunks.
         if (y < 0 || y > 15) return 1;
-        final int dim = player.dimension.getId();
-        final Coordinate chunk = new Coordinate(x, y, z, dim);
+        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+        final BlockPos b = new BlockPos(x, y, z);
+        final GlobalPos chunk = GlobalPos.getPosition(dim, b);
         return Unclaim.unclaim(chunk, player, team, messages, canUnclaimAnything);
     }
 }

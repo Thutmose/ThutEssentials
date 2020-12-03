@@ -9,6 +9,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -16,7 +17,7 @@ import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
-import thut.essentials.util.Coordinate;
+import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.RuleManager;
 
 public class Edit
@@ -165,8 +166,8 @@ public class Edit
         if (prefix.length() > Essentials.config.prefixLength) prefix = prefix.substring(0,
                 Essentials.config.prefixLength);
         landTeam.prefix = prefix;
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.prefix.set", null, false,
-                prefix));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.prefix.set", null, false, prefix),
+                Util.DUMMY_UUID);
         Edit.refreshTeam(landTeam, source.getServer());
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
@@ -178,8 +179,8 @@ public class Edit
         final ServerPlayerEntity player = source.asPlayer();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.enterMessage = message;
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.enter.set", null, false,
-                message));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.enter.set", null, false, message),
+                Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -190,7 +191,8 @@ public class Edit
         final ServerPlayerEntity player = source.asPlayer();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.exitMessage = message;
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.exit.set", null, false, message));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.exit.set", null, false, message),
+                Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -201,7 +203,8 @@ public class Edit
         final ServerPlayerEntity player = source.asPlayer();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.denyMessage = message;
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.deny.set", null, false, message));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.deny.set", null, false, message),
+                Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -210,9 +213,9 @@ public class Edit
     {
         final ServerPlayerEntity player = source.asPlayer();
         final LandTeam landTeam = LandManager.getTeam(player);
-        landTeam.home = new Coordinate(player.getPosition(), player.dimension);
+        landTeam.team_home = CoordinateUtls.forMob(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.home.set", null, false,
-                landTeam.home));
+                landTeam.team_home), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -223,7 +226,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.protectFrames = !landTeam.protectFrames;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.frames.set", null, false,
-                landTeam.protectFrames));
+                landTeam.protectFrames), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -234,7 +237,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.reserved = !landTeam.reserved;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.reserve.set", null, false,
-                landTeam.reserved));
+                landTeam.reserved), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -245,7 +248,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.friendlyFire = !landTeam.friendlyFire;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.ff.set", null, false,
-                landTeam.friendlyFire));
+                landTeam.friendlyFire), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -256,7 +259,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noPlayerDamage = !landTeam.noPlayerDamage;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.noplayerdamage.set", null, false,
-                landTeam.noPlayerDamage));
+                landTeam.noPlayerDamage), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -267,7 +270,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noNPCDamage = !landTeam.noNPCDamage;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nonpcdamage.set", null, false,
-                landTeam.noNPCDamage));
+                landTeam.noNPCDamage), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -278,7 +281,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noMobSpawn = !landTeam.noMobSpawn;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nomobspawn.set", null, false,
-                landTeam.noMobSpawn));
+                landTeam.noMobSpawn), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -289,7 +292,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noExplosions = !landTeam.noExplosions;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nobooms.set", null, false,
-                landTeam.noExplosions));
+                landTeam.noExplosions), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -300,7 +303,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.anyBreak = !landTeam.anyBreak;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.anybreak.set", null, false,
-                landTeam.anyBreak));
+                landTeam.anyBreak), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -311,7 +314,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.fakePlayers = !landTeam.fakePlayers;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.fakeplayers.set", null, false,
-                landTeam.fakePlayers));
+                landTeam.fakePlayers), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -322,7 +325,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.anyPlace = !landTeam.anyPlace;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.anyplace.set", null, false,
-                landTeam.anyPlace));
+                landTeam.anyPlace), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -333,7 +336,7 @@ public class Edit
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.allPublic = !landTeam.allPublic;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.public.set", null, false,
-                landTeam.allPublic));
+                landTeam.allPublic), Util.DUMMY_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }

@@ -2,6 +2,7 @@ package thut.essentials.economy;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map.Entry;
 import java.util.UUID;
 
@@ -13,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
 import thut.essentials.economy.EconomyManager.Account;
@@ -39,8 +41,8 @@ public class EconomySaveHandler
     public static File getGlobalFolder()
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final String folder = server.getFolderName();
-        final File file = server.getActiveAnvilConverter().getFile(folder, "economy");
+        final Path path = server.func_240776_a_(new FolderName("economy"));
+        final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
         return file;
     }

@@ -2,12 +2,18 @@ package thut.essentials.util;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -29,12 +35,25 @@ public class HomeManager
         }
     }
 
-    public static int[] getHome(final ServerPlayerEntity player, String home)
+    public static GlobalPos getHome(final ServerPlayerEntity player, String home)
     {
         if (home == null) home = "Home";
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT homes = tag.getCompound("homes");
-        if (homes.contains(home)) return homes.getIntArray(home);
+        // Legacy home
+        if (homes.contains(home, 11))
+        {
+            final int[] pos = homes.getIntArray(home);
+            if (pos.length == 4)
+            {
+                final BlockPos b = new BlockPos(pos[0], pos[1], pos[2]);
+                final RegistryKey<World> dim = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(
+                        Essentials.config.legacyHomeDim));
+                return GlobalPos.getPosition(dim, b);
+            }
+            return null;
+        }
+        if (homes.contains(home)) return CoordinateUtls.fromNBT(homes.getCompound(home));
         return null;
     }
 
@@ -52,10 +71,10 @@ public class HomeManager
         if (!PermissionAPI.hasPermission(player, node)) return 2;
         // Already exists
         if (homes.contains(home)) return 3;
-        final int[] loc = new int[] { pos.getX(), pos.getY(), pos.getZ(), player.dimension.getId() };
-        homes.putIntArray(home, loc);
+        final GlobalPos loc = GlobalPos.getPosition(player.getEntityWorld().getDimensionKey(), pos);
+        homes.put(home, CoordinateUtls.toNBT(loc));
         tag.put("homes", homes);
-        player.sendMessage(new StringTextComponent("set " + home));
+        player.sendMessage(new StringTextComponent("set " + home), Util.DUMMY_UUID);
         PlayerDataHandler.saveCustomData(player);
         return 0;
     }
@@ -77,16 +96,15 @@ public class HomeManager
     {
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT homes = tag.getCompound("homes");
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.header"));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.header"), Util.DUMMY_UUID);
         for (String s : homes.keySet())
         {
-            final Style style = new Style();
+            final IFormattableTextComponent message = CommandManager.makeFormattedComponent(
+                    "thutessentials.homes.entry", null, false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
-            style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home " + s));
-            final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.entry", null,
-                    false, s);
-            player.sendMessage(message.setStyle(style));
+            final Style style = message.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home " + s));
+            player.sendMessage(message.setStyle(style), Util.DUMMY_UUID);
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.footer"));
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.footer"), Util.DUMMY_UUID);
     }
 }

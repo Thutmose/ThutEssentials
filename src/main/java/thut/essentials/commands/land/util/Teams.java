@@ -7,9 +7,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
@@ -51,15 +50,13 @@ public class Teams
             String emptyTip = "";
             final String lastSeenTip = "[" + (source.getServer().getServerTime() - team.lastSeen) / 1000 * 3600 + "h]";
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
-            final ITextComponent message = new StringTextComponent(TextFormatting.AQUA + "[" + TextFormatting.YELLOW + s
-                    + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
+            final IFormattableTextComponent message = new StringTextComponent(TextFormatting.AQUA + "["
+                    + TextFormatting.YELLOW + s + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
 
             final ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/team_members " + s);
-            final ITextComponent tooltip = Members.getMembers(source.getServer(), team, false);
+            final IFormattableTextComponent tooltip = Members.getMembers(source.getServer(), team, false);
             final HoverEvent event2 = new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
-            message.setStyle(new Style());
-            message.getStyle().setClickEvent(event);
-            message.getStyle().setHoverEvent(event2);
+            message.setStyle(message.getStyle().setClickEvent(event).setHoverEvent(event2));
             source.sendFeedback(message, false);
         }
         return 0;

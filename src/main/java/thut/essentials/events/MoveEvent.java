@@ -1,8 +1,9 @@
 package thut.essentials.events;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import thut.essentials.util.CoordinateUtls;
 
 /** Fired before the player is moved. */
 public class MoveEvent extends PlayerEvent
@@ -12,9 +13,8 @@ public class MoveEvent extends PlayerEvent
         super(player);
     }
 
-    public int[] getPos()
+    public GlobalPos getPos()
     {
-        final BlockPos pos = this.getPlayer().getPosition();
-        return new int[] { pos.getX(), pos.getY(), pos.getZ(), this.getPlayer().dimension.getId() };
+        return CoordinateUtls.forMob(this.getPlayer());
     }
 }

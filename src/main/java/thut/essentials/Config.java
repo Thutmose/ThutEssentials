@@ -18,11 +18,14 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.entity.EntityType;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.loading.FMLPaths;
 import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
@@ -110,6 +113,14 @@ public class Config extends ConfigData
             + "thutessentials.land.useblock.owned.other"
     //@formatter:on
     );
+    @Configure(category = Config.LAND)
+    public List<String> legacyDimMap      = Lists.newArrayList(
+    //@formatter:off
+            "1->overworld",
+            "-1->the_nether",
+            "-1->the_end"
+    //@formatter:on
+    );
 
     @Configure(category = Config.LAND)
     public boolean foodWhitelisted = true;
@@ -120,6 +131,9 @@ public class Config extends ConfigData
     public int homeActivateDelay = 50;
     @Configure(category = Config.HOME)
     public int homeReUseDelay    = 100;
+
+    @Configure(category = Config.HOME)
+    public String legacyHomeDim = "minecraft:overworld";
 
     @Configure(category = Config.HOME)
     public int kitReuseDelay = -1;
@@ -212,11 +226,11 @@ public class Config extends ConfigData
     public boolean pvpPerms = false;
 
     @Configure(category = Config.MISC)
-    public int  spawnDim           = 0;
+    public String spawnWorld         = "minecraft:overworld";
     @Configure(category = Config.MISC)
-    public int  spawnActivateDelay = 50;
+    public int    spawnActivateDelay = 50;
     @Configure(category = Config.MISC)
-    public long spawnReUseDelay    = 100;
+    public long   spawnReUseDelay    = 100;
 
     @Configure(category = Config.MISC)
     public double maxSpeed = 10;
@@ -243,7 +257,7 @@ public class Config extends ConfigData
     @Configure(category = Config.MOBS)
     public boolean mobGriefAllowUsesWhitelist = true;
 
-    public DimensionType spawnDimension = DimensionType.OVERWORLD;
+    public RegistryKey<World> spawnDimension = World.OVERWORLD;
 
     private final Path configpath;
 
@@ -255,7 +269,7 @@ public class Config extends ConfigData
 
     private final Map<String, String> lang_overrides_map = Maps.newHashMap();
 
-    public ITextComponent getMessage(final String key, final Object... args)
+    public IFormattableTextComponent getMessage(final String key, final Object... args)
     {
         if (this.lang_overrides_map.containsKey(key)) return new StringTextComponent(String.format(
                 this.lang_overrides_map.get(key), args));
@@ -275,7 +289,7 @@ public class Config extends ConfigData
     @Override
     public void onUpdated()
     {
-        this.spawnDimension = DimensionType.getById(this.spawnDim);
+        this.spawnDimension = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(this.spawnWorld));
 
         final File file = this.configpath.resolve(this.lang_file).toFile();
         if (file.exists()) try

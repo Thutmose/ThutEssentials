@@ -14,6 +14,11 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,7 +29,7 @@ import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
-import thut.essentials.util.Coordinate;
+import thut.essentials.util.CoordinateUtls;
 
 public class Deed
 {
@@ -38,13 +43,15 @@ public class Deed
         final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
         if (!PermissionAPI.hasPermission(player, Deed.CANREDEEMDEEDS))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
+                    Util.DUMMY_UUID);
             return;
         }
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
+                    Util.DUMMY_UUID);
             return;
         }
 
@@ -54,9 +61,9 @@ public class Deed
         for (int i = 0; i < num; i++)
         {
             final CompoundNBT tag = stack.getTag().getCompound("" + i);
-            final Coordinate c = new Coordinate(tag);
-            x = c.x;
-            z = c.z;
+            final GlobalPos c = CoordinateUtls.fromNBT(tag);
+            x = c.getPos().getX();
+            z = c.getPos().getZ();
             final int re = Claim.claim(c, player, team, false, PermissionAPI.hasPermission(player, Deed.BYPASSLIMIT));
             if (re == 0)
             {
@@ -65,7 +72,8 @@ public class Deed
             }
         }
         stack.getTag().putInt("num", num - n);
-        player.sendMessage(Essentials.config.getMessage("thutessentials.deed.claimed", n, team.teamName));
+        player.sendMessage(Essentials.config.getMessage("thutessentials.deed.claimed", n, team.teamName),
+                Util.DUMMY_UUID);
         if (n == num) stack.grow(-1);
         else stack.setDisplayName(Essentials.config.getMessage("thutessentials.deed.for", num - n, x << 4, z << 4));
     }
@@ -123,7 +131,8 @@ public class Deed
 
         if (!canUnclaimAnything && !team.hasRankPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"),
+                    Util.DUMMY_UUID);
             return 1;
         }
 
@@ -131,16 +140,16 @@ public class Deed
         final int y = player.getPosition().getY() >> 4;
         final int z = player.getPosition().getZ() >> 4;
 
-        final Set<Coordinate> deeds = Sets.newHashSet();
+        final Set<GlobalPos> deeds = Sets.newHashSet();
 
-        final int dim = player.dimension.getId();
+        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         boolean done = false;
         if (here)
         {
             final int ret = Deed.unclaim(x, y, z, player, team, true, canUnclaimAnything);
             if (ret == 0)
             {
-                final Coordinate chunk = new Coordinate(x, y, z, dim);
+                final GlobalPos chunk = GlobalPos.getPosition(dim, new BlockPos(x, y, z));
                 done = true;
                 deeds.add(chunk);
             }
@@ -158,7 +167,7 @@ public class Deed
                 final int check = Deed.unclaim(x, i, z, player, team, false, canUnclaimAnything);
                 if (check == 0)
                 {
-                    final Coordinate chunk = new Coordinate(x, i, z, dim);
+                    final GlobalPos chunk = GlobalPos.getPosition(dim, new BlockPos(x, y, z));
                     deeds.add(chunk);
                     done = true;
                     claimnum++;
@@ -166,11 +175,11 @@ public class Deed
                 else if (check == 3) owned_other++;
             }
             if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
-                    "thutessentials.unclaim.notallowed.notowner", owned_other));
+                    "thutessentials.unclaim.notallowed.notowner", owned_other), Util.DUMMY_UUID);
             if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
-                    team.teamName));
+                    team.teamName), Util.DUMMY_UUID);
             else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
-                    team.teamName));
+                    team.teamName), Util.DUMMY_UUID);
         }
 
         if (!deeds.isEmpty())
@@ -180,8 +189,8 @@ public class Deed
             deed.getTag().putInt("num", deeds.size());
             deed.getTag().putBoolean("isDeed", true);
             int i = 0;
-            for (final Coordinate c : deeds)
-                deed.getTag().put("" + i++, c.serializeNBT());
+            for (final GlobalPos c : deeds)
+                deed.getTag().put("" + i++, CoordinateUtls.toNBT(c));
             deed.setDisplayName(Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4, z << 4));
             if (!player.addItemStackToInventory(deed)) player.dropItem(deed, false);
         }
@@ -189,23 +198,25 @@ public class Deed
         return done ? 0 : 1;
     }
 
-    private static int unclaim(final Coordinate chunk, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final GlobalPos chunk, final PlayerEntity player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner == null)
         {
-            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"));
+            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
+                    Util.DUMMY_UUID);
             return 2;
         }
         else if (owner != team && !canUnclaimAnything)
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner",
-                    owner.teamName));
+                    owner.teamName), Util.DUMMY_UUID);
             return 3;
         }
         LandManager.getInstance().removeTeamLand(team.teamName, chunk);
-        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
+        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
+                Util.DUMMY_UUID);
         return 0;
     }
 
@@ -214,8 +225,8 @@ public class Deed
     {
         // TODO better bounds check to support say cubic chunks.
         if (y < 0 || y > 15) return 1;
-        final int dim = player.dimension.getId();
-        final Coordinate chunk = new Coordinate(x, y, z, dim);
+        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+        final GlobalPos chunk = GlobalPos.getPosition(dim, new BlockPos(x, y, z));
         return Deed.unclaim(chunk, player, team, messages, canUnclaimAnything);
     }
 }

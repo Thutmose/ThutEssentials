@@ -4,6 +4,7 @@ import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextComponent;
@@ -48,9 +49,11 @@ public class ChatManager
                 l = matcher.end();
                 if (k > j)
                 {
-                    final ITextComponent itextcomponent = new StringTextComponent(String.format(format.substring(j,
+                    final IFormattableTextComponent itextcomponent = new StringTextComponent(String.format(format
+                            .substring(
+                                    j,
                             k)));
-                    itextcomponent.getStyle().setParentStyle(comp.getStyle());
+                    itextcomponent.setStyle(comp.getStyle());
                     children.add(itextcomponent);
                 }
 
@@ -58,8 +61,8 @@ public class ChatManager
                 final String s = format.substring(k, l);
                 if ("%".equals(s2) && "%%".equals(s))
                 {
-                    final ITextComponent itextcomponent2 = new StringTextComponent("%");
-                    itextcomponent2.getStyle().setParentStyle(comp.getStyle());
+                    final IFormattableTextComponent itextcomponent2 = new StringTextComponent("%");
+                    itextcomponent2.setStyle(comp.getStyle());
                     children.add(itextcomponent2);
                 }
                 else
@@ -81,8 +84,9 @@ public class ChatManager
                 j = ChatManager.handle(comp, children, args, format);
             if (j < format.length())
             {
-                final ITextComponent itextcomponent1 = new StringTextComponent(String.format(format.substring(j)));
-                itextcomponent1.getStyle().setParentStyle(comp.getStyle());
+                final IFormattableTextComponent itextcomponent1 = new StringTextComponent(String.format(format
+                        .substring(j)));
+                itextcomponent1.setStyle(comp.getStyle());
                 children.add(itextcomponent1);
             }
 
@@ -104,12 +108,12 @@ public class ChatManager
         else
         {
             final Object object = args[index];
-            ITextComponent itextcomponent;
-            if (object instanceof ITextComponent) itextcomponent = (ITextComponent) object;
+            IFormattableTextComponent itextcomponent;
+            if (object instanceof IFormattableTextComponent) itextcomponent = (IFormattableTextComponent) object;
             else
             {
                 itextcomponent = new StringTextComponent(object == null ? "null" : object.toString());
-                itextcomponent.getStyle().setParentStyle(comp.getStyle());
+                itextcomponent.setStyle(comp.getStyle());
             }
             return itextcomponent;
         }
@@ -121,7 +125,7 @@ public class ChatManager
         try
         {
             final StringTextComponent component = new StringTextComponent(ForgeI18n.parseFormat(format, formatArgs));
-            component.getStyle().setParentStyle(parent.getStyle());
+            component.setStyle(parent.getStyle());
             children.add(component);
             return format.length();
         }

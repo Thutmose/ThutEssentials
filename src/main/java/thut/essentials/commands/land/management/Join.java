@@ -15,6 +15,7 @@ import net.minecraft.command.Commands;
 import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -112,7 +113,7 @@ public class Join
         {
             LandManager.getInstance().addToTeam(player.getUniqueID(), team);
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.joined", null, false,
-                    teamtojoin.teamName));
+                    teamtojoin.teamName), Util.DUMMY_UUID);
             return 0;
         }
         return 1;

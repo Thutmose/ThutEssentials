@@ -10,7 +10,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.GameProfileArgument;
-import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -19,7 +18,7 @@ import thut.essentials.util.NameManager;
 
 public class Nick
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher, final MinecraftServer server)
+    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
         final String name = "nick";
         String perm;
@@ -35,7 +34,7 @@ public class Nick
                                 "nick")))));
         // Actually register the command.
         commandDispatcher.register(command);
-        NameManager.init(server);
+        NameManager.init();
     }
 
     private static int execute(final CommandSource source, final Collection<GameProfile> target, String nick)

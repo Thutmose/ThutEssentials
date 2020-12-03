@@ -12,6 +12,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -71,13 +72,13 @@ public class Admins
         final LandTeam team = LandManager.getTeam(player);
         final String teamName = team.teamName;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.header", null, false,
-                teamName));
+                teamName), Util.DUMMY_UUID);
         final Collection<UUID> c = team.admin;
         for (final UUID o : c)
         {
             final GameProfile profile = CommandManager.getProfile(source.getServer(), o);
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.entry", null, false,
-                    profile.getName()));
+                    profile.getName()), Util.DUMMY_UUID);
         }
         return 0;
     }

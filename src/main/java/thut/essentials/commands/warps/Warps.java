@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -67,19 +68,19 @@ public class Warps
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.warping", null, false, warpName);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 2:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.noperms");
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 3:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists_use");
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         }
         return ret;

@@ -14,11 +14,13 @@ import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
 
@@ -66,18 +68,18 @@ public class TpAccept
         if (option.equals("accept"))
         {
             target.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.accepted_user",
-                    TextFormatting.GREEN, true));
+                    TextFormatting.GREEN, true), Util.DUMMY_UUID);
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.accepted_target",
-                    TextFormatting.GREEN, true));
-            PlayerMover.setMove(target, Essentials.config.tpaActivateDelay, player.dimension.getId(), player
-                    .getPosition(), null, PlayerMover.INTERUPTED);
+                    TextFormatting.GREEN, true), Util.DUMMY_UUID);
+            PlayerMover.setMove(target, Essentials.config.tpaActivateDelay, CoordinateUtls.forMob(player), null,
+                    PlayerMover.INTERUPTED);
         }
         else if (option.equals("deny"))
         {
             target.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.denied_user",
-                    TextFormatting.RED, true));
+                    TextFormatting.RED, true), Util.DUMMY_UUID);
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.denied_target",
-                    TextFormatting.RED, true));
+                    TextFormatting.RED, true), Util.DUMMY_UUID);
         }
         return 0;
     }

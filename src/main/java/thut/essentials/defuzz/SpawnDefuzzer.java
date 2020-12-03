@@ -8,6 +8,8 @@ import com.google.common.collect.Sets;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent;
@@ -27,10 +29,11 @@ public class SpawnDefuzzer
     {
         if (!Essentials.config.defuzz) return;
         if (!(event.getPlayer() instanceof ServerPlayerEntity)) return;
-        final BlockPos worldSpawn = event.getPlayer().getEntityWorld().getSpawnPoint();
-        final BlockPos playerSpawn = event.getPlayer().getBedLocation(event.getPlayer().dimension);
-        if (playerSpawn == null) PlayerMover.setMove(event.getPlayer(), 0, event.getPlayer().getEntityWorld()
-                .getDimension().getType().getId(), worldSpawn, null, null, false);
+        final ServerWorld world = event.getPlayer().getServer().getWorld(Essentials.config.spawnDimension);
+        final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
+        final BlockPos worldSpawn = world.getSpawnPoint();
+        if (!player.getBedPosition().isPresent()) PlayerMover.setMove(player, 0, GlobalPos.getPosition(
+                Essentials.config.spawnDimension, worldSpawn), null, null, false);
     }
 
     @SubscribeEvent
@@ -50,11 +53,11 @@ public class SpawnDefuzzer
                     .getValue(Stats.CUSTOM.get(Stats.FALL_ONE_CM)) + player.getStats().getValue(Stats.CUSTOM.get(
                             Stats.SWIM_ONE_CM));
             SpawnDefuzzer.logins.remove(evt.getEntity().getUniqueID());
-            final BlockPos worldSpawn = player.getEntityWorld().getSpawnPoint();
-            final BlockPos playerSpawn = player.getBedLocation(player.dimension);
+            final ServerWorld world = player.getServer().getWorld(Essentials.config.spawnDimension);
+            final BlockPos worldSpawn = world.getSpawnPoint();
             if (num > SpawnDefuzzer.DEFUZZSENS) return;
-            if (playerSpawn == null) PlayerMover.setMove(player, 0, player.getEntityWorld().getDimension().getType()
-                    .getId(), worldSpawn, null, null, false);
+            if (!player.getBedPosition().isPresent()) PlayerMover.setMove(player, 0, GlobalPos.getPosition(
+                    Essentials.config.spawnDimension, worldSpawn), null, null, false);
         }
     }
 

@@ -9,9 +9,10 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -73,34 +74,33 @@ public class Homes
         if (homeName == null) homeName = "Home";
 
         final ServerPlayerEntity player = source.asPlayer();
-        final int[] home = HomeManager.getHome(player, homeName);
+        final GlobalPos home = HomeManager.getHome(player, homeName);
         if (home == null)
         {
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null,
                     false, homeName);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             return 1;
         }
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("homeDelay");
-        final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.homeReUseDelay > 0)
         {
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             return 2;
         }
 
         ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.warping", null, false,
                 homeName);
-        player.sendMessage(message);
+        player.sendMessage(message, Util.DUMMY_UUID);
         message = CommandManager.makeFormattedComponent("thutessentials.homes.warped", null, false, homeName);
         tptag.putLong("homeDelay", time + Essentials.config.homeReUseDelay);
         tag.put("tp", tptag);
         PlayerDataHandler.saveCustomData(player);
-        PlayerMover.setMove(player, Essentials.config.homeActivateDelay, home[3], new BlockPos(home[0], home[1],
-                home[2]), message, PlayerMover.INTERUPTED);
+        PlayerMover.setMove(player, Essentials.config.homeActivateDelay, home, message, PlayerMover.INTERUPTED);
 
         return 0;
     }

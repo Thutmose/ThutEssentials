@@ -6,17 +6,18 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.block.BlockState;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
@@ -24,7 +25,6 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.util.Coordinate;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
 
@@ -49,17 +49,17 @@ public class Bed
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.asPlayer();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("bedDelay");
-        final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.bedReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
             return 1;
         }
-        final Coordinate spot = Bed.getBedSpot(player);
+        final GlobalPos spot = Bed.getBedSpot(player);
         if (spot != null)
         {
             final Predicate<Entity> callback = t ->
@@ -71,47 +71,43 @@ public class Bed
                 return true;
             };
             final ITextComponent teleMess = Essentials.config.getMessage("thutessentials.bed.succeed");
-            PlayerMover.setMove(player, Essentials.config.bedActivateDelay, spot.dim, new BlockPos(spot.x, spot.y,
-                    spot.z), teleMess, PlayerMover.INTERUPTED, callback, false);
+            PlayerMover.setMove(player, Essentials.config.bedActivateDelay, spot, teleMess, PlayerMover.INTERUPTED,
+                    callback, false);
             return 0;
         }
-        player.sendMessage(Essentials.config.getMessage("thutessentials.bed.nobed"));
+        player.sendMessage(Essentials.config.getMessage("thutessentials.bed.nobed"), Util.DUMMY_UUID);
         return 1;
     }
 
-    private static Coordinate getBedSpot(final PlayerEntity player)
+    private static GlobalPos getBedSpot(final ServerPlayerEntity player)
     {
-        DimensionType dim = player.dimension;
-        BlockPos bed = player.getBedLocation(dim);
-        if (bed == null) bed = player.getBedLocation(dim = player.getSpawnDimension());
-        if (bed == null) return null;
-        Coordinate spot = new Coordinate(bed.getX(), bed.getY(), bed.getZ(), dim.getId());
+        if (!player.getBedPosition().isPresent()) return null;
+        final GlobalPos pos = GlobalPos.getPosition(player.func_241141_L_(), player.getBedPosition().get());
+        GlobalPos spot = pos;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final ServerWorld world = server.getWorld(dim);
+        final ServerWorld world = server.getWorld(pos.getDimension());
         if (world == null) return null;
-        BlockPos check = new BlockPos(spot.x, spot.y, spot.z);
-        if (Bed.valid(check, world)) return spot;
+        final BlockPos check = pos.getPos();
+        if (Back.valid(check, world)) return spot;
         final int r = Essentials.config.backRangeCheck;
+        BlockPos test;
         for (int j = 0; j < r; j++)
             for (int i = 0; i < r; i++)
                 for (int k = 0; k < r; k++)
                 {
-                    spot = new Coordinate(bed.getX() + i, bed.getY() + j, bed.getZ() + k, dim.getId());
-                    check = new BlockPos(spot.x, spot.y, spot.z);
-                    if (Bed.valid(check, world)) return spot;
-                    spot = new Coordinate(bed.getX() - i, bed.getY() + j, bed.getZ() - k, dim.getId());
-                    check = new BlockPos(spot.x, spot.y, spot.z);
-                    if (Bed.valid(check, world)) return spot;
+                    test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() + k);
+                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    if (Back.valid(check, world)) return spot;
+                    test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() + k);
+                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    if (Back.valid(check, world)) return spot;
+                    test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() - k);
+                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    if (Back.valid(check, world)) return spot;
+                    test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() - k);
+                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    if (Back.valid(check, world)) return spot;
                 }
         return null;
-    }
-
-    private static boolean valid(final BlockPos pos, final World world)
-    {
-        final BlockState state1 = world.getBlockState(pos);
-        final BlockState state2 = world.getBlockState(pos.up());
-        final boolean valid1 = state1 == null || !state1.getMaterial().isSolid();
-        final boolean valid2 = state2 == null || !state2.getMaterial().isSolid();
-        return valid1 && valid2;
     }
 }

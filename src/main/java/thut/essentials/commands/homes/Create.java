@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -51,19 +52,19 @@ public class Create
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.added", null, false, homeName);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.toomany");
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 2:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.noperms");
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 3:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.exists", null, false, homeName);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         }
         return ret;

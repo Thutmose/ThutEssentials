@@ -5,12 +5,14 @@ import java.lang.reflect.Modifier;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.serialization.Dynamic;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.ServerPlayNetHandler;
@@ -28,12 +30,23 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.management.PlayerProfileCache;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.Util;
+import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.registry.DynamicRegistries.Impl;
+import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.DimensionType;
 import net.minecraft.world.GameRules;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeManager;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.WorldInfo;
+import net.minecraft.world.storage.IWorldInfo;
+import net.minecraft.world.storage.PlayerData;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import thut.essentials.Essentials;
 
 public class NameManager extends DedicatedPlayerList
@@ -69,11 +82,18 @@ public class NameManager extends DedicatedPlayerList
         }
     }
 
-    public static void init(final MinecraftServer server)
+    public static void serverStarting(final FMLServerStartingEvent event)
     {
+        final MinecraftServer server = event.getServer();
         if (!(server instanceof DedicatedServer)) return;
-        server.setPlayerList(new NameManager((DedicatedServer) server));
-        server.getPlayerList().func_212504_a(server.getWorld(DimensionType.OVERWORLD));
+        final DedicatedServer ded = (DedicatedServer) server;
+        server.setPlayerList(new NameManager(ded, (Impl) ded.func_244267_aX(), ded.playerDataManager));
+        server.getPlayerList().func_212504_a(server.getWorld(World.OVERWORLD));
+    }
+
+    public static void init()
+    {
+        MinecraftForge.EVENT_BUS.addListener(NameManager::serverStarting);
     }
 
     public static void onLogin(final ServerPlayerEntity player, final MinecraftServer server)
@@ -100,144 +120,134 @@ public class NameManager extends DedicatedPlayerList
         {
             NameManager.setName(name, player.getGameProfile());
             PlayerDataHandler.getCustomDataTag(player).putString("nick", name);
-            if (!PlayerDataHandler.getCustomDataTag(player).contains("nick_orig"))
-                PlayerDataHandler.getCustomDataTag(player).putString("nick_orig", name);
+            if (!PlayerDataHandler.getCustomDataTag(player).contains("nick_orig")) PlayerDataHandler.getCustomDataTag(
+                    player).putString("nick_orig", name);
             PlayerDataHandler.saveCustomData(player);
-            server.getPlayerList().sendPacketToAllPlayers(
-                    new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
+            server.getPlayerList().sendPacketToAllPlayers(new SPlayerListItemPacket(
+                    SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
         }
         else NameManager.setName(name, profile);
     }
 
-    public NameManager(final DedicatedServer p_i1503_1_)
+    public NameManager(final DedicatedServer server, final DynamicRegistries.Impl reg, final PlayerData data)
     {
-        super(p_i1503_1_);
+        super(server, reg, data);
     }
 
     @Override
     public void initializeConnectionToPlayer(final NetworkManager netManager, final ServerPlayerEntity playerIn)
     {
-        GameProfile gameprofile = playerIn.getGameProfile();
-        PlayerProfileCache playerprofilecache = this.getServer().getPlayerProfileCache();
+        final GameProfile gameprofile = playerIn.getGameProfile();
+        final PlayerProfileCache playerprofilecache = this.getServer().getPlayerProfileCache();
 
         NameManager.onLogin(playerIn, this.getServer());
 
-        GameProfile gameprofile1 = playerprofilecache.getProfileByUUID(gameprofile.getId());
-        String s = gameprofile1 == null ? gameprofile.getName() : gameprofile1.getName();
+        final GameProfile gameprofile1 = playerprofilecache.getProfileByUUID(gameprofile.getId());
+        final String s = gameprofile1 == null ? gameprofile.getName() : gameprofile1.getName();
         playerprofilecache.addEntry(gameprofile);
-        CompoundNBT compoundnbt = this.readPlayerDataFromFile(playerIn);
-        ServerWorld serverworld = this.getServer().getWorld(playerIn.dimension);
-
-        // Forge: Make sure the dimension hasn't been deleted, if so stick them
-        // in the overworld.
+        final CompoundNBT compoundnbt = this.readPlayerDataFromFile(playerIn);
+        @SuppressWarnings("deprecation")
+        final RegistryKey<World> registrykey = compoundnbt != null ? DimensionType.decodeWorldKey(new Dynamic<>(
+                NBTDynamicOps.INSTANCE, compoundnbt.get("Dimension"))).resultOrPartial(
+                        DedicatedPlayerList.LOGGER::error).orElse(World.OVERWORLD) : World.OVERWORLD;
+        final ServerWorld serverworld = this.server.getWorld(registrykey);
+        ServerWorld serverworld1;
         if (serverworld == null)
         {
-            playerIn.dimension = DimensionType.OVERWORLD;
-            serverworld = this.getServer().getWorld(playerIn.dimension);
-            playerIn.setPosition(serverworld.getWorldInfo().getSpawnX(), serverworld.getWorldInfo().getSpawnY(),
-                    serverworld.getWorldInfo().getSpawnZ());
+            DedicatedPlayerList.LOGGER.warn("Unknown respawn dimension {}, defaulting to overworld", registrykey);
+            serverworld1 = this.server.func_241755_D_();
         }
+        else serverworld1 = serverworld;
 
-        playerIn.setWorld(serverworld);
+        playerIn.setWorld(serverworld1);
         playerIn.interactionManager.setWorld((ServerWorld) playerIn.world);
         String s1 = "local";
-        if (netManager.getRemoteAddress() != null)
-        {
-            s1 = netManager.getRemoteAddress().toString();
-        }
+        if (netManager.getRemoteAddress() != null) s1 = netManager.getRemoteAddress().toString();
 
-        Essentials.LOGGER.info("{}[{}] logged in with entity id {} at ({}, {}, {})", playerIn.getName().getString(), s1,
-                playerIn.getEntityId(), playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ());
-        WorldInfo worldinfo = serverworld.getWorldInfo();
-        this.setPlayerGameTypeBasedOnOther(playerIn, (ServerPlayerEntity) null, serverworld);
-        ServerPlayNetHandler serverplaynethandler = new ServerPlayNetHandler(this.getServer(), netManager, playerIn);
+        DedicatedPlayerList.LOGGER.info("{}[{}] logged in with entity id {} at ({}, {}, {})", playerIn.getName()
+                .getString(), s1, playerIn.getEntityId(), playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ());
+        final IWorldInfo iworldinfo = serverworld1.getWorldInfo();
+        this.setPlayerGameTypeBasedOnOther(playerIn, (ServerPlayerEntity) null, serverworld1);
+        final ServerPlayNetHandler serverplaynethandler = new ServerPlayNetHandler(this.server, netManager, playerIn);
         net.minecraftforge.fml.network.NetworkHooks.sendMCRegistryPackets(netManager, "PLAY_TO_CLIENT");
-        net.minecraftforge.fml.network.NetworkHooks.sendDimensionDataPacket(netManager, playerIn);
-        GameRules gamerules = serverworld.getGameRules();
-        boolean flag = gamerules.getBoolean(GameRules.DO_IMMEDIATE_RESPAWN);
-        boolean flag1 = gamerules.getBoolean(GameRules.REDUCED_DEBUG_INFO);
-        serverplaynethandler.sendPacket(new SJoinGamePacket(playerIn.getEntityId(),
-                playerIn.interactionManager.getGameType(), WorldInfo.byHashing(worldinfo.getSeed()),
-                worldinfo.isHardcore(), serverworld.dimension.getType(), this.getMaxPlayers(), worldinfo.getGenerator(),
-                this.getViewDistance(), flag1, !flag));
-        serverplaynethandler.sendPacket(new SCustomPayloadPlayPacket(SCustomPayloadPlayPacket.BRAND,
-                (new PacketBuffer(Unpooled.buffer())).writeString(this.getServer().getServerModName())));
-        serverplaynethandler
-                .sendPacket(new SServerDifficultyPacket(worldinfo.getDifficulty(), worldinfo.isDifficultyLocked()));
+        final GameRules gamerules = serverworld1.getGameRules();
+        final boolean flag = gamerules.getBoolean(GameRules.DO_IMMEDIATE_RESPAWN);
+        final boolean flag1 = gamerules.getBoolean(GameRules.REDUCED_DEBUG_INFO);
+        serverplaynethandler.sendPacket(new SJoinGamePacket(playerIn.getEntityId(), playerIn.interactionManager
+                .getGameType(), playerIn.interactionManager.func_241815_c_(), BiomeManager.getHashedSeed(serverworld1
+                        .getSeed()), iworldinfo.isHardcore(), this.server.func_240770_D_(), this.field_232639_s_,
+                serverworld1.getDimensionType(), serverworld1.getDimensionKey(), this.getMaxPlayers(), this
+                        .getViewDistance(), flag1, !flag, serverworld1.isDebug(), serverworld1.func_241109_A_()));
+        serverplaynethandler.sendPacket(new SCustomPayloadPlayPacket(SCustomPayloadPlayPacket.BRAND, new PacketBuffer(
+                Unpooled.buffer()).writeString(this.getServer().getServerModName())));
+        serverplaynethandler.sendPacket(new SServerDifficultyPacket(iworldinfo.getDifficulty(), iworldinfo
+                .isDifficultyLocked()));
         serverplaynethandler.sendPacket(new SPlayerAbilitiesPacket(playerIn.abilities));
         serverplaynethandler.sendPacket(new SHeldItemChangePacket(playerIn.inventory.currentItem));
-        serverplaynethandler.sendPacket(new SUpdateRecipesPacket(this.getServer().getRecipeManager().getRecipes()));
-        serverplaynethandler.sendPacket(new STagsListPacket(this.getServer().getNetworkTagManager()));
+        serverplaynethandler.sendPacket(new SUpdateRecipesPacket(this.server.getRecipeManager().getRecipes()));
+        serverplaynethandler.sendPacket(new STagsListPacket(this.server.func_244266_aF()));
+        net.minecraftforge.fml.network.NetworkHooks.syncCustomTagTypes(playerIn, this.server.func_244266_aF());
         this.updatePermissionLevel(playerIn);
         playerIn.getStats().markAllDirty();
         playerIn.getRecipeBook().init(playerIn);
-        this.sendScoreboard(serverworld.getScoreboard(), playerIn);
-        this.getServer().refreshStatusNextTick();
-        ITextComponent itextcomponent;
-        if (playerIn.getGameProfile().getName().equalsIgnoreCase(s)) itextcomponent = Essentials.config.getMessage(
-                "multiplayer.player.joined", playerIn.getDisplayName());
-        else itextcomponent = Essentials.config.getMessage("multiplayer.player.joined.renamed", playerIn
+        this.sendScoreboard(serverworld1.getScoreboard(), playerIn);
+        this.server.refreshStatusNextTick();
+        IFormattableTextComponent iformattabletextcomponent;
+        if (playerIn.getGameProfile().getName().equalsIgnoreCase(s))
+            iformattabletextcomponent = new TranslationTextComponent("multiplayer.player.joined", playerIn
+                    .getDisplayName());
+        else iformattabletextcomponent = new TranslationTextComponent("multiplayer.player.joined.renamed", playerIn
                 .getDisplayName(), s);
 
-        this.sendMessage(itextcomponent.applyTextStyle(TextFormatting.YELLOW));
+        this.func_232641_a_(iformattabletextcomponent.mergeStyle(TextFormatting.YELLOW), ChatType.SYSTEM,
+                Util.DUMMY_UUID);
         serverplaynethandler.setPlayerLocation(playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ(),
                 playerIn.rotationYaw, playerIn.rotationPitch);
         this.addPlayer(playerIn);
         this.uuidToPlayerMap.put(playerIn.getUniqueID(), playerIn);
         this.sendPacketToAllPlayers(new SPlayerListItemPacket(SPlayerListItemPacket.Action.ADD_PLAYER, playerIn));
 
-        for (final ServerPlayerEntity element : this.getPlayers())
+        for (final ServerPlayerEntity element : this.players)
             playerIn.connection.sendPacket(new SPlayerListItemPacket(SPlayerListItemPacket.Action.ADD_PLAYER, element));
 
-        serverworld.addNewPlayer(playerIn);
-        this.getServer().getCustomBossEvents().onPlayerLogin(playerIn);
-        this.sendWorldInfo(playerIn, serverworld);
-        if (!this.getServer().getResourcePackUrl().isEmpty())
-        {
-            playerIn.loadResourcePack(this.getServer().getResourcePackUrl(), this.getServer().getResourcePackHash());
-        }
+        serverworld1.addNewPlayer(playerIn);
+        this.server.getCustomBossEvents().onPlayerLogin(playerIn);
+        this.sendWorldInfo(playerIn, serverworld1);
+        if (!this.server.getResourcePackUrl().isEmpty()) playerIn.loadResourcePack(this.server.getResourcePackUrl(),
+                this.server.getResourcePackHash());
 
-        for (EffectInstance effectinstance : playerIn.getActivePotionEffects())
-        {
+        for (final EffectInstance effectinstance : playerIn.getActivePotionEffects())
             serverplaynethandler.sendPacket(new SPlayEntityEffectPacket(playerIn.getEntityId(), effectinstance));
-        }
 
         if (compoundnbt != null && compoundnbt.contains("RootVehicle", 10))
         {
-            CompoundNBT compoundnbt1 = compoundnbt.getCompound("RootVehicle");
-            final ServerWorld worldf = serverworld;
-            Entity entity1 = EntityType.func_220335_a(compoundnbt1.getCompound("Entity"), serverworld, (p_217885_1_) ->
+            final CompoundNBT compoundnbt1 = compoundnbt.getCompound("RootVehicle");
+            final Entity entity1 = EntityType.loadEntityAndExecute(compoundnbt1.getCompound("Entity"), serverworld1, (
+                    p_217885_1_) ->
             {
-                return !worldf.summonEntity(p_217885_1_) ? null : p_217885_1_;
+                return !serverworld1.summonEntity(p_217885_1_) ? null : p_217885_1_;
             });
             if (entity1 != null)
             {
-                UUID uuid = compoundnbt1.getUniqueId("Attach");
-                if (entity1.getUniqueID().equals(uuid))
-                {
-                    playerIn.startRiding(entity1, true);
-                }
-                else
-                {
-                    for (Entity entity : entity1.getRecursivePassengers())
+                UUID uuid;
+                if (compoundnbt1.hasUniqueId("Attach")) uuid = compoundnbt1.getUniqueId("Attach");
+                else uuid = null;
+
+                if (entity1.getUniqueID().equals(uuid)) playerIn.startRiding(entity1, true);
+                else for (final Entity entity : entity1.getRecursivePassengers())
+                    if (entity.getUniqueID().equals(uuid))
                     {
-                        if (entity.getUniqueID().equals(uuid))
-                        {
-                            playerIn.startRiding(entity, true);
-                            break;
-                        }
+                        playerIn.startRiding(entity, true);
+                        break;
                     }
-                }
 
                 if (!playerIn.isPassenger())
                 {
-                    Essentials.LOGGER.warn("Couldn't reattach entity to player");
-                    serverworld.removeEntity(entity1);
+                    DedicatedPlayerList.LOGGER.warn("Couldn't reattach entity to player");
+                    serverworld1.removeEntity(entity1);
 
-                    for (Entity entity2 : entity1.getRecursivePassengers())
-                    {
-                        serverworld.removeEntity(entity2);
-                    }
+                    for (final Entity entity2 : entity1.getRecursivePassengers())
+                        serverworld1.removeEntity(entity2);
                 }
             }
         }

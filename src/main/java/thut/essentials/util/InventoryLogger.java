@@ -14,6 +14,7 @@ import net.minecraft.inventory.container.IContainerListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.INameable;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
@@ -52,17 +53,18 @@ public class InventoryLogger
                 final IInventory inventory = containerToSend.getSlot(slotInd).inventory;
                 String invName = inventory.toString();
                 if (inventory instanceof INameable && ((INameable) inventory).getName() != null)
-                    invName = ((INameable) inventory).getName().getFormattedText();
+                    invName = ((INameable) inventory).getName().getString();
                 if (oldStack.isEmpty() && !stack.isEmpty()) Essentials.LOGGER.trace("slot_place " + containerToSend
-                        .getClass() + " " + stack + " " + stack.getDisplayName().getFormattedText() + ", " + invName
-                        + " " + this.player.getUniqueID() + " " + this.player.getName().getFormattedText());
+                        .getClass() + " " + stack + " " + stack.getDisplayName().getString() + ", " + invName + " "
+                        + this.player.getUniqueID() + " " + this.player.getName().getString());
                 else if (stack.isEmpty() && !oldStack.isEmpty()) Essentials.LOGGER.trace("slot_take " + containerToSend
-                        .getClass() + " " + oldStack + " " + oldStack.getDisplayName().getFormattedText() + ", "
-                        + invName + " " + this.player.getUniqueID() + " " + this.player.getName().getFormattedText());
+                        .getClass() + " " + oldStack + " " + oldStack.getDisplayName().getString() + ", "
+                        + invName
+                        + " " + this.player.getUniqueID() + " " + this.player.getName().getString());
                 else Essentials.LOGGER.trace("slot_swap " + containerToSend.getClass() + " " + stack + " " + stack
-                        .getDisplayName() + " <-> " + oldStack + " " + oldStack.getDisplayName().getFormattedText()
-                        + ", " + invName + " " + this.player.getUniqueID() + " " + this.player.getName()
-                                .getFormattedText());
+                        .getDisplayName() + " <-> " + oldStack + " " + oldStack.getDisplayName().getString()
+                        + ", "
+                        + invName + " " + this.player.getUniqueID() + " " + this.player.getName().getString());
                 this.initialList.set(slotInd, stack);
             }
             catch (final Exception e)
@@ -99,28 +101,25 @@ public class InventoryLogger
     @SubscribeEvent
     public static void PlayerLoggedInEvent(final PlayerLoggedInEvent event)
     {
-        final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(event.getPlayer().getPosition(), event
-                .getPlayer().dimension.getId());
+        final GlobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
         Essentials.LOGGER.trace(c + " log-in " + event.getPlayer().getUniqueID() + " " + event.getPlayer().getName()
-                .getFormattedText());
+                .getString());
     }
 
     @SubscribeEvent
     public static void PlayerLoggedOutEvent(final PlayerLoggedOutEvent event)
     {
-        final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(event.getPlayer().getPosition(), event
-                .getPlayer().dimension.getId());
+        final GlobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
         Essentials.LOGGER.trace(c + " log-out " + event.getPlayer().getUniqueID() + " " + event.getPlayer().getName()
-                .getFormattedText());
+                .getString());
     }
 
     @SubscribeEvent
     public static void openInventory(final PlayerContainerEvent.Open event)
     {
-        final Coordinate c = Coordinate.getChunkCoordFromWorldCoord(event.getPlayer().getPosition(), event
-                .getPlayer().dimension.getId());
+        final GlobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
         Essentials.LOGGER.trace(c + " open " + event.getContainer().getClass() + " " + event.getPlayer().getUniqueID()
-                + " " + event.getPlayer().getName().getFormattedText());
+                + " " + event.getPlayer().getName().getString());
         if (!InventoryLogger.blacklist.contains(event.getContainer().getClass().getName())) event.getContainer()
                 .addListener(new Listener(event.getPlayer(), event.getContainer()));
     }

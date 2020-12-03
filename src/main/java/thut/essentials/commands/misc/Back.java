@@ -14,10 +14,11 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -29,7 +30,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.MoveEvent;
-import thut.essentials.util.Coordinate;
+import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
 
@@ -39,7 +40,7 @@ public class Back
     public static void move(final MoveEvent event)
     {
         if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntityLiving()
-                .getCachedUniqueIdString()).putIntArray("prevPos", event.getPos());
+                .getCachedUniqueIdString()).put("backPos", CoordinateUtls.toNBT(event.getPos()));
     }
 
     @SubscribeEvent
@@ -47,11 +48,8 @@ public class Back
     {
         if (event.getEntityLiving() instanceof ServerPlayerEntity && Essentials.config.back_on_death)
         {
-            final BlockPos pos = event.getEntityLiving().getPosition();
-            final int[] loc = new int[] { pos.getX(), pos.getY(), pos.getZ(), event.getEntityLiving().dimension
-                    .getId() };
-            PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getCachedUniqueIdString()).putIntArray("prevPos",
-                    loc);
+            final CompoundNBT tag = CoordinateUtls.toNBT(CoordinateUtls.forMob(event.getEntityLiving()));
+            PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getCachedUniqueIdString()).put("backPos", tag);
             PlayerDataHandler.saveCustomData(event.getEntityLiving().getCachedUniqueIdString());
         }
     }
@@ -85,20 +83,19 @@ public class Back
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("backDelay");
-        final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.backReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
             return 1;
         }
-        if (tag.contains("prevPos"))
+        if (tag.contains("backPos"))
         {
-            final int[] pos = tag.getIntArray("prevPos");
-            final Coordinate spot = Back.getBackSpot(pos);
+            final GlobalPos spot = Back.getBackSpot(CoordinateUtls.fromNBT(tag.getCompound("backPos")));
             if (spot == null)
             {
 
-                player.sendMessage(Essentials.config.getMessage("thutessentials.back.noroom"));
+                player.sendMessage(Essentials.config.getMessage("thutessentials.back.noroom"), Util.DUMMY_UUID);
                 return 1;
 
             }
@@ -112,38 +109,45 @@ public class Back
                 return true;
             };
             final ITextComponent teleMess = Essentials.config.getMessage("thutessentials.back.succeed");
-            PlayerMover.setMove(player, Essentials.config.backActivateDelay, spot.dim, new BlockPos(spot.x, spot.y,
-                    spot.z), teleMess, PlayerMover.INTERUPTED, callback, false);
+            PlayerMover.setMove(player, Essentials.config.backActivateDelay, spot, teleMess, PlayerMover.INTERUPTED,
+                    callback, false);
             return 0;
         }
-        player.sendMessage(Essentials.config.getMessage("thutessentials.back.noback"));
+        player.sendMessage(Essentials.config.getMessage("thutessentials.back.noback"), Util.DUMMY_UUID);
         return 1;
     }
 
-    private static Coordinate getBackSpot(final int[] pos)
+    private static GlobalPos getBackSpot(final GlobalPos pos)
     {
-        Coordinate spot = new Coordinate(pos[0], pos[1], pos[2], pos[3]);
+        GlobalPos spot = pos;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final ServerWorld world = server.getWorld(DimensionType.getById(pos[3]));
+        final ServerWorld world = server.getWorld(pos.getDimension());
         if (world == null) return null;
-        BlockPos check = new BlockPos(spot.x, spot.y, spot.z);
+        final BlockPos check = spot.getPos();
         if (Back.valid(check, world)) return spot;
         final int r = Essentials.config.backRangeCheck;
+        BlockPos test;
         for (int j = 0; j < r; j++)
             for (int i = 0; i < r; i++)
                 for (int k = 0; k < r; k++)
                 {
-                    spot = new Coordinate(pos[0] + i, pos[1] + j, pos[2] + k, pos[3]);
-                    check = new BlockPos(spot.x, spot.y, spot.z);
+                    test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() + k);
+                    spot = GlobalPos.getPosition(pos.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
-                    spot = new Coordinate(pos[0] - i, pos[1] + j, pos[2] - k, pos[3]);
-                    check = new BlockPos(spot.x, spot.y, spot.z);
+                    test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() + k);
+                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    if (Back.valid(check, world)) return spot;
+                    test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() - k);
+                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    if (Back.valid(check, world)) return spot;
+                    test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() - k);
+                    spot = GlobalPos.getPosition(pos.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                 }
         return null;
     }
 
-    private static boolean valid(final BlockPos pos, final World world)
+    static boolean valid(final BlockPos pos, final World world)
     {
         final BlockState state1 = world.getBlockState(pos);
         final BlockState state2 = world.getBlockState(pos.up());

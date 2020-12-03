@@ -15,13 +15,44 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
 import thut.essentials.Essentials;
-import thut.essentials.util.Coordinate;
 
 public class LandManager
 {
+    public static class Coordinate
+    {
+        private static final Map<Integer, RegistryKey<World>> _oldDim = Maps.newHashMap();
+
+        public int x;
+        public int y;
+        public int z;
+        public int dim;
+
+        public static RegistryKey<World> fromOld(final int dim2)
+        {
+            if (Coordinate._oldDim.isEmpty()) for (final String var : Essentials.config.legacyDimMap)
+                try
+                {
+                    final String[] args = var.split("->");
+                    final Integer i = Integer.parseInt(args[0]);
+                    final RegistryKey<World> dim = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(
+                            args[1]));
+                    Coordinate._oldDim.put(i, dim);
+                }
+                catch (final NumberFormatException e)
+                {
+                    Essentials.LOGGER.error("Error parsing dimension map for {}", var);
+                }
+            return Coordinate._oldDim.get(dim2);
+        }
+    }
 
     /** Stores a list of invited to team names. */
     public static class Invites
@@ -103,12 +134,15 @@ public class LandManager
         /** Maps of rank name to rank, this is what is actually stored. */
         public Map<String, PlayerRank> rankMap        = Maps.newHashMap();
         /** List of public blocks for the team. */
-        public Set<Coordinate>         anyUse         = Sets.newHashSet();
+        public Set<GlobalPos>          public_use     = Sets.newHashSet();
         /** List of public blocks for the team. TODO implement this. */
-        public Set<Coordinate>         anyBreakSet    = Sets.newHashSet();
+        public Set<GlobalPos>          public_break   = Sets.newHashSet();
         /** List of public blocks for the team. TODO implement this. */
-        public Set<Coordinate>         anyPlaceSet    = Sets.newHashSet();
+        public Set<GlobalPos>          public_place   = Sets.newHashSet();
         /** Home coordinate for the team, used for thome command. */
+        public GlobalPos               team_home;
+        /** Deprecated for further save compat. */
+        @Deprecated
         public Coordinate              home;
         /** Message sent on exiting team land. */
         public String                  exitMessage    = "";
@@ -236,9 +270,9 @@ public class LandManager
          * @param player
          * @return
          */
-        public boolean canBreakBlock(final UUID player, final Coordinate location)
+        public boolean canBreakBlock(final UUID player, final GlobalPos location)
         {
-            if (this.anyBreak || this.anyBreakSet.contains(location)) return true;
+            if (this.anyBreak || this.public_break.contains(location)) return true;
             final LandTeam team = LandManager.getTeam(player);
             final Relation relation = this.relations.get(team.teamName);
             if (relation != null) return relation.perms.contains(LandTeam.BREAK);
@@ -252,9 +286,9 @@ public class LandManager
          * @param player
          * @return
          */
-        public boolean canPlaceBlock(final UUID player, final Coordinate location)
+        public boolean canPlaceBlock(final UUID player, final GlobalPos location)
         {
-            if (this.anyPlace || this.anyPlaceSet.contains(location)) return true;
+            if (this.anyPlace || this.public_place.contains(location)) return true;
             final LandTeam team = LandManager.getTeam(player);
             final Relation relation = this.relations.get(team.teamName);
             if (relation != null) return relation.perms.contains(LandTeam.PLACE);
@@ -268,9 +302,9 @@ public class LandManager
          * @param player
          * @return
          */
-        public boolean canUseStuff(final UUID player, final Coordinate location)
+        public boolean canUseStuff(final UUID player, final GlobalPos location)
         {
-            if (this.allPublic || this.anyUse.contains(location)) return true;
+            if (this.allPublic || this.public_use.contains(location)) return true;
             final LandTeam team = LandManager.getTeam(player);
             final Relation relation = this.relations.get(team.teamName);
             if (relation != null) return relation.perms.contains(LandTeam.PUBLIC);
@@ -319,29 +353,31 @@ public class LandManager
 
     public static class TeamLand
     {
-        public HashSet<Coordinate> land   = Sets.newHashSet();
-        public HashSet<Coordinate> forced = Sets.newHashSet();
+        public Set<GlobalPos> claims = Sets.newHashSet();
+        public Set<GlobalPos> loaded = Sets.newHashSet();
 
-        public boolean addLand(final Coordinate land)
+        public HashSet<Coordinate> land = Sets.newHashSet();
+
+        public boolean addLand(final GlobalPos land)
         {
-            return this.land.add(land);
+            return this.claims.add(land);
         }
 
         public int countLand()
         {
-            return this.land.size();
+            return this.claims.size();
         }
 
-        public boolean removeLand(final Coordinate land)
+        public boolean removeLand(final GlobalPos land)
         {
-            this.forced.remove(land);
-            return this.land.remove(land);
+            this.loaded.remove(land);
+            return this.claims.remove(land);
         }
 
-        public HashSet<Coordinate> getLoaded()
+        public Set<GlobalPos> getLoaded()
         {
-            if (this.forced == null) this.forced = Sets.newHashSet();
-            return this.forced;
+            if (this.loaded == null) this.loaded = Sets.newHashSet();
+            return this.loaded;
         }
     }
 
@@ -399,18 +435,18 @@ public class LandManager
         return wilds;
     }
 
-    public static boolean owns(final Entity player, final Coordinate chunk)
+    public static boolean owns(final Entity player, final GlobalPos chunk)
     {
         return LandManager.getTeam(player).equals(LandManager.getInstance().getLandOwner(chunk));
     }
 
-    public Map<String, LandTeam>        _teamMap        = Maps.newConcurrentMap();
-    protected Map<Coordinate, LandTeam> _landMap        = Maps.newConcurrentMap();
-    protected Map<UUID, LandTeam>       _playerTeams    = Maps.newConcurrentMap();
-    protected Map<UUID, Invites>        invites         = Maps.newHashMap();
-    protected Map<UUID, LandTeam>       _protected_mobs = Maps.newConcurrentMap();
-    protected Map<UUID, LandTeam>       _public_mobs    = Maps.newConcurrentMap();
-    public int                          version         = LandManager.VERSION;
+    public Map<String, LandTeam>       _teamMap        = Maps.newConcurrentMap();
+    protected Map<GlobalPos, LandTeam> _landMap        = Maps.newConcurrentMap();
+    protected Map<UUID, LandTeam>      _playerTeams    = Maps.newConcurrentMap();
+    protected Map<UUID, Invites>       invites         = Maps.newHashMap();
+    protected Map<UUID, LandTeam>      _protected_mobs = Maps.newConcurrentMap();
+    protected Map<UUID, LandTeam>      _public_mobs    = Maps.newConcurrentMap();
+    public int                         version         = LandManager.VERSION;
 
     LandManager()
     {
@@ -464,7 +500,7 @@ public class LandManager
         final LandTeam team = this._teamMap.remove(teamName);
         final LandTeam _default = LandManager.getDefaultTeam();
         if (team == _default) return;
-        for (final Coordinate c : team.land.land)
+        for (final GlobalPos c : team.land.claims)
             this._landMap.remove(c);
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         for (final UUID id : team.member)
@@ -490,7 +526,7 @@ public class LandManager
         LandSaveHandler.deleteTeam(teamName);
     }
 
-    public void addTeamLand(final String team, final Coordinate land, final boolean sync)
+    public void addTeamLand(final String team, final GlobalPos land, final boolean sync)
     {
         final LandTeam t = this._teamMap.get(team);
         if (t == null)
@@ -577,7 +613,7 @@ public class LandManager
         return Lists.newArrayList(invite.teams);
     }
 
-    public LandTeam getLandOwner(final Coordinate land)
+    public LandTeam getLandOwner(final GlobalPos land)
     {
         final LandTeam owner = this._landMap.get(land);
         if (owner == null) return LandManager.getWildTeam();
@@ -595,11 +631,11 @@ public class LandManager
         return team;
     }
 
-    public List<Coordinate> getTeamLand(final String team)
+    public List<GlobalPos> getTeamLand(final String team)
     {
-        final ArrayList<Coordinate> ret = new ArrayList<>();
+        final ArrayList<GlobalPos> ret = new ArrayList<>();
         final LandTeam t = this._teamMap.get(team);
-        if (t != null) ret.addAll(t.land.land);
+        if (t != null) ret.addAll(t.land.claims);
         return ret;
     }
 
@@ -632,14 +668,14 @@ public class LandManager
         return team.isAdmin(member);
     }
 
-    public boolean isOwned(final Coordinate land)
+    public boolean isOwned(final GlobalPos land)
     {
         return this._landMap.containsKey(land);
     }
 
-    public boolean isPublic(final Coordinate c, final LandTeam team)
+    public boolean isPublic(final GlobalPos c, final LandTeam team)
     {
-        return team.allPublic || team.anyUse.contains(c);
+        return team.allPublic || team.public_use.contains(c);
     }
 
     public void removeAdmin(final UUID member, final String teamName)
@@ -663,7 +699,7 @@ public class LandManager
         this.addToTeam(member, LandManager.getDefaultTeam().teamName);
     }
 
-    public void removeTeamLand(final String team, final Coordinate land)
+    public void removeTeamLand(final String team, final GlobalPos land)
     {
         final LandTeam t = this._teamMap.get(team);
         if (t != null && t.land.removeLand(land))
@@ -676,19 +712,19 @@ public class LandManager
         }
     }
 
-    public void setPublic(final Coordinate c, final LandTeam owner)
+    public void setPublic(final GlobalPos c, final LandTeam owner)
     {
-        owner.anyUse.add(c);
+        owner.public_use.add(c);
         LandSaveHandler.saveTeam(owner.teamName);
     }
 
-    public void unsetPublic(final Coordinate c, final LandTeam owner)
+    public void unsetPublic(final GlobalPos c, final LandTeam owner)
     {
-        if (!owner.anyUse.remove(c)) return;
+        if (!owner.public_use.remove(c)) return;
         LandSaveHandler.saveTeam(owner.teamName);
     }
 
-    public boolean loadLand(final Coordinate chunk, final LandTeam team)
+    public boolean loadLand(final GlobalPos chunk, final LandTeam team)
     {
         if (LandEventsHandler.ChunkLoadHandler.addChunks(chunk))
         {
@@ -699,7 +735,7 @@ public class LandManager
         return false;
     }
 
-    public boolean unLoadLand(final Coordinate chunk, final LandTeam team)
+    public boolean unLoadLand(final GlobalPos chunk, final LandTeam team)
     {
         if (LandEventsHandler.ChunkLoadHandler.removeChunks(chunk))
         {

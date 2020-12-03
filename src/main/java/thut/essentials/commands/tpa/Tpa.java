@@ -10,10 +10,11 @@ import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -44,19 +45,19 @@ public class Tpa
             throws CommandSyntaxException
     {
         final PlayerEntity player = source.asPlayer();
-        if (!Essentials.config.tpaCrossDim && target.dimension != player.dimension)
+        if (!Essentials.config.tpaCrossDim && target.getEntityWorld() != player.getEntityWorld())
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.wrongdim"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.wrongdim"), Util.DUMMY_UUID);
             return 1;
         }
         CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         CompoundNBT tpaTag = tag.getCompound("tpa");
 
         final long last = tag.getLong("tpaDelay");
-        final long time = player.getServer().getWorld(DimensionType.OVERWORLD).getGameTime();
+        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.tpaReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"));
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
             return 1;
         }
         tpaTag.putLong("tpaDelay", time + Essentials.config.tpaReUseDelay);
@@ -67,23 +68,23 @@ public class Tpa
         tpaTag = tag.getCompound("tpa");
         if (tpaTag.getBoolean("ignore")) return 1;
 
-        final ITextComponent header = player.getDisplayName().appendSibling(CommandManager.makeFormattedComponent(
-                "thutessentials.tpa.requested"));
-        target.sendMessage(header);
+        final IFormattableTextComponent header = ((IFormattableTextComponent) player.getDisplayName()).append(
+                CommandManager.makeFormattedComponent("thutessentials.tpa.requested"));
+        target.sendMessage(header, Util.DUMMY_UUID);
 
-        ITextComponent tpMessage;
+        IFormattableTextComponent tpMessage;
         final String tpaccept = "tpaccept";
-        final ITextComponent accept = CommandManager.makeFormattedCommandLink("thutessentials.tpa.accept", "/"
-                + tpaccept + " " + player.getCachedUniqueIdString() + " accept");
-        final ITextComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny", "/" + tpaccept
-                + " " + player.getCachedUniqueIdString() + " deny");
-        tpMessage = accept.appendSibling(new StringTextComponent("      /      ")).appendSibling(deny);
-        target.sendMessage(tpMessage);
+        final IFormattableTextComponent accept = CommandManager.makeFormattedCommandLink("thutessentials.tpa.accept",
+                "/" + tpaccept + " " + player.getCachedUniqueIdString() + " accept");
+        final IFormattableTextComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny", "/"
+                + tpaccept + " " + player.getCachedUniqueIdString() + " deny");
+        tpMessage = accept.append(new StringTextComponent("      /      ")).append(deny);
+        target.sendMessage(tpMessage, Util.DUMMY_UUID);
         tpaTag.putString("R", player.getCachedUniqueIdString());
         tag.put("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(target);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.requestsent",
-                TextFormatting.DARK_GREEN, true, target.getDisplayName()));
+                TextFormatting.DARK_GREEN, true, target.getDisplayName()), Util.DUMMY_UUID);
         return 0;
     }
 }

@@ -13,6 +13,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -69,11 +70,11 @@ public class Delete
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.removed", null, false, homeName);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null, false, homeName);
-            player.sendMessage(message);
+            player.sendMessage(message, Util.DUMMY_UUID);
             break;
         }
         return ret;

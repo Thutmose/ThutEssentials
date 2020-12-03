@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.appender.FileAppender;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ExtensionPoint;
@@ -94,8 +95,13 @@ public class Essentials
         if (Essentials.config.shopsEnabled) EconomyManager.getInstance();
         LandEventsHandler.TEAMMANAGER.registerPerms();
         LandEventsHandler.ChunkLoadHandler.server = event.getServer();
-        CommandManager.register_commands(event.getCommandDispatcher(), event.getServer());
         Essentials.LOGGER.info("Server Started");
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void registerServerCommands(final RegisterCommandsEvent event)
+    {
+        CommandManager.register_commands(event.getDispatcher());
     }
 
     @SubscribeEvent

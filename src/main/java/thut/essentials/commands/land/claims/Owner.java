@@ -7,14 +7,18 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
-import thut.essentials.util.Coordinate;
 
 public class Owner
 {
@@ -42,12 +46,13 @@ public class Owner
         final int y = MathHelper.floor(player.getPosition().getY() >> 4);
         final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
         if (y < 0 || y > 15) return 1;
-        final int dim = player.dimension.getId();
-        final Coordinate chunk = new Coordinate(x, y, z, dim);
+        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+        final BlockPos b = new BlockPos(x, y, z);
+        final GlobalPos chunk = GlobalPos.getPosition(dim, b);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (owner != null) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.ownedby",
-                owner.teamName));
-        else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unowned"));
+                owner.teamName), Util.DUMMY_UUID);
+        else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unowned"), Util.DUMMY_UUID);
         return 0;
     }
 }

@@ -94,8 +94,8 @@ public class MobManager
     @SubscribeEvent
     public static void checkSpawns(final PotentialSpawns evt)
     {
-        evt.getList().removeIf(e -> MobManager.spawnBlacklist.contains(e.entityType.getRegistryName()));
+        evt.getList().removeIf(e -> MobManager.spawnBlacklist.contains(e.type.getRegistryName()));
         if (Essentials.config.mobSpawnUsesWhitelist) evt.getList().removeIf(e -> !MobManager.spawnWhitelist.contains(
-                e.entityType.getRegistryName()));
+                e.type.getRegistryName()));
     }
 }

@@ -12,7 +12,7 @@ import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -123,7 +123,7 @@ public class Kits
         }
 
         final long kitTime = PlayerDataHandler.getCustomDataTag(player).getLong(kitTag);
-        if (delay <= 0 && kitTime != 0 || server.getWorld(DimensionType.OVERWORLD).getGameTime() < kitTime)
+        if (delay <= 0 && kitTime != 0 || server.getWorld(World.OVERWORLD).getGameTime() < kitTime)
         {
             Essentials.config.sendError(source, "thutessentials.kits.too_soon");
             return 1;
@@ -131,8 +131,8 @@ public class Kits
         for (final ItemStack stack : stacks)
         {
             EconomyManager.giveItem(player, stack.copy());
-            PlayerDataHandler.getCustomDataTag(player).putLong(kitTag, server.getWorld(DimensionType.OVERWORLD)
-                    .getGameTime() + delay);
+            PlayerDataHandler.getCustomDataTag(player).putLong(kitTag, server.getWorld(World.OVERWORLD).getGameTime()
+                    + delay);
             PlayerDataHandler.saveCustomData(player);
         }
         return 0;
