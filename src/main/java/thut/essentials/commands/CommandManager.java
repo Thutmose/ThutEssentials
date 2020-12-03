@@ -162,6 +162,8 @@ public class CommandManager
         thut.essentials.commands.land.claims.Deed.register(commandDispatcher);
         thut.essentials.commands.land.claims.Load.register(commandDispatcher);
         thut.essentials.commands.land.claims.Unload.register(commandDispatcher);
+
+        thut.essentials.commands.util.Fly.register(commandDispatcher);
     }
 
     public static IFormattableTextComponent makeFormattedCommandLink(final String text, final String command,

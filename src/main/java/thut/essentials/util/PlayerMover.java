@@ -119,8 +119,9 @@ public class PlayerMover
                 mover.move();
                 PlayerMover.toMove.remove(tick.getEntity().getUniqueID());
             }
-            else if (diff.distanceSq(Vector3i.NULL_VECTOR) > 0.0 && mover.moveTime > 0)
+            else if (diff.distanceSq(Vector3i.NULL_VECTOR) > 1 && mover.moveTime > 0)
             {
+                System.out.println(diff.distanceSq(Vector3i.NULL_VECTOR));
                 if (mover.failMess != null) tick.getEntity().sendMessage(mover.failMess, Util.DUMMY_UUID);
                 PlayerMover.toMove.remove(tick.getEntity().getUniqueID());
                 return;

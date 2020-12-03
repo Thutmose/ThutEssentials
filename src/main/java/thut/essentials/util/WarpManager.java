@@ -50,7 +50,17 @@ public class WarpManager
         WarpManager.warpLocs = Maps.newHashMap();
         for (final String s : Essentials.config.warps)
         {
+            if (!s.contains("->"))
+            {
+                Essentials.LOGGER.error("Error in loading warp for {}", s);
+                continue;
+            }
             final String[] args = s.split("->");
+            if (args.length != 2)
+            {
+                Essentials.LOGGER.error("Error in loading warp for {}", s);
+                continue;
+            }
             final GlobalPos warp = CoordinateUtls.fromString(args[1]);
             if (warp != null) WarpManager.warpLocs.put(args[0], warp);
         }
@@ -76,7 +86,12 @@ public class WarpManager
         final List<String> warps = Lists.newArrayList(Essentials.config.warps);
         for (final String s : warps)
         {
-            final String[] args = s.split(":");
+            final String[] args = s.split("->");
+            if (args.length != 2)
+            {
+                Essentials.LOGGER.error("Error with warp {}", s);
+                continue;
+            }
             if (args[0].equals(name)) return 1;
         }
         warps.removeIf(s ->
@@ -84,7 +99,7 @@ public class WarpManager
             if (!s.contains("->")) return true;
             return CoordinateUtls.fromString(s) == null;
         });
-        final String warp = name + ":" + CoordinateUtls.toString(pos);
+        final String warp = name + "->" + CoordinateUtls.toString(pos);
         warps.add(warp);
         WarpManager.warpLocs.put(name, pos);
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
@@ -101,7 +116,7 @@ public class WarpManager
         final List<String> warps = Lists.newArrayList(Essentials.config.warps);
         for (final String s : warps)
         {
-            final String[] args = s.split(":");
+            final String[] args = s.split("->");
             if (args[0].equals(name))
             {
                 warps.remove(s);
@@ -126,7 +141,12 @@ public class WarpManager
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.header"), Util.DUMMY_UUID);
         for (String s : Essentials.config.warps)
         {
-            final String[] args = s.split(":");
+            final String[] args = s.split("->");
+            if (args.length != 2)
+            {
+                Essentials.LOGGER.error("Error with warp {}", s);
+                continue;
+            }
             s = args[0];
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
             final IFormattableTextComponent message = CommandManager.makeFormattedComponent(

@@ -79,7 +79,7 @@ public class Warps
             player.sendMessage(message, Util.DUMMY_UUID);
             break;
         case 3:
-            message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists_use");
+            message = CommandManager.makeFormattedComponent("thutessentials.warps.noexists_use");
             player.sendMessage(message, Util.DUMMY_UUID);
             break;
         }
