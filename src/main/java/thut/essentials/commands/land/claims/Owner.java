@@ -49,9 +49,7 @@ public class Owner
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         final BlockPos b = new BlockPos(x, y, z);
         final KGobalPos chunk = KGobalPos.getPosition(dim, b);
-        Essentials.config.debug = true;
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        Essentials.config.debug = false;
 
         if (!LandManager.isWild(owner)) player.sendMessage(Essentials.config.getMessage(
                 "thutessentials.claim.ownedby",

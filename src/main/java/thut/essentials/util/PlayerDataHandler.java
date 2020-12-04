@@ -193,7 +193,7 @@ public class PlayerDataHandler
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         Path path = server.func_240776_a_(new FolderName("thutessentials"));
         // This is to the uuid specific folder
-        path = path.resolve("uuid");
+        path = path.resolve(uuid);
         final File dir = path.toFile();
         // and this if the file itself
         path = path.resolve(fileName + ".dat");
