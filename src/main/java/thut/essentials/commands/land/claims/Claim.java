@@ -17,7 +17,6 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,6 +29,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.ClaimLandEvent;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.CoordinateUtls;
@@ -99,9 +99,9 @@ public class Claim
         BlockPos old;
         here = new BlockPos(player.chasingPosX, player.chasingPosY, player.chasingPosZ);
         old = new BlockPos(player.prevChasingPosX, player.prevChasingPosY, player.prevChasingPosZ);
-        final GlobalPos newChunk = CoordinateUtls.chunkPos(GlobalPos.getPosition(player.getEntityWorld()
+        final KGobalPos newChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(player.getEntityWorld()
                 .getDimensionKey(), here));
-        final GlobalPos oldChunk = CoordinateUtls.chunkPos(GlobalPos.getPosition(player.getEntityWorld()
+        final KGobalPos oldChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(player.getEntityWorld()
                 .getDimensionKey(), old));
         if (newChunk.equals(oldChunk)) return;
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
@@ -205,18 +205,18 @@ public class Claim
     public static int claim(final int x, final int y, final int z, final RegistryKey<World> dim,
             final PlayerEntity player, final LandTeam team, final boolean messages, final boolean noLimit)
     {
-        final GlobalPos chunk = GlobalPos.getPosition(dim, new BlockPos(x, y, z));
+        final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
         return Claim.claim(chunk, player, team, messages, noLimit);
     }
 
-    public static int claim(final GlobalPos chunk, final PlayerEntity player,
+    public static int claim(final KGobalPos chunk, final PlayerEntity player,
             final LandTeam team,
             final boolean messages, final boolean noLimit)
     {
         // TODO better bounds check to support say cubic chunks.
         if (chunk.getPos().getY() < 0 || chunk.getPos().getY() > 15) return 1;
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        if (owner != null)
+        if (!LandManager.isWild(owner))
         {
             if (messages) player.sendMessage(Essentials.config.getMessage(
                     "thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName), Util.DUMMY_UUID);

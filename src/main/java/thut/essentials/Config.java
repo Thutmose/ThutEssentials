@@ -116,9 +116,9 @@ public class Config extends ConfigData
     @Configure(category = Config.LAND)
     public List<String> legacyDimMap      = Lists.newArrayList(
     //@formatter:off
-            "1->overworld",
+            "0->overworld",
             "-1->the_nether",
-            "-1->the_end"
+            "1->the_end"
     //@formatter:on
     );
 
@@ -131,9 +131,6 @@ public class Config extends ConfigData
     public int homeActivateDelay = 50;
     @Configure(category = Config.HOME)
     public int homeReUseDelay    = 100;
-
-    @Configure(category = Config.HOME)
-    public String legacyHomeDim = "minecraft:overworld";
 
     @Configure(category = Config.HOME)
     public int kitReuseDelay = -1;
@@ -219,6 +216,8 @@ public class Config extends ConfigData
     public boolean debug             = false;
     @Configure(category = Config.MISC)
     public boolean defuzz            = true;
+    @Configure(category = Config.MISC)
+    public String  defuzzKey         = "";
     @Configure(category = Config.MISC)
     public boolean comandDisableSpam = true;
 

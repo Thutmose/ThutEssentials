@@ -17,7 +17,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.Heightmap.Type;
@@ -26,6 +25,7 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
 
@@ -62,7 +62,7 @@ public class RTP
             player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
             return 1;
         }
-        final GlobalPos spot = RTP.getRTPSpot(player);
+        final KGobalPos spot = RTP.getRTPSpot(player);
         if (spot != null)
         {
             final Predicate<Entity> callback = t ->
@@ -82,7 +82,7 @@ public class RTP
         return 1;
     }
 
-    private static GlobalPos getRTPSpot(final ServerPlayerEntity player)
+    private static KGobalPos getRTPSpot(final ServerPlayerEntity player)
     {
         final ServerWorld world = (ServerWorld) player.getEntityWorld();
         final Random rand = new Random();
@@ -102,7 +102,7 @@ public class RTP
         // Find the height at that location
         final int y = world.getHeight(Type.MOTION_BLOCKING, x, z);
         final RegistryKey<World> dim = world.getDimensionKey();
-        GlobalPos spot = GlobalPos.getPosition(dim, new BlockPos(x, y + 1, z));
+        KGobalPos spot = KGobalPos.getPosition(dim, new BlockPos(x, y + 1, z));
         final BlockPos check = spot.getPos();
 
         if (RTP.valid(check, world)) return spot;
@@ -113,16 +113,16 @@ public class RTP
                 for (int k = 0; k < r; k++)
                 {
                     test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() + k);
-                    spot = GlobalPos.getPosition(spot.getDimension(), test);
+                    spot = KGobalPos.getPosition(spot.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                     test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() + k);
-                    spot = GlobalPos.getPosition(spot.getDimension(), test);
+                    spot = KGobalPos.getPosition(spot.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                     test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() - k);
-                    spot = GlobalPos.getPosition(spot.getDimension(), test);
+                    spot = KGobalPos.getPosition(spot.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                     test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() - k);
-                    spot = GlobalPos.getPosition(spot.getDimension(), test);
+                    spot = KGobalPos.getPosition(spot.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                 }
         return null;

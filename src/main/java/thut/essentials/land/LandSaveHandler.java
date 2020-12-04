@@ -19,13 +19,13 @@ import com.google.gson.GsonBuilder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
 import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.Coordinate;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 
 public class LandSaveHandler
@@ -141,17 +141,21 @@ public class LandSaveHandler
                 team.init(server);
 
                 // Here we convert over the old land to the new format.
-                final List<GlobalPos> toAdd = Lists.newArrayList(team.land.claims);
-                for (final Coordinate old : team.land.land)
+                final List<KGobalPos> toAdd = Lists.newArrayList(team.land.claims);
+                final List<Coordinate> oldList = Lists.newArrayList(team.land.land);
+                for (final Coordinate old : oldList)
                 {
                     final BlockPos b = new BlockPos(old.x, old.y, old.z);
                     final RegistryKey<World> dim = Coordinate.fromOld(old.dim);
-                    if (dim != null) toAdd.add(GlobalPos.getPosition(dim, b));
+                    if (dim != null)
+                    {
+                        toAdd.add(KGobalPos.getPosition(dim, b));
+                        team.land.land.remove(old);
+                    }
+                    else Essentials.LOGGER.debug("Did not find claim! " + old.dim);
                 }
-                team.land.land.clear();
-
                 if (Essentials.config.debug) Essentials.LOGGER.info("Processing " + team.teamName);
-                for (final GlobalPos land : toAdd)
+                for (final KGobalPos land : toAdd)
                     LandManager.getInstance().addTeamLand(team.teamName, land, false);
             }
             catch (final Exception e)

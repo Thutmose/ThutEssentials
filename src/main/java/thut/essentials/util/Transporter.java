@@ -4,14 +4,12 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
@@ -24,6 +22,7 @@ import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import thut.essentials.land.LandManager.KGobalPos;
 
 public class Transporter
 {
@@ -209,12 +208,12 @@ public class Transporter
             final Vector3 loc = Vector3.readFromNBT(nbt, "v");
             final String name = nbt.getString("name");
             final int index = nbt.getInt("i");
-            GlobalPos pos = null;
-            pos = GlobalPos.CODEC.decode(NBTDynamicOps.INSTANCE, nbt.get("pos")).result().get().getFirst();
+            KGobalPos pos = null;
+            pos = CoordinateUtls.fromNBT(nbt.getCompound("pos"));
             return new TeleDest().setLoc(pos, loc).setPos(pos).setName(name).setIndex(index);
         }
 
-        public GlobalPos loc;
+        public KGobalPos loc;
 
         private Vector3 subLoc;
 
@@ -226,7 +225,7 @@ public class Transporter
         {
         }
 
-        public TeleDest setLoc(final GlobalPos loc, final Vector3 subLoc)
+        public TeleDest setLoc(final KGobalPos loc, final Vector3 subLoc)
         {
             this.loc = loc;
             this.subLoc = subLoc;
@@ -234,7 +233,7 @@ public class Transporter
             return this;
         }
 
-        public TeleDest setPos(final GlobalPos pos)
+        public TeleDest setPos(final KGobalPos pos)
         {
             if (pos != null)
             {
@@ -246,7 +245,7 @@ public class Transporter
             return this;
         }
 
-        public GlobalPos getPos()
+        public KGobalPos getPos()
         {
             return this.loc;
         }
@@ -276,7 +275,7 @@ public class Transporter
         public void writeToNBT(final CompoundNBT nbt)
         {
             this.subLoc.writeToNBT(nbt, "v");
-            nbt.put("pos", GlobalPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, this.loc).get().left().get());
+            nbt.put("pos", CoordinateUtls.toNBT(this.loc));
             nbt.putString("name", this.name);
             nbt.putInt("i", this.index);
         }

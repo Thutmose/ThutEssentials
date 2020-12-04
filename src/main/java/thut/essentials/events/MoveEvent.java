@@ -1,8 +1,8 @@
 package thut.essentials.events;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.CoordinateUtls;
 
 /** Fired before the player is moved. */
@@ -13,7 +13,7 @@ public class MoveEvent extends PlayerEvent
         super(player);
     }
 
-    public GlobalPos getPos()
+    public KGobalPos getPos()
     {
         return CoordinateUtls.forMob(this.getPlayer());
     }

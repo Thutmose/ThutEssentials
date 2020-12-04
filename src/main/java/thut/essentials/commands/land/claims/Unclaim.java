@@ -13,7 +13,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -23,6 +22,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.UnclaimLandEvent;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
 
@@ -84,8 +84,8 @@ public class Unclaim
 
         if (all)
         {
-            final List<GlobalPos> allLand = Lists.newArrayList(team.land.claims);
-            for (final GlobalPos c : allLand)
+            final List<KGobalPos> allLand = Lists.newArrayList(team.land.claims);
+            for (final KGobalPos c : allLand)
                 Unclaim.unclaim(c, player, team, false, canUnclaimAnything);
             player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", allLand.size(),
                     team.teamName), Util.DUMMY_UUID);
@@ -125,11 +125,11 @@ public class Unclaim
         return done ? 0 : 1;
     }
 
-    private static int unclaim(final GlobalPos chunk, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final KGobalPos chunk, final PlayerEntity player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        if (owner == null)
+        if (LandManager.isWild(owner))
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
                     Util.DUMMY_UUID);
@@ -156,7 +156,7 @@ public class Unclaim
         if (y < 0 || y > 15) return 1;
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         final BlockPos b = new BlockPos(x, y, z);
-        final GlobalPos chunk = GlobalPos.getPosition(dim, b);
+        final KGobalPos chunk = KGobalPos.getPosition(dim, b);
         return Unclaim.unclaim(chunk, player, team, messages, canUnclaimAnything);
     }
 }

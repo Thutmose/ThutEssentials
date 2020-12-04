@@ -34,7 +34,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -73,6 +72,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.DenyItemUseEvent;
 import thut.essentials.events.DenyItemUseEvent.UseType;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.ItemList;
@@ -176,9 +176,9 @@ public class LandEventsHandler
             if (LandEventsHandler.blockPlaceWhiteList.contains(evt.getWorld().getBlockState(evt.getPos()).getBlock()
                     .getRegistryName())) return;
             // Block coordinate
-            final GlobalPos b = GlobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
+            final KGobalPos b = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
             // Chunk Coordinate
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam team = LandManager.getInstance().getLandOwner(c);
 
             // Check permission for breaking wilderness, then return.
@@ -235,9 +235,9 @@ public class LandEventsHandler
                 if (LandEventsHandler.blockBreakWhiteList.contains(evt.getWorld().getBlockState(evt.getPos()).getBlock()
                         .getRegistryName())) return;
                 // Block coordinate
-                final GlobalPos b = GlobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
+                final KGobalPos b = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
                 // Chunk Coordinate
-                final GlobalPos c = CoordinateUtls.chunkPos(b);
+                final KGobalPos c = CoordinateUtls.chunkPos(b);
                 final LandTeam team = LandManager.getInstance().getLandOwner(c);
 
                 // Check permission for breaking wilderness, then return.
@@ -281,9 +281,9 @@ public class LandEventsHandler
             if (evt.getEntity().getEntityWorld().isRemote) return;
             if (!Essentials.config.landEnabled) return;
             // Block coordinate
-            final GlobalPos b = GlobalPos.getPosition(evt.getEntity().getEntityWorld().getDimensionKey(), evt.getPos());
+            final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getEntityWorld().getDimensionKey(), evt.getPos());
             // Chunk Coordinate
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final Entity trampler = evt.getEntity();
             final LandTeam team = LandManager.getInstance().getLandOwner(c);
             if (team == null) return;
@@ -306,10 +306,10 @@ public class LandEventsHandler
             if (!evt.isCanceled() && Essentials.config.log_interactions)
             {
                 // Block coordinate
-                final GlobalPos b = GlobalPos.getPosition(evt.getEntity().getEntityWorld().getDimensionKey(), evt
+                final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getEntityWorld().getDimensionKey(), evt
                         .getPos());
                 // Chunk Coordinate
-                final GlobalPos c = CoordinateUtls.chunkPos(b);
+                final KGobalPos c = CoordinateUtls.chunkPos(b);
                 Essentials.LOGGER.trace(c + " place " + evt.getPos() + " " + evt.getPlacedAgainst() + " " + evt
                         .getPlacedBlock() + " " + evt.getEntity().getUniqueID() + " " + evt.getEntity().getName()
                                 .getString());
@@ -326,10 +326,10 @@ public class LandEventsHandler
             if (!evt.isCanceled() && Essentials.config.log_interactions)
             {
                 // Block coordinate
-                final GlobalPos b = GlobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt
+                final KGobalPos b = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt
                         .getPos());
                 // Chunk Coordinate
-                final GlobalPos c = CoordinateUtls.chunkPos(b);
+                final KGobalPos c = CoordinateUtls.chunkPos(b);
                 Essentials.LOGGER.trace(c + " break " + evt.getPos() + " " + evt.getState() + " " + evt.getPlayer()
                         .getUniqueID() + " " + evt.getPlayer().getName().getString());
             }
@@ -354,10 +354,10 @@ public class LandEventsHandler
             else if (Essentials.config.log_interactions)
             {
                 // Block coordinate
-                final GlobalPos b = GlobalPos.getPosition(event.getPlayer().getEntityWorld().getDimensionKey(), evt
+                final KGobalPos b = KGobalPos.getPosition(event.getPlayer().getEntityWorld().getDimensionKey(), evt
                         .getPos());
                 // Chunk Coordinate
-                final GlobalPos c = CoordinateUtls.chunkPos(b);
+                final KGobalPos c = CoordinateUtls.chunkPos(b);
                 Essentials.LOGGER.trace(c + " bucket " + evt.getPos() + " " + player.getUniqueID() + " " + player
                         .getName().getString() + " " + event.getFilledBucket() + " " + event.getEmptyBucket());
             }
@@ -370,7 +370,7 @@ public class LandEventsHandler
 
         private boolean canTakeDamage(final Entity in, final LandTeam land_owner)
         {
-            if (land_owner == null)
+            if (LandManager.isWild(land_owner))
             {
                 if (in != null && LandEventsHandler.invuln.contains(in.getType().getRegistryName())) return false;
                 return true;
@@ -397,14 +397,14 @@ public class LandEventsHandler
                 {
                     x = player.chunkCoordX + dx;
                     z = player.chunkCoordZ + dz;
-                    GlobalPos c = GlobalPos.getPosition(dim, new BlockPos(x, 0, z));
+                    KGobalPos c = KGobalPos.getPosition(dim, new BlockPos(x, 0, z));
                     y = player.chunkCoordY;
                     final boolean cl = ChunkLoadHandler.allLoaded.contains(c);
 
                     for (int dy = -3; dy <= 3; dy++)
                     {
                         y = player.chunkCoordY + dy;
-                        c = GlobalPos.getPosition(dim, new BlockPos(x, y, z));
+                        c = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
 
                         if (cl)
                         {
@@ -503,15 +503,19 @@ public class LandEventsHandler
                 if (old.equals(here)) return;
 
                 final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
-                final GlobalPos newChunk = CoordinateUtls.chunkPos(GlobalPos.getPosition(dim, here));
-                final GlobalPos oldChunk = CoordinateUtls.chunkPos(GlobalPos.getPosition(dim, old));
-                final boolean isNewOwned = LandManager.getInstance().isOwned(newChunk);
+                final KGobalPos newChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(dim, here));
+                final KGobalPos oldChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(dim, old));
+                final LandTeam team = LandManager.getInstance().getLandOwner(newChunk);
+
+                final boolean isWild = team == LandManager.getWildTeam();
+
+                final boolean isNewOwned = !isWild && LandManager.getInstance().isOwned(newChunk);
                 final boolean isOldOwned = LandManager.getInstance().isOwned(oldChunk);
 
                 final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
                 final CompoundNBT entry_log = tag.getCompound("last_entered_chunk");
                 BlockPos entry_point = old;
-                GlobalPos last_chunk = oldChunk;
+                KGobalPos last_chunk = oldChunk;
 
                 if (!(isNewOwned || isOldOwned))
                 {
@@ -524,7 +528,6 @@ public class LandEventsHandler
                 }
                 else
                 {
-                    final LandTeam team = LandManager.getInstance().getLandOwner(newChunk);
                     final LandTeam team1 = LandManager.getInstance().getLandOwner(oldChunk);
 
                     if (!entry_log.isEmpty())
@@ -578,7 +581,7 @@ public class LandEventsHandler
 
                     messages:
                     {
-                        if (team != null)
+                        if (team != null && !isWild)
                         {
                             if (team.equals(team1)) break messages;
                             if (team1 != null)
@@ -619,8 +622,8 @@ public class LandEventsHandler
         {
             if (evt.getEntity().getEntityWorld().isRemote) return;
             if (!Essentials.config.landEnabled) return;
-            final GlobalPos b = CoordinateUtls.forMob(evt.getTarget());
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos b = CoordinateUtls.forMob(evt.getTarget());
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
             if (!this.canTakeDamage(evt.getTarget(), owner))
@@ -630,7 +633,7 @@ public class LandEventsHandler
             }
 
             // TODO possible perms for attacking things in unclaimed land?
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
 
             final PlayerEntity attacker = evt.getPlayer();
 
@@ -660,10 +663,10 @@ public class LandEventsHandler
             if (!Essentials.config.landEnabled) return;
             if (!Essentials.config.noMobGriefing) return;
             if (MobManager.isWhitelistedForGriefing(evt.getEntity())) return;
-            final GlobalPos b = CoordinateUtls.forMob(evt.getEntity());
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos b = CoordinateUtls.forMob(evt.getEntity());
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
             // Check if the team allows fakeplayers
             if (owner.fakePlayers && evt.getEntity() instanceof FakePlayer) return;
             evt.setResult(Result.DENY);
@@ -674,8 +677,8 @@ public class LandEventsHandler
         {
             if (evt.getEntity().getEntityWorld().isRemote) return;
             if (!Essentials.config.landEnabled) return;
-            final GlobalPos b = CoordinateUtls.forMob(evt.getEntity());
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos b = CoordinateUtls.forMob(evt.getEntity());
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
             if (!this.canTakeDamage(evt.getEntity(), owner))
@@ -685,7 +688,7 @@ public class LandEventsHandler
             }
 
             // TODO maybe add a perm for combat in non-claimed land?
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
 
             if (evt.getEntity() instanceof PlayerEntity)
             {
@@ -725,8 +728,8 @@ public class LandEventsHandler
 
             final Entity target = hit.getEntity();
 
-            final GlobalPos b = CoordinateUtls.forMob(target);
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos b = CoordinateUtls.forMob(target);
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
 
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
@@ -737,7 +740,7 @@ public class LandEventsHandler
             }
 
             // TODO maybe add a perm for combat in non-claimed land?
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
 
             // check if entity is protected by team
             if (owner.protected_mobs.contains(target.getUniqueID()))
@@ -753,8 +756,8 @@ public class LandEventsHandler
         {
             if (evt.getEntity().getEntityWorld().isRemote) return;
             if (!Essentials.config.landEnabled) return;
-            final GlobalPos b = CoordinateUtls.forMob(evt.getEntity());
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos b = CoordinateUtls.forMob(evt.getEntity());
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
 
             if (!this.canTakeDamage(evt.getEntity(), owner))
@@ -764,7 +767,7 @@ public class LandEventsHandler
             }
 
             // TODO maybe add a perm for combat in non-claimed land?
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
 
             // check if entity is protected by team
             if (owner.protected_mobs.contains(evt.getEntity().getUniqueID()))
@@ -779,10 +782,10 @@ public class LandEventsHandler
         {
             if (!Essentials.config.landEnabled) return;
             if (evt.getEntity().getEntityWorld().isRemote) return;
-            final GlobalPos b = CoordinateUtls.forMob(evt.getEntity());
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos b = CoordinateUtls.forMob(evt.getEntity());
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
             if (owner.noMobSpawn)
             {
                 evt.setResult(Result.DENY);
@@ -795,10 +798,10 @@ public class LandEventsHandler
         {
             if (!Essentials.config.landEnabled) return;
             if (evt.getEntity().getEntityWorld().isRemote) return;
-            final GlobalPos b = CoordinateUtls.forMob(evt.getEntity());
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos b = CoordinateUtls.forMob(evt.getEntity());
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
             if (owner.noMobSpawn)
             {
                 evt.setResult(Result.DENY);
@@ -818,11 +821,11 @@ public class LandEventsHandler
 
             final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
             // Block coordinate
-            final GlobalPos b = GlobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
+            final KGobalPos b = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
             // Chunk Coordinate
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null)
+            if (LandManager.isWild(owner))
             {
                 if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEBLOCKWILD)) return DenyReason.NONE;
                 return DenyReason.WILD;
@@ -860,11 +863,11 @@ public class LandEventsHandler
 
             final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
             // Block coordinate
-            final GlobalPos b = GlobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
+            final KGobalPos b = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
             // Chunk Coordinate
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null)
+            if (LandManager.isWild(owner))
             {
                 if (PermissionAPI.hasPermission(player, LandEventsHandler.PERMUSEITEMWILD)) return DenyReason.NONE;
                 return DenyReason.WILD;
@@ -898,11 +901,11 @@ public class LandEventsHandler
 
             final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
             // Block coordinate
-            final GlobalPos b = GlobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
+            final KGobalPos b = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), evt.getPos());
             // Chunk Coordinate
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null)
+            if (LandManager.isWild(owner))
             {
                 final String wildUse = perms[0];
                 if (PermissionAPI.hasPermission(player, wildUse)) return DenyReason.NONE;
@@ -931,10 +934,10 @@ public class LandEventsHandler
             if (!rsult.test())
             {
                 // Block coordinate
-                final GlobalPos b = GlobalPos.getPosition(evt.getEntity().getEntityWorld().getDimensionKey(), evt
+                final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getEntityWorld().getDimensionKey(), evt
                         .getPos());
                 // Chunk Coordinate
-                final GlobalPos c = CoordinateUtls.chunkPos(b);
+                final KGobalPos c = CoordinateUtls.chunkPos(b);
                 final boolean isFakePlayer = evt.getPlayer() instanceof FakePlayer;
                 if (!isFakePlayer)
                 {
@@ -976,10 +979,10 @@ public class LandEventsHandler
             if (!rsult.test())
             {
                 // Block coordinate
-                final GlobalPos b = GlobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt
+                final KGobalPos b = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt
                         .getPos());
                 // Chunk Coordinate
-                final GlobalPos c = CoordinateUtls.chunkPos(b);
+                final KGobalPos c = CoordinateUtls.chunkPos(b);
                 final boolean isFakePlayer = evt.getPlayer() instanceof FakePlayer;
                 if (!isFakePlayer)
                 {
@@ -1016,9 +1019,9 @@ public class LandEventsHandler
             if (!Essentials.config.landEnabled) return;
             final DenyReason rsult = this.canUseMob(evt, evt.getTarget());
             // Block coordinate
-            final GlobalPos b = GlobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos());
+            final KGobalPos b = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos());
             // Chunk Coordinate
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             // First check if we do not have permission to act here.
             if (!rsult.test())
             {
@@ -1052,7 +1055,7 @@ public class LandEventsHandler
 
             // Chunk Coordinate
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
 
             // Not letting these manage this stuff.
             if (evt.getPlayer() instanceof FakePlayer) return;
@@ -1109,10 +1112,10 @@ public class LandEventsHandler
             if (!rsult.test())
             {
                 // Block coordinate
-                final GlobalPos b = GlobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt
+                final KGobalPos b = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt
                         .getPos());
                 // Chunk Coordinate
-                final GlobalPos c = CoordinateUtls.chunkPos(b);
+                final KGobalPos c = CoordinateUtls.chunkPos(b);
                 final boolean isFakePlayer = evt.getPlayer() instanceof FakePlayer;
                 if (!isFakePlayer)
                 {
@@ -1148,9 +1151,9 @@ public class LandEventsHandler
             if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
             if (!Essentials.config.landEnabled) return;
             // Block coordinate
-            final GlobalPos b = GlobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos());
+            final KGobalPos b = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos());
             // Chunk Coordinate
-            final GlobalPos c = CoordinateUtls.chunkPos(b);
+            final KGobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
             final DenyReason rsult = this.canUseBlock(evt);
             // First check if we do not have permission to act here.
@@ -1185,7 +1188,7 @@ public class LandEventsHandler
                 return;
             }
             // We don't care about anything else beyond here is unowned
-            if (owner == null) return;
+            if (LandManager.isWild(owner)) return;
 
             final PlayerEntity player = evt.getPlayer();
 
@@ -1196,7 +1199,7 @@ public class LandEventsHandler
             final boolean owns = owner.canUseStuff(player.getUniqueID(), b) || owner.canPlaceBlock(player.getUniqueID(),
                     b);
             // Check if the block is public.
-            final GlobalPos blockLoc = b;
+            final KGobalPos blockLoc = b;
             // If we own this, we can return here, first check public toggle
             // though.
             if (owns)
@@ -1257,7 +1260,7 @@ public class LandEventsHandler
 
         public static Set<ServerWorld> worlds = Sets.newConcurrentHashSet();
 
-        public static Set<GlobalPos> allLoaded = Sets.newConcurrentHashSet();
+        public static Set<KGobalPos> allLoaded = Sets.newConcurrentHashSet();
 
         @SubscribeEvent
         public static void ServerLoaded(final FMLServerStartedEvent event)
@@ -1267,18 +1270,18 @@ public class LandEventsHandler
             {
                 LandManager.getInstance()._teamMap.forEach((s, t) ->
                 {
-                    for (final GlobalPos c : t.land.getLoaded())
+                    for (final KGobalPos c : t.land.getLoaded())
                         ChunkLoadHandler.addChunks(c);
                 });
             }));
         }
 
-        public static boolean removeChunks(GlobalPos location)
+        public static boolean removeChunks(KGobalPos location)
         {
             if (!Essentials.config.chunkLoading) return false;
             final ServerWorld world = ChunkLoadHandler.server.getWorld(location.getDimension());
             if (world == null) return false;
-            if (location.getPos().getY() != 0) location = GlobalPos.getPosition(location.getDimension(), location
+            if (location.getPos().getY() != 0) location = KGobalPos.getPosition(location.getDimension(), location
                     .getPos().down(location.getPos().getY()));
             if (!ChunkLoadHandler.allLoaded.remove(location)) return false;
             world.getChunkProvider().forceChunk(new ChunkPos(location.getPos().getX(), location.getPos().getZ()),
@@ -1286,12 +1289,12 @@ public class LandEventsHandler
             return true;
         }
 
-        public static boolean addChunks(GlobalPos location)
+        public static boolean addChunks(KGobalPos location)
         {
             if (!Essentials.config.chunkLoading) return false;
             final ServerWorld world = ChunkLoadHandler.server.getWorld(location.getDimension());
             if (world == null) return false;
-            if (location.getPos().getY() != 0) location = GlobalPos.getPosition(location.getDimension(), location
+            if (location.getPos().getY() != 0) location = KGobalPos.getPosition(location.getDimension(), location
                     .getPos().down(location.getPos().getY()));
             if (!ChunkLoadHandler.allLoaded.add(location)) return false;
             world.getChunkProvider().forceChunk(new ChunkPos(location.getPos().getX(), location.getPos().getZ()), true);
@@ -1471,10 +1474,10 @@ public class LandEventsHandler
             final RegistryKey<World> dimension = evt.getWorld().getDimensionKey();
             for (final BlockPos pos : evt.getAffectedBlocks())
             {
-                final GlobalPos c = GlobalPos.getPosition(dimension, pos);
+                final KGobalPos c = KGobalPos.getPosition(dimension, pos);
                 final LandTeam owner = LandManager.getInstance().getLandOwner(c);
                 boolean deny = denyBlasts;
-                if (owner == null) continue;
+                if (LandManager.isWild(owner)) continue;
                 deny = deny || owner.noExplosions;
                 if (!deny) continue;
                 toRemove.add(pos);

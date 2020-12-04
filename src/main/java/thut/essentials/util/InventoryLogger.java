@@ -14,13 +14,13 @@ import net.minecraft.inventory.container.IContainerListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.INameable;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
+import thut.essentials.land.LandManager.KGobalPos;
 
 public class InventoryLogger
 {
@@ -101,7 +101,7 @@ public class InventoryLogger
     @SubscribeEvent
     public static void PlayerLoggedInEvent(final PlayerLoggedInEvent event)
     {
-        final GlobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
+        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
         Essentials.LOGGER.trace(c + " log-in " + event.getPlayer().getUniqueID() + " " + event.getPlayer().getName()
                 .getString());
     }
@@ -109,7 +109,7 @@ public class InventoryLogger
     @SubscribeEvent
     public static void PlayerLoggedOutEvent(final PlayerLoggedOutEvent event)
     {
-        final GlobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
+        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
         Essentials.LOGGER.trace(c + " log-out " + event.getPlayer().getUniqueID() + " " + event.getPlayer().getName()
                 .getString());
     }
@@ -117,7 +117,7 @@ public class InventoryLogger
     @SubscribeEvent
     public static void openInventory(final PlayerContainerEvent.Open event)
     {
-        final GlobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
+        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
         Essentials.LOGGER.trace(c + " open " + event.getContainer().getClass() + " " + event.getPlayer().getUniqueID()
                 + " " + event.getPlayer().getName().getString());
         if (!InventoryLogger.blacklist.contains(event.getContainer().getClass().getName())) event.getContainer()

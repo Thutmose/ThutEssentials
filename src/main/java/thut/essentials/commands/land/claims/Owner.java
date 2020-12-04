@@ -10,7 +10,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
@@ -18,6 +17,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 
 public class Owner
@@ -48,9 +48,13 @@ public class Owner
         if (y < 0 || y > 15) return 1;
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         final BlockPos b = new BlockPos(x, y, z);
-        final GlobalPos chunk = GlobalPos.getPosition(dim, b);
+        final KGobalPos chunk = KGobalPos.getPosition(dim, b);
+        Essentials.config.debug = true;
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        if (owner != null) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.ownedby",
+        Essentials.config.debug = false;
+
+        if (!LandManager.isWild(owner)) player.sendMessage(Essentials.config.getMessage(
+                "thutessentials.claim.ownedby",
                 owner.teamName), Util.DUMMY_UUID);
         else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unowned"), Util.DUMMY_UUID);
         return 0;

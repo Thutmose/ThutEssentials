@@ -10,13 +10,13 @@ import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
@@ -74,7 +74,7 @@ public class Homes
         if (homeName == null) homeName = "Home";
 
         final ServerPlayerEntity player = source.asPlayer();
-        final GlobalPos home = HomeManager.getHome(player, homeName);
+        final KGobalPos home = HomeManager.getHome(player, homeName);
         if (home == null)
         {
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null,

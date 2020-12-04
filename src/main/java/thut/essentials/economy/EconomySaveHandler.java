@@ -3,11 +3,13 @@ package thut.essentials.economy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 
+import com.google.common.collect.Lists;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
@@ -17,6 +19,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
+import thut.essentials.Essentials;
 import thut.essentials.economy.EconomyManager.Account;
 import thut.essentials.economy.EconomyManager.Shop;
 
@@ -84,8 +87,15 @@ public class EconomySaveHandler
                     final UUID id = entry.getKey();
                     account._id = id;
                     EconomyManager.instance._revBank.put(account, id);
-                    for (final Shop shop : account.shops)
+                    final List<Shop> shops = Lists.newArrayList(account.shops);
+                    for (final Shop shop : shops)
                     {
+                        if (shop.location == null)
+                        {
+                            account.shops.remove(shop);
+                            Essentials.LOGGER.error("Removing corrupted shop!");
+                            continue;
+                        }
                         account._shopMap.put(shop.location, shop);
                         EconomyManager.instance._shopMap.put(shop.location, account);
                     }

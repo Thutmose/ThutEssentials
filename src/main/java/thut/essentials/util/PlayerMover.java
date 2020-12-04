@@ -9,7 +9,6 @@ import com.google.common.collect.Maps;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.server.ServerWorld;
@@ -18,6 +17,7 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
 import thut.essentials.events.MoveEvent;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.Transporter.TeleDest;
 import thut.essentials.util.Transporter.Vector3;
 
@@ -32,14 +32,14 @@ public class PlayerMover
     {
         final long              moveTime;
         final PlayerEntity      player;
-        final GlobalPos         moveTo;
-        final GlobalPos         start;
+        final KGobalPos         moveTo;
+        final KGobalPos         start;
         final ITextComponent    message;
         final ITextComponent    failMess;
         final boolean           event;
         final Predicate<Entity> callback;
 
-        public Mover(final PlayerEntity player, final long moveTime, final GlobalPos moveTo,
+        public Mover(final PlayerEntity player, final long moveTime, final KGobalPos moveTo,
                 final ITextComponent message, final ITextComponent failMess, final Predicate<Entity> callback,
                 final boolean event)
         {
@@ -66,19 +66,19 @@ public class PlayerMover
         }
     }
 
-    public static void setMove(final PlayerEntity player, final int moveTime, final GlobalPos moveTo,
+    public static void setMove(final PlayerEntity player, final int moveTime, final KGobalPos moveTo,
             final ITextComponent message, final ITextComponent failMess)
     {
         PlayerMover.setMove(player, moveTime, moveTo, message, failMess, true);
     }
 
-    public static void setMove(final PlayerEntity player, final int moveTime, final GlobalPos moveTo,
+    public static void setMove(final PlayerEntity player, final int moveTime, final KGobalPos moveTo,
             final ITextComponent message, final ITextComponent failMess, final boolean event)
     {
         PlayerMover.setMove(player, moveTime, moveTo, message, failMess, null, event);
     }
 
-    public static void setMove(final PlayerEntity player, final int moveTime, final GlobalPos moveTo,
+    public static void setMove(final PlayerEntity player, final int moveTime, final KGobalPos moveTo,
             final ITextComponent message, final ITextComponent failMess, final Predicate<Entity> callback,
             final boolean event)
     {
@@ -112,7 +112,7 @@ public class PlayerMover
         if (PlayerMover.toMove.containsKey(tick.getEntity().getUniqueID()))
         {
             final Mover mover = PlayerMover.toMove.get(tick.getEntity().getUniqueID());
-            final GlobalPos playerPos = CoordinateUtls.forMob(mover.player);
+            final KGobalPos playerPos = CoordinateUtls.forMob(mover.player);
             final Vector3i diff = playerPos.getPos().subtract(mover.start.getPos());
             if (tick.getEntity().getEntityWorld().getGameTime() > mover.moveTime)
             {

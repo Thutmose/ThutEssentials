@@ -11,33 +11,43 @@ import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import thut.essentials.Essentials;
+import thut.essentials.land.LandManager.KGobalPos;
 
 public class CoordinateUtls
 {
-    public static GlobalPos forMob(final Entity mob)
+    public static KGobalPos forMob(final Entity mob)
     {
-        return GlobalPos.getPosition(mob.getEntityWorld().getDimensionKey(), mob.getPosition());
+        return KGobalPos.getPosition(mob.getEntityWorld().getDimensionKey(), mob.getPosition());
     }
 
-    public static GlobalPos chunkPos(final GlobalPos blockPos)
+    public static KGobalPos chunkPos(final KGobalPos blockPos)
     {
         final BlockPos pos = new BlockPos(blockPos.getPos().getX() >> 4, blockPos.getPos().getY() >> 4, blockPos
                 .getPos().getZ() >> 4);
-        return GlobalPos.getPosition(blockPos.getDimension(), pos);
+        return KGobalPos.getPosition(blockPos.getDimension(), pos);
     }
 
-    public static GlobalPos fromNBT(final CompoundNBT tag)
+    public static KGobalPos fromNBT(final CompoundNBT tag)
     {
-        return GlobalPos.CODEC.decode(NBTDynamicOps.INSTANCE, tag).result().get().getFirst();
+        try
+        {
+            final GlobalPos pos = GlobalPos.CODEC.decode(NBTDynamicOps.INSTANCE, tag).result().get().getFirst();
+            return new KGobalPos(pos);
+        }
+        catch (final Exception e)
+        {
+            Essentials.LOGGER.error("Error reading from nbt!");
+            return null;
+        }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends INBT> T toNBT(final GlobalPos pos)
+    public static <T extends INBT> T toNBT(final KGobalPos pos)
     {
-        return (T) GlobalPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, pos).get().left().get();
+        return (T) GlobalPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, pos.pos).get().left().get();
     }
 
-    public static GlobalPos fromString(String string)
+    public static KGobalPos fromString(String string)
     {
         if (string.contains("->")) string = string.split("->")[1];
         final String[] args = string.split(",");
@@ -48,7 +58,7 @@ public class CoordinateUtls
                     args[2]));
             final RegistryKey<World> dim = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(
                     args[3]));
-            return GlobalPos.getPosition(dim, pos);
+            return KGobalPos.getPosition(dim, pos);
         }
         catch (final NumberFormatException e)
         {
@@ -58,7 +68,7 @@ public class CoordinateUtls
         return null;
     }
 
-    public static String toString(final GlobalPos pos)
+    public static String toString(final KGobalPos pos)
     {
         return pos.getPos().getX() + "," + pos.getPos().getY() + "," + pos.getPos().getZ() + "," + pos.getDimension()
                 .getLocation();

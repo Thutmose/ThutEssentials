@@ -24,7 +24,6 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.server.ServerWorld;
@@ -39,6 +38,7 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandSaveHandler;
 
 public class EconomyManager
@@ -48,13 +48,13 @@ public class EconomyManager
         int                  balance;
         Set<Shop>            shops    = Sets.newHashSet();
         UUID                 _id;
-        Map<GlobalPos, Shop> _shopMap = Maps.newHashMap();
+        Map<KGobalPos, Shop> _shopMap = Maps.newHashMap();
     }
 
     public static class Shop
     {
-        GlobalPos location;
-        GlobalPos storage;
+        KGobalPos location;
+        KGobalPos storage;
         UUID      frameId;
         boolean   infinite  = false;
         boolean   ignoreTag = false;
@@ -294,7 +294,7 @@ public class EconomyManager
     public int initial = 1000;
 
     public Map<UUID, Account>      bank     = Maps.newHashMap();
-    public Map<GlobalPos, Account> _shopMap = Maps.newHashMap();
+    public Map<KGobalPos, Account> _shopMap = Maps.newHashMap();
     public Map<Account, UUID>      _revBank = Maps.newHashMap();
 
     public static void clearInstance()
@@ -346,7 +346,7 @@ public class EconomyManager
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrameEntity)
         {
-            final GlobalPos c = GlobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos()
+            final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos()
                     .down());
             Shop shop = EconomyManager.getShop(c);
             final TileEntity tile = evt.getWorld().getTileEntity(c.getPos());
@@ -395,7 +395,7 @@ public class EconomyManager
         final Entity target = hit.getEntity();
         if (target instanceof ItemFrameEntity)
         {
-            final GlobalPos c = GlobalPos.getPosition(target.getEntityWorld().getDimensionKey(), target.getPosition()
+            final KGobalPos c = KGobalPos.getPosition(target.getEntityWorld().getDimensionKey(), target.getPosition()
                     .down());
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null) evt.setCanceled(true);
@@ -409,7 +409,7 @@ public class EconomyManager
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrameEntity)
         {
-            final GlobalPos c = GlobalPos.getPosition(evt.getTarget().getEntityWorld().getDimensionKey(), evt
+            final KGobalPos c = KGobalPos.getPosition(evt.getTarget().getEntityWorld().getDimensionKey(), evt
                     .getTarget().getPosition().down());
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null)
@@ -440,7 +440,7 @@ public class EconomyManager
     public void interactRightClickBlock(final PlayerInteractEvent.RightClickBlock evt)
     {
         if (!(evt.getPlayer() instanceof ServerPlayerEntity) || !Essentials.config.shopsEnabled) return;
-        final GlobalPos c = GlobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos());
+        final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos());
         final Shop shop = EconomyManager.getShop(c);
         if (shop != null)
         {
@@ -467,7 +467,7 @@ public class EconomyManager
         return this.getAccount(player.getUniqueID());
     }
 
-    public static Shop addShop(final ServerPlayerEntity owner, final ItemFrameEntity frame, final GlobalPos location,
+    public static Shop addShop(final ServerPlayerEntity owner, final ItemFrameEntity frame, final KGobalPos location,
             final boolean infinite, final boolean noTag)
     {
         final Shop shop = new Shop();
@@ -503,15 +503,15 @@ public class EconomyManager
                     return null;
                 }
 
-                shop.storage = GlobalPos.getPosition(location.getDimension(), pos.down());
+                shop.storage = KGobalPos.getPosition(location.getDimension(), pos.down());
             }
-            else shop.storage = GlobalPos.getPosition(location.getDimension(), location.getPos().down());
+            else shop.storage = KGobalPos.getPosition(location.getDimension(), location.getPos().down());
         }
         EconomySaveHandler.saveGlobalData();
         return shop;
     }
 
-    public static void removeShop(final GlobalPos location)
+    public static void removeShop(final KGobalPos location)
     {
         final Account account = EconomyManager.getInstance()._shopMap.remove(location);
         if (account != null)
@@ -521,7 +521,7 @@ public class EconomyManager
         }
     }
 
-    public static Shop getShop(final GlobalPos location)
+    public static Shop getShop(final KGobalPos location)
     {
         final Account account = EconomyManager.getInstance()._shopMap.get(location);
         if (account == null) return null;

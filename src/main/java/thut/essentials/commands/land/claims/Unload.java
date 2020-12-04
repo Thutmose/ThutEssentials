@@ -10,7 +10,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
@@ -18,6 +17,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 
 public class Unload
@@ -57,7 +57,7 @@ public class Unload
         if (y < 0 || y > 15) return 1;
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         final BlockPos b = new BlockPos(x, 0, z);
-        final GlobalPos chunk = GlobalPos.getPosition(dim, b);
+        final KGobalPos chunk = KGobalPos.getPosition(dim, b);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
 
         final int maxLoaded = team.maxLoaded != -1 ? team.maxLoaded : Essentials.config.maxChunkloads;

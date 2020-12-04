@@ -3,11 +3,8 @@ package thut.essentials.util;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
@@ -18,6 +15,8 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 
 public class HomeManager
 {
@@ -35,7 +34,7 @@ public class HomeManager
         }
     }
 
-    public static GlobalPos getHome(final ServerPlayerEntity player, String home)
+    public static KGobalPos getHome(final ServerPlayerEntity player, String home)
     {
         if (home == null) home = "Home";
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
@@ -47,9 +46,8 @@ public class HomeManager
             if (pos.length == 4)
             {
                 final BlockPos b = new BlockPos(pos[0], pos[1], pos[2]);
-                final RegistryKey<World> dim = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(
-                        Essentials.config.legacyHomeDim));
-                return GlobalPos.getPosition(dim, b);
+                final RegistryKey<World> dim = LandManager.Coordinate.fromOld(pos[3]);
+                return KGobalPos.getPosition(dim, b);
             }
             return null;
         }
@@ -71,7 +69,7 @@ public class HomeManager
         if (!PermissionAPI.hasPermission(player, node)) return 2;
         // Already exists
         if (homes.contains(home)) return 3;
-        final GlobalPos loc = GlobalPos.getPosition(player.getEntityWorld().getDimensionKey(), pos);
+        final KGobalPos loc = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), pos);
         homes.put(home, CoordinateUtls.toNBT(loc));
         tag.put("homes", homes);
         player.sendMessage(new StringTextComponent("set " + home), Util.DUMMY_UUID);

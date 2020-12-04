@@ -17,7 +17,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -27,6 +26,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.CoordinateUtls;
@@ -61,7 +61,7 @@ public class Deed
         for (int i = 0; i < num; i++)
         {
             final CompoundNBT tag = stack.getTag().getCompound("" + i);
-            final GlobalPos c = CoordinateUtls.fromNBT(tag);
+            final KGobalPos c = CoordinateUtls.fromNBT(tag);
             x = c.getPos().getX();
             z = c.getPos().getZ();
             final int re = Claim.claim(c, player, team, false, PermissionAPI.hasPermission(player, Deed.BYPASSLIMIT));
@@ -140,7 +140,7 @@ public class Deed
         final int y = player.getPosition().getY() >> 4;
         final int z = player.getPosition().getZ() >> 4;
 
-        final Set<GlobalPos> deeds = Sets.newHashSet();
+        final Set<KGobalPos> deeds = Sets.newHashSet();
 
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         boolean done = false;
@@ -149,7 +149,7 @@ public class Deed
             final int ret = Deed.unclaim(x, y, z, player, team, true, canUnclaimAnything);
             if (ret == 0)
             {
-                final GlobalPos chunk = GlobalPos.getPosition(dim, new BlockPos(x, y, z));
+                final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
                 done = true;
                 deeds.add(chunk);
             }
@@ -167,7 +167,7 @@ public class Deed
                 final int check = Deed.unclaim(x, i, z, player, team, false, canUnclaimAnything);
                 if (check == 0)
                 {
-                    final GlobalPos chunk = GlobalPos.getPosition(dim, new BlockPos(x, y, z));
+                    final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
                     deeds.add(chunk);
                     done = true;
                     claimnum++;
@@ -189,7 +189,7 @@ public class Deed
             deed.getTag().putInt("num", deeds.size());
             deed.getTag().putBoolean("isDeed", true);
             int i = 0;
-            for (final GlobalPos c : deeds)
+            for (final KGobalPos c : deeds)
                 deed.getTag().put("" + i++, CoordinateUtls.toNBT(c));
             deed.setDisplayName(Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4, z << 4));
             if (!player.addItemStackToInventory(deed)) player.dropItem(deed, false);
@@ -198,11 +198,11 @@ public class Deed
         return done ? 0 : 1;
     }
 
-    private static int unclaim(final GlobalPos chunk, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final KGobalPos chunk, final PlayerEntity player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        if (owner == null)
+        if (LandManager.isWild(owner))
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
                     Util.DUMMY_UUID);
@@ -226,7 +226,7 @@ public class Deed
         // TODO better bounds check to support say cubic chunks.
         if (y < 0 || y > 15) return 1;
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
-        final GlobalPos chunk = GlobalPos.getPosition(dim, new BlockPos(x, y, z));
+        final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
         return Deed.unclaim(chunk, player, team, messages, canUnclaimAnything);
     }
 }

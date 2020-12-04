@@ -11,13 +11,13 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.WarpManager;
 
 public class Create
@@ -44,7 +44,7 @@ public class Create
             final RegistryKey<World> registryKey) throws CommandSyntaxException
     {
         final ServerPlayerEntity player = source.asPlayer();
-        final int ret = WarpManager.setWarp(GlobalPos.getPosition(registryKey, center), warpName);
+        final int ret = WarpManager.setWarp(KGobalPos.getPosition(registryKey, center), warpName);
         ITextComponent message;
         switch (ret)
         {

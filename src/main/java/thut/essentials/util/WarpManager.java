@@ -10,7 +10,6 @@ import com.google.common.collect.Maps;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
@@ -24,10 +23,11 @@ import net.minecraftforge.server.permission.context.PlayerContext;
 import thut.essentials.Config;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 
 public class WarpManager
 {
-    public static Map<String, GlobalPos> warpLocs;
+    public static Map<String, KGobalPos> warpLocs;
 
     final static Field warpsField;
 
@@ -61,7 +61,7 @@ public class WarpManager
                 Essentials.LOGGER.error("Error in loading warp for {}", s);
                 continue;
             }
-            final GlobalPos warp = CoordinateUtls.fromString(args[1]);
+            final KGobalPos warp = CoordinateUtls.fromString(args[1]);
             if (warp != null) WarpManager.warpLocs.put(args[0], warp);
         }
 
@@ -81,7 +81,7 @@ public class WarpManager
         return new int[] { Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]), dim };
     }
 
-    public static int setWarp(final GlobalPos pos, final String name)
+    public static int setWarp(final KGobalPos pos, final String name)
     {
         final List<String> warps = Lists.newArrayList(Essentials.config.warps);
         for (final String s : warps)
@@ -129,7 +129,7 @@ public class WarpManager
         return 1;
     }
 
-    public static GlobalPos getWarp(final String name)
+    public static KGobalPos getWarp(final String name)
     {
         return WarpManager.warpLocs.get(name);
     }
@@ -161,7 +161,7 @@ public class WarpManager
 
     public static int attemptWarp(final ServerPlayerEntity player, final String warpName)
     {
-        final GlobalPos warp = WarpManager.getWarp(warpName);
+        final KGobalPos warp = WarpManager.getWarp(warpName);
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("warpDelay");

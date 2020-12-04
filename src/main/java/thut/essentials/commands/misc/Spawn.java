@@ -10,7 +10,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
@@ -18,6 +17,7 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
 
@@ -54,7 +54,7 @@ public class Spawn
             return 1;
         }
         final MinecraftServer server = player.getServer();
-        final GlobalPos spawn = GlobalPos.getPosition(Essentials.config.spawnDimension, server
+        final KGobalPos spawn = KGobalPos.getPosition(Essentials.config.spawnDimension, server
                 .getWorld(Essentials.config.spawnDimension).getSpawnPoint());
         final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.spawn.succeed");
         PlayerMover.setMove(player, Essentials.config.spawnActivateDelay, spawn, teleMess, PlayerMover.INTERUPTED);

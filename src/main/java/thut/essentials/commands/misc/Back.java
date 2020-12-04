@@ -16,7 +16,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -30,6 +29,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.MoveEvent;
+import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
@@ -91,7 +91,7 @@ public class Back
         }
         if (tag.contains("backPos"))
         {
-            final GlobalPos spot = Back.getBackSpot(CoordinateUtls.fromNBT(tag.getCompound("backPos")));
+            final KGobalPos spot = Back.getBackSpot(CoordinateUtls.fromNBT(tag.getCompound("backPos")));
             if (spot == null)
             {
 
@@ -117,9 +117,9 @@ public class Back
         return 1;
     }
 
-    private static GlobalPos getBackSpot(final GlobalPos pos)
+    private static KGobalPos getBackSpot(final KGobalPos pos)
     {
-        GlobalPos spot = pos;
+        KGobalPos spot = pos;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         final ServerWorld world = server.getWorld(pos.getDimension());
         if (world == null) return null;
@@ -132,16 +132,16 @@ public class Back
                 for (int k = 0; k < r; k++)
                 {
                     test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() + k);
-                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    spot = KGobalPos.getPosition(pos.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                     test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() + k);
-                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    spot = KGobalPos.getPosition(pos.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                     test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() - k);
-                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    spot = KGobalPos.getPosition(pos.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                     test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() - k);
-                    spot = GlobalPos.getPosition(pos.getDimension(), test);
+                    spot = KGobalPos.getPosition(pos.getDimension(), test);
                     if (Back.valid(check, world)) return spot;
                 }
         return null;
