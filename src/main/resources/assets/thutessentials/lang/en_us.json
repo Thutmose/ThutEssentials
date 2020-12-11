@@ -243,7 +243,9 @@
     "_comment": "Misc",
     
     "thutessentials.fly.set.true": "§aYou are now able to fly!",
-    "thutessentials.fly.set.false": "§cYou are no longer able to fly!"
+    "thutessentials.fly.set.false": "§cYou are no longer able to fly!",
+    
+    "thutessentials.dimversions.warning": "§cWARNING this dimension is Volatile, Anything left in here may vanish, build at your own risk!"
     
     
     

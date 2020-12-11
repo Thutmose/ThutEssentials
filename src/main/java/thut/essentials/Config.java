@@ -248,6 +248,9 @@ public class Config extends ConfigData
     @Configure(category = Config.MISC)
     public List<String> versioned_dim_seeds = Lists.newArrayList();
 
+    @Configure(category = Config.MISC)
+    public boolean versioned_dim_warning = true;
+
     @Configure(category = Config.STAFF)
     public List<String> staff = Lists.newArrayList();
 

@@ -2,10 +2,12 @@ package thut.essentials.util.world;
 
 import java.io.File;
 
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.IntNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.SaveFormat.LevelSave;
@@ -16,6 +18,7 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import thut.essentials.Essentials;
@@ -102,6 +105,7 @@ public class DimVersionManager
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleTeleLoading);
         MinecraftForge.EVENT_BUS.addGenericListener(World.class, DimVersionManager::attach);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWorldLoad);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWarnPlayer);
     }
 
     private static final ResourceLocation CAPTAG = new ResourceLocation(Essentials.MODID, "version");
@@ -137,7 +141,6 @@ public class DimVersionManager
         final ServerWorld world = (ServerWorld) event.getWorld();
         final IVersioned vers = world.getCapability(DimVersionManager.CAPABILITY).orElse(null);
         // Not all worlds will have this, only ones to track!
-        Essentials.LOGGER.info(world.getSeed() + " " + world.getDimensionKey());
         if (vers == null) return;
         if (vers.getVersion() < Essentials.config.dim_verison)
         {
@@ -157,6 +160,16 @@ public class DimVersionManager
         }
         world.getChunkProvider().getChunkGenerator().field_235950_e_ = world.getSeed();
         vers.setVersion(Essentials.config.dim_verison);
+    }
+
+    public static void handleWarnPlayer(final EntityJoinWorldEvent event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayerEntity)) return;
+        if (!Essentials.config.versioned_dim_warning) return;
+        final ServerWorld world = (ServerWorld) event.getWorld();
+        if (!Essentials.config.versioned_dim_keys.contains(world.getDimensionKey().getLocation())) return;
+        event.getEntity().sendMessage(Essentials.config.getMessage("thutessentials.dimversions.warning"),
+                Util.DUMMY_UUID);
     }
 
 }
