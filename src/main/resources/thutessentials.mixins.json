@@ -1,0 +1,16 @@
+  
+{
+  "required": true,
+  "package": "thut.essentials.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "thutessentials.refmap.json",
+  "mixins": [
+    "SeededServerWorld"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

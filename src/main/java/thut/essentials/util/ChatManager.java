@@ -17,10 +17,16 @@ import thut.essentials.Essentials;
 
 public class ChatManager
 {
+    private static boolean isRegged = false;
+
     public static void init()
     {
-        MinecraftForge.EVENT_BUS.unregister(ChatManager.class);
-        if (Essentials.config.useChatFormat) MinecraftForge.EVENT_BUS.register(ChatManager.class);
+        if (ChatManager.isRegged) MinecraftForge.EVENT_BUS.unregister(ChatManager.class);
+        if (Essentials.config.useChatFormat)
+        {
+            ChatManager.isRegged = true;
+            MinecraftForge.EVENT_BUS.register(ChatManager.class);
+        }
     }
 
     @SubscribeEvent
@@ -50,9 +56,7 @@ public class ChatManager
                 if (k > j)
                 {
                     final IFormattableTextComponent itextcomponent = new StringTextComponent(String.format(format
-                            .substring(
-                                    j,
-                            k)));
+                            .substring(j, k)));
                     itextcomponent.setStyle(comp.getStyle());
                     children.add(itextcomponent);
                 }

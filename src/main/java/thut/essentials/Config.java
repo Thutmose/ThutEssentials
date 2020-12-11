@@ -8,9 +8,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -234,11 +236,20 @@ public class Config extends ConfigData
     @Configure(category = Config.MISC)
     public double maxSpeed = 10;
 
-    @Configure(category = Config.STAFF)
-    public List<String> staff = Lists.newArrayList();
-
     @Configure(category = Config.MISC)
     public String lang_file = "en_us.json";
+
+    @Configure(category = Config.MISC)
+    public int dim_verison = 0;
+
+    @Configure(category = Config.MISC)
+    public List<String> versioned_dims = Lists.newArrayList();
+
+    @Configure(category = Config.MISC)
+    public List<String> versioned_dim_seeds = Lists.newArrayList();
+
+    @Configure(category = Config.STAFF)
+    public List<String> staff = Lists.newArrayList();
 
     @Configure(category = Config.MOBS)
     public List<String> mobSpawnBlacklist = Lists.newArrayList();
@@ -257,6 +268,10 @@ public class Config extends ConfigData
     public boolean mobGriefAllowUsesWhitelist = true;
 
     public RegistryKey<World> spawnDimension = World.OVERWORLD;
+
+    public Set<ResourceLocation> versioned_dim_keys = Sets.newHashSet();
+
+    public Map<ResourceLocation, Long> versioned_dim_seed_map = Maps.newHashMap();
 
     private final Path configpath;
 
@@ -329,6 +344,32 @@ public class Config extends ConfigData
             Essentials.LOGGER.error("Error with value in rtpCentre, defaulting to spawn centred!");
             thut.essentials.commands.misc.RTP.centre = null;
         }
+
+        this.versioned_dim_keys.clear();
+        this.versioned_dims.forEach(s -> this.versioned_dim_keys.add(new ResourceLocation(s)));
+
+        this.versioned_dim_seed_map.clear();
+        this.versioned_dim_seeds.forEach(s ->
+        {
+            if (!s.contains("->")) return;
+            final String[] args = s.split("->");
+            if (args.length < 2) return;
+            try
+            {
+                final Long value = Long.parseLong(args[1], 36);
+                this.versioned_dim_seed_map.put(new ResourceLocation(args[0]), value);
+            }
+            catch (final NumberFormatException e)
+            {
+                return;
+            }
+        });
+
+        Essentials.LOGGER.info("" + this.versioned_dims);
+        Essentials.LOGGER.info("" + this.versioned_dim_seeds);
+
+        Essentials.LOGGER.info("" + this.versioned_dim_keys);
+        Essentials.LOGGER.info("" + this.versioned_dim_seed_map);
 
         HomeManager.registerPerms();
         WarpManager.init();

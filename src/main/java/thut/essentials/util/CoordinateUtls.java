@@ -10,8 +10,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 import thut.essentials.Essentials;
+import thut.essentials.events.TeleLoadEvent;
 import thut.essentials.land.LandManager.KGobalPos;
+import thut.essentials.util.Transporter.TeleDest;
+import thut.essentials.util.Transporter.Vector3;
 
 public class CoordinateUtls
 {
@@ -29,6 +33,23 @@ public class CoordinateUtls
 
     public static KGobalPos fromNBT(final CompoundNBT tag)
     {
+        if (tag.contains("_v_"))
+        {
+            final CompoundNBT nbt = tag;
+            final Vector3 loc = Vector3.readFromNBT(nbt, "v");
+            final String name = nbt.getString("name");
+            final int index = nbt.getInt("i");
+            final int version = nbt.getInt("_v_");
+            final KGobalPos pos = CoordinateUtls.fromNBT(nbt.getCompound("pos"));
+            if (pos == null) return null;
+            final TeleDest dest = new TeleDest().setLoc(pos, loc).setPos(pos).setName(name).setIndex(index).setVersion(
+                    version);
+            final TeleLoadEvent event = new TeleLoadEvent(dest);
+            // This returns true if the event is cancelled.
+            if (MinecraftForge.EVENT_BUS.post(event)) return null;
+            // The event can override the destination, it defaults to dest.
+            return event.getOverride().loc;
+        }
         try
         {
             final GlobalPos pos = GlobalPos.CODEC.decode(NBTDynamicOps.INSTANCE, tag).result().get().getFirst();
@@ -45,6 +66,14 @@ public class CoordinateUtls
     public static <T extends INBT> T toNBT(final KGobalPos pos)
     {
         return (T) GlobalPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, pos.pos).get().left().get();
+    }
+
+    public static CompoundNBT toNBT(final KGobalPos pos, final String name)
+    {
+        final TeleDest dest = new TeleDest().setName(name).setPos(pos).setVersion(Essentials.config.dim_verison);
+        final CompoundNBT nbt = new CompoundNBT();
+        dest.writeToNBT(nbt);
+        return nbt;
     }
 
     public static KGobalPos fromString(String string)

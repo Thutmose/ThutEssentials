@@ -70,7 +70,7 @@ public class HomeManager
         // Already exists
         if (homes.contains(home)) return 3;
         final KGobalPos loc = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), pos);
-        homes.put(home, CoordinateUtls.toNBT(loc));
+        homes.put(home, CoordinateUtls.toNBT(loc, home));
         tag.put("homes", homes);
         player.sendMessage(new StringTextComponent("set " + home), Util.DUMMY_UUID);
         PlayerDataHandler.saveCustomData(player);

@@ -62,6 +62,7 @@ public class Deed
         {
             final CompoundNBT tag = stack.getTag().getCompound("" + i);
             final KGobalPos c = CoordinateUtls.fromNBT(tag);
+            if (c == null) continue;
             x = c.getPos().getX();
             z = c.getPos().getZ();
             final int re = Claim.claim(c, player, team, false, PermissionAPI.hasPermission(player, Deed.BYPASSLIMIT));
@@ -190,7 +191,7 @@ public class Deed
             deed.getTag().putBoolean("isDeed", true);
             int i = 0;
             for (final KGobalPos c : deeds)
-                deed.getTag().put("" + i++, CoordinateUtls.toNBT(c));
+                deed.getTag().put("" + i++, CoordinateUtls.toNBT(c, "deed"));
             deed.setDisplayName(Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4, z << 4));
             if (!player.addItemStackToInventory(deed)) player.dropItem(deed, false);
         }

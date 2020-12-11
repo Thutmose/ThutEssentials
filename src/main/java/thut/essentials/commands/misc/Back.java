@@ -40,7 +40,7 @@ public class Back
     public static void move(final MoveEvent event)
     {
         if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntityLiving()
-                .getCachedUniqueIdString()).put("backPos", CoordinateUtls.toNBT(event.getPos()));
+                .getCachedUniqueIdString()).put("backPos", CoordinateUtls.toNBT(event.getPos(), "backPos"));
     }
 
     @SubscribeEvent
@@ -48,7 +48,7 @@ public class Back
     {
         if (event.getEntityLiving() instanceof ServerPlayerEntity && Essentials.config.back_on_death)
         {
-            final CompoundNBT tag = CoordinateUtls.toNBT(CoordinateUtls.forMob(event.getEntityLiving()));
+            final CompoundNBT tag = CoordinateUtls.toNBT(CoordinateUtls.forMob(event.getEntityLiving()), "back");
             PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getCachedUniqueIdString()).put("backPos", tag);
             PlayerDataHandler.saveCustomData(event.getEntityLiving().getCachedUniqueIdString());
         }
@@ -94,10 +94,8 @@ public class Back
             final KGobalPos spot = Back.getBackSpot(CoordinateUtls.fromNBT(tag.getCompound("backPos")));
             if (spot == null)
             {
-
                 player.sendMessage(Essentials.config.getMessage("thutessentials.back.noroom"), Util.DUMMY_UUID);
                 return 1;
-
             }
             final Predicate<Entity> callback = t ->
             {
@@ -120,6 +118,7 @@ public class Back
     private static KGobalPos getBackSpot(final KGobalPos pos)
     {
         KGobalPos spot = pos;
+        if (pos == null) return null;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         final ServerWorld world = server.getWorld(pos.getDimension());
         if (world == null) return null;

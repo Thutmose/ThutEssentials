@@ -149,22 +149,22 @@ public class LandEventsHandler
 
     private static boolean isPublicToggle(final ItemStack stack)
     {
-        return stack.getDisplayName().getUnformattedComponentText().equalsIgnoreCase("public toggle");
+        return stack.getDisplayName().getString().equalsIgnoreCase("public toggle");
     }
 
     private static boolean isProtectToggle(final ItemStack stack)
     {
-        return stack.getDisplayName().getUnformattedComponentText().equalsIgnoreCase("protect toggle");
+        return stack.getDisplayName().getString().equalsIgnoreCase("protect toggle");
     }
 
     private static boolean isBreakToggle(final ItemStack stack)
     {
-        return stack.getDisplayName().getUnformattedComponentText().equalsIgnoreCase("break toggle");
+        return stack.getDisplayName().getString().equalsIgnoreCase("break toggle");
     }
 
     private static boolean isPlaceToggle(final ItemStack stack)
     {
-        return stack.getDisplayName().getUnformattedComponentText().equalsIgnoreCase("place toggle");
+        return stack.getDisplayName().getString().equalsIgnoreCase("place toggle");
     }
 
     public static class BlockEventHandler
@@ -556,7 +556,7 @@ public class LandEventsHandler
                                     "msg.team.other.noenter");
                     if (message != null)
                     {
-                        if (!last_chunk.equals(newChunk))
+                        if (!newChunk.equals(last_chunk))
                         {
                             entry_point = old;
                             // entry_log.putString("last_name", last_name);

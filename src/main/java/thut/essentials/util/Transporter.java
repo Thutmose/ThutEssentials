@@ -203,16 +203,6 @@ public class Transporter
 
     public static class TeleDest
     {
-        public static TeleDest readFromNBT(final CompoundNBT nbt)
-        {
-            final Vector3 loc = Vector3.readFromNBT(nbt, "v");
-            final String name = nbt.getString("name");
-            final int index = nbt.getInt("i");
-            KGobalPos pos = null;
-            pos = CoordinateUtls.fromNBT(nbt.getCompound("pos"));
-            return new TeleDest().setLoc(pos, loc).setPos(pos).setName(name).setIndex(index);
-        }
-
         public KGobalPos loc;
 
         private Vector3 subLoc;
@@ -220,6 +210,10 @@ public class Transporter
         private String name;
 
         public int index;
+
+        // This can be used for tracking things like if worlds update and
+        // teledests need resetting, etc.
+        public int version = 0;
 
         public TeleDest()
         {
@@ -242,6 +236,12 @@ public class Transporter
                         .getZ());
                 this.name = this.loc.getPos().toString() + " " + this.loc.getDimension().getRegistryName();
             }
+            return this;
+        }
+
+        public TeleDest setVersion(final int version)
+        {
+            this.version = version;
             return this;
         }
 
@@ -278,6 +278,7 @@ public class Transporter
             nbt.put("pos", CoordinateUtls.toNBT(this.loc));
             nbt.putString("name", this.name);
             nbt.putInt("i", this.index);
+            nbt.putInt("_v_", this.version);
         }
 
         public void shift(final double dx, final int dy, final double dz)

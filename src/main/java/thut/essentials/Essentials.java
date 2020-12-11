@@ -30,6 +30,7 @@ import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerDataHandler;
+import thut.essentials.util.world.DimVersionManager;
 import thut.essentials.util.world.WorldStructures;
 
 @Mod(Essentials.MODID)
@@ -86,6 +87,7 @@ public class Essentials
     {
         // Initialize the world structure tracker
         WorldStructures.setup();
+        DimVersionManager.init();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
