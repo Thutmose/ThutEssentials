@@ -60,9 +60,15 @@ public class LandManager
             return this.pos.getPos().hashCode();
         }
 
+        public boolean isValid()
+        {
+            return this.pos != null && this.pos.getPos() != null && this.pos.getDimension() != null;
+        }
+
         @Override
         public String toString()
         {
+            if (this.pos == null || this.pos.getDimension() == null) return "ERROR";
             return this.pos.toString();
         }
 

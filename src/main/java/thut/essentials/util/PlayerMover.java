@@ -55,9 +55,13 @@ public class PlayerMover
 
         private void move()
         {
+            if (!this.moveTo.isValid()) return;
+            if (!this.start.isValid()) return;
             if (this.event) MinecraftForge.EVENT_BUS.post(new MoveEvent(this.player));
-            if (Essentials.config.log_teleports) Essentials.LOGGER.trace("TP: " + this.player.getUniqueID() + " "
-                    + this.player.getName() + " from: " + this.start + " to " + this.moveTo);
+            if (Essentials.config.log_teleports) InventoryLogger.log("Teleport from {} {} to {} {} for {} {}",
+                    CoordinateUtls.chunkPos(this.start), this.start.getDimension().getLocation(), this.start.getPos(),
+                    this.moveTo.getDimension().getLocation(), this.moveTo.getPos(), this.player.getUniqueID(),
+                    this.player.getName().getString());
             final TeleDest dest = new TeleDest();
             dest.setLoc(this.moveTo, new Vector3().set(this.moveTo.getPos()).add(PlayerMover.offset));
             Transporter.transferTo(this.player, dest);

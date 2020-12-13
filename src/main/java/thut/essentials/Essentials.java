@@ -3,6 +3,8 @@ package thut.essentials;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -51,8 +53,10 @@ public class Essentials
             FMLPaths.GAMEDIR.get().resolve("logs").resolve(Essentials.MODID).toFile().mkdirs();
             try
             {
+                final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
                 Files.move(FMLPaths.GAMEDIR.get().resolve("logs").resolve(Essentials.MODID + ".log"), FMLPaths.GAMEDIR
-                        .get().resolve("logs").resolve(Essentials.MODID).resolve(logfile.lastModified() + ".log"));
+                        .get().resolve("logs").resolve(Essentials.MODID).resolve(LocalDateTime.now().format(dtf)
+                                .replace(":", "-") + ".log"));
             }
             catch (final IOException e)
             {

@@ -1,5 +1,7 @@
 package thut.essentials.util;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -54,17 +56,17 @@ public class InventoryLogger
                 String invName = inventory.toString();
                 if (inventory instanceof INameable && ((INameable) inventory).getName() != null)
                     invName = ((INameable) inventory).getName().getString();
-                if (oldStack.isEmpty() && !stack.isEmpty()) Essentials.LOGGER.trace("slot_place " + containerToSend
-                        .getClass() + " " + stack + " " + stack.getDisplayName().getString() + ", " + invName + " "
-                        + this.player.getUniqueID() + " " + this.player.getName().getString());
-                else if (stack.isEmpty() && !oldStack.isEmpty()) Essentials.LOGGER.trace("slot_take " + containerToSend
-                        .getClass() + " " + oldStack + " " + oldStack.getDisplayName().getString() + ", "
-                        + invName
-                        + " " + this.player.getUniqueID() + " " + this.player.getName().getString());
-                else Essentials.LOGGER.trace("slot_swap " + containerToSend.getClass() + " " + stack + " " + stack
-                        .getDisplayName() + " <-> " + oldStack + " " + oldStack.getDisplayName().getString()
-                        + ", "
-                        + invName + " " + this.player.getUniqueID() + " " + this.player.getName().getString());
+                final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(this.player));
+
+                if (oldStack.isEmpty() && !stack.isEmpty()) InventoryLogger.log("slot_place {}: {} {}, {} {} {}", c,
+                        containerToSend.getClass(), stack, stack.getDisplayName().getString(), invName, this.player
+                                .getUniqueID(), this.player.getName().getString());
+                else if (stack.isEmpty() && !oldStack.isEmpty()) InventoryLogger.log("slot_take {}: {} {}, {} {} {}", c,
+                        containerToSend.getClass(), oldStack, oldStack.getDisplayName().getString(), invName,
+                        this.player.getUniqueID(), this.player.getName().getString());
+                else InventoryLogger.log("slot_swap {}: {} {} <-> {} {}, {} {} {}", c, containerToSend.getClass(),
+                        stack, stack.getDisplayName().getString(), oldStack, oldStack.getDisplayName().getString(),
+                        invName, this.player.getUniqueID(), this.player.getName().getString());
                 this.initialList.set(slotInd, stack);
             }
             catch (final Exception e)
@@ -102,7 +104,7 @@ public class InventoryLogger
     public static void PlayerLoggedInEvent(final PlayerLoggedInEvent event)
     {
         final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        Essentials.LOGGER.trace(c + " log-in " + event.getPlayer().getUniqueID() + " " + event.getPlayer().getName()
+        InventoryLogger.log("log-in {} {}", c, event.getPlayer().getUniqueID(), event.getPlayer().getName()
                 .getString());
     }
 
@@ -110,7 +112,7 @@ public class InventoryLogger
     public static void PlayerLoggedOutEvent(final PlayerLoggedOutEvent event)
     {
         final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        Essentials.LOGGER.trace(c + " log-out " + event.getPlayer().getUniqueID() + " " + event.getPlayer().getName()
+        InventoryLogger.log("log-out {} {}", c, event.getPlayer().getUniqueID(), event.getPlayer().getName()
                 .getString());
     }
 
@@ -118,9 +120,18 @@ public class InventoryLogger
     public static void openInventory(final PlayerContainerEvent.Open event)
     {
         final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        Essentials.LOGGER.trace(c + " open " + event.getContainer().getClass() + " " + event.getPlayer().getUniqueID()
-                + " " + event.getPlayer().getName().getString());
+        InventoryLogger.log("open {} {} {}", c, event.getContainer().getClass(), event.getPlayer().getUniqueID(), event
+                .getPlayer().getName().getString());
         if (!InventoryLogger.blacklist.contains(event.getContainer().getClass().getName())) event.getContainer()
                 .addListener(new Listener(event.getPlayer(), event.getContainer()));
+    }
+
+    public static void log(String format, final KGobalPos location, final Object... args)
+    {
+        final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_TIME;
+        final String header = LocalDateTime.now().format(dtf) + " " + location.getDimension().getLocation() + ", "
+                + location.getPos() + ": ";
+        format = header + format;
+        Essentials.LOGGER.trace(format, args);
     }
 }

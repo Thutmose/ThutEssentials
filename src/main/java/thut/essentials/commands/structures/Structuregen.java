@@ -174,12 +174,13 @@ public class Structuregen
 
     private static int execute_reset(final CommandSource source, final int radius) throws CommandSyntaxException
     {
-        // final ServerPlayerEntity player = source.asPlayer();
-        // IChunk chunk =
-        // player.getEntityWorld().getChunkAt(player.getPosition());
-        // final ServerWorld worldIn = player.getServerWorld();
-        // int ds = radius;
-        // final ChunkPos chunkpos = chunk.getPos();
+
+        final ServerPlayerEntity player = source.asPlayer();
+        final IChunk chunk = player.getEntityWorld().getChunkAt(player.getPosition());
+        final ServerWorld worldIn = player.getServerWorld();
+        final int ds = radius;
+        final ChunkPos chunkpos = chunk.getPos();
+
         // ds = Math.min(10, ds);
         // final int ds1 = ds;
         //
