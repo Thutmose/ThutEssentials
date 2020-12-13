@@ -17,21 +17,15 @@ import thut.essentials.Essentials;
 
 public class ChatManager
 {
-    private static boolean isRegged = false;
-
     public static void init()
     {
-        if (ChatManager.isRegged) MinecraftForge.EVENT_BUS.unregister(ChatManager.class);
-        if (Essentials.config.useChatFormat)
-        {
-            ChatManager.isRegged = true;
-            MinecraftForge.EVENT_BUS.register(ChatManager.class);
-        }
+        MinecraftForge.EVENT_BUS.addListener(ChatManager::onChat);
     }
 
     @SubscribeEvent
     public static void onChat(final ServerChatEvent event)
     {
+        if (!Essentials.config.useChatFormat) return;
         final String format = Essentials.config.chatFormat;
         final String raw = event.getMessage();
         final StringTextComponent comp = new StringTextComponent("");

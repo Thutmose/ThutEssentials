@@ -10,11 +10,15 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.GameProfileArgument;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.util.NameManager;
+import thut.essentials.util.PlayerDataHandler;
 
 public class Nick
 {
@@ -40,8 +44,18 @@ public class Nick
     private static int execute(final CommandSource source, final Collection<GameProfile> target, String nick)
     {
         if (nick.length() > 16) nick = nick.substring(0, 16);
+        final MinecraftServer server = source.getServer();
         for (final GameProfile p : target)
-            NameManager.setName(nick, p, source.getServer());
+        {
+            final ServerPlayerEntity player = server.getPlayerList().getPlayerByUUID(p.getId());
+            if (player == null) continue;
+            final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+            if ("_".equals(nick) && player != null) if (tag.contains("nick_orig")) nick = tag.getString("nick_orig");
+            if (!tag.contains("nick_orig")) tag.putString("nick_orig", p.getName());
+            tag.putString("nick", nick);
+            PlayerDataHandler.saveCustomData(player);
+            player.refreshDisplayName();
+        }
         return 0;
     }
 
