@@ -550,6 +550,16 @@ public class LandManager
     {
     }
 
+    public boolean isPublicMob(final UUID mobId)
+    {
+        return this._public_mobs.containsKey(mobId);
+    }
+
+    public boolean isProtectedMob(final UUID mobId)
+    {
+        return this._protected_mobs.containsKey(mobId);
+    }
+
     public void toggleMobProtect(final UUID mob, final LandTeam team)
     {
         if (this._protected_mobs.containsKey(mob))
