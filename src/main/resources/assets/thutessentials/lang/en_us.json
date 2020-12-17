@@ -233,6 +233,11 @@
     "thutessentials.claim.ownedby": "§aThis Land is owned by §6%s",
     "thutessentials.claim.unowned": "§aThis Land is not owned",
     
+    "thutessentials.claim.start.set": "§aSet initial chunk for bulk claiming",
+    "thutessentials.claim.start.not_set": "§cBulk claiming has not been started!",
+    "thutessentials.claim.start.wrong_dim": "§cYou started bulk claiming in a different world!",
+    "thutessentials.claim.start.end": "§aBulk claimed §6%s§a segments for team §6%s",
+    
     "thutessentials.unclaim.notallowed.teamperms": "§cYou are not allowed to unclaim land for your team.",
     "thutessentials.unclaim.notallowed.notowner": "§cYou are not allowed to unclaim land owned by §6%s",
     "thutessentials.unclaim.notallowed.noowner": "§cThis land is unowned",
