@@ -360,6 +360,8 @@ public class LandEventsHandler
                 if (in != null && LandEventsHandler.invuln.contains(in.getType().getRegistryName())) return false;
                 return true;
             }
+            if (LandManager.getInstance().isPublicMob(in.getUniqueID())) return false;
+            if (LandManager.getInstance().isProtectedMob(in.getUniqueID())) return false;
             if (in instanceof ServerPlayerEntity) return !land_owner.noPlayerDamage;
             if (in instanceof INPC) return !land_owner.noNPCDamage;
             if (in instanceof ItemFrameEntity) return !land_owner.protectFrames;
@@ -898,7 +900,7 @@ public class LandEventsHandler
             // Block coordinate
             final Coordinate b = new Coordinate(evt.getPos(), evt.getPlayer().getEntityWorld().getDimension());
             final LandTeam owner = LandManager.getInstance().getLandOwner(c);
-            if (owner == null)
+            if (owner == null || LandManager.getInstance().isPublicMob(evt.getEntity().getUniqueID()))
             {
                 final String wildUse = perms[0];
                 if (PermissionAPI.hasPermission(player, wildUse)) return DenyReason.NONE;

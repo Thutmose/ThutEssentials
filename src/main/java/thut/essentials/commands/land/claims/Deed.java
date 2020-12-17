@@ -57,6 +57,9 @@ public class Deed
             final Coordinate c = new Coordinate(tag);
             x = c.x;
             z = c.z;
+            // Unclaim from deed team first.
+            LandManager.getInstance().removeTeamLand(Deed.DEEDTEAM, c);
+            // Then claim for the new owner.
             final int re = Claim.claim(c, player, team, false, PermissionAPI.hasPermission(player, Deed.BYPASSLIMIT));
             if (re == 0)
             {
@@ -72,6 +75,8 @@ public class Deed
 
     private static final String BYPASSLIMIT    = "thutessentials.land.deed.nolimit";
     private static final String CANREDEEMDEEDS = "thutessentials.land.deed";
+
+    private static final String DEEDTEAM = "__deeds__";
 
     private static boolean registered = false;
 
@@ -186,6 +191,7 @@ public class Deed
             if (!player.addItemStackToInventory(deed)) player.dropItem(deed, false);
         }
         LandSaveHandler.saveTeam(team.teamName);
+        LandSaveHandler.saveTeam(Deed.DEEDTEAM);
         return done ? 0 : 1;
     }
 
@@ -205,8 +211,18 @@ public class Deed
             return 3;
         }
         LandManager.getInstance().removeTeamLand(team.teamName, chunk);
+        // ensure the deed team exist, and that it is set to reserved.
+        Deed.initDeedTeam();
+        // Transfers the claim over to the "deed team"
+        LandManager.getInstance().addTeamLand(Deed.DEEDTEAM, chunk, true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
         return 0;
+    }
+
+    private static void initDeedTeam()
+    {
+        final LandTeam team = LandManager.getInstance().getTeam(Deed.DEEDTEAM, true);
+        team.reserved = true;
     }
 
     private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
