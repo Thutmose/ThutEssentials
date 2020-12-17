@@ -14,7 +14,9 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -34,9 +36,11 @@ public class Claim
 {
     private static final String BYPASSLIMIT = "thutessentials.land.claim.nolimit";
     private static final String AUTOCLAIM   = "thutessentials.land.claim.autoclaim";
+    private static final String BULKCLAIM   = "thutessentials.land.claim.bulkclaim";
 
-    private static final Set<UUID>           autoclaimers = Sets.newHashSet();
-    private static final Map<UUID, BlockPos> claimstarts  = Maps.newHashMap();
+    private static final Set<UUID> autoclaimers = Sets.newHashSet();
+
+    private static final Map<UUID, GlobalPos> claimstarts = Maps.newHashMap();
 
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
@@ -49,6 +53,8 @@ public class Claim
                 "Permission to bypass the land per player limit for a team.");
         PermissionAPI.registerNode(Claim.AUTOCLAIM, DefaultPermissionLevel.OP,
                 "Permission to use autoclaim to claim land as they walk around.");
+        PermissionAPI.registerNode(Claim.BULKCLAIM, DefaultPermissionLevel.OP,
+                "Permission to use /claim start and /claim end to bulk claim chunks.");
 
         // Setup with name and permission
         LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
@@ -80,6 +86,14 @@ public class Claim
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
         command = command.then(Commands.literal("check").executes(ctx -> Claim.executeCheck(ctx.getSource())));
+        commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, Claim.BULKCLAIM));
+        command = command.then(Commands.literal("start").executes(ctx -> Claim.executeStart(ctx.getSource())));
+        commandDispatcher.register(command);
+
+        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, Claim.BULKCLAIM));
+        command = command.then(Commands.literal("end").executes(ctx -> Claim.executeEnd(ctx.getSource())));
         commandDispatcher.register(command);
     }
 
@@ -123,6 +137,56 @@ public class Claim
         final int teamCount = team.member.size();
         final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;
         player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.count", count, maxLand));
+        return 0;
+    }
+
+    private static int executeStart(final CommandSource source) throws CommandSyntaxException
+    {
+        final PlayerEntity player = source.asPlayer();
+        final LandTeam team = LandManager.getTeam(player);
+        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        {
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
+            return 1;
+        }
+        final GlobalPos start = GlobalPos.of(player.getEntity().dimension, player.getPosition());
+        Claim.claimstarts.put(player.getUniqueID(), start);
+        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.set", player.getPosition()));
+        return 0;
+    }
+
+    private static int executeEnd(final CommandSource source) throws CommandSyntaxException
+    {
+        final PlayerEntity player = source.asPlayer();
+        final LandTeam team = LandManager.getTeam(player);
+        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        {
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
+            return 1;
+        }
+        final GlobalPos end = GlobalPos.of(player.getEntity().dimension, player.getPosition());
+        final GlobalPos start = Claim.claimstarts.get(player.getUniqueID());
+        if (start == null)
+        {
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.not_set"));
+            return 1;
+        }
+        if (end.getDimension() != start.getDimension())
+        {
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.wrong_dim"));
+            return 1;
+        }
+        // easy way to sort the x, z coordinates by min/max
+        final AxisAlignedBB box = new AxisAlignedBB(start.getPos(), end.getPos());
+        final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
+        final int dim = player.dimension.getId();
+        int n = 0;
+        // Convert to chunk coordinates for the loop with the >> 4
+        for (int x = MathHelper.floor(box.minX) >> 4; x <= MathHelper.floor(box.maxX) >> 4; x++)
+            for (int z = MathHelper.floor(box.minZ) >> 4; x <= MathHelper.floor(box.maxZ) >> 4; z++)
+                for (int y = 0; y < 16; y++)
+                    n += Claim.claim(x, y, z, dim, player, team, false, noLimit);
+        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.end", n, team.teamName));
         return 0;
     }
 
