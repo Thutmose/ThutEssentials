@@ -57,6 +57,7 @@ public class PlayerMover
         {
             if (!this.moveTo.isValid()) return;
             if (!this.start.isValid()) return;
+            if (this.player == null || !this.player.addedToChunk || !this.player.isAddedToWorld()) return;
             if (this.event) MinecraftForge.EVENT_BUS.post(new MoveEvent(this.player));
             if (Essentials.config.log_teleports) InventoryLogger.log("Teleport from {} {} to {} {} for {} {}",
                     CoordinateUtls.chunkPos(this.start), this.start.getDimension().getLocation(), this.start.getPos(),
@@ -64,7 +65,15 @@ public class PlayerMover
                     this.player.getName().getString());
             final TeleDest dest = new TeleDest();
             dest.setLoc(this.moveTo, new Vector3().set(this.moveTo.getPos()).add(PlayerMover.offset));
-            Transporter.transferTo(this.player, dest);
+            try
+            {
+                Transporter.transferTo(this.player, dest);
+            }
+            catch (final Exception e)
+            {
+                Essentials.LOGGER.error("Error teleporting player!");
+                Essentials.LOGGER.error(e);
+            }
             if (this.callback != null) this.callback.test(this.player);
             if (this.message != null) this.player.sendMessage(this.message, Util.DUMMY_UUID);
         }
