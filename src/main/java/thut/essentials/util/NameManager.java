@@ -17,6 +17,7 @@ public class NameManager
     {
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(event.getPlayer());
         final String nick = tag.getString("nick");
+        if (nick.trim().isEmpty()) return;
         final ITextComponent comp = new StringTextComponent(RuleManager.format(nick));
         final String old = event.getDisplayname().getString();
         event.setDisplayname(comp);
