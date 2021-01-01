@@ -527,7 +527,6 @@ public class LandEventsHandler
                     final CompoundNBT prev_chunk = CoordinateUtls.toNBT(newChunk);
                     entry_log.put("chunk", prev_chunk);
                     tag.put("last_entered_chunk", entry_log);
-                    PlayerDataHandler.saveCustomData(player);
                 }
                 else
                 {
@@ -567,7 +566,6 @@ public class LandEventsHandler
                             final CompoundNBT prev_chunk = CoordinateUtls.toNBT(newChunk);
                             entry_log.put("chunk", prev_chunk);
                             tag.put("last_entered_chunk", entry_log);
-                            PlayerDataHandler.saveCustomData(player);
                         }
                         player.connection.setPlayerLocation(entry_point.getX() + 0.5, entry_point.getY() + 0.5,
                                 entry_point.getZ() + 0.5, player.rotationYaw, player.rotationPitch);
@@ -580,7 +578,6 @@ public class LandEventsHandler
                     // entry_log.putString("last_name", last_name);
                     entry_log.put("from", NBTUtil.writeBlockPos(here));
                     tag.put("last_entered_chunk", entry_log);
-                    PlayerDataHandler.saveCustomData(player);
 
                     messages:
                     {
