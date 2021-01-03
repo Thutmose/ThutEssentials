@@ -81,8 +81,8 @@ public class Bed
 
     private static KGobalPos getBedSpot(final ServerPlayerEntity player)
     {
-        if (!player.getBedPosition().isPresent()) return null;
-        final KGobalPos pos = KGobalPos.getPosition(player.func_241141_L_(), player.getBedPosition().get());
+        if (player.func_241140_K_() == null) return null;
+        final KGobalPos pos = KGobalPos.getPosition(player.func_241141_L_(), player.func_241140_K_());
         KGobalPos spot = pos;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         final ServerWorld world = server.getWorld(pos.getDimension());

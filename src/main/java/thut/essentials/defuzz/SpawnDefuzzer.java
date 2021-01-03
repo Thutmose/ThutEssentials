@@ -41,7 +41,7 @@ public class SpawnDefuzzer
                             Stats.SWIM_ONE_CM));
             if (num > SpawnDefuzzer.DEFUZZSENS) return false;
         }
-        return !player.getBedPosition().isPresent();
+        return player.func_241140_K_() == null;
     }
 
     @SubscribeEvent
