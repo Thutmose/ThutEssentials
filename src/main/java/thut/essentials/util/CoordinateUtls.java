@@ -57,7 +57,7 @@ public class CoordinateUtls
         }
         catch (final Exception e)
         {
-            Essentials.LOGGER.error("Error reading from nbt!");
+            // Essentials.LOGGER.error("Error reading from nbt!");
             return null;
         }
     }
