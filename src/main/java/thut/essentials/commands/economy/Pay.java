@@ -59,14 +59,14 @@ public class Pay
         if (toSend <= senderBalance)
         {
             EconomyManager.addBalance(payee, toSend);
-            player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.got", toSend, source
+            payee.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.got", toSend, source
                     .getDisplayName()));
             if (player != null) EconomyManager.addBalance(player, -toSend);
             Essentials.config.sendFeedback(source, "thutessentials.econ.pay.send", false, toSend, payee
                     .getDisplayName());
             return 0;
         }
-        player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.notenough"));
+        if (player != null) player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.notenough"));
         return 1;
     }
 }

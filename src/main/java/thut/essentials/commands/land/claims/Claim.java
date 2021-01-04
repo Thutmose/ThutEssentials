@@ -269,7 +269,7 @@ public class Claim
         // TODO better bounds check to support say cubic chunks.
         if (chunk.y < 0 || chunk.y > 15) return 1;
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
-        if (owner != null)
+        if (owner != LandManager.getWildTeam())
         {
             if (messages) player.sendMessage(Essentials.config.getMessage(
                     "thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName));
