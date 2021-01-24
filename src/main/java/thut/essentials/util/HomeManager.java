@@ -24,7 +24,7 @@ public class HomeManager
 
     public static void registerPerms()
     {
-        if (HomeManager.HOMEPERMS != null) return;
+        if (HomeManager.HOMEPERMS != null && HomeManager.HOMEPERMS.length >= Essentials.config.maxHomes) return;
         HomeManager.HOMEPERMS = new String[Essentials.config.maxHomes];
         for (int i = 0; i < Essentials.config.maxHomes; i++)
         {
@@ -36,9 +36,9 @@ public class HomeManager
 
     public static boolean canAddHome(final ServerPlayerEntity player, final int index)
     {
-        for (int i = HomeManager.HOMEPERMS.length; i >= index; i--)
+        for (int i = HomeManager.HOMEPERMS.length - 1; i >= index; i--)
         {
-            final String perm = HomeManager.HOMEPERMS[index];
+            final String perm = HomeManager.HOMEPERMS[i];
             if (PermissionAPI.hasPermission(player, perm)) return true;
         }
         return false;
@@ -75,7 +75,7 @@ public class HomeManager
         // Too many
         if (num >= Essentials.config.maxHomes) return 1;
         // No perms
-        if (HomeManager.canAddHome(player, num)) return 2;
+        if (!HomeManager.canAddHome(player, num)) return 2;
         // Already exists
         if (homes.contains(home)) return 3;
         final KGobalPos loc = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), pos);
