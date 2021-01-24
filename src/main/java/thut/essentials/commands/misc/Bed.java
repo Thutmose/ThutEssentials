@@ -1,6 +1,8 @@
 package thut.essentials.commands.misc;
 
+import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -83,31 +85,22 @@ public class Bed
     {
         if (player.func_241140_K_() == null) return null;
         final KGobalPos pos = KGobalPos.getPosition(player.func_241141_L_(), player.func_241140_K_());
-        KGobalPos spot = pos;
+        final KGobalPos spot = pos;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         final ServerWorld world = server.getWorld(pos.getDimension());
         if (world == null) return null;
         final BlockPos check = pos.getPos();
         if (Back.valid(check, world)) return spot;
         final int r = Essentials.config.backRangeCheck;
-        BlockPos test;
-        for (int j = 0; j < r; j++)
-            for (int i = 0; i < r; i++)
-                for (int k = 0; k < r; k++)
-                {
-                    test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() + k);
-                    spot = KGobalPos.getPosition(pos.getDimension(), test);
-                    if (Back.valid(check, world)) return spot;
-                    test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() + k);
-                    spot = KGobalPos.getPosition(pos.getDimension(), test);
-                    if (Back.valid(check, world)) return spot;
-                    test = new BlockPos(check.getX() - i, check.getY() + j, check.getX() - k);
-                    spot = KGobalPos.getPosition(pos.getDimension(), test);
-                    if (Back.valid(check, world)) return spot;
-                    test = new BlockPos(check.getX() + i, check.getY() + j, check.getX() - k);
-                    spot = KGobalPos.getPosition(pos.getDimension(), test);
-                    if (Back.valid(check, world)) return spot;
-                }
-        return null;
+        final Stream<BlockPos> stream = BlockPos.getAllInBox(check.getX() - r, check.getY() - r, check.getZ() - r, check
+                .getX() + r, check.getY() + r, check.getZ() + r);
+        final Optional<BlockPos> opt = stream.filter(p -> Back.valid(p, world)).min((p1, p2) ->
+        {
+            final double d1 = p1.distanceSq(check);
+            final double d2 = p2.distanceSq(check);
+            return Double.compare(d1, d2);
+        });
+        if (!opt.isPresent()) return null;
+        return KGobalPos.getPosition(pos.getDimension(), opt.get().toImmutable());
     }
 }
