@@ -34,6 +34,16 @@ public class HomeManager
         }
     }
 
+    public static boolean canAddHome(final ServerPlayerEntity player, final int index)
+    {
+        for (int i = HomeManager.HOMEPERMS.length; i >= index; i--)
+        {
+            final String perm = HomeManager.HOMEPERMS[index];
+            if (PermissionAPI.hasPermission(player, perm)) return true;
+        }
+        return false;
+    }
+
     public static KGobalPos getHome(final ServerPlayerEntity player, String home)
     {
         if (home == null) home = "Home";
@@ -64,9 +74,8 @@ public class HomeManager
         final int num = homes.keySet().size();
         // Too many
         if (num >= Essentials.config.maxHomes) return 1;
-        final String node = HomeManager.HOMEPERMS[num];
         // No perms
-        if (!PermissionAPI.hasPermission(player, node)) return 2;
+        if (HomeManager.canAddHome(player, num)) return 2;
         // Already exists
         if (homes.contains(home)) return 3;
         final KGobalPos loc = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), pos);

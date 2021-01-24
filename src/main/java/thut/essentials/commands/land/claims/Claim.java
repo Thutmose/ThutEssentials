@@ -91,12 +91,14 @@ public class Claim
         command = command.then(Commands.literal("check").executes(ctx -> Claim.executeCheck(ctx.getSource())));
         commandDispatcher.register(command);
 
-        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, Claim.BULKCLAIM));
-        command = command.then(Commands.literal("start").executes(ctx -> Claim.executeStart(ctx.getSource())));
+        command = Commands.literal(name);
+        command = command.then(Commands.literal("start").requires(cs -> CommandManager.hasPerm(cs, Claim.BULKCLAIM))
+                .executes(ctx -> Claim.executeStart(ctx.getSource())));
         commandDispatcher.register(command);
 
-        command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, Claim.BULKCLAIM));
-        command = command.then(Commands.literal("end").executes(ctx -> Claim.executeEnd(ctx.getSource())));
+        command = Commands.literal(name);
+        command = command.then(Commands.literal("end").requires(cs -> CommandManager.hasPerm(cs, Claim.BULKCLAIM))
+                .executes(ctx -> Claim.executeEnd(ctx.getSource())));
         commandDispatcher.register(command);
     }
 
@@ -152,12 +154,14 @@ public class Claim
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
+                    Util.DUMMY_UUID);
             return 1;
         }
         final KGobalPos start = CoordinateUtls.forMob(player);
         Claim.claimstarts.put(player.getUniqueID(), start);
-        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.set", player.getPosition()), Util.DUMMY_UUID);
+        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.set", player.getPosition()),
+                Util.DUMMY_UUID);
         return 0;
     }
 
@@ -167,7 +171,8 @@ public class Claim
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
+                    Util.DUMMY_UUID);
             return 1;
         }
         final KGobalPos end = CoordinateUtls.forMob(player);
@@ -192,7 +197,8 @@ public class Claim
             for (int z = MathHelper.floor(box.minZ) >> 4; x <= MathHelper.floor(box.maxZ) >> 4; z++)
                 for (int y = 0; y < 16; y++)
                     n += Claim.claim(x, y, z, dim, player, team, false, noLimit);
-        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.end", n, team.teamName), Util.DUMMY_UUID);
+        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.end", n, team.teamName),
+                Util.DUMMY_UUID);
         return 0;
     }
 
@@ -260,8 +266,7 @@ public class Claim
                 team.teamName), Util.DUMMY_UUID);
         else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.failed", team.teamName),
                 Util.DUMMY_UUID);
-
-        LandSaveHandler.saveTeam(team.teamName);
+        if (claimed) LandSaveHandler.saveTeam(team.teamName);
         return claimed ? 0 : 1;
     }
 

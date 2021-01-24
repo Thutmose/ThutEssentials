@@ -27,12 +27,14 @@ import net.minecraftforge.fml.network.FMLNetworkConstants;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
+import thut.essentials.land.ClaimedCapability;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.world.DimVersionManager;
+import thut.essentials.util.world.TickScheduler;
 import thut.essentials.util.world.WorldStructures;
 
 @Mod(Essentials.MODID)
@@ -91,7 +93,9 @@ public class Essentials
     {
         // Initialize the world structure tracker
         WorldStructures.setup();
+        ClaimedCapability.setup();
         DimVersionManager.init();
+        MinecraftForge.EVENT_BUS.addListener(TickScheduler::onWorldTick);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

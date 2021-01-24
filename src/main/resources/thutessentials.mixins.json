@@ -6,7 +6,8 @@
   "refmap": "thutessentials.refmap.json",
   "mixins": [
     "SeededServerWorld",
-    "MixinServerPlayerEntity"
+    "MixinServerPlayerEntity",
+    "MixinChunkManager"
   ],
   "client": [
   ],

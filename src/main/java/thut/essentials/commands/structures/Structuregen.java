@@ -1,10 +1,12 @@
 package thut.essentials.commands.structures;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -36,6 +38,7 @@ import net.minecraft.world.gen.feature.structure.StructureManager;
 import net.minecraft.world.gen.feature.structure.StructureStart;
 import net.minecraft.world.gen.feature.template.TemplateManager;
 import net.minecraft.world.server.ChunkHolder;
+import net.minecraft.world.server.ChunkManager;
 import net.minecraft.world.server.ServerChunkProvider;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.server.ServerWorldLightManager;
@@ -43,10 +46,15 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.land.LandManager;
+import thut.essentials.land.LandManager.KGobalPos;
+import thut.essentials.util.world.TickScheduler;
 import thut.essentials.util.world.WorldGenRegionWrapper;
 
 public class Structuregen
 {
+    public static final Set<ChunkPos> toReset = Sets.newConcurrentHashSet();
+
     public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
     {
         final String name = "gen_structure";
@@ -178,47 +186,38 @@ public class Structuregen
         final ServerPlayerEntity player = source.asPlayer();
         final IChunk chunk = player.getEntityWorld().getChunkAt(player.getPosition());
         final ServerWorld worldIn = player.getServerWorld();
-        final int ds = radius;
         final ChunkPos chunkpos = chunk.getPos();
 
-        // ds = Math.min(10, ds);
-        // final int ds1 = ds;
-        //
-        // for (int dx = -ds1; dx <= ds1; dx++)
-        // for (int dz = -ds1; dz <= ds1; dz++)
-        // {
-        // final int mx = chunkpos.x + dx;
-        // final int mz = chunkpos.z + dz;
-        // final List<IChunk> primers_for_starts = Lists.newArrayList();
-        // final Map<ChunkPos, IChunk> all_primers = Maps.newHashMap();
-        // final List<IChunk> primers = Lists.newArrayList();
-        // final List<Chunk> originals = Lists.newArrayList();
-        // final int pad = 4;
-        // for (int x = mx - ds - pad; x <= mx + ds + pad; x++)
-        // for (int z = mz - ds - pad; z <= mz + ds + pad; z++)
-        // {
-        // final ChunkPos pos = new ChunkPos(x, z);
-        // final ChunkPrimer chunk2 = new ChunkPrimer(pos, UpgradeData.EMPTY);
-        // primers_for_starts.add(chunk2);
-        // all_primers.put(pos, chunk2);
-        // if (x < mx - ds || x > mx + ds) continue;
-        // if (z < mz - ds || z > mz + ds) continue;
-        // chunk = worldIn.getChunk(x, z);
-        // primers.add(chunk2);
-        // originals.add((Chunk) chunk);
-        // }
-        // final WorldGenRegionWrapper worldRegion = new
-        // WorldGenRegionWrapper(worldIn, primers_for_starts);
-        // Structuregen.regenerateChunks(source, primers, originals,
-        // worldRegion, 0, chunk.getHeight(),
-        // false,
-        // new ChunkPos(mx, mz));
-        // }
-        //
-        // final Thread regener = new Thread("regenThread");
-        // regener.
+        final ServerChunkProvider chunkProvider = worldIn.getChunkProvider();
+        final ChunkManager manager = chunkProvider.chunkManager;
 
-        source.sendFeedback(new StringTextComponent("Done"), false);
+        TickScheduler.Schedule(worldIn.getDimensionKey(), () ->
+        {
+            ChunkPos.getAllInBox(chunkpos, radius).forEach(p ->
+            {
+                boolean owned = false;
+                for (int k = 0; k < 16; k++)
+                {
+                    final KGobalPos land = KGobalPos.getPosition(worldIn.getDimensionKey(), new BlockPos(p.x, k, p.z));
+                    owned = !LandManager.isWild(LandManager.getInstance().getLandOwner(land));
+                    if (owned) break;
+                }
+                if (owned) return;
+                final long k = p.asLong();
+                final ChunkHolder holder = manager.loadedChunks.get(k);
+                if (holder != null)
+                {
+                    manager.loadedChunks.remove(k);
+                    manager.loadedPositions.remove(k);
+                    manager.immutableLoadedChunksDirty = true;
+                    holder.setChunkLevel(0);
+                }
+                Structuregen.toReset.add(p);
+            });
+            manager.refreshOffThreadCache();
+        }, true);
+
+        source.sendFeedback(new StringTextComponent("Reset Scheduled"), false);
         return 0;
     }
 

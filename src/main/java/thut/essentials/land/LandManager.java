@@ -446,6 +446,10 @@ public class LandManager
 
     public static class TeamLand
     {
+        public static UUID _WILDUUID_ = new UUID(1234, 1234);
+
+        public UUID uuid = UUID.randomUUID();
+
         public Set<KGobalPos> claims = Sets.newHashSet();
         public Set<KGobalPos> loaded = Sets.newHashSet();
 
@@ -525,6 +529,8 @@ public class LandManager
         {
             wilds = LandManager.getInstance().getTeam(Essentials.config.wildernessTeamName, true);
             wilds.reserved = true;
+            wilds.uuid = TeamLand._WILDUUID_;
+            wilds.land.uuid = TeamLand._WILDUUID_;
             wilds.allPublic = true;
             wilds.enterMessage = " ";
             wilds.exitMessage = " ";
@@ -737,14 +743,6 @@ public class LandManager
             this._teamMap.put(name, team);
         }
         return team;
-    }
-
-    public List<KGobalPos> getTeamLand(final String team)
-    {
-        final ArrayList<KGobalPos> ret = new ArrayList<>();
-        final LandTeam t = this._teamMap.get(team);
-        if (t != null) ret.addAll(t.land.claims);
-        return ret;
     }
 
     public boolean hasInvite(final UUID member, final String team)
