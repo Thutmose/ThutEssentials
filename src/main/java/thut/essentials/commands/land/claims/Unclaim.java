@@ -1,8 +1,5 @@
 package thut.essentials.commands.land.claims;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -24,6 +21,7 @@ import thut.essentials.events.UnclaimLandEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.land.LandManager.TeamLand;
 import thut.essentials.land.LandSaveHandler;
 
 public class Unclaim
@@ -84,11 +82,11 @@ public class Unclaim
 
         if (all)
         {
-            final List<KGobalPos> allLand = Lists.newArrayList(team.land.claims);
-            for (final KGobalPos c : allLand)
-                Unclaim.unclaim(c, player, team, false, canUnclaimAnything);
-            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", allLand.size(),
-                    team.teamName), Util.DUMMY_UUID);
+            final int num = team.land.countLand();
+            team.land = new TeamLand();
+            LandSaveHandler.saveTeam(team.teamName);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", num, team.teamName),
+                    Util.DUMMY_UUID);
             return 0;
         }
 
@@ -143,7 +141,7 @@ public class Unclaim
         }
         final UnclaimLandEvent event = new UnclaimLandEvent(chunk, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
-        LandManager.getInstance().removeTeamLand(team.teamName, chunk);
+        LandManager.getInstance().unclaimLand(team.teamName, player.getEntityWorld(), chunk.getPos(), true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
                 Util.DUMMY_UUID);
         return 0;
@@ -152,8 +150,6 @@ public class Unclaim
     private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
-        // TODO better bounds check to support say cubic chunks.
-        if (y < 0 || y > 15) return 1;
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         final BlockPos b = new BlockPos(x, y, z);
         final KGobalPos chunk = KGobalPos.getPosition(dim, b);

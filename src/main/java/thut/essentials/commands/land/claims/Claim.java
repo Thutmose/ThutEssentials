@@ -14,7 +14,6 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -119,7 +118,7 @@ public class Claim
         final KGobalPos oldChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(player.getEntityWorld()
                 .getDimensionKey(), old));
         if (newChunk.equals(oldChunk)) return;
-        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+        final World dim = player.getEntityWorld();
 
         final int x = MathHelper.floor(player.getPosition().getX() >> 4);
         final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
@@ -190,7 +189,7 @@ public class Claim
         // easy way to sort the x, z coordinates by min/max
         final AxisAlignedBB box = new AxisAlignedBB(start.getPos(), end.getPos());
         final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
-        final RegistryKey<World> dim = end.getDimension();
+        final World dim = player.getEntityWorld();
         int n = 0;
         // Convert to chunk coordinates for the loop with the >> 4
         for (int x = MathHelper.floor(box.minX) >> 4; x <= MathHelper.floor(box.maxX) >> 4; x++)
@@ -234,7 +233,7 @@ public class Claim
         final int x = player.getPosition().getX() >> 4;
         final int y = player.getPosition().getY() >> 4;
         final int z = player.getPosition().getZ() >> 4;
-        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+        final World dim = player.getEntityWorld();
 
         if (here) return Claim.claim(x, y, z, dim, player, team, true, noLimit);
 
@@ -270,20 +269,16 @@ public class Claim
         return claimed ? 0 : 1;
     }
 
-    public static int claim(final int x, final int y, final int z, final RegistryKey<World> dim,
-            final PlayerEntity player, final LandTeam team, final boolean messages, final boolean noLimit)
+    public static int claim(final int x, final int y, final int z, final World dim, final PlayerEntity player,
+            final LandTeam team, final boolean messages, final boolean noLimit)
     {
-        final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
-        return Claim.claim(chunk, player, team, messages, noLimit);
+        return Claim.claim(dim, new BlockPos(x, y, z), player, team, messages, noLimit);
     }
 
-    public static int claim(final KGobalPos chunk, final PlayerEntity player,
-            final LandTeam team,
-            final boolean messages, final boolean noLimit)
+    public static int claim(final World world, final BlockPos chunkCoord, final PlayerEntity player,
+            final LandTeam team, final boolean messages, final boolean noLimit)
     {
-        // TODO better bounds check to support say cubic chunks.
-        if (chunk.getPos().getY() < 0 || chunk.getPos().getY() > 15) return 1;
-        final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
+        final LandTeam owner = LandManager.getInstance().getLandOwner(world, chunkCoord, true);
         if (!LandManager.isWild(owner))
         {
             if (messages) player.sendMessage(Essentials.config.getMessage(
@@ -299,9 +294,10 @@ public class Claim
                     "thutessentials.claim.notallowed.needmoreland"), Util.DUMMY_UUID);
             return 3;
         }
-        final ClaimLandEvent event = new ClaimLandEvent(chunk, player, team.teamName);
+        final KGobalPos pos = KGobalPos.getPosition(world.getDimensionKey(), chunkCoord);
+        final ClaimLandEvent event = new ClaimLandEvent(pos, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
-        LandManager.getInstance().addTeamLand(team.teamName, chunk, true);
+        LandManager.getInstance().claimLand(team.teamName, world, chunkCoord, true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed", team.teamName),
                 Util.DUMMY_UUID);
         return 0;

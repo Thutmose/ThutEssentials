@@ -19,6 +19,7 @@ import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -30,7 +31,6 @@ import thut.essentials.economy.EconomyManager;
 import thut.essentials.land.ClaimedCapability;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
-import thut.essentials.land.LandManager;
 import thut.essentials.util.CmdScheduler;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerDataHandler;
@@ -110,6 +110,14 @@ public class Essentials
         Essentials.LOGGER.info("Server Started");
     }
 
+    @SubscribeEvent
+    public void serverStarted(final FMLServerStartedEvent event)
+    {
+        if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
+        if (Essentials.config.shopsEnabled) EconomyManager.getInstance();
+        LandEventsHandler.TEAMMANAGER.onServerStarted();
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void registerServerCommands(final RegisterCommandsEvent event)
     {
@@ -121,7 +129,7 @@ public class Essentials
     {
         if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.clearInstance();
-        LandManager.clearInstance();
+        LandEventsHandler.TEAMMANAGER.onServerStopped();
         PlayerDataHandler.saveAll();
         PlayerDataHandler.clear();
         Essentials.LOGGER.info("Server Stopped");

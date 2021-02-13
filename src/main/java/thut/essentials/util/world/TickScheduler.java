@@ -17,6 +17,31 @@ public class TickScheduler
     private static final Map<RegistryKey<World>, List<Runnable>> endTickRuns   = new ConcurrentHashMap<>();
     private static final Map<RegistryKey<World>, List<Runnable>> startTickRuns = new ConcurrentHashMap<>();
 
+    public static class CustomRunnable implements Runnable
+    {
+        private final Runnable wrapped;
+
+        public int ticks = 0;
+
+        public CustomRunnable(final Runnable wrap, final int timer)
+        {
+            this.wrapped = wrap;
+            this.ticks = timer;
+        }
+
+        public boolean isDone()
+        {
+            return this.ticks <= 0;
+        }
+
+        @Override
+        public void run()
+        {
+            this.wrapped.run();
+            this.ticks--;
+        }
+    }
+
     public static void Schedule(final RegistryKey<World> key, final Runnable task, final boolean postTick)
     {
         final Map<RegistryKey<World>, List<Runnable>> map = postTick ? TickScheduler.endTickRuns
@@ -43,6 +68,7 @@ public class TickScheduler
                 list.removeIf(r ->
                 {
                     r.run();
+                    if (r instanceof CustomRunnable) if (!((CustomRunnable) r).isDone()) return false;
                     return true;
                 });
             }

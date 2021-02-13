@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import com.google.common.collect.Sets;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.IntArrayNBT;
@@ -13,15 +15,20 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
+import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
+import thut.essentials.land.LandManager.KGobalPos;
+import thut.essentials.land.LandManager.LandTeam;
 
 public class ClaimedCapability
 {
@@ -120,16 +127,15 @@ public class ClaimedCapability
 
     public static void setup()
     {
-        // CapabilityManager.INSTANCE.register(IClaimed.class, new Storage(),
-        // ClaimImpl::new);
-        // MinecraftForge.EVENT_BUS.register(ClaimedCapability.class);
+        CapabilityManager.INSTANCE.register(IClaimed.class, new Storage(), ClaimImpl::new);
+        MinecraftForge.EVENT_BUS.register(ClaimedCapability.class);
     }
 
     @SubscribeEvent
     public static void attach(final AttachCapabilitiesEvent<Chunk> event)
     {
         if (event.getCapabilities().containsKey(ClaimedCapability.CAPTAG)) return;
-        event.addCapability(ClaimedCapability.CAPTAG, new ClaimImpl());
+        event.addCapability(ClaimedCapability.CAPTAG, new ClaimImpl(event.getObject()));
     }
 
     public static class ClaimImpl implements IClaimed, ICapabilitySerializable<CompoundNBT>
@@ -138,13 +144,37 @@ public class ClaimedCapability
 
         private final ClaimInfo info = new ClaimInfo();
 
-        private final ClaimSegment[] segments = new ClaimSegment[16];
+        private final Int2ObjectArrayMap<ClaimSegment> claims = new Int2ObjectArrayMap<>(16);
+
+        public ClaimImpl()
+        {
+        }
+
+        public ClaimImpl(final Chunk chunk)
+        {
+            final World world = chunk.getWorld();
+
+            for (int y = 0; y < 16; y++)
+            {
+                final KGobalPos pos = KGobalPos.getPosition(world.getDimensionKey(), new BlockPos(chunk.getPos().x, y,
+                        chunk.getPos().z));
+                if (LandManager.getInstance()._landMap.containsKey(pos))
+                {
+                    final LandTeam team = LandManager.getInstance()._landMap.remove(pos);
+                    team.land.claims.remove(pos);
+                    team.land.claimed++;
+                    this.getSegment(y).owner = team.land.uuid;
+                    LandSaveHandler.saveTeam(team.teamName);
+                }
+            }
+        }
 
         @Override
         public ClaimSegment getSegment(final int yIndex)
         {
-            if (this.segments[yIndex] == null) this.segments[yIndex] = new ClaimSegment();
-            return this.segments[yIndex];
+            ClaimSegment claim = this.claims.get(yIndex);
+            if (claim == null) this.claims.put(yIndex, claim = new ClaimSegment());
+            return claim;
         }
 
         @Override
@@ -164,8 +194,12 @@ public class ClaimedCapability
         {
             final CompoundNBT tag = new CompoundNBT();
             tag.put("info", this.info.serializeNBT());
-            for (int i = 0; i < this.segments.length; i++)
-                tag.put("seg_" + i, this.getSegment(i).serializeNBT());
+            for (final Entry<ClaimSegment> s : this.claims.int2ObjectEntrySet())
+            {
+                final ClaimSegment claim = s.getValue();
+                if (!LandManager.isWild(LandManager.getInstance().getTeamForLand(claim.owner))) tag.put("seg_" + s
+                        .getIntKey(), claim.serializeNBT());
+            }
             return tag;
         }
 
@@ -173,8 +207,19 @@ public class ClaimedCapability
         public void deserializeNBT(final CompoundNBT nbt)
         {
             this.info.deserializeNBT(nbt.getCompound("info"));
-            for (int i = 0; i < this.segments.length; i++)
-                if (nbt.contains("seg_" + i)) this.getSegment(i).deserializeNBT((IntArrayNBT) nbt.get("seg_" + i));
+            for (final String key : nbt.keySet())
+                if (key.startsWith("seg_")) try
+                {
+                    final int i = Integer.parseInt(key.replace("seg_", ""));
+                    final ClaimSegment claim = new ClaimSegment();
+                    claim.deserializeNBT((IntArrayNBT) nbt.get(key));
+                    if (!LandManager.isWild(LandManager.getInstance().getTeamForLand(claim.owner))) this.claims.put(i,
+                            claim);
+                }
+                catch (final Exception e)
+                {
+
+                }
         }
     }
 }

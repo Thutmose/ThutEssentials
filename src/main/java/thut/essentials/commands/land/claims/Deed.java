@@ -58,17 +58,25 @@ public class Deed
         final int num = stack.getTag().getInt("num");
         int n = 0;
         int x = 0, z = 0;
+        final World world = player.getEntityWorld();
         for (int i = 0; i < num; i++)
         {
             final CompoundNBT tag = stack.getTag().getCompound("" + i);
             final KGobalPos c = CoordinateUtls.fromNBT(tag);
             if (c == null) continue;
+            if (c.getDimension() != world.getDimensionKey())
+            {
+                player.sendMessage(Essentials.config.getMessage("thutessentials.deed.notallowed.wrongdim"),
+                        Util.DUMMY_UUID);
+                return;
+            }
             x = c.getPos().getX();
             z = c.getPos().getZ();
             // Unclaim from deed team first.
-            LandManager.getInstance().removeTeamLand(Deed.DEEDTEAM, c);
+            LandManager.getInstance().unclaimLand(Deed.DEEDTEAM, world, c.getPos(), true);
             // Then claim for the new owner.
-            final int re = Claim.claim(c, player, team, false, PermissionAPI.hasPermission(player, Deed.BYPASSLIMIT));
+            final int re = Claim.claim(world, c.getPos(), player, team, false, PermissionAPI.hasPermission(player,
+                    Deed.BYPASSLIMIT));
             if (re == 0)
             {
                 n++;
@@ -221,11 +229,12 @@ public class Deed
                     owner.teamName), Util.DUMMY_UUID);
             return 3;
         }
-        LandManager.getInstance().removeTeamLand(team.teamName, chunk);
+        final World world = player.getEntityWorld();
+        LandManager.getInstance().unclaimLand(team.teamName, world, chunk.getPos(), true);
         // ensure the deed team exist, and that it is set to reserved.
         Deed.initDeedTeam();
         // Transfers the claim over to the "deed team"
-        LandManager.getInstance().addTeamLand(Deed.DEEDTEAM, chunk, true);
+        LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.getPos(), true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
                 Util.DUMMY_UUID);
         return 0;
@@ -240,8 +249,6 @@ public class Deed
     private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
-        // TODO better bounds check to support say cubic chunks.
-        if (y < 0 || y > 15) return 1;
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
         return Deed.unclaim(chunk, player, team, messages, canUnclaimAnything);

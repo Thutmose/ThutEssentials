@@ -47,7 +47,6 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.world.TickScheduler;
 import thut.essentials.util.world.WorldGenRegionWrapper;
 
@@ -198,8 +197,8 @@ public class Structuregen
                 boolean owned = false;
                 for (int k = 0; k < 16; k++)
                 {
-                    final KGobalPos land = KGobalPos.getPosition(worldIn.getDimensionKey(), new BlockPos(p.x, k, p.z));
-                    owned = !LandManager.isWild(LandManager.getInstance().getLandOwner(land));
+                    owned = !LandManager.isWild(LandManager.getInstance().getLandOwner(worldIn, new BlockPos(p.x, k,
+                            p.z), true));
                     if (owned) break;
                 }
                 if (owned) return;
