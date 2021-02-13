@@ -311,8 +311,8 @@ public class LandEventsHandler
                         .getPos());
                 // Chunk Coordinate
                 final KGobalPos c = CoordinateUtls.chunkPos(b);
-                InventoryLogger.log("place {} at {} on {} by {} {}", c, evt.getPlacedBlock(), evt.getPos(),
-                        evt.getPlacedAgainst(), evt.getEntity().getUniqueID(), evt.getEntity().getName().getString());
+                InventoryLogger.log("place {} at {} on {} by {} {}", c, evt.getPlacedBlock(), evt.getPos(), evt
+                        .getPlacedAgainst(), evt.getEntity().getUniqueID(), evt.getEntity().getName().getString());
             }
         }
 
@@ -330,7 +330,7 @@ public class LandEventsHandler
                         .getPos());
                 // Chunk Coordinate
                 final KGobalPos c = CoordinateUtls.chunkPos(b);
-                InventoryLogger.log("break {} at {} by {} {}", c, evt.getPos(), evt.getState(), evt.getPlayer()
+                InventoryLogger.log("break {} at {} by {} {}", c, evt.getState(), evt.getPos(), evt.getPlayer()
                         .getUniqueID(), evt.getPlayer().getName().getString());
             }
         }
