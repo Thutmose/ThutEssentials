@@ -33,6 +33,7 @@ import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.ChatManager;
+import thut.essentials.util.CmdScheduler;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.InventoryLogger;
 import thut.essentials.util.KitManager;
@@ -251,6 +252,9 @@ public class Config extends ConfigData
     @Configure(category = Config.MISC)
     public boolean versioned_dim_warning = true;
 
+    @Configure(category = Config.MISC)
+    public List<String> scheduledCommands = Lists.newArrayList();
+
     @Configure(category = Config.STAFF)
     public List<String> staff = Lists.newArrayList();
 
@@ -382,6 +386,7 @@ public class Config extends ConfigData
         PlayerMover.INTERUPTED = this.getMessage("thutessentials.tp.standstill");
         LandEventsHandler.init();
         PvPManager.init();
+        CmdScheduler.loadConfigs();
     }
 
 }

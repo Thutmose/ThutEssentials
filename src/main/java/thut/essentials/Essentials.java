@@ -31,6 +31,7 @@ import thut.essentials.land.ClaimedCapability;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.LandManager;
+import thut.essentials.util.CmdScheduler;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.world.DimVersionManager;
@@ -96,6 +97,7 @@ public class Essentials
         ClaimedCapability.setup();
         DimVersionManager.init();
         MinecraftForge.EVENT_BUS.addListener(TickScheduler::onWorldTick);
+        MinecraftForge.EVENT_BUS.addListener(CmdScheduler::onTick);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

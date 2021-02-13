@@ -87,7 +87,7 @@ public class Ranks
     private static int set_rank(final CommandSource source, final ServerPlayerEntity player, final String rankName)
             throws CommandSyntaxException
     {
-        final LandTeam landTeam = LandManager.getTeam(player);
+        final LandTeam landTeam = LandManager.getTeam(source.asPlayer());
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
         {
@@ -105,7 +105,7 @@ public class Ranks
     private static int rem_rank(final CommandSource source, final ServerPlayerEntity player, final String rankName)
             throws CommandSyntaxException
     {
-        final LandTeam landTeam = LandManager.getTeam(player);
+        final LandTeam landTeam = LandManager.getTeam(source.asPlayer());
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
         {
