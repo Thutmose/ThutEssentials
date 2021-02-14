@@ -16,10 +16,15 @@ public class NameManager
     private static void onPlayerDisplayName(final NameFormat event)
     {
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(event.getPlayer());
-        final String nick = tag.getString("nick");
-        if (nick.trim().isEmpty()) return;
-        final ITextComponent comp = new StringTextComponent(RuleManager.format(nick));
+        String nick = tag.getString("nick");
+        final String pref = tag.getString("nick_pref");
+        final String suff = tag.getString("nick_suff");
+        if (nick.trim().isEmpty() && pref.trim().isEmpty() && suff.trim().isEmpty()) return;
         final String old = event.getDisplayname().getString();
+        if (nick.trim().isEmpty()) nick = old;
+        nick = pref + nick + suff;
+        if (nick.length() > 16) nick = nick.substring(0, 16);
+        final ITextComponent comp = new StringTextComponent(RuleManager.format(nick));
         event.setDisplayname(comp);
         if (event.getPlayer() instanceof ServerPlayerEntity && !old.equals(nick))
         {

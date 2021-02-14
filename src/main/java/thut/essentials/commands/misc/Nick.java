@@ -19,6 +19,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.util.NameManager;
 import thut.essentials.util.PlayerDataHandler;
+import thut.essentials.util.RuleManager;
 
 public class Nick
 {
@@ -33,17 +34,63 @@ public class Nick
                 perm));
 
         command = command.then(Commands.argument("player", GameProfileArgument.gameProfile()).then(Commands.argument(
-                "nick", StringArgumentType.greedyString()).executes(ctx -> Nick.execute(ctx.getSource(),
+                "nick", StringArgumentType.greedyString()).executes(ctx -> Nick.set_nick(ctx.getSource(),
                         GameProfileArgument.getGameProfiles(ctx, "player"), StringArgumentType.getString(ctx,
                                 "nick")))));
+
+        command = command.then(Commands.argument("player", GameProfileArgument.gameProfile()).then(Commands.argument(
+                "prefix", StringArgumentType.greedyString()).executes(ctx -> Nick.add_name_prefix(ctx.getSource(),
+                        GameProfileArgument.getGameProfiles(ctx, "player"), StringArgumentType.getString(ctx,
+                                "prefix")))));
+
+        command = command.then(Commands.argument("player", GameProfileArgument.gameProfile()).then(Commands.argument(
+                "suffix", StringArgumentType.greedyString()).executes(ctx -> Nick.add_name_suffix(ctx.getSource(),
+                        GameProfileArgument.getGameProfiles(ctx, "player"), StringArgumentType.getString(ctx,
+                                "suffix")))));
         // Actually register the command.
         commandDispatcher.register(command);
         NameManager.init();
     }
 
-    private static int execute(final CommandSource source, final Collection<GameProfile> target, String nick)
+    private static int add_name_prefix(final CommandSource source, final Collection<GameProfile> target, String prefix)
+    {
+        if (prefix.length() > 8) prefix = prefix.substring(0, 8);
+        prefix = RuleManager.format(prefix);
+        final MinecraftServer server = source.getServer();
+        for (final GameProfile p : target)
+        {
+            final ServerPlayerEntity player = server.getPlayerList().getPlayerByUUID(p.getId());
+            if (player == null) continue;
+
+            final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+            tag.putString("nick_pref", prefix);
+            PlayerDataHandler.saveCustomData(player);
+            player.refreshDisplayName();
+        }
+        return 0;
+    }
+
+    private static int add_name_suffix(final CommandSource source, final Collection<GameProfile> target, String prefix)
+    {
+        if (prefix.length() > 8) prefix = prefix.substring(0, 8);
+        prefix = RuleManager.format(prefix);
+        final MinecraftServer server = source.getServer();
+        for (final GameProfile p : target)
+        {
+            final ServerPlayerEntity player = server.getPlayerList().getPlayerByUUID(p.getId());
+            if (player == null) continue;
+            final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+            tag.putString("nick_suff", prefix);
+            PlayerDataHandler.saveCustomData(player);
+            player.refreshDisplayName();
+        }
+        return 0;
+    }
+
+    private static int set_nick(final CommandSource source, final Collection<GameProfile> target, String nick)
     {
         if (nick.length() > 16) nick = nick.substring(0, 16);
+        nick = RuleManager.format(nick);
         final MinecraftServer server = source.getServer();
         for (final GameProfile p : target)
         {
