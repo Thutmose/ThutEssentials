@@ -527,6 +527,18 @@ public class LandManager
         return LandManager.getTeam(player.getUniqueID());
     }
 
+    public static LandTeam getNotLoaded()
+    {
+        LandTeam not_loaded = LandManager.getInstance().getTeam("__not_a_chunk__", false);
+        if (not_loaded == null)
+        {
+            not_loaded = LandManager.getInstance().getTeam("__not_a_chunk__", true);
+            not_loaded.reserved = true;
+            not_loaded.allPublic = false;
+        }
+        return not_loaded;
+    }
+
     public static LandTeam getDefaultTeam()
     {
         return LandManager.getInstance().getTeam(Essentials.config.defaultTeamName, true);
@@ -659,13 +671,17 @@ public class LandManager
     public void claimLand(final String team, final World world, final BlockPos pos, final boolean chunkCoords)
     {
         final IClaimed claims = this.getClaimer(world, pos, chunkCoords);
+        if (claims == null)
+        {
+            Thread.dumpStack();
+            return;
+        }
         final LandTeam t = this._teamMap.get(team);
         if (t == null)
         {
             Thread.dumpStack();
             return;
         }
-        if (claims == null) throw new IllegalStateException("Claiming in invalid chunk?");
         final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
         final ClaimSegment seg = claims.getSegment(y);
         if (seg.owner != null)
@@ -685,14 +701,17 @@ public class LandManager
     public void unclaimLand(final String team, final World world, final BlockPos pos, final boolean chunkCoords)
     {
         final IClaimed claims = this.getClaimer(world, pos, chunkCoords);
+        if (claims == null)
+        {
+            Thread.dumpStack();
+            return;
+        }
         final LandTeam t = this._teamMap.get(team);
         if (t == null)
         {
             Thread.dumpStack();
             return;
         }
-        if (claims == null) throw new IllegalStateException("Claiming in invalid chunk?");
-
         // TODO remove legacy stuff
         KGobalPos c;
         if (chunkCoords) c = KGobalPos.getPosition(world.getDimensionKey(), pos);
@@ -806,6 +825,10 @@ public class LandManager
     private IClaimed getClaimer(final World world, final BlockPos pos, final boolean chunkCoords)
     {
         final ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
+
+        if (!world.getServer().isOnExecutionThread()) return null;
+        if (!world.chunkExists(cPos.x, cPos.z)) return null;
+
         final IChunk chunk = world.getChunk(cPos.x, cPos.z);
         if (chunk instanceof ICapabilityProvider)
         {
@@ -846,6 +869,7 @@ public class LandManager
 
             else owner = this.getTeamForLand(seg.owner);
         }
+        else return LandManager.getNotLoaded();
         return owner;
     }
 

@@ -153,6 +153,7 @@ public class ClaimedCapability
         public ClaimImpl(final Chunk chunk)
         {
             final World world = chunk.getWorld();
+            if (world.isRemote) return;
 
             for (int y = 0; y < 16; y++)
             {
