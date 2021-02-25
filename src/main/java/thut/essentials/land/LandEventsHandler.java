@@ -513,10 +513,11 @@ public class LandEventsHandler
 
                 if (newClaimer == oldClaimer) return;
 
-                final boolean isWild = newClaimer == LandManager.getWildTeam();
-
                 final boolean isNewOwned = !LandManager.isWild(newClaimer);
                 final boolean isOldOwned = !LandManager.isWild(oldClaimer);
+
+                final boolean isWild = !isNewOwned;
+                final boolean notLoaded = newClaimer == LandManager.getNotLoaded();
 
                 final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
                 final CompoundNBT entry_log = tag.getCompound("last_entered_chunk");
@@ -575,7 +576,7 @@ public class LandEventsHandler
 
                     messages:
                     {
-                        if (newClaimer != null && !isWild)
+                        if (newClaimer != null && !isWild && !notLoaded)
                         {
                             if (newClaimer.equals(oldClaimer)) break messages;
                             if (oldClaimer != null)
@@ -1493,6 +1494,7 @@ public class LandEventsHandler
     private static void sendMessage(final PlayerEntity player, final LandTeam team, final byte index)
     {
         ITextComponent message = null;
+        if (team == null) return;
         final long time = LandEventsHandler.getTime(player);
         final int delay = 10;
         switch (index)

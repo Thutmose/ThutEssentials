@@ -30,6 +30,7 @@ import thut.essentials.Essentials;
 import thut.essentials.land.ClaimedCapability.ClaimSegment;
 import thut.essentials.land.ClaimedCapability.IClaimed;
 import thut.essentials.util.CoordinateUtls;
+import thut.essentials.util.InventoryLogger;
 
 public class LandManager
 {
@@ -568,7 +569,7 @@ public class LandManager
     protected Map<UUID, Invites>    invites         = Maps.newHashMap();
     protected Map<UUID, LandTeam>   _protected_mobs = Maps.newConcurrentMap();
     protected Map<UUID, LandTeam>   _public_mobs    = Maps.newConcurrentMap();
-    protected Map<UUID, LandTeam>   _team_land      = Maps.newConcurrentMap();
+    public Map<UUID, LandTeam>      _team_land      = Maps.newConcurrentMap();
     public int                      version         = LandManager.VERSION;
 
     LandManager()
@@ -695,6 +696,14 @@ public class LandManager
         }
         seg.owner = t.land.uuid;
         t.land.claimed++;
+        KGobalPos c;
+        if (chunkCoords) c = KGobalPos.getPosition(world.getDimensionKey(), pos);
+        else
+        {
+            final KGobalPos b = KGobalPos.getPosition(world.getDimensionKey(), pos);
+            c = CoordinateUtls.chunkPos(b);
+        }
+        InventoryLogger.log("claimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
     }
 
@@ -721,11 +730,11 @@ public class LandManager
             c = CoordinateUtls.chunkPos(b);
         }
         t.land.claims.remove(c);
-
         final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
         final ClaimSegment seg = claims.getSegment(y);
         seg.owner = null;
         t.land.claimed--;
+        InventoryLogger.log("unclaimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
     }
 

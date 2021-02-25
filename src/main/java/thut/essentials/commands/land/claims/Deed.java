@@ -150,67 +150,72 @@ public class Deed
             return 1;
         }
 
-        final int x = player.getPosition().getX() >> 4;
-        final int y = player.getPosition().getY() >> 4;
-        final int z = player.getPosition().getZ() >> 4;
-
-        final Set<KGobalPos> deeds = Sets.newHashSet();
-
-        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
-        boolean done = false;
-        if (here)
+        player.getServer().execute(() ->
         {
-            final int ret = Deed.unclaim(x, y, z, player, team, true, canUnclaimAnything);
-            if (ret == 0)
-            {
-                final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
-                done = true;
-                deeds.add(chunk);
-            }
-            else return ret;
-        }
-        else
-        {
-            final int min = down ? 0 : y;
-            final int max = up ? 16 : y;
 
-            int claimnum = 0;
-            int owned_other = 0;
-            for (int i = min; i < max; i++)
+            final int x = player.getPosition().getX() >> 4;
+            final int y = player.getPosition().getY() >> 4;
+            final int z = player.getPosition().getZ() >> 4;
+
+            final Set<KGobalPos> deeds = Sets.newHashSet();
+
+            final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+            boolean done = false;
+            if (here)
             {
-                final int check = Deed.unclaim(x, i, z, player, team, false, canUnclaimAnything);
-                if (check == 0)
+                final int ret = Deed.unclaim(x, y, z, player, team, true, canUnclaimAnything);
+                if (ret == 0)
                 {
                     final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
-                    deeds.add(chunk);
                     done = true;
-                    claimnum++;
+                    deeds.add(chunk);
                 }
-                else if (check == 3) owned_other++;
+                else return;
             }
-            if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
-                    "thutessentials.unclaim.notallowed.notowner", owned_other), Util.DUMMY_UUID);
-            if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
-                    team.teamName), Util.DUMMY_UUID);
-            else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
-                    team.teamName), Util.DUMMY_UUID);
-        }
+            else
+            {
+                final int min = down ? 0 : y;
+                final int max = up ? 16 : y;
 
-        if (!deeds.isEmpty())
-        {
-            final ItemStack deed = new ItemStack(Items.PAPER);
-            deed.setTag(new CompoundNBT());
-            deed.getTag().putInt("num", deeds.size());
-            deed.getTag().putBoolean("isDeed", true);
-            int i = 0;
-            for (final KGobalPos c : deeds)
-                deed.getTag().put("" + i++, CoordinateUtls.toNBT(c, "deed"));
-            deed.setDisplayName(Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4, z << 4));
-            if (!player.addItemStackToInventory(deed)) player.dropItem(deed, false);
-        }
-        LandSaveHandler.saveTeam(team.teamName);
-        LandSaveHandler.saveTeam(Deed.DEEDTEAM);
-        return done ? 0 : 1;
+                int claimnum = 0;
+                int owned_other = 0;
+                for (int i = min; i < max; i++)
+                {
+                    final int check = Deed.unclaim(x, i, z, player, team, false, canUnclaimAnything);
+                    if (check == 0)
+                    {
+                        final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
+                        deeds.add(chunk);
+                        done = true;
+                        claimnum++;
+                    }
+                    else if (check == 3) owned_other++;
+                }
+                if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
+                        "thutessentials.unclaim.notallowed.notowner", owned_other), Util.DUMMY_UUID);
+                if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
+                        team.teamName), Util.DUMMY_UUID);
+                else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
+                        team.teamName), Util.DUMMY_UUID);
+            }
+
+            if (!deeds.isEmpty())
+            {
+                final ItemStack deed = new ItemStack(Items.PAPER);
+                deed.setTag(new CompoundNBT());
+                deed.getTag().putInt("num", deeds.size());
+                deed.getTag().putBoolean("isDeed", true);
+                int i = 0;
+                for (final KGobalPos c : deeds)
+                    deed.getTag().put("" + i++, CoordinateUtls.toNBT(c, "deed"));
+                deed.setDisplayName(Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4,
+                        z << 4));
+                if (!player.addItemStackToInventory(deed)) player.dropItem(deed, false);
+            }
+            LandSaveHandler.saveTeam(team.teamName);
+            LandSaveHandler.saveTeam(Deed.DEEDTEAM);
+        });
+        return 0;
     }
 
     private static int unclaim(final KGobalPos chunk, final PlayerEntity player, final LandTeam team,
@@ -229,6 +234,7 @@ public class Deed
                     owner.teamName), Util.DUMMY_UUID);
             return 3;
         }
+
         final World world = player.getEntityWorld();
         LandManager.getInstance().unclaimLand(team.teamName, world, chunk.getPos(), true);
         // ensure the deed team exist, and that it is set to reserved.
@@ -237,6 +243,7 @@ public class Deed
         LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.getPos(), true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
                 Util.DUMMY_UUID);
+
         return 0;
     }
 

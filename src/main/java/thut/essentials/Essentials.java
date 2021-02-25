@@ -50,16 +50,17 @@ public class Essentials
     {
         MinecraftForge.EVENT_BUS.register(this);
         thut.essentials.config.Config.setupConfigs(Essentials.config, Essentials.MODID, Essentials.MODID);
-        final File logfile = FMLPaths.GAMEDIR.get().resolve("logs").resolve(Essentials.MODID + ".log").toFile();
+        final String log = Essentials.MODID;
+        final File logfile = FMLPaths.GAMEDIR.get().resolve("logs").resolve(log + ".log").toFile();
         if (logfile.exists())
         {
-            FMLPaths.GAMEDIR.get().resolve("logs").resolve(Essentials.MODID).toFile().mkdirs();
+            FMLPaths.GAMEDIR.get().resolve("logs").resolve("old").toFile().mkdirs();
             try
             {
                 final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-                Files.move(FMLPaths.GAMEDIR.get().resolve("logs").resolve(Essentials.MODID + ".log"), FMLPaths.GAMEDIR
-                        .get().resolve("logs").resolve(Essentials.MODID).resolve(LocalDateTime.now().format(dtf)
-                                .replace(":", "-") + ".log"));
+                Files.move(FMLPaths.GAMEDIR.get().resolve("logs").resolve(log + ".log"), FMLPaths.GAMEDIR.get().resolve(
+                        "logs").resolve("old").resolve(String.format("%s_%s%s", log, LocalDateTime.now().format(dtf)
+                                .replace(":", "-"), ".log")));
             }
             catch (final IOException e)
             {

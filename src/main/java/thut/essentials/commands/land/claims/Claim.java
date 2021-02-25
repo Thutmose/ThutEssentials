@@ -186,18 +186,21 @@ public class Claim
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.wrong_dim"), Util.DUMMY_UUID);
             return 1;
         }
-        // easy way to sort the x, z coordinates by min/max
-        final AxisAlignedBB box = new AxisAlignedBB(start.getPos(), end.getPos());
-        final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
-        final World dim = player.getEntityWorld();
-        int n = 0;
-        // Convert to chunk coordinates for the loop with the >> 4
-        for (int x = MathHelper.floor(box.minX) >> 4; x <= MathHelper.floor(box.maxX) >> 4; x++)
-            for (int z = MathHelper.floor(box.minZ) >> 4; x <= MathHelper.floor(box.maxZ) >> 4; z++)
-                for (int y = 0; y < 16; y++)
-                    n += Claim.claim(x, y, z, dim, player, team, false, noLimit);
-        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.end", n, team.teamName),
-                Util.DUMMY_UUID);
+        player.getServer().execute(() ->
+        {        // easy way to sort the x, z coordinates by min/max
+            final AxisAlignedBB box = new AxisAlignedBB(start.getPos(), end.getPos());
+            final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
+            final World dim = player.getEntityWorld();
+            int n = 0;
+            // Convert to chunk coordinates for the loop with the >> 4
+            for (int x = MathHelper.floor(box.minX) >> 4; x <= MathHelper.floor(box.maxX) >> 4; x++)
+                for (int z = MathHelper.floor(box.minZ) >> 4; z <= MathHelper.floor(box.maxZ) >> 4; z++)
+                    for (int y = 0; y < 16; y++)
+
+                        n += Claim.claim(x, y, z, dim, player, team, false, noLimit);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.end", n, team.teamName),
+                    Util.DUMMY_UUID);
+        });
         return 0;
     }
 
@@ -229,44 +232,51 @@ public class Claim
             return 1;
         }
         final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
-
-        final int x = player.getPosition().getX() >> 4;
-        final int y = player.getPosition().getY() >> 4;
-        final int z = player.getPosition().getZ() >> 4;
-        final World dim = player.getEntityWorld();
-
-        if (here) return Claim.claim(x, y, z, dim, player, team, true, noLimit);
-
-        final int min = down ? 0 : y;
-        final int max = up ? 16 : y;
-
-        boolean claimed = false;
-        int claimnum = 0;
-        int notclaimed = 0;
-        for (int i = min; i < max; i++)
+        player.getServer().execute(() ->
         {
-            final int check = Claim.claim(x, i, z, dim, player, team, false, noLimit);
-            if (check == 0)
+
+            final int x = player.getPosition().getX() >> 4;
+            final int y = player.getPosition().getY() >> 4;
+            final int z = player.getPosition().getZ() >> 4;
+            final World dim = player.getEntityWorld();
+
+            if (here)
             {
-                claimed = true;
-                claimnum++;
+                Claim.claim(x, y, z, dim, player, team, true, noLimit);
+                return;
             }
-            else notclaimed++;
-            if (check == 3)
+
+            final int min = down ? 0 : y;
+            final int max = up ? 16 : y;
+
+            boolean claimed = false;
+            int claimnum = 0;
+            int notclaimed = 0;
+            for (int i = min; i < max; i++)
             {
-                player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"),
-                        Util.DUMMY_UUID);
-                break;
+                final int check = Claim.claim(x, i, z, dim, player, team, false, noLimit);
+                if (check == 0)
+                {
+                    claimed = true;
+                    claimnum++;
+                }
+                else notclaimed++;
+                if (check == 3)
+                {
+                    player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"),
+                            Util.DUMMY_UUID);
+                    break;
+                }
             }
-        }
-        if (notclaimed > 0) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.warn.alreadyclaimed",
-                notclaimed), Util.DUMMY_UUID);
-        if (claimed) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.num", claimnum,
-                team.teamName), Util.DUMMY_UUID);
-        else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.failed", team.teamName),
-                Util.DUMMY_UUID);
-        if (claimed) LandSaveHandler.saveTeam(team.teamName);
-        return claimed ? 0 : 1;
+            if (notclaimed > 0) player.sendMessage(Essentials.config.getMessage(
+                    "thutessentials.claim.warn.alreadyclaimed", notclaimed), Util.DUMMY_UUID);
+            if (claimed) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.num", claimnum,
+                    team.teamName), Util.DUMMY_UUID);
+            else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.failed", team.teamName),
+                    Util.DUMMY_UUID);
+            if (claimed) LandSaveHandler.saveTeam(team.teamName);
+        });
+        return 0;
     }
 
     public static int claim(final int x, final int y, final int z, final World dim, final PlayerEntity player,
@@ -283,7 +293,7 @@ public class Claim
         {
             if (messages) player.sendMessage(Essentials.config.getMessage(
                     "thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName), Util.DUMMY_UUID);
-            return 2;
+            return 1;
         }
         final int teamCount = team.member.size();
         final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;

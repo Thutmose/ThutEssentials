@@ -1,5 +1,8 @@
 package thut.essentials.commands.land.claims;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -83,76 +86,91 @@ public class Unclaim
         if (all)
         {
             final int num = team.land.countLand();
+            LandManager.getInstance()._team_land.remove(team.land.uuid);
             team.land = new TeamLand();
+            LandManager.getInstance()._team_land.put(team.land.uuid, team);
             LandSaveHandler.saveTeam(team.teamName);
             player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", num, team.teamName),
                     Util.DUMMY_UUID);
             return 0;
         }
-
-        final int x = MathHelper.floor(player.getPosition().getX() >> 4);
-        final int y = MathHelper.floor(player.getPosition().getY() >> 4);
-        final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
-
-        if (here) return Unclaim.unclaim(x, y, z, player, team, true, canUnclaimAnything);
-
-        final int min = down ? 0 : y;
-        final int max = up ? 16 : y;
-
-        boolean done = false;
-        int claimnum = 0;
-        int owned_other = 0;
-        for (int i = min; i < max; i++)
+        player.getServer().execute(() ->
         {
-            final int check = Unclaim.unclaim(x, i, z, player, team, false, canUnclaimAnything);
-            if (check == 0)
-            {
-                done = true;
-                claimnum++;
-            }
-            else if (check == 3) owned_other++;
-        }
-        if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
-                "thutessentials.unclaim.notallowed.notowner", owned_other), Util.DUMMY_UUID);
-        if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
-                team.teamName), Util.DUMMY_UUID);
-        else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
-                team.teamName), Util.DUMMY_UUID);
+            final int x = MathHelper.floor(player.getPosition().getX() >> 4);
+            final int y = MathHelper.floor(player.getPosition().getY() >> 4);
+            final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
 
-        LandSaveHandler.saveTeam(team.teamName);
-        return done ? 0 : 1;
+            final AtomicInteger worked = new AtomicInteger();
+            final AtomicInteger other = new AtomicInteger();
+            final AtomicBoolean ready = new AtomicBoolean();
+
+            if (here)
+            {
+                Unclaim.unclaim(x, y, z, player, team, true, canUnclaimAnything, worked, other, ready);
+                LandSaveHandler.saveTeam(team.teamName);
+                return;
+            }
+            final int min = down ? 0 : y;
+            final int max = up ? 16 : y;
+            boolean done = false;
+            int claimnum = 0;
+            int owned_other = 0;
+            for (int i = min; i < max; i++)
+                Unclaim.unclaim(x, i, z, player, team, false, canUnclaimAnything, worked, other, ready);
+
+            claimnum = worked.get();
+            owned_other = other.get();
+            done = claimnum != 0;
+            if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
+                    "thutessentials.unclaim.notallowed.notowner", owned_other), Util.DUMMY_UUID);
+            if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
+                    team.teamName), Util.DUMMY_UUID);
+            else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
+                    team.teamName), Util.DUMMY_UUID);
+            LandSaveHandler.saveTeam(team.teamName);
+        });
+        return 0;
     }
 
     private static int unclaim(final KGobalPos chunk, final PlayerEntity player, final LandTeam team,
-            final boolean messages, final boolean canUnclaimAnything)
+            final boolean messages, final boolean canUnclaimAnything, final AtomicInteger worked,
+            final AtomicInteger other, final AtomicBoolean ready)
     {
-        final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
+
+        final LandTeam owner = LandManager.getInstance().getLandOwner(player.getEntityWorld(), chunk.getPos(), true);
         if (LandManager.isWild(owner))
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
                     Util.DUMMY_UUID);
+            ready.getAndSet(true);
             return 2;
         }
         else if (owner != team && !canUnclaimAnything)
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner",
                     owner.teamName), Util.DUMMY_UUID);
+            other.getAndIncrement();
+            ready.getAndSet(true);
             return 3;
         }
         final UnclaimLandEvent event = new UnclaimLandEvent(chunk, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().unclaimLand(team.teamName, player.getEntityWorld(), chunk.getPos(), true);
+        worked.getAndIncrement();
+        ready.getAndSet(true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
                 Util.DUMMY_UUID);
+
         return 0;
     }
 
     private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
-            final boolean messages, final boolean canUnclaimAnything)
+            final boolean messages, final boolean canUnclaimAnything, final AtomicInteger worked,
+            final AtomicInteger other, final AtomicBoolean ready)
     {
         final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
         final BlockPos b = new BlockPos(x, y, z);
         final KGobalPos chunk = KGobalPos.getPosition(dim, b);
-        return Unclaim.unclaim(chunk, player, team, messages, canUnclaimAnything);
+        return Unclaim.unclaim(chunk, player, team, messages, canUnclaimAnything, worked, other, ready);
     }
 }
