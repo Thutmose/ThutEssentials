@@ -45,7 +45,7 @@ public class Pay
         int senderBalance = Integer.MAX_VALUE;
         try
         {
-            player = source.asPlayer();
+            player = source.getPlayerOrException();
             senderBalance = EconomyManager.getBalance(player);
         }
         catch (final Exception e)
@@ -54,21 +54,21 @@ public class Pay
         }
         if (toSend <= 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.positive"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.positive"), Util.NIL_UUID);
             return 1;
         }
         if (toSend <= senderBalance)
         {
             EconomyManager.addBalance(payee, toSend);
             payee.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.got", toSend, source
-                    .getDisplayName()), Util.DUMMY_UUID);
+                    .getDisplayName()), Util.NIL_UUID);
             if (player != null) EconomyManager.addBalance(player, -toSend);
             Essentials.config.sendFeedback(source, "thutessentials.econ.pay.send", false, toSend, payee
                     .getDisplayName());
             return 0;
         }
         if (player != null) player.sendMessage(Essentials.config.getMessage("thutessentials.econ.pay.notenough"),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
         return 1;
     }
 }

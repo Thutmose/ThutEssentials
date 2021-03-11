@@ -53,7 +53,7 @@ public class StaffChat
                 .executes(context -> StaffChat.addStaff(context.getSource(), GameProfileArgument.getGameProfiles(context, "target")))))
             .then(Commands.literal("remove").then(Commands.argument("target", GameProfileArgument.gameProfile())
                 .suggests((context, builder) -> ISuggestionProvider
-                    .suggest(Essentials.config.staff.stream().map(UUID::fromString).map(id -> context.getSource().getServer().getPlayerList().getPlayerByUUID(id))
+                    .suggest(Essentials.config.staff.stream().map(UUID::fromString).map(id -> context.getSource().getServer().getPlayerList().getPlayer(id))
                         .map(player -> player != null ? player.getName().getString() : "Unknown").collect(Collectors.toList()), builder))
                 .executes(context -> StaffChat.removeStaff(context.getSource(), GameProfileArgument.getGameProfiles(context, "target")))))
             .then(Commands.argument("message", MessageArgument.message())
@@ -64,7 +64,7 @@ public class StaffChat
     private static int removeStaff(final CommandSource source, final Collection<GameProfile> target)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final List<String> staffList = Lists.newArrayList(Essentials.config.staff);
         final GameProfile gameProfile = target.stream().findFirst().get();
 
@@ -76,12 +76,12 @@ public class StaffChat
             Essentials.config.onUpdated();
             Essentials.config.write();
             player.sendMessage(CommandManager.makeFormattedComponent("Removed form Staff: " + gameProfile.getName()),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 1;
         }
         catch (final Exception e)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("Error removing a Staff"), Util.DUMMY_UUID);
+            player.sendMessage(CommandManager.makeFormattedComponent("Error removing a Staff"), Util.NIL_UUID);
             e.printStackTrace();
             return 0;
         }
@@ -90,7 +90,7 @@ public class StaffChat
     private static int addStaff(final CommandSource source, final Collection<GameProfile> target)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final List<String> staffList = Lists.newArrayList(Essentials.config.staff);
 
         final GameProfile gameProfile = target.stream().findFirst().get();
@@ -103,12 +103,12 @@ public class StaffChat
             Essentials.config.onUpdated();
             Essentials.config.write();
             player.sendMessage(CommandManager.makeFormattedComponent("Added to Staff: " + gameProfile.getName()),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 1;
         }
         catch (final Exception e)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("Error adding to Staff"), Util.DUMMY_UUID);
+            player.sendMessage(CommandManager.makeFormattedComponent("Error adding to Staff"), Util.NIL_UUID);
             e.printStackTrace();
             return 0;
         }
@@ -116,17 +116,17 @@ public class StaffChat
 
     private static int execute(final CommandSource source, final ITextComponent message) throws CommandSyntaxException
     {
-        final PlayerEntity sender = source.asPlayer();
+        final PlayerEntity sender = source.getPlayerOrException();
         final ITextComponent textComponent = CommandManager.makeFormattedComponent("[Staff] <" + sender.getName()
                 .getString() + "> " + message.getString(), TextFormatting.YELLOW, false);
-        source.getServer().sendMessage(textComponent, Util.DUMMY_UUID);
+        source.getServer().sendMessage(textComponent, Util.NIL_UUID);
         Essentials.config.staff.forEach(s ->
         {
             try
             {
                 final UUID id = UUID.fromString(s);
-                final PlayerEntity player = source.getServer().getPlayerList().getPlayerByUUID(id);
-                if (player != null) player.sendMessage(textComponent, Util.DUMMY_UUID);
+                final PlayerEntity player = source.getServer().getPlayerList().getPlayer(id);
+                if (player != null) player.sendMessage(textComponent, Util.NIL_UUID);
             }
             catch (final Exception e)
             {

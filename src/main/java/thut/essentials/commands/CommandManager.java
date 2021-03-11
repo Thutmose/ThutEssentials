@@ -29,7 +29,7 @@ public class CommandManager
     {
         GameProfile profile = null;
         // First check profile cache.
-        if (id != null) profile = server.getPlayerProfileCache().getProfileByUUID(id);
+        if (id != null) profile = server.getProfileCache().get(id);
         if (profile == null) profile = new GameProfile(id, null);
 
         // Try to fill profile via secure method.
@@ -56,7 +56,7 @@ public class CommandManager
         GameProfile profile = null;
 
         // First check profile cache.
-        if (id != null) profile = server.getPlayerProfileCache().getProfileByUUID(id);
+        if (id != null) profile = server.getProfileCache().get(id);
         if (profile == null) profile = new GameProfile(id, name);
 
         // Try to fill profile via secure method.
@@ -65,7 +65,7 @@ public class CommandManager
         // Temporarily update the UUID from server player list if possible
         if (profile.getId() == null)
         {
-            final PlayerEntity player = server.getPlayerList().getPlayerByUsername(profile.getName());
+            final PlayerEntity player = server.getPlayerList().getPlayerByName(profile.getName());
             profile = player.getGameProfile();
         }
 
@@ -76,7 +76,7 @@ public class CommandManager
     {
         try
         {
-            final ServerPlayerEntity player = source.asPlayer();
+            final ServerPlayerEntity player = source.getPlayerOrException();
             return CommandManager.hasPerm(player, permission);
         }
         catch (final CommandSyntaxException e)
@@ -170,7 +170,7 @@ public class CommandManager
             final Object... args)
     {
         final IFormattableTextComponent message = Essentials.config.getMessage(text, args);
-        return message.setStyle(message.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
+        return message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
     }
 
     public static IFormattableTextComponent makeFormattedComponent(final String text,
@@ -179,8 +179,8 @@ public class CommandManager
     {
         final IFormattableTextComponent message = Essentials.config.getMessage(text, args);
         Style style = message.getStyle();
-        if (colour != null) style = style.setColor(Color.fromTextFormatting(colour));
-        if (bold) style = style.setBold(bold);
+        if (colour != null) style = style.withColor(Color.fromLegacyFormat(colour));
+        if (bold) style = style.withBold(bold);
         return message.setStyle(style);
     }
 

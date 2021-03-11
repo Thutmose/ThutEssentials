@@ -34,7 +34,7 @@ public class Fly
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        return Fly.execute(source, source.asPlayer());
+        return Fly.execute(source, source.getPlayerOrException());
     }
 
     private static int execute(final CommandSource source, final Entity entity)
@@ -42,12 +42,12 @@ public class Fly
         if (entity instanceof ServerPlayerEntity)
         {
             final ServerPlayerEntity player = (ServerPlayerEntity) entity;
-            if (player.abilities.isCreativeMode) return 0;
-            player.abilities.allowFlying = !player.abilities.allowFlying;
-            if (!player.abilities.allowFlying) player.abilities.isFlying = false;
-            player.sendPlayerAbilities();
-            player.sendStatusMessage(Essentials.config.getMessage("thutessentials.fly.set."
-                    + player.abilities.allowFlying), false);
+            if (player.abilities.instabuild) return 0;
+            player.abilities.mayfly = !player.abilities.mayfly;
+            if (!player.abilities.mayfly) player.abilities.flying = false;
+            player.onUpdateAbilities();
+            player.displayClientMessage(Essentials.config.getMessage("thutessentials.fly.set."
+                    + player.abilities.mayfly), false);
         }
         return 0;
     }

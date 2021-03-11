@@ -58,7 +58,7 @@ public class DimVersionManager
         @Override
         public void deserializeNBT(final IntNBT nbt)
         {
-            this.vers = nbt.getInt();
+            this.vers = nbt.getAsInt();
         }
 
         @Override
@@ -117,7 +117,7 @@ public class DimVersionManager
     {
         if (!(event.getObject() instanceof ServerWorld)) return;
         final ServerWorld world = (ServerWorld) event.getObject();
-        if (!Essentials.config.versioned_dim_keys.contains(world.getDimensionKey().getLocation())) return;
+        if (!Essentials.config.versioned_dim_keys.contains(world.dimension().location())) return;
         if (event.getCapabilities().containsKey(DimVersionManager.CAPTAG)) return;
         event.addCapability(DimVersionManager.CAPTAG, new VersionHolder(Essentials.config.dim_verison));
     }
@@ -128,7 +128,7 @@ public class DimVersionManager
         if (dest == null) return;
         if (dest.version != Essentials.config.dim_verison)
         {
-            if (!Essentials.config.versioned_dim_keys.contains(dest.getPos().getDimension().getLocation())) return;
+            if (!Essentials.config.versioned_dim_keys.contains(dest.getPos().getDimension().location())) return;
             Essentials.LOGGER.info("Invalidating stale teledest {} ({})", dest.getName(), dest.getPos());
             event.setCanceled(true);
             event.setOverride(null);
@@ -144,8 +144,8 @@ public class DimVersionManager
         if (vers == null) return;
         if (vers.getVersion() < Essentials.config.dim_verison)
         {
-            final LevelSave var = world.getServer().anvilConverterForAnvilFile;
-            final File file = var.getDimensionFolder(world.getDimensionKey());
+            final LevelSave var = world.getServer().storageSource;
+            final File file = var.getDimensionPath(world.dimension());
             int i = 0;
             File named_file = new File(file.getParent(), file.getName() + "_" + i++);
             while (named_file.exists())
@@ -158,7 +158,7 @@ public class DimVersionManager
                 file.renameTo(named_file);
             }
         }
-        world.getChunkProvider().getChunkGenerator().field_235950_e_ = world.getSeed();
+        world.getChunkSource().getGenerator().strongholdSeed = world.getSeed();
         vers.setVersion(Essentials.config.dim_verison);
     }
 
@@ -167,9 +167,9 @@ public class DimVersionManager
         if (!(event.getEntity() instanceof ServerPlayerEntity)) return;
         if (!Essentials.config.versioned_dim_warning) return;
         final ServerWorld world = (ServerWorld) event.getWorld();
-        if (!Essentials.config.versioned_dim_keys.contains(world.getDimensionKey().getLocation())) return;
+        if (!Essentials.config.versioned_dim_keys.contains(world.dimension().location())) return;
         event.getEntity().sendMessage(Essentials.config.getMessage("thutessentials.dimversions.warning"),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
     }
 
 }

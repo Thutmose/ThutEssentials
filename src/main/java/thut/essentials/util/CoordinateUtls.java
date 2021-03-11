@@ -21,7 +21,7 @@ public class CoordinateUtls
 {
     public static KGobalPos forMob(final Entity mob)
     {
-        return KGobalPos.getPosition(mob.getEntityWorld().getDimensionKey(), mob.getPosition());
+        return KGobalPos.getPosition(mob.getCommandSenderWorld().dimension(), mob.blockPosition());
     }
 
     public static KGobalPos chunkPos(final KGobalPos blockPos)
@@ -85,7 +85,7 @@ public class CoordinateUtls
         {
             final BlockPos pos = new BlockPos(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(
                     args[2]));
-            final RegistryKey<World> dim = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(
+            final RegistryKey<World> dim = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(
                     args[3]));
             return KGobalPos.getPosition(dim, pos);
         }
@@ -100,6 +100,6 @@ public class CoordinateUtls
     public static String toString(final KGobalPos pos)
     {
         return pos.getPos().getX() + "," + pos.getPos().getY() + "," + pos.getPos().getZ() + "," + pos.getDimension()
-                .getLocation();
+                .location();
     }
 }

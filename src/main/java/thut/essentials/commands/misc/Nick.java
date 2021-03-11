@@ -59,7 +59,7 @@ public class Nick
         final MinecraftServer server = source.getServer();
         for (final GameProfile p : target)
         {
-            final ServerPlayerEntity player = server.getPlayerList().getPlayerByUUID(p.getId());
+            final ServerPlayerEntity player = server.getPlayerList().getPlayer(p.getId());
             if (player == null) continue;
 
             final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
@@ -77,7 +77,7 @@ public class Nick
         final MinecraftServer server = source.getServer();
         for (final GameProfile p : target)
         {
-            final ServerPlayerEntity player = server.getPlayerList().getPlayerByUUID(p.getId());
+            final ServerPlayerEntity player = server.getPlayerList().getPlayer(p.getId());
             if (player == null) continue;
             final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
             tag.putString("nick_suff", prefix);
@@ -94,7 +94,7 @@ public class Nick
         final MinecraftServer server = source.getServer();
         for (final GameProfile p : target)
         {
-            final ServerPlayerEntity player = server.getPlayerList().getPlayerByUUID(p.getId());
+            final ServerPlayerEntity player = server.getPlayerList().getPlayer(p.getId());
             if (player == null) continue;
             final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
             if ("_".equals(nick) && player != null) if (tag.contains("nick_orig")) nick = tag.getString("nick_orig");

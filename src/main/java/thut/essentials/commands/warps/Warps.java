@@ -54,33 +54,33 @@ public class Warps
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         WarpManager.sendWarpsList(player);
         return 0;
     }
 
     private static int execute(final CommandSource source, final String warpName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final int ret = WarpManager.attemptWarp(player, warpName);
         ITextComponent message;
         switch (ret)
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.warping", null, false, warpName);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         case 2:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.noperms");
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         case 3:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.noexists_use");
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         }
         return ret;

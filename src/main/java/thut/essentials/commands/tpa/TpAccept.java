@@ -54,7 +54,7 @@ public class TpAccept
             throws CommandSyntaxException
     {
 
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tpaTag = tag.getCompound("tpa");
         final String requestor = tpaTag.getString("R");
@@ -64,22 +64,22 @@ public class TpAccept
         tag.put("tpa", tpaTag);
         final MinecraftServer server = player.getServer();
         PlayerDataHandler.saveCustomData(player);
-        final PlayerEntity target = server.getPlayerList().getPlayerByUUID(UUID.fromString(uuid));
+        final PlayerEntity target = server.getPlayerList().getPlayer(UUID.fromString(uuid));
         if (option.equals("accept"))
         {
             target.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.accepted_user",
-                    TextFormatting.GREEN, true), Util.DUMMY_UUID);
+                    TextFormatting.GREEN, true), Util.NIL_UUID);
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.accepted_target",
-                    TextFormatting.GREEN, true), Util.DUMMY_UUID);
+                    TextFormatting.GREEN, true), Util.NIL_UUID);
             PlayerMover.setMove(target, Essentials.config.tpaActivateDelay, CoordinateUtls.forMob(player), null,
                     PlayerMover.INTERUPTED);
         }
         else if (option.equals("deny"))
         {
             target.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.denied_user",
-                    TextFormatting.RED, true), Util.DUMMY_UUID);
+                    TextFormatting.RED, true), Util.NIL_UUID);
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.denied_target",
-                    TextFormatting.RED, true), Util.DUMMY_UUID);
+                    TextFormatting.RED, true), Util.NIL_UUID);
         }
         return 0;
     }

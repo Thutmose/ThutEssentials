@@ -68,34 +68,34 @@ public class Admins
 
     private static int list(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         final String teamName = team.teamName;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.header", null, false,
-                teamName), Util.DUMMY_UUID);
+                teamName), Util.NIL_UUID);
         final Collection<UUID> c = team.admin;
         for (final UUID o : c)
         {
             final GameProfile profile = CommandManager.getProfile(source.getServer(), o);
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.entry", null, false,
-                    profile.getName()), Util.DUMMY_UUID);
+                    profile.getName()), Util.NIL_UUID);
         }
         return 0;
     }
 
     private static int remove(final CommandSource source, final GameProfile player) throws CommandSyntaxException
     {
-        final ServerPlayerEntity user = source.asPlayer();
+        final ServerPlayerEntity user = source.getPlayerOrException();
         final LandTeam teamA = LandManager.getTeam(user);
         final LandTeam teamB = LandManager.getTeam(player.getId());
         if (teamA != teamB)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.mustbeteam"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.admins.mustbeteam"));
             return 1;
         }
         final String teamName = teamA.teamName;
         LandManager.getInstance().removeAdmin(player.getId(), teamName);
-        source.sendFeedback(CommandManager.makeFormattedComponent("thutessentials.team.admin.removed", null, false,
+        source.sendSuccess(CommandManager.makeFormattedComponent("thutessentials.team.admin.removed", null, false,
                 player.getName(), teamName), false);
         return 0;
     }
@@ -120,17 +120,17 @@ public class Admins
 
     private static int add(final CommandSource source, final GameProfile player) throws CommandSyntaxException
     {
-        final ServerPlayerEntity user = source.asPlayer();
+        final ServerPlayerEntity user = source.getPlayerOrException();
         final LandTeam teamA = LandManager.getTeam(user);
         final LandTeam teamB = LandManager.getTeam(player.getId());
         if (teamA != teamB)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.mustbeteam"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.admins.mustbeteam"));
             return 1;
         }
         final String teamName = teamA.teamName;
         LandManager.getInstance().addAdmin(player.getId(), teamName);
-        source.sendFeedback(CommandManager.makeFormattedComponent("thutessentials.team.admin.added", null, false, player
+        source.sendSuccess(CommandManager.makeFormattedComponent("thutessentials.team.admin.added", null, false, player
                 .getName(), teamName), false);
         return 0;
 

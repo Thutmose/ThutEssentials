@@ -44,20 +44,20 @@ public class Tpa
     private static int execute(final CommandSource source, final ServerPlayerEntity target)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
-        if (!Essentials.config.tpaCrossDim && target.getEntityWorld() != player.getEntityWorld())
+        final PlayerEntity player = source.getPlayerOrException();
+        if (!Essentials.config.tpaCrossDim && target.getCommandSenderWorld() != player.getCommandSenderWorld())
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.wrongdim"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.wrongdim"), Util.NIL_UUID);
             return 1;
         }
         CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         CompoundNBT tpaTag = tag.getCompound("tpa");
 
         final long last = tag.getLong("tpaDelay");
-        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.tpaReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
             return 1;
         }
         tpaTag.putLong("tpaDelay", time + Essentials.config.tpaReUseDelay);
@@ -70,21 +70,21 @@ public class Tpa
 
         final IFormattableTextComponent header = ((IFormattableTextComponent) player.getDisplayName()).append(
                 CommandManager.makeFormattedComponent("thutessentials.tpa.requested"));
-        target.sendMessage(header, Util.DUMMY_UUID);
+        target.sendMessage(header, Util.NIL_UUID);
 
         IFormattableTextComponent tpMessage;
         final String tpaccept = "tpaccept";
         final IFormattableTextComponent accept = CommandManager.makeFormattedCommandLink("thutessentials.tpa.accept",
-                "/" + tpaccept + " " + player.getCachedUniqueIdString() + " accept");
+                "/" + tpaccept + " " + player.getStringUUID() + " accept");
         final IFormattableTextComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny", "/"
-                + tpaccept + " " + player.getCachedUniqueIdString() + " deny");
+                + tpaccept + " " + player.getStringUUID() + " deny");
         tpMessage = accept.append(new StringTextComponent("      /      ")).append(deny);
-        target.sendMessage(tpMessage, Util.DUMMY_UUID);
-        tpaTag.putString("R", player.getCachedUniqueIdString());
+        target.sendMessage(tpMessage, Util.NIL_UUID);
+        tpaTag.putString("R", player.getStringUUID());
         tag.put("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(target);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.requestsent",
-                TextFormatting.DARK_GREEN, true, target.getDisplayName()), Util.DUMMY_UUID);
+                TextFormatting.DARK_GREEN, true, target.getDisplayName()), Util.NIL_UUID);
         return 0;
     }
 }

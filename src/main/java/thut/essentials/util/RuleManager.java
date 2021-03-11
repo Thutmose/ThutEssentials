@@ -20,7 +20,7 @@ public class RuleManager
             for (final TextFormatting format : TextFormatting.values())
                 try
                 {
-                    final char code = format.formattingCode;
+                    final char code = format.code;
                     RuleManager.charCodeMap.put(code + "", format);
                 }
                 catch (final Exception e)

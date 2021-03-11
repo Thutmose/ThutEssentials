@@ -37,7 +37,7 @@ public class Check
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final LandTeam team = LandManager.getTeam(source.asPlayer());
+        final LandTeam team = LandManager.getTeam(source.getPlayerOrException());
         Essentials.config.sendFeedback(source, "thutessentials.team.my_team", false, team.teamName);
         return 0;
     }

@@ -66,24 +66,24 @@ public class EconomyManager
         public boolean transact(final ServerPlayerEntity player, final ItemStack heldStack, final Account shopAccount)
         {
             ItemStack stack = ItemStack.EMPTY;
-            final ServerWorld world = (ServerWorld) player.getEntityWorld();
-            final Entity ent = world.getEntityByUuid(this.frameId);
-            if (ent instanceof ItemFrameEntity) stack = ((ItemFrameEntity) ent).getDisplayedItem();
-            final TileEntity tile = player.world.getTileEntity(this.location.getPos());
+            final ServerWorld world = (ServerWorld) player.getCommandSenderWorld();
+            final Entity ent = world.getEntity(this.frameId);
+            if (ent instanceof ItemFrameEntity) stack = ((ItemFrameEntity) ent).getItem();
+            final TileEntity tile = player.level.getBlockEntity(this.location.getPos());
             if (!(tile instanceof SignTileEntity))
             {
                 EconomyManager.removeShop(this.location);
                 return false;
             }
             final SignTileEntity sign = (SignTileEntity) tile;
-            this.sell = Essentials.config.sellTags.contains(sign.signText[0].getUnformattedComponentText());
-            this.recycle = Essentials.config.recycleTags.contains(sign.signText[0].getUnformattedComponentText());
+            this.sell = Essentials.config.sellTags.contains(sign.messages[0].getContents());
+            this.recycle = Essentials.config.recycleTags.contains(sign.messages[0].getContents());
             try
             {
-                this.number = Integer.parseInt(sign.signText[1].getUnformattedComponentText());
+                this.number = Integer.parseInt(sign.messages[1].getContents());
                 if (this.ignoreTag)
                 {
-                    if (this.number != 1) sign.signText[1] = new StringTextComponent("1");
+                    if (this.number != 1) sign.messages[1] = new StringTextComponent("1");
                     this.number = 1;
                 }
             }
@@ -94,7 +94,7 @@ public class EconomyManager
             }
             try
             {
-                this.cost = Integer.parseInt(sign.signText[3].getUnformattedComponentText());
+                this.cost = Integer.parseInt(sign.messages[3].getContents());
             }
             catch (final NumberFormatException e)
             {
@@ -105,7 +105,7 @@ public class EconomyManager
             if (this.recycle && heldStack.isEmpty())
             {
                 player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_recycle"),
-                        Util.DUMMY_UUID);
+                        Util.NIL_UUID);
                 return false;
             }
             else if (stack.isEmpty())
@@ -119,7 +119,7 @@ public class EconomyManager
                 if (balance < this.cost)
                 {
                     player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_you"),
-                            Util.DUMMY_UUID);
+                            Util.NIL_UUID);
                     return false;
                 }
                 stack = stack.copy();
@@ -131,20 +131,20 @@ public class EconomyManager
                     final ItemStack test2 = stack.copy();
                     if (this.storage != null)
                     {
-                        final TileEntity inventory = player.world.getTileEntity(this.storage.getPos());
+                        final TileEntity inventory = player.level.getBlockEntity(this.storage.getPos());
                         if (inventory instanceof IInventory)
                         {
                             inv = (IInventory) inventory;
                             if (this.ignoreTag) test2.setTag(new CompoundNBT());
-                            for (int i = 0; i < inv.getSizeInventory(); i++)
+                            for (int i = 0; i < inv.getContainerSize(); i++)
                             {
-                                final ItemStack item = inv.getStackInSlot(i);
+                                final ItemStack item = inv.getItem(i);
                                 if (!item.isEmpty())
                                 {
                                     final ItemStack test = item.copy();
                                     if (this.ignoreTag) test.setTag(new CompoundNBT());
                                     test.setCount(this.number);
-                                    if (ItemStack.areItemStacksEqual(test, test2)) count += item.getCount();
+                                    if (ItemStack.matches(test, test2)) count += item.getCount();
                                 }
                             }
                         }
@@ -153,18 +153,18 @@ public class EconomyManager
                     {
                         Essentials.LOGGER.debug(this.number + " " + count + " " + this.storage);
                         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_shop"),
-                                Util.DUMMY_UUID);
+                                Util.NIL_UUID);
                         return false;
                     }
                     int i = 0;
                     final Item itemIn = test2.getItem();
                     final int removeCount = this.number;
                     final CompoundNBT itemNBT = this.ignoreTag ? null : test2.getTag();
-                    for (int j = 0; j < inv.getSizeInventory(); ++j)
+                    for (int j = 0; j < inv.getContainerSize(); ++j)
                     {
-                        final ItemStack itemstack = inv.getStackInSlot(j);
+                        final ItemStack itemstack = inv.getItem(j);
                         if (!itemstack.isEmpty() && itemstack.getItem() == itemIn && (itemNBT == null || NBTUtil
-                                .areNBTEquals(itemNBT, itemstack.getTag(), true)))
+                                .compareNbt(itemNBT, itemstack.getTag(), true)))
                         {
 
                             final int k = removeCount <= 0 ? itemstack.getCount()
@@ -174,7 +174,7 @@ public class EconomyManager
                             if (removeCount != 0)
                             {
                                 itemstack.shrink(k);
-                                if (itemstack.isEmpty()) inv.setInventorySlotContents(j, ItemStack.EMPTY);
+                                if (itemstack.isEmpty()) inv.setItem(j, ItemStack.EMPTY);
                                 if (removeCount > 0 && i >= removeCount) break;
                             }
                         }
@@ -184,7 +184,7 @@ public class EconomyManager
                 EconomyManager.addBalance(shopAccount._id, this.cost);
                 EconomyManager.addBalance(player, -this.cost);
                 player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null,
-                        false, EconomyManager.getBalance(player)), Util.DUMMY_UUID);
+                        false, EconomyManager.getBalance(player)), Util.NIL_UUID);
             }
             else
             {
@@ -192,7 +192,7 @@ public class EconomyManager
                 if (balance < this.cost)
                 {
                     player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_shop"),
-                            Util.DUMMY_UUID);
+                            Util.NIL_UUID);
                     return false;
                 }
                 int count = 0;
@@ -202,7 +202,7 @@ public class EconomyManager
                 {
                     final ItemStack temp = i.copy();
                     temp.setCount(1);
-                    return ItemStack.areItemStacksEqual(temp, toTest);
+                    return ItemStack.matches(temp, toTest);
                 };
                 if (this.recycle)
                 {
@@ -210,7 +210,7 @@ public class EconomyManager
                     if (count < this.number)
                     {
                         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"),
-                                Util.DUMMY_UUID);
+                                Util.NIL_UUID);
                         return false;
                     }
                     stack = heldStack;
@@ -219,12 +219,12 @@ public class EconomyManager
                 {
                     stack = stack.copy();
                     stack.setCount(this.number);
-                    for (final ItemStack item : player.inventory.mainInventory)
+                    for (final ItemStack item : player.inventory.items)
                         if (!item.isEmpty()) if (valid.test(item)) count += item.getCount();
                     if (count < this.number)
                     {
                         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"),
-                                Util.DUMMY_UUID);
+                                Util.NIL_UUID);
                         return false;
                     }
                 }
@@ -233,44 +233,44 @@ public class EconomyManager
                     if (this.storage == null)
                     {
                         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_storage"),
-                                Util.DUMMY_UUID);
+                                Util.NIL_UUID);
                         return false;
                     }
-                    final TileEntity te = player.world.getTileEntity(this.storage.getPos());
+                    final TileEntity te = player.level.getBlockEntity(this.storage.getPos());
                     if (te instanceof IInventory)
                     {
                         final IInventory inv = (IInventory) te;
                         count = 0;
                         final ItemStack a = stack;
                         count = stack.getCount();
-                        for (int i = 0; i < inv.getSizeInventory(); i++)
+                        for (int i = 0; i < inv.getContainerSize(); i++)
                         {
-                            if (inv.getStackInSlot(i).isEmpty() || a.isItemEqual(inv.getStackInSlot(i)))
+                            if (inv.getItem(i).isEmpty() || a.sameItem(inv.getItem(i)))
                             {
                                 int n = 0;
-                                if (!inv.getStackInSlot(i).isEmpty() && (n = inv.getStackInSlot(i).getCount() + a
+                                if (!inv.getItem(i).isEmpty() && (n = inv.getItem(i).getCount() + a
                                         .getCount()) < 65)
                                 {
                                     a.setCount(n);
                                     count = 0;
-                                    inv.setInventorySlotContents(i, a.copy());
+                                    inv.setItem(i, a.copy());
                                 }
-                                else if (inv.getStackInSlot(i).isEmpty())
+                                else if (inv.getItem(i).isEmpty())
                                 {
                                     count = 0;
-                                    inv.setInventorySlotContents(i, a.copy());
+                                    inv.setItem(i, a.copy());
                                 }
                             }
                             if (count == 0) break;
                         }
                     }
                 }
-                player.inventory.func_234564_a_(valid, this.number, player.container.func_234641_j_());
-                player.container.detectAndSendChanges();
+                player.inventory.clearOrCountMatchingItems(valid, this.number, player.inventoryMenu.getCraftSlots());
+                player.inventoryMenu.broadcastChanges();
                 EconomyManager.addBalance(shopAccount._id, -this.cost);
                 EconomyManager.addBalance(player, this.cost);
                 player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null,
-                        false, EconomyManager.getBalance(player)), Util.DUMMY_UUID);
+                        false, EconomyManager.getBalance(player)), Util.NIL_UUID);
             }
             return false;
         }
@@ -346,37 +346,37 @@ public class EconomyManager
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrameEntity)
         {
-            final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos()
-                    .down());
+            final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getCommandSenderWorld().dimension(), evt.getPos()
+                    .below());
             Shop shop = EconomyManager.getShop(c);
-            final TileEntity tile = evt.getWorld().getTileEntity(c.getPos());
+            final TileEntity tile = evt.getWorld().getBlockEntity(c.getPos());
             if (evt.getItemStack() != null && tile instanceof SignTileEntity && shop == null && (evt.getItemStack()
-                    .getDisplayName().getUnformattedComponentText().contains("Shop") || evt.getItemStack()
-                            .getDisplayName().getUnformattedComponentText().contains("InfShop")))
+                    .getHoverName().getContents().contains("Shop") || evt.getItemStack()
+                            .getHoverName().getContents().contains("InfShop")))
             {
-                final boolean infinite = evt.getItemStack().getDisplayName().getUnformattedComponentText().contains(
+                final boolean infinite = evt.getItemStack().getHoverName().getContents().contains(
                         "InfShop");
                 final String permission = infinite ? EconomyManager.PERMMAKEINFSHOP : EconomyManager.PERMMAKESHOP;
                 if (!PermissionAPI.hasPermission(evt.getPlayer(), permission))
                 {
                     evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent(
-                            "thutessentials.econ.not_allowed"), Util.DUMMY_UUID);
+                            "thutessentials.econ.not_allowed"), Util.NIL_UUID);
                     return;
                 }
                 try
                 {
-                    final boolean noTag = evt.getItemStack().getDisplayName().getUnformattedComponentText().contains(
+                    final boolean noTag = evt.getItemStack().getHoverName().getContents().contains(
                             "noTag");
                     shop = EconomyManager.addShop((ServerPlayerEntity) evt.getPlayer(), (ItemFrameEntity) evt
                             .getTarget(), c, infinite, noTag);
                     evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.made"),
-                            Util.DUMMY_UUID);
+                            Util.NIL_UUID);
 
                 }
                 catch (final Exception e)
                 {
                     evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.errored"),
-                            Util.DUMMY_UUID);
+                            Util.NIL_UUID);
                     Essentials.LOGGER.error(e);
                 }
             }
@@ -387,7 +387,7 @@ public class EconomyManager
     @SubscribeEvent
     public void projectileImpact(final ProjectileImpactEvent evt)
     {
-        if (evt.getEntity().getEntityWorld().isRemote) return;
+        if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getRayTraceResult().getType() == Type.MISS) return;
         if (!(evt.getRayTraceResult() instanceof EntityRayTraceResult)) return;
@@ -395,8 +395,8 @@ public class EconomyManager
         final Entity target = hit.getEntity();
         if (target instanceof ItemFrameEntity)
         {
-            final KGobalPos c = KGobalPos.getPosition(target.getEntityWorld().getDimensionKey(), target.getPosition()
-                    .down());
+            final KGobalPos c = KGobalPos.getPosition(target.getCommandSenderWorld().dimension(), target.blockPosition()
+                    .below());
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null) evt.setCanceled(true);
         }
@@ -405,28 +405,28 @@ public class EconomyManager
     @SubscribeEvent(receiveCanceled = true)
     public void interactLeftClickEntity(final AttackEntityEvent evt)
     {
-        if (evt.getPlayer().getEntityWorld().isRemote) return;
+        if (evt.getPlayer().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrameEntity)
         {
-            final KGobalPos c = KGobalPos.getPosition(evt.getTarget().getEntityWorld().getDimensionKey(), evt
-                    .getTarget().getPosition().down());
+            final KGobalPos c = KGobalPos.getPosition(evt.getTarget().getCommandSenderWorld().dimension(), evt
+                    .getTarget().blockPosition().below());
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null)
             {
                 evt.setCanceled(true);
                 final Account account = this._shopMap.get(c);
                 final UUID owner = this._revBank.get(account);
-                final String perm = evt.getPlayer().getUniqueID().equals(owner) ? EconomyManager.PERMKILLSHOP
+                final String perm = evt.getPlayer().getUUID().equals(owner) ? EconomyManager.PERMKILLSHOP
                         : EconomyManager.PERMKILLSHOPOTHER;
                 if (PermissionAPI.hasPermission(evt.getPlayer(), perm))
                 {
                     EconomyManager.removeShop(c);
                     evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.remove"),
-                            Util.DUMMY_UUID);
+                            Util.NIL_UUID);
                 }
                 else evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent(
-                        "thutessentials.econ.not_allowed_remove"), Util.DUMMY_UUID);
+                        "thutessentials.econ.not_allowed_remove"), Util.NIL_UUID);
             }
         }
     }
@@ -440,7 +440,7 @@ public class EconomyManager
     public void interactRightClickBlock(final PlayerInteractEvent.RightClickBlock evt)
     {
         if (!(evt.getPlayer() instanceof ServerPlayerEntity) || !Essentials.config.shopsEnabled) return;
-        final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getEntityWorld().getDimensionKey(), evt.getPos());
+        final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getCommandSenderWorld().dimension(), evt.getPos());
         final Shop shop = EconomyManager.getShop(c);
         if (shop != null)
         {
@@ -464,7 +464,7 @@ public class EconomyManager
 
     public Account getAccount(final ServerPlayerEntity player)
     {
-        return this.getAccount(player.getUniqueID());
+        return this.getAccount(player.getUUID());
     }
 
     public static Shop addShop(final ServerPlayerEntity owner, final ItemFrameEntity frame, final KGobalPos location,
@@ -472,40 +472,40 @@ public class EconomyManager
     {
         final Shop shop = new Shop();
         shop.infinite = infinite;
-        shop.frameId = frame.getUniqueID();
+        shop.frameId = frame.getUUID();
         shop.location = location;
         shop.ignoreTag = noTag;
         // Assign the infinite shops to the default id account.
         final Account account = EconomyManager.getInstance().getAccount(infinite ? EconomyManager.DEFAULT_ID
-                : owner.getUniqueID());
+                : owner.getUUID());
         account.shops.add(shop);
         account._shopMap.put(location, shop);
         EconomyManager.getInstance()._shopMap.put(location, account);
         if (!shop.infinite)
         {
-            final TileEntity down = owner.getEntityWorld().getTileEntity(location.getPos().down());
+            final TileEntity down = owner.getCommandSenderWorld().getBlockEntity(location.getPos().below());
             if (down instanceof SignTileEntity)
             {
-                final String[] var = ((SignTileEntity) down).signText[0].getUnformattedComponentText().split(",");
+                final String[] var = ((SignTileEntity) down).messages[0].getContents().split(",");
                 final int dx = Integer.parseInt(var[0]);
                 final int dy = Integer.parseInt(var[1]);
                 final int dz = Integer.parseInt(var[2]);
 
                 final BlockPos pos = new BlockPos(location.getPos().getX() + dx, location.getPos().getY() + dy, location
                         .getPos().getZ() + dz);
-                final BreakEvent event = new BreakEvent(owner.getEntityWorld(), pos, owner.getEntityWorld()
+                final BreakEvent event = new BreakEvent(owner.getCommandSenderWorld(), pos, owner.getCommandSenderWorld()
                         .getBlockState(pos), owner);
                 MinecraftForge.EVENT_BUS.post(event);
                 if (event.isCanceled())
                 {
                     owner.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.not_allowed_link"),
-                            Util.DUMMY_UUID);
+                            Util.NIL_UUID);
                     return null;
                 }
 
-                shop.storage = KGobalPos.getPosition(location.getDimension(), pos.down());
+                shop.storage = KGobalPos.getPosition(location.getDimension(), pos.below());
             }
-            else shop.storage = KGobalPos.getPosition(location.getDimension(), location.getPos().down());
+            else shop.storage = KGobalPos.getPosition(location.getDimension(), location.getPos().below());
         }
         EconomySaveHandler.saveGlobalData();
         return shop;
@@ -530,17 +530,17 @@ public class EconomyManager
 
     public static int getBalance(final ServerPlayerEntity player)
     {
-        return EconomyManager.getBalance(player.getUniqueID());
+        return EconomyManager.getBalance(player.getUUID());
     }
 
     public static void setBalance(final ServerPlayerEntity player, final int amount)
     {
-        EconomyManager.setBalance(player.getUniqueID(), amount);
+        EconomyManager.setBalance(player.getUUID(), amount);
     }
 
     public static void addBalance(final ServerPlayerEntity player, final int amount)
     {
-        EconomyManager.addBalance(player.getUniqueID(), amount);
+        EconomyManager.addBalance(player.getUUID(), amount);
     }
 
     public static int getBalance(final UUID player)
@@ -564,21 +564,21 @@ public class EconomyManager
 
     public static void giveItem(final ServerPlayerEntity entityplayer, final ItemStack itemstack)
     {
-        final boolean flag = entityplayer.inventory.addItemStackToInventory(itemstack);
+        final boolean flag = entityplayer.inventory.add(itemstack);
         if (flag)
         {
-            entityplayer.world.playSound((ServerPlayerEntity) null, entityplayer.getPosX(), entityplayer.getPosY(),
-                    entityplayer.getPosZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((entityplayer
-                            .getRNG().nextFloat() - entityplayer.getRNG().nextFloat()) * 0.7F + 1.0F) * 2.0F);
-            entityplayer.container.detectAndSendChanges();
+            entityplayer.level.playSound((ServerPlayerEntity) null, entityplayer.getX(), entityplayer.getY(),
+                    entityplayer.getZ(), SoundEvents.ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((entityplayer
+                            .getRandom().nextFloat() - entityplayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+            entityplayer.inventoryMenu.broadcastChanges();
         }
         else
         {
-            final ItemEntity entityitem = entityplayer.dropItem(itemstack, false);
+            final ItemEntity entityitem = entityplayer.drop(itemstack, false);
             if (entityitem != null)
             {
-                entityitem.setNoPickupDelay();
-                entityitem.setOwnerId(entityplayer.getUniqueID());
+                entityitem.setNoPickUpDelay();
+                entityitem.setOwner(entityplayer.getUUID());
             }
         }
     }

@@ -22,9 +22,9 @@ public class WorldGenRegionWrapper extends WorldGenRegion
     }
 
     @Override
-    public boolean setBlockState(final BlockPos pos, final BlockState newState, final int flags)
+    public boolean setBlock(final BlockPos pos, final BlockState newState, final int flags)
     {
-        return this.world.setBlockState(pos, newState, flags);
+        return this.world.setBlock(pos, newState, flags);
     }
 
     @Override
@@ -40,9 +40,9 @@ public class WorldGenRegionWrapper extends WorldGenRegion
     }
 
     @Override
-    public boolean addEntity(final Entity entityIn)
+    public boolean addFreshEntity(final Entity entityIn)
     {
-        return this.world.addEntity(entityIn);
+        return this.world.addFreshEntity(entityIn);
     }
 
 }

@@ -51,14 +51,14 @@ public class Bed
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("bedDelay");
-        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.bedReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
             return 1;
         }
         final KGobalPos spot = Bed.getBedSpot(player);
@@ -77,30 +77,30 @@ public class Bed
                     callback, false);
             return 0;
         }
-        player.sendMessage(Essentials.config.getMessage("thutessentials.bed.nobed"), Util.DUMMY_UUID);
+        player.sendMessage(Essentials.config.getMessage("thutessentials.bed.nobed"), Util.NIL_UUID);
         return 1;
     }
 
     private static KGobalPos getBedSpot(final ServerPlayerEntity player)
     {
-        if (player.func_241140_K_() == null) return null;
-        final KGobalPos pos = KGobalPos.getPosition(player.func_241141_L_(), player.func_241140_K_());
+        if (player.getRespawnPosition() == null) return null;
+        final KGobalPos pos = KGobalPos.getPosition(player.getRespawnDimension(), player.getRespawnPosition());
         final KGobalPos spot = pos;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final ServerWorld world = server.getWorld(pos.getDimension());
+        final ServerWorld world = server.getLevel(pos.getDimension());
         if (world == null) return null;
         final BlockPos check = pos.getPos();
         if (Back.valid(check, world)) return spot;
         final int r = Essentials.config.backRangeCheck;
-        final Stream<BlockPos> stream = BlockPos.getAllInBox(check.getX() - r, check.getY() - r, check.getZ() - r, check
+        final Stream<BlockPos> stream = BlockPos.betweenClosedStream(check.getX() - r, check.getY() - r, check.getZ() - r, check
                 .getX() + r, check.getY() + r, check.getZ() + r);
         final Optional<BlockPos> opt = stream.filter(p -> Back.valid(p, world)).min((p1, p2) ->
         {
-            final double d1 = p1.distanceSq(check);
-            final double d2 = p2.distanceSq(check);
+            final double d1 = p1.distSqr(check);
+            final double d2 = p2.distSqr(check);
             return Double.compare(d1, d2);
         });
         if (!opt.isPresent()) return null;
-        return KGobalPos.getPosition(pos.getDimension(), opt.get().toImmutable());
+        return KGobalPos.getPosition(pos.getDimension(), opt.get().immutable());
     }
 }

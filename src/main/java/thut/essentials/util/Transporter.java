@@ -45,9 +45,9 @@ public class Transporter
 
         public Vector3 set(final Direction dir)
         {
-            this.x = dir.getXOffset();
-            this.y = dir.getYOffset();
-            this.z = dir.getZOffset();
+            this.x = dir.getStepX();
+            this.y = dir.getStepY();
+            this.z = dir.getStepZ();
             return this;
         }
 
@@ -71,15 +71,15 @@ public class Transporter
         {
             if (e != null && b)
             {
-                this.x = e.getPosX();
-                this.y = e.getPosY() + e.getHeight() / 2;
-                this.z = e.getPosZ();
+                this.x = e.getX();
+                this.y = e.getY() + e.getBbHeight() / 2;
+                this.z = e.getZ();
             }
             else if (e != null)
             {
-                this.x = e.getPosX();
-                this.y = e.getPosY() + e.getEyeHeight();
-                this.z = e.getPosZ();
+                this.x = e.getX();
+                this.y = e.getY() + e.getEyeHeight();
+                this.z = e.getZ();
             }
             return this;
         }
@@ -96,12 +96,12 @@ public class Transporter
             if (o instanceof Entity)
             {
                 final Entity e = (Entity) o;
-                this.set(e.getPosX(), e.getPosY(), e.getPosZ());
+                this.set(e.getX(), e.getY(), e.getZ());
             }
             else if (o instanceof TileEntity)
             {
                 final TileEntity te = (TileEntity) o;
-                this.set(te.getPos());
+                this.set(te.getBlockPos());
             }
             else if (o instanceof double[])
             {
@@ -111,7 +111,7 @@ public class Transporter
             else if (o instanceof Direction)
             {
                 final Direction side = (Direction) o;
-                this.set(side.getXOffset(), side.getYOffset(), side.getZOffset());
+                this.set(side.getStepX(), side.getStepY(), side.getStepZ());
             }
             else if (o instanceof Vector3) this.set((Vector3) o);
             else if (o instanceof BlockPos)
@@ -290,7 +290,7 @@ public class Transporter
 
         public boolean withinDist(final TeleDest other, final double dist)
         {
-            if (other.loc.getDimension() == this.loc.getDimension()) return other.loc.getPos().withinDistance(this.loc
+            if (other.loc.getDimension() == this.loc.getDimension()) return other.loc.getPos().closerThan(this.loc
                     .getPos(), dist);
             return false;
         }
@@ -306,7 +306,7 @@ public class Transporter
         public InvulnTicker(final Entity entity)
         {
             this.entity = entity;
-            this.overworld = entity.getServer().getWorld(World.OVERWORLD);
+            this.overworld = entity.getServer().getLevel(World.OVERWORLD);
             this.start = this.overworld.getGameTime();
             MinecraftForge.EVENT_BUS.register(this);
         }
@@ -346,16 +346,16 @@ public class Transporter
         @SubscribeEvent
         public void TickEvent(final WorldTickEvent event)
         {
-            if (event.world == this.entity.getEntityWorld() && event.phase == Phase.END)
+            if (event.world == this.entity.getCommandSenderWorld() && event.phase == Phase.END)
             {
                 MinecraftForge.EVENT_BUS.unregister(this);
                 Transporter.transferMob(this.destWorld, this.dest, this.entity);
                 if (this.sound)
                 {
-                    this.destWorld.playSound(this.dest.subLoc.x, this.dest.subLoc.y,
+                    this.destWorld.playLocalSound(this.dest.subLoc.x, this.dest.subLoc.y,
                             this.dest.subLoc.z,
-                            SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
-                    this.entity.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
+                            SoundEvents.ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+                    this.entity.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
                 }
 
             }
@@ -369,28 +369,28 @@ public class Transporter
 
     public static void transferTo(final Entity entity, final TeleDest dest, final boolean sound)
     {
-        if (entity.getEntityWorld() instanceof ServerWorld)
+        if (entity.getCommandSenderWorld() instanceof ServerWorld)
         {
             new InvulnTicker(entity);
-            if (dest.loc.getDimension() == entity.world.getDimensionKey())
+            if (dest.loc.getDimension() == entity.level.dimension())
             {
                 Transporter.moveMob(entity, dest);
                 return;
             }
-            final ServerWorld destWorld = entity.getServer().getWorld(dest.loc.getDimension());
+            final ServerWorld destWorld = entity.getServer().getLevel(dest.loc.getDimension());
             if (entity instanceof ServerPlayerEntity)
             {
                 final ServerPlayerEntity player = (ServerPlayerEntity) entity;
-                player.invulnerableDimensionChange = true;
-                player.teleport(destWorld, dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.rotationYaw,
-                        entity.rotationPitch);
+                player.isChangingDimension = true;
+                player.teleportTo(destWorld, dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
+                        entity.xRot);
                 if (sound)
                 {
-                    destWorld.playSound(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z,
-                            SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
-                    player.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
+                    destWorld.playLocalSound(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z,
+                            SoundEvents.ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+                    player.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
                 }
-                player.invulnerableDimensionChange = false;
+                player.isChangingDimension = false;
             }
             else // Schedule the transfer for end of tick.
                 new TransferTicker(destWorld, entity, dest, sound);
@@ -403,22 +403,22 @@ public class Transporter
         if (entity instanceof ServerPlayerEntity)
         {
             player = (ServerPlayerEntity) entity;
-            player.invulnerableDimensionChange = true;
+            player.isChangingDimension = true;
         }
-        final ServerWorld serverworld = (ServerWorld) entity.getEntityWorld();
+        final ServerWorld serverworld = (ServerWorld) entity.getCommandSenderWorld();
         // TODO did we need to update the mob for what dim it was in?
         Transporter.removeMob(serverworld, entity, true);
         entity.revive();
-        entity.setLocationAndAngles(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.rotationYaw,
-                entity.rotationPitch);
-        entity.setWorld(destWorld);
+        entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
+                entity.xRot);
+        entity.setLevel(destWorld);
         Transporter.addMob(destWorld, entity);
         if (player != null)
         {
-            player.invulnerableDimensionChange = false;
-            player.connection.captureCurrentPosition();
-            player.connection.setPlayerLocation(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.rotationYaw,
-                    entity.rotationPitch);
+            player.isChangingDimension = false;
+            player.connection.resetPosition();
+            player.connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
+                    entity.xRot);
         }
     }
 
@@ -426,10 +426,10 @@ public class Transporter
     {
         if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
                 new net.minecraftforge.event.entity.EntityJoinWorldEvent(entity, world))) return;
-        final IChunk ichunk = world.getChunk(MathHelper.floor(entity.getPosX() / 16.0D), MathHelper.floor(entity
-                .getPosZ() / 16.0D), ChunkStatus.FULL, true);
+        final IChunk ichunk = world.getChunk(MathHelper.floor(entity.getX() / 16.0D), MathHelper.floor(entity
+                .getZ() / 16.0D), ChunkStatus.FULL, true);
         if (ichunk instanceof Chunk) ichunk.addEntity(entity);
-        world.addEntityIfNotDuplicate(entity);
+        world.loadFromChunk(entity);
     }
 
     private static void removeMob(final ServerWorld world, final Entity entity, final boolean keepData)
@@ -443,13 +443,13 @@ public class Transporter
         if (entity instanceof ServerPlayerEntity)
         {
             final ServerPlayerEntity player = (ServerPlayerEntity) entity;
-            player.invulnerableDimensionChange = true;
-            ((ServerPlayerEntity) entity).connection.setPlayerLocation(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z,
-                    entity.rotationYaw, entity.rotationPitch);
-            ((ServerPlayerEntity) entity).connection.captureCurrentPosition();
-            player.invulnerableDimensionChange = false;
+            player.isChangingDimension = true;
+            ((ServerPlayerEntity) entity).connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z,
+                    entity.yRot, entity.xRot);
+            ((ServerPlayerEntity) entity).connection.resetPosition();
+            player.isChangingDimension = false;
         }
-        else entity.setLocationAndAngles(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.rotationYaw,
-                entity.rotationPitch);
+        else entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
+                entity.xRot);
     }
 }

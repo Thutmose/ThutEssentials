@@ -58,7 +58,7 @@ public class TickScheduler
     {
         if (event.world instanceof ServerWorld)
         {
-            final RegistryKey<World> key = event.world.getDimensionKey();
+            final RegistryKey<World> key = event.world.dimension();
             final Map<RegistryKey<World>, List<Runnable>> map = event.phase == Phase.END ? TickScheduler.endTickRuns
                     : TickScheduler.startTickRuns;
             synchronized (map)

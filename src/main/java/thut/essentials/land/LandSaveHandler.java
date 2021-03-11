@@ -65,7 +65,7 @@ public class LandSaveHandler
     public static File getGlobalFolder()
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final Path path = server.func_240776_a_(new FolderName("land"));
+        final Path path = server.getWorldPath(new FolderName("land"));
         final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
         return file;

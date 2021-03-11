@@ -52,14 +52,14 @@ public class RTP
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("rtpDelay");
-        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.rtpReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
             return 1;
         }
         final KGobalPos spot = RTP.getRTPSpot(player);
@@ -78,22 +78,22 @@ public class RTP
                     callback, false);
             return 0;
         }
-        player.sendMessage(Essentials.config.getMessage("thutessentials.rtp.fail"), Util.DUMMY_UUID);
+        player.sendMessage(Essentials.config.getMessage("thutessentials.rtp.fail"), Util.NIL_UUID);
         return 1;
     }
 
     private static KGobalPos getRTPSpot(final ServerPlayerEntity player)
     {
-        final ServerWorld world = (ServerWorld) player.getEntityWorld();
+        final ServerWorld world = (ServerWorld) player.getCommandSenderWorld();
         final Random rand = new Random();
         final int dx = rand.nextInt(Essentials.config.rtpDistance) * (rand.nextBoolean() ? 1 : -1);
         final int dz = rand.nextInt(Essentials.config.rtpDistance) * (rand.nextBoolean() ? 1 : -1);
-        int x0 = RTP.centre == null ? world.getSpawnPoint().getX() : RTP.centre.getX();
-        int z0 = RTP.centre == null ? world.getSpawnPoint().getZ() : RTP.centre.getZ();
+        int x0 = RTP.centre == null ? world.getSharedSpawnPos().getX() : RTP.centre.getX();
+        int z0 = RTP.centre == null ? world.getSharedSpawnPos().getZ() : RTP.centre.getZ();
         if (Essentials.config.rtpPlayerCentred)
         {
-            x0 = player.getPosition().getX();
-            z0 = player.getPosition().getZ();
+            x0 = player.blockPosition().getX();
+            z0 = player.blockPosition().getZ();
         }
         final int x = x0 + dx;
         final int z = z0 + dz;
@@ -101,7 +101,7 @@ public class RTP
         world.getChunk(new BlockPos(x, 0, z));
         // Find the height at that location
         final int y = world.getHeight(Type.MOTION_BLOCKING, x, z);
-        final RegistryKey<World> dim = world.getDimensionKey();
+        final RegistryKey<World> dim = world.dimension();
         KGobalPos spot = KGobalPos.getPosition(dim, new BlockPos(x, y + 1, z));
         final BlockPos check = spot.getPos();
 
@@ -131,7 +131,7 @@ public class RTP
     private static boolean valid(final BlockPos pos, final World world)
     {
         final BlockState state1 = world.getBlockState(pos);
-        final BlockState state2 = world.getBlockState(pos.up());
+        final BlockState state2 = world.getBlockState(pos.above());
         final boolean valid1 = state1 == null || !state1.getMaterial().isSolid();
         final boolean valid2 = state2 == null || !state2.getMaterial().isSolid();
         return valid1 && valid2;

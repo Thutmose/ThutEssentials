@@ -40,7 +40,7 @@ public class Create
         UUID toAdd = null;
         try
         {
-            toAdd = source.asPlayer().getUniqueID();
+            toAdd = source.getPlayerOrException().getUUID();
         }
         catch (final Exception e)
         {

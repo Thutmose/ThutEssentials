@@ -37,11 +37,11 @@ public class Rename
 
     private static int execute(final CommandSource source, final String teamname) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         if (team == null || team == LandManager.getDefaultTeam())
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.notinateam"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.notinateam"));
             return 1;
         }
         final String oldname = team.teamName;

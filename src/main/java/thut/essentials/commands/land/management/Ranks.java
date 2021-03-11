@@ -87,17 +87,17 @@ public class Ranks
     private static int set_rank(final CommandSource source, final ServerPlayerEntity player, final String rankName)
             throws CommandSyntaxException
     {
-        final LandTeam landTeam = LandManager.getTeam(source.asPlayer());
+        final LandTeam landTeam = LandManager.getTeam(source.getPlayerOrException());
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
         {
             Essentials.config.sendError(source, "thutessentials.team.rank.notfound", rankName);
             return 1;
         }
-        rank.members.add(player.getUniqueID());
-        landTeam._ranksMembers.put(player.getUniqueID(), rank);
+        rank.members.add(player.getUUID());
+        landTeam._ranksMembers.put(player.getUUID(), rank);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.set", null, false, player
-                .getDisplayName(), rankName), Util.DUMMY_UUID);
+                .getDisplayName(), rankName), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -105,38 +105,38 @@ public class Ranks
     private static int rem_rank(final CommandSource source, final ServerPlayerEntity player, final String rankName)
             throws CommandSyntaxException
     {
-        final LandTeam landTeam = LandManager.getTeam(source.asPlayer());
+        final LandTeam landTeam = LandManager.getTeam(source.getPlayerOrException());
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
         {
             Essentials.config.sendError(source, "thutessentials.team.rank.notfound", rankName);
             return 1;
         }
-        rank.members.remove(player.getUniqueID());
-        landTeam._ranksMembers.remove(player.getUniqueID());
+        rank.members.remove(player.getUUID());
+        landTeam._ranksMembers.remove(player.getUUID());
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.rem", null, false, player
-                .getDisplayName(), rankName), Util.DUMMY_UUID);
+                .getDisplayName(), rankName), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int list_ranks(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.header"), Util.DUMMY_UUID);
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.header"), Util.NIL_UUID);
         final List<String> ranks = Lists.newArrayList(landTeam.rankMap.keySet());
         Collections.sort(ranks);
         for (final String s : ranks)
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.entry", null, false, s),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
         return 0;
     }
 
     private static int add_perm(final CommandSource source, final String rankName, final String perm)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
@@ -145,9 +145,9 @@ public class Ranks
             return 1;
         }
         if (rank.perms.add(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.rank.perm.set", null, false, rankName, perm), Util.DUMMY_UUID);
+                "thutessentials.team.rank.perm.set", null, false, rankName, perm), Util.NIL_UUID);
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.perm.had", null, false,
-                rankName), Util.DUMMY_UUID);
+                rankName), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -155,7 +155,7 @@ public class Ranks
     private static int del_perm(final CommandSource source, final String rankName, final String perm)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
@@ -164,16 +164,16 @@ public class Ranks
             return 1;
         }
         if (rank.perms.remove(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.rank.perm.unset", null, false, rankName), Util.DUMMY_UUID);
+                "thutessentials.team.rank.perm.unset", null, false, rankName), Util.NIL_UUID);
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.perm.nohad", null,
-                false, rankName), Util.DUMMY_UUID);
+                false, rankName), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int add_rank(final CommandSource source, final String rankName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank != null)
@@ -183,14 +183,14 @@ public class Ranks
         }
         landTeam.rankMap.put(rankName, new PlayerRank());
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.added", null, false,
-                rankName), Util.DUMMY_UUID);
+                rankName), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int del_rank(final CommandSource source, final String rankName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
@@ -200,14 +200,14 @@ public class Ranks
         }
         landTeam.rankMap.remove(rankName);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.deleted", null, false,
-                rankName), Util.DUMMY_UUID);
+                rankName), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int list_members(final CommandSource source, final String rankName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
@@ -217,9 +217,9 @@ public class Ranks
         }
         final Collection<UUID> c = rank.members;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.memheader", null, false,
-                rankName), Util.DUMMY_UUID);
+                rankName), Util.NIL_UUID);
         final ITextComponent list = Members.getMembers(source.getServer(), c, false);
-        player.sendMessage(list, Util.DUMMY_UUID);
+        player.sendMessage(list, Util.NIL_UUID);
         return 0;
     }
 }

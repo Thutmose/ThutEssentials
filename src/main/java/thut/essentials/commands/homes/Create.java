@@ -45,26 +45,26 @@ public class Create
     private static int execute(final CommandSource source, String homeName) throws CommandSyntaxException
     {
         if (homeName == null) homeName = "Home";
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final int ret = HomeManager.setHome(player, homeName);
         ITextComponent message;
         switch (ret)
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.added", null, false, homeName);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.toomany");
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         case 2:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.noperms");
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         case 3:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.exists", null, false, homeName);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         }
         return ret;

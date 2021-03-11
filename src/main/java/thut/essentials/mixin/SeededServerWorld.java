@@ -28,9 +28,9 @@ public abstract class SeededServerWorld extends World
     @Inject(method = "getSeed", at = @At(value = "RETURN"), cancellable = true)
     private void checkSeed(final CallbackInfoReturnable<Long> cir)
     {
-        if (Essentials.config.versioned_dim_seed_map.containsKey(this.getDimensionKey().getLocation()))
+        if (Essentials.config.versioned_dim_seed_map.containsKey(this.dimension().location()))
         {
-            final Long seed = Essentials.config.versioned_dim_seed_map.get(this.getDimensionKey().getLocation());
+            final Long seed = Essentials.config.versioned_dim_seed_map.get(this.dimension().location());
             cir.setReturnValue(seed);
         }
     }

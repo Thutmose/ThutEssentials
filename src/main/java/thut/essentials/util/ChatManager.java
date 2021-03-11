@@ -36,7 +36,7 @@ public class ChatManager
     private static void build(final StringTextComponent comp, final String format, final Object... args)
     {
         final List<ITextComponent> children = comp.getSiblings();
-        final Matcher matcher = TranslationTextComponent.STRING_VARIABLE_PATTERN.matcher(format);
+        final Matcher matcher = TranslationTextComponent.FORMAT_PATTERN.matcher(format);
         try
         {
             int i = 0;

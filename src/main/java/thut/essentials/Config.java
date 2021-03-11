@@ -299,18 +299,18 @@ public class Config extends ConfigData
 
     public void sendFeedback(final CommandSource target, final String key, final boolean log, final Object... args)
     {
-        target.sendFeedback(this.getMessage(key, args), log);
+        target.sendSuccess(this.getMessage(key, args), log);
     }
 
     public void sendError(final CommandSource target, final String key, final Object... args)
     {
-        target.sendErrorMessage(this.getMessage(key, args));
+        target.sendFailure(this.getMessage(key, args));
     }
 
     @Override
     public void onUpdated()
     {
-        this.spawnDimension = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(this.spawnWorld));
+        this.spawnDimension = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(this.spawnWorld));
 
         final File file = this.configpath.resolve(this.lang_file).toFile();
         if (file.exists()) try

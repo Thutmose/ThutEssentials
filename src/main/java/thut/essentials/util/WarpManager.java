@@ -138,7 +138,7 @@ public class WarpManager
     {
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         final PlayerContext context = new PlayerContext(player);
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.header"), Util.DUMMY_UUID);
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.header"), Util.NIL_UUID);
         for (String s : Essentials.config.warps)
         {
             final String[] args = s.split("->");
@@ -153,10 +153,10 @@ public class WarpManager
                     "thutessentials.warps.entry", null, false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
             Style style = message.getStyle();
-            style = style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
-            player.sendMessage(message.setStyle(style), Util.DUMMY_UUID);
+            style = style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
+            player.sendMessage(message.setStyle(style), Util.NIL_UUID);
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.footer"), Util.DUMMY_UUID);
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.footer"), Util.NIL_UUID);
     }
 
     public static int attemptWarp(final ServerPlayerEntity player, final String warpName)
@@ -165,7 +165,7 @@ public class WarpManager
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("warpDelay");
-        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
         // Too Soon
         if (last > time && Essentials.config.warpReUseDelay > 0) return 1;
         if (warp != null)

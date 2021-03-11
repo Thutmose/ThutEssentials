@@ -43,22 +43,22 @@ public class Home
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
 
         if (team.team_home == null)
         {
-            source.sendErrorMessage(Essentials.config.getMessage("thutessentials.team.nohomeset"));
+            source.sendFailure(Essentials.config.getMessage("thutessentials.team.nohomeset"));
             return 1;
         }
 
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("homeDelay");
-        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.homeReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
             return 1;
         }
 

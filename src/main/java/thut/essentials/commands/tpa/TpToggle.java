@@ -37,7 +37,7 @@ public class TpToggle
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tpaTag = tag.getCompound("tpa");
         final boolean ignore = !tpaTag.getBoolean("ignore");
@@ -45,7 +45,7 @@ public class TpToggle
         tag.put("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.ignoreset" + ignore,
-                TextFormatting.DARK_GREEN, true), Util.DUMMY_UUID);
+                TextFormatting.DARK_GREEN, true), Util.NIL_UUID);
         return 0;
     }
 }

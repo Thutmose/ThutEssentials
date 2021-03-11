@@ -24,7 +24,7 @@ public abstract class MixinChunkManager extends ChunkLoader
         super(p_i231889_1_, p_i231889_2_, p_i231889_3_);
     }
 
-    @Inject(method = "loadChunkData", at = @At(value = "RETURN"), cancellable = true)
+    @Inject(method = "readChunk", at = @At(value = "RETURN"), cancellable = true)
     public void onLoadChunkData(final ChunkPos pos, final CallbackInfoReturnable<CompoundNBT> cir)
     {
         if (Structuregen.toReset.remove(pos)) cir.setReturnValue(null);

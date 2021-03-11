@@ -50,22 +50,22 @@ public class Chat
 
     private static int execute(final CommandSource source, final String message) throws CommandSyntaxException
     {
-        final PlayerEntity sender = source.asPlayer();
+        final PlayerEntity sender = source.getPlayerOrException();
         final MinecraftServer server = source.getServer();
         final LandTeam team = LandManager.getTeam(sender);
 
         final IFormattableTextComponent mess = new StringTextComponent("[Team]" + sender.getDisplayName()
                 .getString()
                 + ": ");
-        mess.setStyle(mess.getStyle().setColor(Color.fromTextFormatting(TextFormatting.YELLOW)));
+        mess.setStyle(mess.getStyle().withColor(Color.fromLegacyFormat(TextFormatting.YELLOW)));
         mess.append(CommandManager.makeFormattedComponent(RuleManager.format(message), TextFormatting.AQUA, false));
 
-        if (Essentials.config.logTeamChat) server.sendMessage(mess, Util.DUMMY_UUID);
+        if (Essentials.config.logTeamChat) server.sendMessage(mess, Util.NIL_UUID);
         for (final UUID id : team.member)
             try
             {
-                final PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
-                if (player != null) player.sendMessage(mess, Util.DUMMY_UUID);
+                final PlayerEntity player = server.getPlayerList().getPlayer(id);
+                if (player != null) player.sendMessage(mess, Util.NIL_UUID);
             }
             catch (final Exception e)
             {

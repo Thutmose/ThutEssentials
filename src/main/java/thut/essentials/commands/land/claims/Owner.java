@@ -39,19 +39,19 @@ public class Owner
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
-        final int x = MathHelper.floor(player.getPosition().getX() >> 4);
-        final int y = MathHelper.floor(player.getPosition().getY() >> 4);
-        final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
+        final PlayerEntity player = source.getPlayerOrException();
+        final int x = MathHelper.floor(player.blockPosition().getX() >> 4);
+        final int y = MathHelper.floor(player.blockPosition().getY() >> 4);
+        final int z = MathHelper.floor(player.blockPosition().getZ() >> 4);
         if (y < 0 || y > 15) return 1;
-        final World dim = player.getEntityWorld();
+        final World dim = player.getCommandSenderWorld();
         final BlockPos b = new BlockPos(x, y, z);
         final LandTeam owner = LandManager.getInstance().getLandOwner(dim, b, true);
 
         if (!LandManager.isWild(owner)) player.sendMessage(Essentials.config.getMessage(
                 "thutessentials.claim.ownedby",
-                owner.teamName), Util.DUMMY_UUID);
-        else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unowned"), Util.DUMMY_UUID);
+                owner.teamName), Util.NIL_UUID);
+        else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unowned"), Util.NIL_UUID);
         return 0;
     }
 }

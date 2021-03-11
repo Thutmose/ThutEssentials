@@ -34,7 +34,7 @@ public class Heal
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        return Heal.execute(source, source.asPlayer());
+        return Heal.execute(source, source.getPlayerOrException());
     }
 
     private static int execute(final CommandSource source, final Entity entity)
@@ -47,7 +47,7 @@ public class Heal
         if (entity instanceof ServerPlayerEntity)
         {
             final ServerPlayerEntity player = (ServerPlayerEntity) entity;
-            player.getFoodStats().setFoodLevel(20);
+            player.getFoodData().setFoodLevel(20);
         }
         return 0;
     }

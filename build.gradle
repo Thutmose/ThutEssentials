@@ -6,7 +6,7 @@ buildscript {
         flatDir {
           dirs 'libs'
         }
-        maven {url='https://dist.creeper.host/Sponge/maven'}
+        maven {url='https://repo.spongepowered.org/repository/maven-public/'}
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
@@ -35,7 +35,7 @@ archivesBaseName = "${compile_name}"
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
-    mappings channel: 'snapshot', version: "${version_mappings}"
+    mappings channel: "${channel_mappings}", version: "${version_mappings}"
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {

@@ -84,14 +84,14 @@ public class Kits
 
     private static int kits(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         KitManager.sendKitsList(player);
         return 0;
     }
 
     private static int execute(final CommandSource source, final String warpName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final MinecraftServer server = player.getServer();
 
         List<ItemStack> stacks;
@@ -123,7 +123,7 @@ public class Kits
         }
 
         final long kitTime = PlayerDataHandler.getCustomDataTag(player).getLong(kitTag);
-        if (delay <= 0 && kitTime != 0 || server.getWorld(World.OVERWORLD).getGameTime() < kitTime)
+        if (delay <= 0 && kitTime != 0 || server.getLevel(World.OVERWORLD).getGameTime() < kitTime)
         {
             Essentials.config.sendError(source, "thutessentials.kits.too_soon");
             return 1;
@@ -131,7 +131,7 @@ public class Kits
         for (final ItemStack stack : stacks)
         {
             EconomyManager.giveItem(player, stack.copy());
-            PlayerDataHandler.getCustomDataTag(player).putLong(kitTag, server.getWorld(World.OVERWORLD).getGameTime()
+            PlayerDataHandler.getCustomDataTag(player).putLong(kitTag, server.getLevel(World.OVERWORLD).getGameTime()
                     + delay);
             PlayerDataHandler.saveCustomData(player);
         }

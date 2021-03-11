@@ -92,10 +92,10 @@ public class Structuregen
             final boolean doStructures, final ChunkPos mid)
     {
         final ServerWorld world = worldRegion.world;
-        final TemplateManager templates = world.getStructureTemplateManager();
-        final ServerChunkProvider chunkProvider = world.getChunkProvider();
+        final TemplateManager templates = world.getStructureManager();
+        final ServerChunkProvider chunkProvider = world.getChunkSource();
         final ChunkGenerator generator = chunkProvider.generator;
-        final ServerWorldLightManager lightManager = chunkProvider.getLightManager();
+        final ServerWorldLightManager lightManager = chunkProvider.getLightEngine();
 
         final CompletableFuture<Either<IChunk, ChunkHolder.IChunkLoadingError>> future = new CompletableFuture<>();
 
@@ -109,21 +109,21 @@ public class Structuregen
 
             if (doStructures)
             {
-                ChunkStatus.STRUCTURE_STARTS.doGenerationWork(world, generator, templates, lightManager,
+                ChunkStatus.STRUCTURE_STARTS.generate(world, generator, templates, lightManager,
                         loadingFunction, primers);
                 // This emulates STRUCTURE_REFERENCES
-                primers.forEach(c -> generator.func_235953_a_(worldRegion, world.func_241112_a_().getStructureManager(
+                primers.forEach(c -> generator.createReferences(worldRegion, world.structureFeatureManager().forWorldGenRegion(
                         worldRegion), c));
             }
 
-            ChunkStatus.BIOMES.doGenerationWork(world, generator, templates, lightManager, loadingFunction, primers);
+            ChunkStatus.BIOMES.generate(world, generator, templates, lightManager, loadingFunction, primers);
             // This emulates NOISE
-            primers.forEach(c -> generator.func_230352_b_(worldRegion, world.func_241112_a_().getStructureManager(
+            primers.forEach(c -> generator.fillFromNoise(worldRegion, world.structureFeatureManager().forWorldGenRegion(
                     worldRegion), c));
 
-            ChunkStatus.SURFACE.doGenerationWork(world, generator, templates, lightManager, loadingFunction, primers);
-            ChunkStatus.CARVERS.doGenerationWork(world, generator, templates, lightManager, loadingFunction, primers);
-            ChunkStatus.LIQUID_CARVERS.doGenerationWork(world, generator, templates, lightManager, loadingFunction,
+            ChunkStatus.SURFACE.generate(world, generator, templates, lightManager, loadingFunction, primers);
+            ChunkStatus.CARVERS.generate(world, generator, templates, lightManager, loadingFunction, primers);
+            ChunkStatus.LIQUID_CARVERS.generate(world, generator, templates, lightManager, loadingFunction,
                     primers);
 
             // Here we emulate FEATURES
@@ -135,38 +135,38 @@ public class Structuregen
             // Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
             // Heightmap.Type.OCEAN_FLOOR,
             // Heightmap.Type.WORLD_SURFACE));
-            // generator.func_230351_a_(worldRegion,
-            // world.func_241112_a_().getStructureManager(worldRegion));
+            // generator.applyBiomeDecoration(worldRegion,
+            // world.structureFeatureManager().getStructureManager(worldRegion));
             // chunkprimer.setStatus(ChunkStatus.FEATURES);
             // });
 
-            ChunkStatus.LIGHT.doGenerationWork(world, generator, templates, lightManager, loadingFunction, primers);
-            ChunkStatus.SPAWN.doGenerationWork(world, generator, templates, lightManager, loadingFunction, primers);
-            ChunkStatus.HEIGHTMAPS.doGenerationWork(world, generator, templates, lightManager, loadingFunction,
+            ChunkStatus.LIGHT.generate(world, generator, templates, lightManager, loadingFunction, primers);
+            ChunkStatus.SPAWN.generate(world, generator, templates, lightManager, loadingFunction, primers);
+            ChunkStatus.HEIGHTMAPS.generate(world, generator, templates, lightManager, loadingFunction,
                     primers);
-            ChunkStatus.FULL.doGenerationWork(world, generator, templates, lightManager, loadingFunction, primers);
+            ChunkStatus.FULL.generate(world, generator, templates, lightManager, loadingFunction, primers);
 
-            final MutableBoundingBox box = MutableBoundingBox.getNewBoundingBox();
-            box.minY = minY;
-            box.maxY = maxY;
+            final MutableBoundingBox box = MutableBoundingBox.getUnknownBox();
+            box.y0 = minY;
+            box.y1 = maxY;
             for (int i = 0; i < primers.size(); i++)
             {
                 final ChunkPrimer c = (ChunkPrimer) primers.get(i);
                 final Chunk o = originals.get(i);
                 final ChunkPos p = o.getPos();
                 if (!p.equals(mid)) continue;
-                box.minX = p.getXStart();
-                box.minZ = p.getZStart();
-                box.maxX = p.getXEnd();
-                box.maxZ = p.getZEnd();
+                box.x0 = p.getMinBlockX();
+                box.z0 = p.getMinBlockZ();
+                box.x1 = p.getMaxBlockX();
+                box.z1 = p.getMaxBlockZ();
 
                 for (int y = minY; y < maxY; y++)
-                    for (int x = box.minX; x <= box.maxX; x++)
-                        for (int z = box.minZ; z <= box.maxZ; z++)
+                    for (int x = box.x0; x <= box.x1; x++)
+                        for (int z = box.z0; z <= box.z1; z++)
                         {
                             final BlockPos pos = new BlockPos(x, y, z);
                             final BlockState newstate = c.getBlockState(pos);
-                            world.setBlockState(pos, newstate, 3 + 32);
+                            world.setBlock(pos, newstate, 3 + 32);
                         }
             }
 
@@ -182,17 +182,17 @@ public class Structuregen
     private static int execute_reset(final CommandSource source, final int radius) throws CommandSyntaxException
     {
 
-        final ServerPlayerEntity player = source.asPlayer();
-        final IChunk chunk = player.getEntityWorld().getChunkAt(player.getPosition());
-        final ServerWorld worldIn = player.getServerWorld();
+        final ServerPlayerEntity player = source.getPlayerOrException();
+        final IChunk chunk = player.getCommandSenderWorld().getChunkAt(player.blockPosition());
+        final ServerWorld worldIn = player.getLevel();
         final ChunkPos chunkpos = chunk.getPos();
 
-        final ServerChunkProvider chunkProvider = worldIn.getChunkProvider();
-        final ChunkManager manager = chunkProvider.chunkManager;
+        final ServerChunkProvider chunkProvider = worldIn.getChunkSource();
+        final ChunkManager manager = chunkProvider.chunkMap;
 
-        TickScheduler.Schedule(worldIn.getDimensionKey(), () ->
+        TickScheduler.Schedule(worldIn.dimension(), () ->
         {
-            ChunkPos.getAllInBox(chunkpos, radius).forEach(p ->
+            ChunkPos.rangeClosed(chunkpos, radius).forEach(p ->
             {
                 boolean owned = false;
                 for (int k = 0; k < 16; k++)
@@ -202,21 +202,21 @@ public class Structuregen
                     if (owned) break;
                 }
                 if (owned) return;
-                final long k = p.asLong();
-                final ChunkHolder holder = manager.loadedChunks.get(k);
+                final long k = p.toLong();
+                final ChunkHolder holder = manager.updatingChunkMap.get(k);
                 if (holder != null)
                 {
-                    manager.loadedChunks.remove(k);
-                    manager.loadedPositions.remove(k);
-                    manager.immutableLoadedChunksDirty = true;
-                    holder.setChunkLevel(0);
+                    manager.updatingChunkMap.remove(k);
+                    manager.entitiesInLevel.remove(k);
+                    manager.modified = true;
+                    holder.setTicketLevel(0);
                 }
                 Structuregen.toReset.add(p);
             });
-            manager.refreshOffThreadCache();
+            manager.promoteChunkMap();
         }, true);
 
-        source.sendFeedback(new StringTextComponent("Reset Scheduled"), false);
+        source.sendSuccess(new StringTextComponent("Reset Scheduled"), false);
         return 0;
     }
 
@@ -224,30 +224,30 @@ public class Structuregen
     private static int execute_generate(final CommandSource source, final String structname)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
 
         final ResourceLocation key = new ResourceLocation(structname);
         if (!WorldGenRegistries.CONFIGURED_STRUCTURE_FEATURE.keySet().contains(key)) return 1;
 
-        final IChunk chunk = player.getEntityWorld().getChunkAt(player.getPosition());
-        final ServerWorld worldIn = player.getServerWorld();
-        final ChunkGenerator generator = worldIn.getChunkProvider().generator;
-        final DynamicRegistries reg = worldIn.getServer().func_244267_aX();
-        final TemplateManager templateManager = worldIn.getStructureTemplateManager();
+        final IChunk chunk = player.getCommandSenderWorld().getChunkAt(player.blockPosition());
+        final ServerWorld worldIn = player.getLevel();
+        final ChunkGenerator generator = worldIn.getChunkSource().generator;
+        final DynamicRegistries reg = worldIn.getServer().registryAccess();
+        final TemplateManager templateManager = worldIn.getStructureManager();
         final int refs = 0;
         final long seed = worldIn.getRandom().nextLong();
-        final Biome biome = worldIn.getBiome(player.getPosition());
-        final StructureManager structManager = worldIn.func_241112_a_();
+        final Biome biome = worldIn.getBiome(player.blockPosition());
+        final StructureManager structManager = worldIn.structureFeatureManager();
         final ChunkPos pos = chunk.getPos();
-        final StructureFeature<?, ?> feature = WorldGenRegistries.CONFIGURED_STRUCTURE_FEATURE.getOrDefault(key);
+        final StructureFeature<?, ?> feature = WorldGenRegistries.CONFIGURED_STRUCTURE_FEATURE.get(key);
 
-        final Structure<?> structure = feature.field_236268_b_;
+        final Structure<?> structure = feature.feature;
         @SuppressWarnings("rawtypes")
-        final StructureStart start = structure.createStructureStart(pos.x, pos.z, MutableBoundingBox
-                .getNewBoundingBox(), refs, seed);
-        start.func_230364_a_(reg, generator, templateManager, pos.x, pos.z, biome, feature.field_236269_c_);
-        start.func_230366_a_(worldIn, structManager, generator, worldIn.getRandom(), MutableBoundingBox
-                .func_236990_b_(), pos);
+        final StructureStart start = structure.createStart(pos.x, pos.z, MutableBoundingBox
+                .getUnknownBox(), refs, seed);
+        start.generatePieces(reg, generator, templateManager, pos.x, pos.z, biome, feature.config);
+        start.placeInChunk(worldIn, structManager, generator, worldIn.getRandom(), MutableBoundingBox
+                .infinite(), pos);
         return 0;
     }
 }

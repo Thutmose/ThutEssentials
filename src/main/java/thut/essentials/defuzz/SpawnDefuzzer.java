@@ -41,7 +41,7 @@ public class SpawnDefuzzer
                             Stats.SWIM_ONE_CM));
             if (num > SpawnDefuzzer.DEFUZZSENS) return false;
         }
-        return player.func_241140_K_() == null;
+        return player.getRespawnPosition() == null;
     }
 
     @SubscribeEvent
@@ -49,9 +49,9 @@ public class SpawnDefuzzer
     {
         if (!Essentials.config.defuzz) return;
         if (!(event.getPlayer() instanceof ServerPlayerEntity)) return;
-        final ServerWorld world = event.getPlayer().getServer().getWorld(Essentials.config.spawnDimension);
+        final ServerWorld world = event.getPlayer().getServer().getLevel(Essentials.config.spawnDimension);
         final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
-        final BlockPos worldSpawn = world.getSpawnPoint();
+        final BlockPos worldSpawn = world.getSharedSpawnPos();
         if (SpawnDefuzzer.shouldDefuz(player, true))
         {
             PlayerDataHandler.getCustomDataTag(player).putString("__defuzz_key__", Essentials.config.defuzzKey);
@@ -70,13 +70,13 @@ public class SpawnDefuzzer
     public static void EntityUpdate(final LivingUpdateEvent evt)
     {
         if (!Essentials.config.defuzz) return;
-        if (SpawnDefuzzer.logins.contains(evt.getEntity().getUniqueID()) && evt
+        if (SpawnDefuzzer.logins.contains(evt.getEntity().getUUID()) && evt
                 .getEntity() instanceof ServerPlayerEntity)
         {
             final ServerPlayerEntity player = (ServerPlayerEntity) evt.getEntity();
-            SpawnDefuzzer.logins.remove(evt.getEntity().getUniqueID());
-            final ServerWorld world = player.getServer().getWorld(Essentials.config.spawnDimension);
-            final BlockPos worldSpawn = world.getSpawnPoint();
+            SpawnDefuzzer.logins.remove(evt.getEntity().getUUID());
+            final ServerWorld world = player.getServer().getLevel(Essentials.config.spawnDimension);
+            final BlockPos worldSpawn = world.getSharedSpawnPos();
             if (SpawnDefuzzer.shouldDefuz(player, false))
             {
                 PlayerDataHandler.getCustomDataTag(player).putString("__defuzz_key__", Essentials.config.defuzzKey);
@@ -95,7 +95,7 @@ public class SpawnDefuzzer
         {
             final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
             Essentials.LOGGER.info("Login detected, adding player to logins for defuzz.");
-            SpawnDefuzzer.logins.add(player.getUniqueID());
+            SpawnDefuzzer.logins.add(player.getUUID());
         }
     }
 }

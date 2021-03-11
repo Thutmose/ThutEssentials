@@ -48,7 +48,7 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
         {
             final CompoundNBT tag = new CompoundNBT();
             tag.putString("key", this.key.toString());
-            tag.put("box", this.box.toNBTTagIntArray());
+            tag.put("box", this.box.createTag());
             return tag;
         }
 
@@ -119,7 +119,7 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
         synchronized (this.structs)
         {
             for (final StructInfo i : this.structs)
-                if (i.box.isVecInside(pos)) ret.add(i.key);
+                if (i.box.isInside(pos)) ret.add(i.key);
         }
         return ret;
     }
@@ -129,7 +129,7 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
     {
         synchronized (this.structs)
         {
-            this.structs.removeIf(i -> (key == null || i.key.equals(key)) && i.box.intersectsWith(box));
+            this.structs.removeIf(i -> (key == null || i.key.equals(key)) && i.box.intersects(box));
         }
     }
 
