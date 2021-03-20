@@ -694,8 +694,8 @@ public class LandManager
                 return;
             }
         }
+        if (seg.owner == null || !seg.owner.equals(t.land.uuid)) t.land.claimed++;
         seg.owner = t.land.uuid;
-        t.land.claimed++;
         KGobalPos c;
         if (chunkCoords) c = KGobalPos.getPosition(world.dimension(), pos);
         else
@@ -732,8 +732,8 @@ public class LandManager
         t.land.claims.remove(c);
         final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
         final ClaimSegment seg = claims.getSegment(y);
+        if (seg.owner != null && seg.owner.equals(t.land.uuid)) t.land.claimed--;
         seg.owner = null;
-        t.land.claimed--;
         InventoryLogger.log("unclaimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
     }
@@ -787,6 +787,7 @@ public class LandManager
     {
         if (this._teamMap.containsKey(team)) throw new IllegalArgumentException("thutessentials.team.teamexists");
         final LandTeam theTeam = this.getTeam(team, true);
+        this._team_land.put(theTeam.land.uuid, theTeam);
         if (member != null)
         {
             this.addToTeam(member, team);
@@ -846,16 +847,7 @@ public class LandManager
         {
             final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
             final ClaimSegment seg = claims.getSegment(y);
-
-            // TODO remove legacy stuff
-            if (!LandManager.isWild(owner))
-            {
-                seg.owner = owner.land.uuid;
-                owner.land.claims.remove(c);
-                owner.land.claimed++;
-            }
-
-            else owner = this.getTeamForLand(seg.owner);
+            owner = this.getTeamForLand(seg.owner);
         }
         else return LandManager.getNotLoaded();
         return owner;

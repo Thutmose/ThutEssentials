@@ -100,7 +100,8 @@ public class LandSaveHandler
         if (LandSaveHandler.LOAD_GSON == null) LandSaveHandler.LOAD_GSON = new GsonBuilder()
                 .addDeserializationExclusionStrategy(LandSaveHandler.exclusion).setPrettyPrinting().create();
         final File teamsFile = new File(LandSaveHandler.getGlobalFolder(), "landData.json");
-        if (Essentials.config.debug) Essentials.LOGGER.info("Starting Loading Land");
+        // if (Essentials.config.debug)
+        Essentials.LOGGER.info("Starting Loading Land");
         if (teamsFile.exists())
         {
             try
@@ -120,7 +121,8 @@ public class LandSaveHandler
             if (LandManager.instance == null) LandManager.instance = new LandManager();
             LandSaveHandler.saveGlobalData();
         }
-        if (Essentials.config.debug) Essentials.LOGGER.info("Finished Loading Land and Teams");
+        // if (Essentials.config.debug)
+        Essentials.LOGGER.info("Finished Loading Land and Teams");
         // Set default as reservred to prevent it from getting cleaned up.
         LandManager.getDefaultTeam().reserved = true;
     }
