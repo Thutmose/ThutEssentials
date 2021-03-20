@@ -154,9 +154,7 @@ public class LandSaveHandler
                     }
                     else Essentials.LOGGER.debug("Did not find claim! " + old.dim);
                 }
-                if (Essentials.config.debug) Essentials.LOGGER.info("Processing " + team.teamName);
-                for (final KGobalPos land : toAdd)
-                    LandManager.getInstance().addTeamLand(team.teamName, land, false);
+                if (Essentials.config.debug) Essentials.LOGGER.info("Processed " + team.teamName);
             }
             catch (final Exception e)
             {

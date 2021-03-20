@@ -738,27 +738,6 @@ public class LandManager
         LandSaveHandler.saveTeam(team);
     }
 
-    @Deprecated
-    public void addTeamLand(final String team, final KGobalPos land, final boolean sync)
-    {
-        final LandTeam t = this._teamMap.get(team);
-        if (t == null)
-        {
-            Thread.dumpStack();
-            return;
-        }
-        Essentials.LOGGER.debug("claim: " + team + " Coord: " + land);
-        final LandTeam prev = this._landMap.remove(land);
-        t.land.addLand(land);
-        if (prev != null) prev.land.removeLand(land);
-        this._landMap.put(land, t);
-        if (sync)
-        {
-            if (prev != null) LandSaveHandler.saveTeam(prev.teamName);
-            LandSaveHandler.saveTeam(team);
-        }
-    }
-
     public void addAdmin(final UUID admin, final String team)
     {
         final LandTeam t = this.getTeam(team, true);
