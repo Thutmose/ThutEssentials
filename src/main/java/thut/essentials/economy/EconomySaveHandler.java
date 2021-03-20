@@ -44,7 +44,7 @@ public class EconomySaveHandler
     public static File getGlobalFolder()
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final Path path = server.func_240776_a_(new FolderName("economy"));
+        final Path path = server.getWorldPath(new FolderName("economy"));
         final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
         return file;

@@ -35,10 +35,10 @@ public class Balance
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final int amount = EconomyManager.getBalance(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.check", null, false,
-                amount), Util.DUMMY_UUID);
+                amount), Util.NIL_UUID);
         return 0;
     }
 }

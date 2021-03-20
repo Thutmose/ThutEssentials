@@ -44,10 +44,10 @@ public class ClaimedCapability
         {
             final CompoundNBT tag = new CompoundNBT();
             final ListNBT mobListPub = new ListNBT();
-            this.publicMobs.forEach(uuid -> mobListPub.add(NBTUtil.func_240626_a_(uuid)));
+            this.publicMobs.forEach(uuid -> mobListPub.add(NBTUtil.createUUID(uuid)));
             tag.put("public_mobs", mobListPub);
             final ListNBT mobListProt = new ListNBT();
-            this.protectedMobs.forEach(uuid -> mobListProt.add(NBTUtil.func_240626_a_(uuid)));
+            this.protectedMobs.forEach(uuid -> mobListProt.add(NBTUtil.createUUID(uuid)));
             tag.put("protected_mobs", mobListProt);
             final ListNBT pubBlocks = new ListNBT();
             this.publicBlocks.forEach(b -> pubBlocks.add(NBTUtil.writeBlockPos(b)));
@@ -77,7 +77,7 @@ public class ClaimedCapability
         @Override
         public IntArrayNBT serializeNBT()
         {
-            return NBTUtil.func_240626_a_(this.owner);
+            return NBTUtil.createUUID(this.owner);
         }
 
         @Override
@@ -85,7 +85,7 @@ public class ClaimedCapability
         {
             try
             {
-                this.owner = NBTUtil.readUniqueId(nbt);
+                this.owner = NBTUtil.loadUUID(nbt);
             }
             catch (final Exception e)
             {
@@ -152,12 +152,12 @@ public class ClaimedCapability
 
         public ClaimImpl(final Chunk chunk)
         {
-            final World world = chunk.getWorld();
-            if (world.isRemote) return;
+            final World world = chunk.getLevel();
+            if (world.isClientSide) return;
 
             for (int y = 0; y < 16; y++)
             {
-                final KGobalPos pos = KGobalPos.getPosition(world.getDimensionKey(), new BlockPos(chunk.getPos().x, y,
+                final KGobalPos pos = KGobalPos.getPosition(world.dimension(), new BlockPos(chunk.getPos().x, y,
                         chunk.getPos().z));
                 if (LandManager.getInstance()._landMap.containsKey(pos))
                 {
@@ -208,7 +208,7 @@ public class ClaimedCapability
         public void deserializeNBT(final CompoundNBT nbt)
         {
             this.info.deserializeNBT(nbt.getCompound("info"));
-            for (final String key : nbt.keySet())
+            for (final String key : nbt.getAllKeys())
                 if (key.startsWith("seg_")) try
                 {
                     final int i = Integer.parseInt(key.replace("seg_", ""));

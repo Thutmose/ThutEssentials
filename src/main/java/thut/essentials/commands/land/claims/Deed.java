@@ -44,30 +44,30 @@ public class Deed
         if (!PermissionAPI.hasPermission(player, Deed.CANREDEEMDEEDS))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return;
         }
         final LandTeam team = LandManager.getTeam(player);
-        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return;
         }
 
         final int num = stack.getTag().getInt("num");
         int n = 0;
         int x = 0, z = 0;
-        final World world = player.getEntityWorld();
+        final World world = player.getCommandSenderWorld();
         for (int i = 0; i < num; i++)
         {
             final CompoundNBT tag = stack.getTag().getCompound("" + i);
             final KGobalPos c = CoordinateUtls.fromNBT(tag);
             if (c == null) continue;
-            if (c.getDimension() != world.getDimensionKey())
+            if (c.getDimension() != world.dimension())
             {
                 player.sendMessage(Essentials.config.getMessage("thutessentials.deed.notallowed.wrongdim"),
-                        Util.DUMMY_UUID);
+                        Util.NIL_UUID);
                 return;
             }
             x = c.getPos().getX();
@@ -85,9 +85,9 @@ public class Deed
         }
         stack.getTag().putInt("num", num - n);
         player.sendMessage(Essentials.config.getMessage("thutessentials.deed.claimed", n, team.teamName),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
         if (n == num) stack.grow(-1);
-        else stack.setDisplayName(Essentials.config.getMessage("thutessentials.deed.for", num - n, x << 4, z << 4));
+        else stack.setHoverName(Essentials.config.getMessage("thutessentials.deed.for", num - n, x << 4, z << 4));
     }
 
     private static final String BYPASSLIMIT    = "thutessentials.land.deed.nolimit";
@@ -139,27 +139,27 @@ public class Deed
     private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         final boolean canUnclaimAnything = PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM);
 
-        if (!canUnclaimAnything && !team.hasRankPerm(player.getUniqueID(), LandTeam.UNCLAIMPERM))
+        if (!canUnclaimAnything && !team.hasRankPerm(player.getUUID(), LandTeam.UNCLAIMPERM))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 1;
         }
 
         player.getServer().execute(() ->
         {
 
-            final int x = player.getPosition().getX() >> 4;
-            final int y = player.getPosition().getY() >> 4;
-            final int z = player.getPosition().getZ() >> 4;
+            final int x = player.blockPosition().getX() >> 4;
+            final int y = player.blockPosition().getY() >> 4;
+            final int z = player.blockPosition().getZ() >> 4;
 
             final Set<KGobalPos> deeds = Sets.newHashSet();
 
-            final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+            final RegistryKey<World> dim = player.getCommandSenderWorld().dimension();
             boolean done = false;
             if (here)
             {
@@ -192,11 +192,11 @@ public class Deed
                     else if (check == 3) owned_other++;
                 }
                 if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
-                        "thutessentials.unclaim.notallowed.notowner", owned_other), Util.DUMMY_UUID);
+                        "thutessentials.unclaim.notallowed.notowner", owned_other), Util.NIL_UUID);
                 if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
-                        team.teamName), Util.DUMMY_UUID);
+                        team.teamName), Util.NIL_UUID);
                 else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
-                        team.teamName), Util.DUMMY_UUID);
+                        team.teamName), Util.NIL_UUID);
             }
 
             if (!deeds.isEmpty())
@@ -208,9 +208,9 @@ public class Deed
                 int i = 0;
                 for (final KGobalPos c : deeds)
                     deed.getTag().put("" + i++, CoordinateUtls.toNBT(c, "deed"));
-                deed.setDisplayName(Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4,
+                deed.setHoverName(Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4,
                         z << 4));
-                if (!player.addItemStackToInventory(deed)) player.dropItem(deed, false);
+                if (!player.addItem(deed)) player.drop(deed, false);
             }
             LandSaveHandler.saveTeam(team.teamName);
             LandSaveHandler.saveTeam(Deed.DEEDTEAM);
@@ -225,24 +225,24 @@ public class Deed
         if (LandManager.isWild(owner))
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 2;
         }
         else if (owner != team && !canUnclaimAnything)
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner",
-                    owner.teamName), Util.DUMMY_UUID);
+                    owner.teamName), Util.NIL_UUID);
             return 3;
         }
 
-        final World world = player.getEntityWorld();
+        final World world = player.getCommandSenderWorld();
         LandManager.getInstance().unclaimLand(team.teamName, world, chunk.getPos(), true);
         // ensure the deed team exist, and that it is set to reserved.
         Deed.initDeedTeam();
         // Transfers the claim over to the "deed team"
         LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.getPos(), true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
 
         return 0;
     }
@@ -256,7 +256,7 @@ public class Deed
     private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
-        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+        final RegistryKey<World> dim = player.getCommandSenderWorld().dimension();
         final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
         return Deed.unclaim(chunk, player, team, messages, canUnclaimAnything);
     }

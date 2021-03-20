@@ -38,7 +38,7 @@ public class LandManager
     {
         public static KGobalPos getPosition(final RegistryKey<World> dimension, final BlockPos pos)
         {
-            return new KGobalPos(GlobalPos.getPosition(dimension, pos));
+            return new KGobalPos(GlobalPos.of(dimension, pos));
         }
 
         public final GlobalPos pos;
@@ -55,8 +55,8 @@ public class LandManager
             if (o instanceof KGobalPos)
             {
                 final GlobalPos other = ((KGobalPos) o).pos;
-                final boolean sameDim = this.pos.getDimension().compareTo(other.getDimension()) == 0;
-                return sameDim && other.getPos().equals(this.pos.getPos());
+                final boolean sameDim = this.pos.dimension().compareTo(other.dimension()) == 0;
+                return sameDim && other.pos().equals(this.pos.pos());
             }
             return false;
         }
@@ -64,35 +64,35 @@ public class LandManager
         @Override
         public int hashCode()
         {
-            return this.pos.getPos().hashCode();
+            return this.pos.pos().hashCode();
         }
 
         public boolean isValid()
         {
-            return this.pos != null && this.pos.getPos() != null && this.pos.getDimension() != null;
+            return this.pos != null && this.pos.pos() != null && this.pos.dimension() != null;
         }
 
         @Override
         public String toString()
         {
-            if (this.pos == null || this.pos.getDimension() == null) return "ERROR";
+            if (this.pos == null || this.pos.dimension() == null) return "ERROR";
             return this.pos.toString();
         }
 
         @Override
         public int compareTo(final KGobalPos o)
         {
-            return o.pos.getPos().compareTo(this.pos.getPos());
+            return o.pos.pos().compareTo(this.pos.pos());
         }
 
         public BlockPos getPos()
         {
-            return this.pos.getPos();
+            return this.pos.pos();
         }
 
         public RegistryKey<World> getDimension()
         {
-            return this.pos.getDimension();
+            return this.pos.dimension();
         }
 
     }
@@ -114,9 +114,9 @@ public class LandManager
                     final String[] args = var.split("->");
                     final Integer i = Integer.parseInt(args[0]);
                     final ResourceLocation key = new ResourceLocation(args[1]);
-                    final RegistryKey<World> dim = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, key);
+                    final RegistryKey<World> dim = RegistryKey.create(Registry.DIMENSION_REGISTRY, key);
                     final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-                    if (server.getWorld(dim) == null)
+                    if (server.getLevel(dim) == null)
                     {
                         Essentials.LOGGER.error("Dim {} is not a valid world, skipping!", key);
                         continue;
@@ -327,7 +327,7 @@ public class LandManager
 
         public boolean isMember(final Entity player)
         {
-            return this.isMember(player.getUniqueID());
+            return this.isMember(player.getUUID());
         }
 
         public boolean isAdmin(final UUID id)
@@ -339,7 +339,7 @@ public class LandManager
 
         public boolean isAdmin(final Entity player)
         {
-            return this.isAdmin(player.getUniqueID());
+            return this.isAdmin(player.getUUID());
         }
 
         public boolean hasRankPerm(final UUID player, final String perm)
@@ -525,7 +525,7 @@ public class LandManager
 
     public static LandTeam getTeam(final Entity player)
     {
-        return LandManager.getTeam(player.getUniqueID());
+        return LandManager.getTeam(player.getUUID());
     }
 
     public static LandTeam getNotLoaded()
@@ -651,7 +651,7 @@ public class LandManager
             this._playerTeams.put(id, _default);
             try
             {
-                final PlayerEntity player = server.getPlayerList().getPlayerByUUID(id);
+                final PlayerEntity player = server.getPlayerList().getPlayer(id);
                 if (player != null)
                 {
                     // TODO update name here.
@@ -694,13 +694,13 @@ public class LandManager
                 return;
             }
         }
+        if (seg.owner == null || !seg.owner.equals(t.land.uuid)) t.land.claimed++;
         seg.owner = t.land.uuid;
-        t.land.claimed++;
         KGobalPos c;
-        if (chunkCoords) c = KGobalPos.getPosition(world.getDimensionKey(), pos);
+        if (chunkCoords) c = KGobalPos.getPosition(world.dimension(), pos);
         else
         {
-            final KGobalPos b = KGobalPos.getPosition(world.getDimensionKey(), pos);
+            final KGobalPos b = KGobalPos.getPosition(world.dimension(), pos);
             c = CoordinateUtls.chunkPos(b);
         }
         InventoryLogger.log("claimed for team: {}", c, team);
@@ -723,40 +723,19 @@ public class LandManager
         }
         // TODO remove legacy stuff
         KGobalPos c;
-        if (chunkCoords) c = KGobalPos.getPosition(world.getDimensionKey(), pos);
+        if (chunkCoords) c = KGobalPos.getPosition(world.dimension(), pos);
         else
         {
-            final KGobalPos b = KGobalPos.getPosition(world.getDimensionKey(), pos);
+            final KGobalPos b = KGobalPos.getPosition(world.dimension(), pos);
             c = CoordinateUtls.chunkPos(b);
         }
         t.land.claims.remove(c);
         final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
         final ClaimSegment seg = claims.getSegment(y);
+        if (seg.owner != null && seg.owner.equals(t.land.uuid)) t.land.claimed--;
         seg.owner = null;
-        t.land.claimed--;
         InventoryLogger.log("unclaimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
-    }
-
-    @Deprecated
-    public void addTeamLand(final String team, final KGobalPos land, final boolean sync)
-    {
-        final LandTeam t = this._teamMap.get(team);
-        if (t == null)
-        {
-            Thread.dumpStack();
-            return;
-        }
-        Essentials.LOGGER.debug("claim: " + team + " Coord: " + land);
-        final LandTeam prev = this._landMap.remove(land);
-        t.land.addLand(land);
-        if (prev != null) prev.land.removeLand(land);
-        this._landMap.put(land, t);
-        if (sync)
-        {
-            if (prev != null) LandSaveHandler.saveTeam(prev.teamName);
-            LandSaveHandler.saveTeam(team);
-        }
     }
 
     public void addAdmin(final UUID admin, final String team)
@@ -785,7 +764,7 @@ public class LandManager
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         try
         {
-            final PlayerEntity player = server.getPlayerList().getPlayerByUUID(member);
+            final PlayerEntity player = server.getPlayerList().getPlayer(member);
             if (player != null)
             {
                 // TODO update name here.
@@ -808,6 +787,7 @@ public class LandManager
     {
         if (this._teamMap.containsKey(team)) throw new IllegalArgumentException("thutessentials.team.teamexists");
         final LandTeam theTeam = this.getTeam(team, true);
+        this._team_land.put(theTeam.land.uuid, theTeam);
         if (member != null)
         {
             this.addToTeam(member, team);
@@ -835,8 +815,8 @@ public class LandManager
     {
         final ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
 
-        if (!world.getServer().isOnExecutionThread()) return null;
-        if (!world.chunkExists(cPos.x, cPos.z)) return null;
+        if (!world.getServer().isSameThread()) return null;
+        if (!world.hasChunk(cPos.x, cPos.z)) return null;
 
         final IChunk chunk = world.getChunk(cPos.x, cPos.z);
         if (chunk instanceof ICapabilityProvider)
@@ -854,10 +834,10 @@ public class LandManager
 
         // TODO remove legacy stuff
         KGobalPos c;
-        if (chunkCoords) c = KGobalPos.getPosition(world.getDimensionKey(), pos);
+        if (chunkCoords) c = KGobalPos.getPosition(world.dimension(), pos);
         else
         {
-            final KGobalPos b = KGobalPos.getPosition(world.getDimensionKey(), pos);
+            final KGobalPos b = KGobalPos.getPosition(world.dimension(), pos);
             c = CoordinateUtls.chunkPos(b);
         }
         owner = this.getLandOwner(c);
@@ -867,16 +847,7 @@ public class LandManager
         {
             final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
             final ClaimSegment seg = claims.getSegment(y);
-
-            // TODO remove legacy stuff
-            if (!LandManager.isWild(owner))
-            {
-                seg.owner = owner.land.uuid;
-                owner.land.claims.remove(c);
-                owner.land.claimed++;
-            }
-
-            else owner = this.getTeamForLand(seg.owner);
+            owner = this.getTeamForLand(seg.owner);
         }
         else return LandManager.getNotLoaded();
         return owner;

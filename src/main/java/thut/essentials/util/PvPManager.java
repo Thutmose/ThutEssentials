@@ -36,7 +36,7 @@ public class PvPManager
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void attack(final AttackEntityEvent evt)
     {
-        if (evt.getEntity().getEntityWorld().isRemote) return;
+        if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.pvpPerms) return;
         if (!(evt.getTarget() instanceof ServerPlayerEntity)) return;
         if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
@@ -50,11 +50,11 @@ public class PvPManager
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void attack(final LivingAttackEvent evt)
     {
-        if (evt.getEntity().getEntityWorld().isRemote) return;
+        if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.pvpPerms) return;
         if (!(evt.getEntity() instanceof ServerPlayerEntity)) return;
-        if (!(evt.getSource().getTrueSource() instanceof ServerPlayerEntity)) return;
-        final ServerPlayerEntity attacker = (ServerPlayerEntity) evt.getSource().getTrueSource();
+        if (!(evt.getSource().getEntity() instanceof ServerPlayerEntity)) return;
+        final ServerPlayerEntity attacker = (ServerPlayerEntity) evt.getSource().getEntity();
         final ServerPlayerEntity attacked = (ServerPlayerEntity) evt.getEntity();
         if (PermissionAPI.hasPermission(attacker, PvPManager.PERMPVP) && PermissionAPI.hasPermission(attacked,
                 PvPManager.PERMPVP)) return;

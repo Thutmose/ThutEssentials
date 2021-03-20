@@ -55,11 +55,11 @@ public class Delete
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.removed", null, false, homeName);
-            source.sendFeedback(message, true);
+            source.sendSuccess(message, true);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.noexists_use", null, false, homeName);
-            source.sendFeedback(message, true);
+            source.sendSuccess(message, true);
             break;
         }
         return ret;

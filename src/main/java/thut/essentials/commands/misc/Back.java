@@ -42,7 +42,7 @@ public class Back
     public static void move(final MoveEvent event)
     {
         if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntityLiving()
-                .getCachedUniqueIdString()).put("backPos", CoordinateUtls.toNBT(event.getPos(), "backPos"));
+                .getStringUUID()).put("backPos", CoordinateUtls.toNBT(event.getPos(), "backPos"));
     }
 
     @SubscribeEvent
@@ -51,8 +51,8 @@ public class Back
         if (event.getEntityLiving() instanceof ServerPlayerEntity && Essentials.config.back_on_death)
         {
             final CompoundNBT tag = CoordinateUtls.toNBT(CoordinateUtls.forMob(event.getEntityLiving()), "back");
-            PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getCachedUniqueIdString()).put("backPos", tag);
-            PlayerDataHandler.saveCustomData(event.getEntityLiving().getCachedUniqueIdString());
+            PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getStringUUID()).put("backPos", tag);
+            PlayerDataHandler.saveCustomData(event.getEntityLiving().getStringUUID());
         }
     }
 
@@ -81,14 +81,14 @@ public class Back
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("backDelay");
-        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.backReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
             return 1;
         }
         if (tag.contains("backPos"))
@@ -96,13 +96,13 @@ public class Back
             final KGobalPos spot = Back.getBackSpot(CoordinateUtls.fromNBT(tag.getCompound("backPos")));
             if (spot == null)
             {
-                player.sendMessage(Essentials.config.getMessage("thutessentials.back.noroom"), Util.DUMMY_UUID);
+                player.sendMessage(Essentials.config.getMessage("thutessentials.back.noroom"), Util.NIL_UUID);
                 return 1;
             }
             final Predicate<Entity> callback = t ->
             {
                 if (!(t instanceof PlayerEntity)) return false;
-                PlayerDataHandler.getCustomDataTag(t.getCachedUniqueIdString()).remove("prevPos");
+                PlayerDataHandler.getCustomDataTag(t.getStringUUID()).remove("prevPos");
                 tptag.putLong("backDelay", time + Essentials.config.backReUseDelay);
                 tag.put("tp", tptag);
                 PlayerDataHandler.saveCustomData((PlayerEntity) t);
@@ -113,7 +113,7 @@ public class Back
                     callback, false);
             return 0;
         }
-        player.sendMessage(Essentials.config.getMessage("thutessentials.back.noback"), Util.DUMMY_UUID);
+        player.sendMessage(Essentials.config.getMessage("thutessentials.back.noback"), Util.NIL_UUID);
         return 1;
     }
 
@@ -122,27 +122,27 @@ public class Back
         final KGobalPos spot = pos;
         if (pos == null) return null;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final ServerWorld world = server.getWorld(pos.getDimension());
+        final ServerWorld world = server.getLevel(pos.getDimension());
         if (world == null) return null;
         final BlockPos check = spot.getPos();
         if (Back.valid(check, world)) return spot;
         final int r = Essentials.config.backRangeCheck;
-        final Stream<BlockPos> stream = BlockPos.getAllInBox(check.getX() - r, check.getY() - r, check.getZ() - r, check
+        final Stream<BlockPos> stream = BlockPos.betweenClosedStream(check.getX() - r, check.getY() - r, check.getZ() - r, check
                 .getX() + r, check.getY() + r, check.getZ() + r);
         final Optional<BlockPos> opt = stream.filter(p -> Back.valid(p, world)).min((p1, p2) ->
         {
-            final double d1 = p1.distanceSq(check);
-            final double d2 = p2.distanceSq(check);
+            final double d1 = p1.distSqr(check);
+            final double d2 = p2.distSqr(check);
             return Double.compare(d1, d2);
         });
         if (!opt.isPresent()) return null;
-        return KGobalPos.getPosition(pos.getDimension(), opt.get().toImmutable());
+        return KGobalPos.getPosition(pos.getDimension(), opt.get().immutable());
     }
 
     static boolean valid(final BlockPos pos, final World world)
     {
         final BlockState state1 = world.getBlockState(pos);
-        final BlockState state2 = world.getBlockState(pos.up());
+        final BlockState state2 = world.getBlockState(pos.above());
         final boolean valid1 = state1 == null || !state1.getMaterial().isSolid();
         final boolean valid2 = state2 == null || !state2.getMaterial().isSolid();
         return valid1 && valid2;

@@ -108,11 +108,11 @@ public class Relations
 
     private static int relations_all(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final List<String> keys = Lists.newArrayList(landTeam.relations.keySet());
         if (keys.isEmpty()) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.none"), Util.DUMMY_UUID);
+                "thutessentials.team.relations.none"), Util.NIL_UUID);
         for (final String team : keys)
             Relations.relations(source, team);
         return 0;
@@ -120,7 +120,7 @@ public class Relations
 
     private static int relations(final CommandSource source, final String team) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final Relation relate = landTeam.relations.get(team);
         if (relate == null)
@@ -129,17 +129,17 @@ public class Relations
             return 1;
         }
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.with", null, false,
-                team), Util.DUMMY_UUID);
+                team), Util.NIL_UUID);
         for (final String s : relate.perms)
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.entry", null, false,
-                    s), Util.DUMMY_UUID);
+                    s), Util.NIL_UUID);
         return 0;
     }
 
     private static int set(final CommandSource source, final String other, final String perm)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         if (!Relations.perms.contains(perm))
         {
@@ -155,16 +155,16 @@ public class Relations
         Relation relation = landTeam.relations.get(other);
         if (relation == null) landTeam.relations.put(other, relation = new Relation());
         if (relation.perms.add(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.set", null, false, perm), Util.DUMMY_UUID);
+                "thutessentials.team.relations.set", null, false, perm), Util.NIL_UUID);
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.had", null, false,
-                other), Util.DUMMY_UUID);
+                other), Util.NIL_UUID);
         return 0;
     }
 
     private static int unset(final CommandSource source, final String other, final String perm)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         if (!Relations.perms.contains(perm))
         {
@@ -180,9 +180,9 @@ public class Relations
         Relation relation = landTeam.relations.get(other);
         if (relation == null) landTeam.relations.put(other, relation = new Relation());
         if (relation.perms.remove(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.unset", null, false, perm, other), Util.DUMMY_UUID);
+                "thutessentials.team.relations.unset", null, false, perm, other), Util.NIL_UUID);
         else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.nohad", null,
-                false, other), Util.DUMMY_UUID);
+                false, other), Util.NIL_UUID);
         return 0;
     }
 

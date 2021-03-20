@@ -43,19 +43,19 @@ public class Unload
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
-        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 1;
         }
-        final int x = MathHelper.floor(player.getPosition().getX() >> 4);
-        final int y = MathHelper.floor(player.getPosition().getY() >> 4);
-        final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
+        final int x = MathHelper.floor(player.blockPosition().getX() >> 4);
+        final int y = MathHelper.floor(player.blockPosition().getY() >> 4);
+        final int z = MathHelper.floor(player.blockPosition().getZ() >> 4);
         if (y < 0 || y > 15) return 1;
-        final RegistryKey<World> dim = player.getEntityWorld().getDimensionKey();
+        final RegistryKey<World> dim = player.getCommandSenderWorld().dimension();
         final BlockPos b = new BlockPos(x, 0, z);
         final KGobalPos chunk = KGobalPos.getPosition(dim, b);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
@@ -63,7 +63,7 @@ public class Unload
         final int maxLoaded = team.maxLoaded != -1 ? team.maxLoaded : Essentials.config.maxChunkloads;
         if (owner == team && team.land.getLoaded().contains(chunk) && LandManager.getInstance().unLoadLand(chunk, team))
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unloaded", maxLoaded - team.land
-                    .getLoaded().size()), Util.DUMMY_UUID);
+                    .getLoaded().size()), Util.NIL_UUID);
         else
         {
             // TODO failed message here.

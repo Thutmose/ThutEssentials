@@ -34,16 +34,16 @@ public class InventoryLogger
         public Listener(final PlayerEntity player, final Container opened)
         {
             this.player = player;
-            this.initialList.addAll(opened.inventoryItemStacks);
+            this.initialList.addAll(opened.lastSlots);
         }
 
         @Override
-        public void sendAllContents(final Container containerToSend, final NonNullList<ItemStack> itemsList)
+        public void refreshContainer(final Container containerToSend, final NonNullList<ItemStack> itemsList)
         {
         }
 
         @Override
-        public void sendSlotContents(final Container containerToSend, final int slotInd, final ItemStack stack)
+        public void slotChanged(final Container containerToSend, final int slotInd, final ItemStack stack)
         {
             try
             {
@@ -52,21 +52,21 @@ public class InventoryLogger
                 while (slotInd >= this.initialList.size())
                     this.initialList.add(ItemStack.EMPTY);
                 final ItemStack oldStack = this.initialList.get(slotInd);
-                final IInventory inventory = containerToSend.getSlot(slotInd).inventory;
+                final IInventory inventory = containerToSend.getSlot(slotInd).container;
                 String invName = inventory.toString();
                 if (inventory instanceof INameable && ((INameable) inventory).getName() != null)
                     invName = ((INameable) inventory).getName().getString();
                 final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(this.player));
 
                 if (oldStack.isEmpty() && !stack.isEmpty()) InventoryLogger.log("slot_place {}: {} {}, {} {} {}", c,
-                        containerToSend.getClass(), stack, stack.getDisplayName().getString(), invName, this.player
-                                .getUniqueID(), this.player.getName().getString());
+                        containerToSend.getClass(), stack, stack.getHoverName().getString(), invName, this.player
+                                .getUUID(), this.player.getName().getString());
                 else if (stack.isEmpty() && !oldStack.isEmpty()) InventoryLogger.log("slot_take {}: {} {}, {} {} {}", c,
-                        containerToSend.getClass(), oldStack, oldStack.getDisplayName().getString(), invName,
-                        this.player.getUniqueID(), this.player.getName().getString());
+                        containerToSend.getClass(), oldStack, oldStack.getHoverName().getString(), invName,
+                        this.player.getUUID(), this.player.getName().getString());
                 else InventoryLogger.log("slot_swap {}: {} {} <-> {} {}, {} {} {}", c, containerToSend.getClass(),
-                        stack, stack.getDisplayName().getString(), oldStack, oldStack.getDisplayName().getString(),
-                        invName, this.player.getUniqueID(), this.player.getName().getString());
+                        stack, stack.getHoverName().getString(), oldStack, oldStack.getHoverName().getString(),
+                        invName, this.player.getUUID(), this.player.getName().getString());
                 this.initialList.set(slotInd, stack);
             }
             catch (final Exception e)
@@ -80,7 +80,7 @@ public class InventoryLogger
         }
 
         @Override
-        public void sendWindowProperty(final Container containerIn, final int varToUpdate, final int newValue)
+        public void setContainerData(final Container containerIn, final int varToUpdate, final int newValue)
         {
         }
 
@@ -104,7 +104,7 @@ public class InventoryLogger
     public static void PlayerLoggedInEvent(final PlayerLoggedInEvent event)
     {
         final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        InventoryLogger.log("log-in {} {}", c, event.getPlayer().getUniqueID(), event.getPlayer().getName()
+        InventoryLogger.log("log-in {} {}", c, event.getPlayer().getUUID(), event.getPlayer().getName()
                 .getString());
     }
 
@@ -112,7 +112,7 @@ public class InventoryLogger
     public static void PlayerLoggedOutEvent(final PlayerLoggedOutEvent event)
     {
         final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        InventoryLogger.log("log-out {} {}", c, event.getPlayer().getUniqueID(), event.getPlayer().getName()
+        InventoryLogger.log("log-out {} {}", c, event.getPlayer().getUUID(), event.getPlayer().getName()
                 .getString());
     }
 
@@ -120,16 +120,16 @@ public class InventoryLogger
     public static void openInventory(final PlayerContainerEvent.Open event)
     {
         final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        InventoryLogger.log("open {} {} {}", c, event.getContainer().getClass(), event.getPlayer().getUniqueID(), event
+        InventoryLogger.log("open {} {} {}", c, event.getContainer().getClass(), event.getPlayer().getUUID(), event
                 .getPlayer().getName().getString());
         if (!InventoryLogger.blacklist.contains(event.getContainer().getClass().getName())) event.getContainer()
-                .addListener(new Listener(event.getPlayer(), event.getContainer()));
+                .addSlotListener(new Listener(event.getPlayer(), event.getContainer()));
     }
 
     public static void log(String format, final KGobalPos location, final Object... args)
     {
         final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_TIME;
-        final String header = LocalDateTime.now().format(dtf) + " " + location.getDimension().getLocation() + ", "
+        final String header = LocalDateTime.now().format(dtf) + " " + location.getDimension().location() + ", "
                 + location.getPos() + ": ";
         format = header + format;
         Essentials.LOGGER.trace(format, args);

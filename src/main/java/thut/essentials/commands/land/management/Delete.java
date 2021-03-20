@@ -34,11 +34,11 @@ public class Delete
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         if (team == null || team == LandManager.getDefaultTeam())
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.notinateam"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.notinateam"));
             return 1;
         }
         LandManager.getInstance().removeTeam(team.teamName);

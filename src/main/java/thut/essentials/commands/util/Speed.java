@@ -37,7 +37,7 @@ public class Speed
 
     private static int execute(final CommandSource source, final float value) throws CommandSyntaxException
     {
-        return Speed.execute(source, source.asPlayer(), value);
+        return Speed.execute(source, source.getPlayerOrException(), value);
     }
 
     private static int execute(final CommandSource source, final ServerPlayerEntity player, final float value)
@@ -46,17 +46,17 @@ public class Speed
         final CompoundNBT speed = tag.getCompound("speed");
         if (!speed.contains("defaultWalk"))
         {
-            speed.putDouble("defaultWalk", player.abilities.getWalkSpeed());
-            speed.putDouble("defaultFly", player.abilities.getFlySpeed());
+            speed.putDouble("defaultWalk", player.abilities.getWalkingSpeed());
+            speed.putDouble("defaultFly", player.abilities.getFlyingSpeed());
         }
         final CompoundNBT cap = new CompoundNBT();
-        player.abilities.write(cap);
+        player.abilities.addSaveData(cap);
         final CompoundNBT ab = cap.getCompound("abilities");
         ab.putFloat("flySpeed", (float) (speed.getDouble("defaultFly") * value));
         ab.putFloat("walkSpeed", (float) (speed.getDouble("defaultWalk") * value));
         cap.put("abilities", ab);
-        player.abilities.read(cap);
-        player.sendPlayerAbilities();
+        player.abilities.loadSaveData(cap);
+        player.onUpdateAbilities();
         tag.put("speed", speed);
         PlayerDataHandler.saveCustomData(player);
         return 0;

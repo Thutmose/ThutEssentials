@@ -54,7 +54,7 @@ public class CmdScheduler
             if (cmd._last_run + cmd.timer < CmdScheduler.tick)
             {
                 cmd._last_run = CmdScheduler.tick;
-                server.getCommandManager().handleCommand(server.getCommandSource(), cmd.cmd);
+                server.getCommands().performCommand(server.createCommandSourceStack(), cmd.cmd);
             }
     }
 }

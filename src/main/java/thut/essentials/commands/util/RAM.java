@@ -59,7 +59,7 @@ public class RAM
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        source.sendFeedback(new StringTextComponent(RAM.memInfo()), false);
+        source.sendSuccess(new StringTextComponent(RAM.memInfo()), false);
         return 0;
     }
 

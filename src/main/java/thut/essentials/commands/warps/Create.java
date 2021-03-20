@@ -43,18 +43,18 @@ public class Create
     private static int execute(final CommandSource source, final String warpName, final BlockPos center,
             final RegistryKey<World> registryKey) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final int ret = WarpManager.setWarp(KGobalPos.getPosition(registryKey, center), warpName);
         ITextComponent message;
         switch (ret)
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.added", null, false, warpName);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.exists", null, false, warpName);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         }
         return ret;
@@ -62,6 +62,6 @@ public class Create
 
     private static int execute(final CommandSource source, final String warpName) throws CommandSyntaxException
     {
-        return Create.execute(source, warpName, new BlockPos(source.getPos()), source.getWorld().getDimensionKey());
+        return Create.execute(source, warpName, new BlockPos(source.getPosition()), source.getLevel().dimension());
     }
 }

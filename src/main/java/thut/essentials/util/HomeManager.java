@@ -67,21 +67,21 @@ public class HomeManager
 
     public static int setHome(final ServerPlayerEntity player, String home)
     {
-        final BlockPos pos = player.getPosition();
+        final BlockPos pos = player.blockPosition();
         if (home == null) home = "Home";
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT homes = tag.getCompound("homes");
-        final int num = homes.keySet().size();
+        final int num = homes.getAllKeys().size();
         // Too many
         if (num >= Essentials.config.maxHomes) return 1;
         // No perms
         if (!HomeManager.canAddHome(player, num)) return 2;
         // Already exists
         if (homes.contains(home)) return 3;
-        final KGobalPos loc = KGobalPos.getPosition(player.getEntityWorld().getDimensionKey(), pos);
+        final KGobalPos loc = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), pos);
         homes.put(home, CoordinateUtls.toNBT(loc, home));
         tag.put("homes", homes);
-        player.sendMessage(new StringTextComponent("set " + home), Util.DUMMY_UUID);
+        player.sendMessage(new StringTextComponent("set " + home), Util.NIL_UUID);
         PlayerDataHandler.saveCustomData(player);
         return 0;
     }
@@ -103,15 +103,15 @@ public class HomeManager
     {
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT homes = tag.getCompound("homes");
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.header"), Util.DUMMY_UUID);
-        for (String s : homes.keySet())
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.header"), Util.NIL_UUID);
+        for (String s : homes.getAllKeys())
         {
             final IFormattableTextComponent message = CommandManager.makeFormattedComponent(
                     "thutessentials.homes.entry", null, false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
-            final Style style = message.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home " + s));
-            player.sendMessage(message.setStyle(style), Util.DUMMY_UUID);
+            final Style style = message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home " + s));
+            player.sendMessage(message.setStyle(style), Util.NIL_UUID);
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.footer"), Util.DUMMY_UUID);
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.footer"), Util.NIL_UUID);
     }
 }

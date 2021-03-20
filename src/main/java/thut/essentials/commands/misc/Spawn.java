@@ -42,20 +42,20 @@ public class Spawn
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("spawnDelay");
-        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.spawnReUseDelay > 0)
         {
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
-                    false), Util.DUMMY_UUID);
+                    false), Util.NIL_UUID);
             return 1;
         }
         final MinecraftServer server = player.getServer();
         final KGobalPos spawn = KGobalPos.getPosition(Essentials.config.spawnDimension, server
-                .getWorld(Essentials.config.spawnDimension).getSpawnPoint());
+                .getLevel(Essentials.config.spawnDimension).getSharedSpawnPos());
         final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.spawn.succeed");
         PlayerMover.setMove(player, Essentials.config.spawnActivateDelay, spawn, teleMess, PlayerMover.INTERUPTED);
         tptag.putLong("spawnDelay", time + Essentials.config.spawnReUseDelay);

@@ -48,7 +48,7 @@ public class Teams
         {
             final LandTeam team = teamMap.get(s);
             String emptyTip = "";
-            final String lastSeenTip = "[" + (source.getServer().getServerTime() - team.lastSeen) / 1000 * 3600 + "h]";
+            final String lastSeenTip = "[" + (source.getServer().getNextTickTime() - team.lastSeen) / 1000 * 3600 + "h]";
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
             final IFormattableTextComponent message = new StringTextComponent(TextFormatting.AQUA + "["
                     + TextFormatting.YELLOW + s + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
@@ -56,8 +56,8 @@ public class Teams
             final ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/team_members " + s);
             final IFormattableTextComponent tooltip = Members.getMembers(source.getServer(), team, false);
             final HoverEvent event2 = new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
-            message.setStyle(message.getStyle().setClickEvent(event).setHoverEvent(event2));
-            source.sendFeedback(message, false);
+            message.setStyle(message.getStyle().withClickEvent(event).withHoverEvent(event2));
+            source.sendSuccess(message, false);
         }
         return 0;
     }

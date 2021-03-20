@@ -49,17 +49,17 @@ public class Kick
 
     private static int kick(final CommandSource source, final GameProfile player) throws CommandSyntaxException
     {
-        final ServerPlayerEntity user = source.asPlayer();
+        final ServerPlayerEntity user = source.getPlayerOrException();
         final LandTeam teamA = LandManager.getTeam(user);
         final LandTeam teamB = LandManager.getTeam(player.getId());
         if (teamA != teamB)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.teams.kick.mustbeteam"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.teams.kick.mustbeteam"));
             return 1;
         }
-        if (!teamA.hasRankPerm(user.getUniqueID(), LandTeam.KICK))
+        if (!teamA.hasRankPerm(user.getUUID(), LandTeam.KICK))
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.teams.kick.teamperms"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.teams.kick.teamperms"));
             return 1;
         }
         LandManager.getInstance().removeFromTeam(player.getId());

@@ -54,22 +54,22 @@ public class Invite
 
     private static int execute_invites(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
-        final List<String> c = LandManager.getInstance().getInvites(player.getUniqueID());
+        final ServerPlayerEntity player = source.getPlayerOrException();
+        final List<String> c = LandManager.getInstance().getInvites(player.getUUID());
         if (c.isEmpty())
         {
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.none"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 1;
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invites"), Util.DUMMY_UUID);
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invites"), Util.NIL_UUID);
         final String cmd = "join_team";
         for (final String element : c)
         {
             final String command = "/" + cmd + " " + element;
             final ITextComponent message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link",
                     command, null, false, c);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
         }
         return 0;
     }
@@ -77,37 +77,37 @@ public class Invite
     private static int execute_invite(final CommandSource source, final ServerPlayerEntity invitee)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity inviter = source.asPlayer();
+        final ServerPlayerEntity inviter = source.getPlayerOrException();
 
         if (inviter == invitee)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.noself"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.noself"));
             return 1;
         }
         final LandTeam landTeam = LandManager.getTeam(inviter);
         final LandTeam oldTeam = LandManager.getTeam(invitee);
         if (landTeam == oldTeam)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyin", null,
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyin", null,
                     false, invitee.getDisplayName().getString()));
             return 1;
         }
-        if (!landTeam.hasRankPerm(inviter.getUniqueID(), LandTeam.INVITE))
+        if (!landTeam.hasRankPerm(inviter.getUUID(), LandTeam.INVITE))
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.noteamperms"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.noteamperms"));
             return 1;
         }
         final String team = landTeam.teamName;
-        if (LandManager.getInstance().hasInvite(invitee.getUniqueID(), team))
+        if (LandManager.getInstance().hasInvite(invitee.getUUID(), team))
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyinvited",
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyinvited",
                     null, false, invitee.getDisplayName().getString()));
             return 1;
         }
-        final boolean invite = LandManager.getInstance().invite(inviter.getUniqueID(), invitee.getUniqueID());
+        final boolean invite = LandManager.getInstance().invite(inviter.getUUID(), invitee.getUUID());
         if (!invite)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.failed"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.failed"));
             return 1;
         }
 
@@ -117,10 +117,10 @@ public class Invite
                 "thutessentials.team.invite.invited_recieve", null, false, landTeam.teamName, inviter.getDisplayName());
         final ITextComponent message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link",
                 command, null, false, landTeam.teamName);
-        invitee.sendMessage(header, Util.DUMMY_UUID);
-        invitee.sendMessage(message, Util.DUMMY_UUID);
+        invitee.sendMessage(header, Util.NIL_UUID);
+        invitee.sendMessage(message, Util.NIL_UUID);
         inviter.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.invited_sent", null,
-                false, invitee.getDisplayName().getString()), Util.DUMMY_UUID);
+                false, invitee.getDisplayName().getString()), Util.NIL_UUID);
 
         return 0;
     }

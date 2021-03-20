@@ -104,24 +104,24 @@ public class Claim
     @SubscribeEvent
     public static void livingUpdate(final LivingUpdateEvent evt)
     {
-        if (!evt.getEntity().isAlive() || !Claim.autoclaimers.contains(evt.getEntity().getUniqueID()) || !(evt
+        if (!evt.getEntity().isAlive() || !Claim.autoclaimers.contains(evt.getEntity().getUUID()) || !(evt
                 .getEntityLiving() instanceof ServerPlayerEntity)) return;
         final ServerPlayerEntity player = (ServerPlayerEntity) evt.getEntityLiving();
         final LandTeam team = LandManager.getTeam(player);
 
         BlockPos here;
         BlockPos old;
-        here = new BlockPos(player.chasingPosX, player.chasingPosY, player.chasingPosZ);
-        old = new BlockPos(player.prevChasingPosX, player.prevChasingPosY, player.prevChasingPosZ);
-        final KGobalPos newChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(player.getEntityWorld()
-                .getDimensionKey(), here));
-        final KGobalPos oldChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(player.getEntityWorld()
-                .getDimensionKey(), old));
+        here = new BlockPos(player.xCloak, player.yCloak, player.zCloak);
+        old = new BlockPos(player.xCloakO, player.yCloakO, player.zCloakO);
+        final KGobalPos newChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(player.getCommandSenderWorld()
+                .dimension(), here));
+        final KGobalPos oldChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(player.getCommandSenderWorld()
+                .dimension(), old));
         if (newChunk.equals(oldChunk)) return;
-        final World dim = player.getEntityWorld();
+        final World dim = player.getCommandSenderWorld();
 
-        final int x = MathHelper.floor(player.getPosition().getX() >> 4);
-        final int z = MathHelper.floor(player.getPosition().getZ() >> 4);
+        final int x = MathHelper.floor(player.blockPosition().getX() >> 4);
+        final int z = MathHelper.floor(player.blockPosition().getZ() >> 4);
         final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
         for (int i = 0; i < 16; i++)
             Claim.claim(x, i, z, dim, player, team, false, noLimit);
@@ -137,60 +137,60 @@ public class Claim
 
     private static int executeCheck(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         final int count = LandManager.getInstance().countLand(team.teamName);
         final int teamCount = team.member.size();
         final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;
         player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.count", count, maxLand),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
         return 0;
     }
 
     private static int executeStart(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
-        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 1;
         }
         final KGobalPos start = CoordinateUtls.forMob(player);
-        Claim.claimstarts.put(player.getUniqueID(), start);
-        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.set", player.getPosition()),
-                Util.DUMMY_UUID);
+        Claim.claimstarts.put(player.getUUID(), start);
+        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.set", player.blockPosition()),
+                Util.NIL_UUID);
         return 0;
     }
 
     private static int executeEnd(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
-        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 1;
         }
         final KGobalPos end = CoordinateUtls.forMob(player);
-        final KGobalPos start = Claim.claimstarts.get(player.getUniqueID());
+        final KGobalPos start = Claim.claimstarts.get(player.getUUID());
         if (start == null)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.not_set"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.not_set"), Util.NIL_UUID);
             return 1;
         }
         if (end.getDimension() != start.getDimension())
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.wrong_dim"), Util.DUMMY_UUID);
+            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.wrong_dim"), Util.NIL_UUID);
             return 1;
         }
         player.getServer().execute(() ->
         {        // easy way to sort the x, z coordinates by min/max
             final AxisAlignedBB box = new AxisAlignedBB(start.getPos(), end.getPos());
             final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
-            final World dim = player.getEntityWorld();
+            final World dim = player.getCommandSenderWorld();
             int n = 0;
             // Convert to chunk coordinates for the loop with the >> 4
             for (int x = MathHelper.floor(box.minX) >> 4; x <= MathHelper.floor(box.maxX) >> 4; x++)
@@ -199,22 +199,22 @@ public class Claim
 
                         n += Claim.claim(x, y, z, dim, player, team, false, noLimit);
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.end", n, team.teamName),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
         });
         return 0;
     }
 
     private static int executeAuto(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
-        if (Claim.autoclaimers.contains(player.getUniqueID()))
+        final ServerPlayerEntity player = source.getPlayerOrException();
+        if (Claim.autoclaimers.contains(player.getUUID()))
         {
-            Claim.autoclaimers.remove(player.getUniqueID());
+            Claim.autoclaimers.remove(player.getUUID());
             Essentials.config.sendFeedback(source, "thutessentials.claim.autooff", true);
         }
         else
         {
-            Claim.autoclaimers.add(player.getUniqueID());
+            Claim.autoclaimers.add(player.getUUID());
             Essentials.config.sendFeedback(source, "thutessentials.claim.autoon", true);
         }
         return 0;
@@ -223,22 +223,22 @@ public class Claim
     private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
+        final PlayerEntity player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
-        if (!team.hasRankPerm(player.getUniqueID(), LandTeam.CLAIMPERM))
+        if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             return 1;
         }
         final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
         player.getServer().execute(() ->
         {
 
-            final int x = player.getPosition().getX() >> 4;
-            final int y = player.getPosition().getY() >> 4;
-            final int z = player.getPosition().getZ() >> 4;
-            final World dim = player.getEntityWorld();
+            final int x = player.blockPosition().getX() >> 4;
+            final int y = player.blockPosition().getY() >> 4;
+            final int z = player.blockPosition().getZ() >> 4;
+            final World dim = player.getCommandSenderWorld();
 
             if (here)
             {
@@ -264,16 +264,16 @@ public class Claim
                 if (check == 3)
                 {
                     player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"),
-                            Util.DUMMY_UUID);
+                            Util.NIL_UUID);
                     break;
                 }
             }
             if (notclaimed > 0) player.sendMessage(Essentials.config.getMessage(
-                    "thutessentials.claim.warn.alreadyclaimed", notclaimed), Util.DUMMY_UUID);
+                    "thutessentials.claim.warn.alreadyclaimed", notclaimed), Util.NIL_UUID);
             if (claimed) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.num", claimnum,
-                    team.teamName), Util.DUMMY_UUID);
+                    team.teamName), Util.NIL_UUID);
             else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.failed", team.teamName),
-                    Util.DUMMY_UUID);
+                    Util.NIL_UUID);
             if (claimed) LandSaveHandler.saveTeam(team.teamName);
         });
         return 0;
@@ -292,7 +292,7 @@ public class Claim
         if (!LandManager.isWild(owner))
         {
             if (messages) player.sendMessage(Essentials.config.getMessage(
-                    "thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName), Util.DUMMY_UUID);
+                    "thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName), Util.NIL_UUID);
             return 1;
         }
         final int teamCount = team.member.size();
@@ -301,15 +301,15 @@ public class Claim
         if (count >= maxLand && !noLimit)
         {
             if (messages) player.sendMessage(Essentials.config.getMessage(
-                    "thutessentials.claim.notallowed.needmoreland"), Util.DUMMY_UUID);
+                    "thutessentials.claim.notallowed.needmoreland"), Util.NIL_UUID);
             return 3;
         }
-        final KGobalPos pos = KGobalPos.getPosition(world.getDimensionKey(), chunkCoord);
+        final KGobalPos pos = KGobalPos.getPosition(world.dimension(), chunkCoord);
         final ClaimLandEvent event = new ClaimLandEvent(pos, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().claimLand(team.teamName, world, chunkCoord, true);
         if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed", team.teamName),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
         return 0;
     }
 

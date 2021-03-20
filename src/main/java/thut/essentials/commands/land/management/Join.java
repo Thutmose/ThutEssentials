@@ -87,23 +87,23 @@ public class Join
             throws CommandSyntaxException
     {
         final boolean forced = player != null;
-        if (player == null) player = source.asPlayer();
+        if (player == null) player = source.getPlayerOrException();
 
         final LandTeam teamtojoin = LandManager.getInstance().getTeam(team, false);
         final LandTeam oldTeam = LandManager.getTeam(player);
         if (oldTeam == teamtojoin)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.join.alreadyin"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.join.alreadyin"));
             return 1;
         }
         if (teamtojoin == null)
         {
-            source.sendErrorMessage(CommandManager.makeFormattedComponent("thutessentials.team.notfound"));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.notfound"));
             return 1;
         }
 
         boolean canJoinInvite = PermissionAPI.hasPermission(player, LandEventsHandler.PERMJOINTEAMINVITED);
-        canJoinInvite = canJoinInvite && LandManager.getInstance().hasInvite(player.getUniqueID(), team);
+        canJoinInvite = canJoinInvite && LandManager.getInstance().hasInvite(player.getUUID(), team);
         final boolean canJoinNoInvite = forced || PermissionAPI.hasPermission(player,
                 LandEventsHandler.PERMJOINTEAMNOINVITE);
         canJoinInvite = canJoinInvite || teamtojoin.teamName.equalsIgnoreCase(Essentials.config.defaultTeamName);
@@ -111,9 +111,9 @@ public class Join
                 false).reserved;
         if (canJoinInvite || canJoinNoInvite)
         {
-            LandManager.getInstance().addToTeam(player.getUniqueID(), team);
+            LandManager.getInstance().addToTeam(player.getUUID(), team);
             player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.joined", null, false,
-                    teamtojoin.teamName), Util.DUMMY_UUID);
+                    teamtojoin.teamName), Util.NIL_UUID);
             return 0;
         }
         return 1;

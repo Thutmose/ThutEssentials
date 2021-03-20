@@ -64,7 +64,7 @@ public class Homes
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         HomeManager.sendHomeList(player);
         return 0;
     }
@@ -73,29 +73,29 @@ public class Homes
     {
         if (homeName == null) homeName = "Home";
 
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final KGobalPos home = HomeManager.getHome(player, homeName);
         if (home == null)
         {
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null,
                     false, homeName);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             return 1;
         }
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT tptag = tag.getCompound("tp");
         final long last = tptag.getLong("homeDelay");
-        final long time = player.getServer().getWorld(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.homeReUseDelay > 0)
         {
             final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             return 2;
         }
 
         ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.warping", null, false,
                 homeName);
-        player.sendMessage(message, Util.DUMMY_UUID);
+        player.sendMessage(message, Util.NIL_UUID);
         message = CommandManager.makeFormattedComponent("thutessentials.homes.warped", null, false, homeName);
         tptag.putLong("homeDelay", time + Essentials.config.homeReUseDelay);
         tag.put("tp", tptag);

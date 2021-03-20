@@ -35,10 +35,10 @@ public class Show
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.asPlayer();
-        if (LandEventsHandler.EntityEventHandler.showLandSet.remove(player.getUniqueID())) Essentials.config
+        final PlayerEntity player = source.getPlayerOrException();
+        if (LandEventsHandler.EntityEventHandler.showLandSet.remove(player.getUUID())) Essentials.config
                 .sendFeedback(source, "thutessentials.team.landdisplay.unset", false);
-        else if (LandEventsHandler.EntityEventHandler.showLandSet.add(player.getUniqueID())) Essentials.config
+        else if (LandEventsHandler.EntityEventHandler.showLandSet.add(player.getUUID())) Essentials.config
                 .sendFeedback(source, "thutessentials.team.landdisplay.set", false);
         return 0;
     }

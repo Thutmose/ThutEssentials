@@ -175,7 +175,7 @@ public class KitManager
     public static boolean isSameStack(final ItemStack a, final ItemStack b, final boolean strict)
     {
         // TODO determine if to use the tags?
-        return ItemStack.areItemsEqualIgnoreDurability(a, b);
+        return ItemStack.isSameIgnoreDurability(a, b);
     }
 
     public static ItemStack getStack(final Map<QName, String> values)
@@ -194,7 +194,7 @@ public class KitManager
         Item item = ForgeRegistries.ITEMS.getValue(loc);
         if (item == null)
         {
-            final ITag<Item> tags = ItemTags.getCollection().getTagByID(loc);
+            final ITag<Item> tags = ItemTags.getAllTags().getTagOrEmpty(loc);
             if (tags != null)
             {
                 item = tags.getRandomElement(new Random(2));
@@ -206,7 +206,7 @@ public class KitManager
         stack.setCount(size);
         if (!tag.isEmpty()) try
         {
-            stack.setTag(JsonToNBT.getTagFromJson(tag));
+            stack.setTag(JsonToNBT.parseTag(tag));
         }
         catch (final CommandSyntaxException e)
         {
@@ -219,23 +219,23 @@ public class KitManager
     {
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         final PlayerContext context = new PlayerContext(player);
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.header"), Util.DUMMY_UUID);
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.header"), Util.NIL_UUID);
         IFormattableTextComponent message;
         if (!KitManager.kit.isEmpty() && manager.hasPermission(player.getGameProfile(), "thutessentials.kit.default",
                 context))
         {
             message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, "Default");
-            message.setStyle(message.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit Default")));
-            player.sendMessage(message, Util.DUMMY_UUID);
+            message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit Default")));
+            player.sendMessage(message, Util.NIL_UUID);
         }
         for (String s : KitManager.kits.keySet())
         {
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.kit." + s, context)) continue;
             if (s.contains(" ")) s = "\"" + s + "\"";
             message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, s);
-            message.setStyle(message.getStyle().setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit " + s)));
-            player.sendMessage(message, Util.DUMMY_UUID);
+            message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit " + s)));
+            player.sendMessage(message, Util.NIL_UUID);
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.footer"), Util.DUMMY_UUID);
+        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.footer"), Util.NIL_UUID);
     }
 }

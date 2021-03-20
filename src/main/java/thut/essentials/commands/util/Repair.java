@@ -33,13 +33,13 @@ public class Repair
 
     private static int execute(final CommandSource source) throws CommandSyntaxException
     {
-        return Repair.execute(source, source.asPlayer());
+        return Repair.execute(source, source.getPlayerOrException());
     }
 
     private static int execute(final CommandSource source, final ServerPlayerEntity player)
     {
-        final ItemStack stack = player.getHeldItemMainhand();
-        if (stack != null && stack.isDamaged()) stack.setDamage(0);
+        final ItemStack stack = player.getMainHandItem();
+        if (stack != null && stack.isDamaged()) stack.setDamageValue(0);
         return 0;
     }
 }

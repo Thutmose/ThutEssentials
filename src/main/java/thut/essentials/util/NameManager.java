@@ -30,7 +30,7 @@ public class NameManager
         {
             final MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
-            server.getPlayerList().sendPacketToAllPlayers(new SPlayerListItemPacket(
+            server.getPlayerList().broadcastAll(new SPlayerListItemPacket(
                     SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
         }
     }

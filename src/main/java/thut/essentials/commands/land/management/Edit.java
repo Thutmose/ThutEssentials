@@ -36,7 +36,7 @@ public class Edit
         if (perm != null && !CommandManager.hasPerm(source, perm)) return false;
         try
         {
-            final ServerPlayerEntity player = source.asPlayer();
+            final ServerPlayerEntity player = source.getPlayerOrException();
             final LandTeam landTeam = LandManager.getTeam(player);
             return landTeam.isAdmin(player);
         }
@@ -51,9 +51,9 @@ public class Edit
     {
         try
         {
-            final ServerPlayerEntity player = source.asPlayer();
+            final ServerPlayerEntity player = source.getPlayerOrException();
             final LandTeam landTeam = LandManager.getTeam(player);
-            return landTeam.hasRankPerm(player.getUniqueID(), perm);
+            return landTeam.hasRankPerm(player.getUUID(), perm);
         }
         catch (final CommandSyntaxException e)
         {
@@ -161,13 +161,13 @@ public class Edit
     private static int set_prefix(final CommandSource source, String prefix) throws CommandSyntaxException
     {
         prefix = RuleManager.format(prefix);
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         if (prefix.length() > Essentials.config.prefixLength) prefix = prefix.substring(0,
                 Essentials.config.prefixLength);
         landTeam.prefix = prefix;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.prefix.set", null, false, prefix),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
         Edit.refreshTeam(landTeam, source.getServer());
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
@@ -176,11 +176,11 @@ public class Edit
     private static int set_enter(final CommandSource source, String message) throws CommandSyntaxException
     {
         message = RuleManager.format(message);
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.enterMessage = message;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.enter.set", null, false, message),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -188,11 +188,11 @@ public class Edit
     private static int set_exit(final CommandSource source, String message) throws CommandSyntaxException
     {
         message = RuleManager.format(message);
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.exitMessage = message;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.exit.set", null, false, message),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
@@ -200,143 +200,143 @@ public class Edit
     private static int set_deny(final CommandSource source, String message) throws CommandSyntaxException
     {
         message = RuleManager.format(message);
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.denyMessage = message;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.deny.set", null, false, message),
-                Util.DUMMY_UUID);
+                Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int set_home(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.team_home = CoordinateUtls.forMob(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.home.set", null, false,
-                landTeam.team_home), Util.DUMMY_UUID);
+                landTeam.team_home), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_frames(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.protectFrames = !landTeam.protectFrames;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.frames.set", null, false,
-                landTeam.protectFrames), Util.DUMMY_UUID);
+                landTeam.protectFrames), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_reserve(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.reserved = !landTeam.reserved;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.reserve.set", null, false,
-                landTeam.reserved), Util.DUMMY_UUID);
+                landTeam.reserved), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_ff(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.friendlyFire = !landTeam.friendlyFire;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.ff.set", null, false,
-                landTeam.friendlyFire), Util.DUMMY_UUID);
+                landTeam.friendlyFire), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_no_player_damage(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noPlayerDamage = !landTeam.noPlayerDamage;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.noplayerdamage.set", null, false,
-                landTeam.noPlayerDamage), Util.DUMMY_UUID);
+                landTeam.noPlayerDamage), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_no_npc_damage(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noNPCDamage = !landTeam.noNPCDamage;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nonpcdamage.set", null, false,
-                landTeam.noNPCDamage), Util.DUMMY_UUID);
+                landTeam.noNPCDamage), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_no_mob_spawn(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noMobSpawn = !landTeam.noMobSpawn;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nomobspawn.set", null, false,
-                landTeam.noMobSpawn), Util.DUMMY_UUID);
+                landTeam.noMobSpawn), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_no_booms(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noExplosions = !landTeam.noExplosions;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nobooms.set", null, false,
-                landTeam.noExplosions), Util.DUMMY_UUID);
+                landTeam.noExplosions), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_any_break(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.anyBreak = !landTeam.anyBreak;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.anybreak.set", null, false,
-                landTeam.anyBreak), Util.DUMMY_UUID);
+                landTeam.anyBreak), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_fake_players(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.fakePlayers = !landTeam.fakePlayers;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.fakeplayers.set", null, false,
-                landTeam.fakePlayers), Util.DUMMY_UUID);
+                landTeam.fakePlayers), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_any_place(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.anyPlace = !landTeam.anyPlace;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.anyplace.set", null, false,
-                landTeam.anyPlace), Util.DUMMY_UUID);
+                landTeam.anyPlace), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }
 
     private static int toggle_public(final CommandSource source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.allPublic = !landTeam.allPublic;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.public.set", null, false,
-                landTeam.allPublic), Util.DUMMY_UUID);
+                landTeam.allPublic), Util.NIL_UUID);
         LandSaveHandler.saveTeam(landTeam.teamName);
         return 0;
     }

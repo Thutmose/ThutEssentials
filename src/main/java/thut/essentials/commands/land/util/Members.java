@@ -54,7 +54,7 @@ public class Members
             return 1;
         }
         Essentials.config.sendFeedback(source, "thutessentials.team.members", false, teamname);
-        source.sendFeedback(Members.getMembers(source.getServer(), team, true), false);
+        source.sendSuccess(Members.getMembers(source.getServer(), team, true), false);
         return 0;
     }
 
@@ -75,10 +75,10 @@ public class Members
             final UUID o = ids.get(i);
             if (o == null) continue;
             final GameProfile profile = CommandManager.getProfile(server, o);
-            if (tabbed) mess.appendString("    ");
-            if (profile.getName() != null) mess.appendString(profile.getName());
-            else mess.appendString("<unknown> " + o);
-            if (i < ids.size() - 1) mess.appendString("\n");
+            if (tabbed) mess.append("    ");
+            if (profile.getName() != null) mess.append(profile.getName());
+            else mess.append("<unknown> " + o);
+            if (i < ids.size() - 1) mess.append("\n");
         }
         return mess;
     }

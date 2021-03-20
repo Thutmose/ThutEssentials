@@ -65,7 +65,7 @@ public class LandSaveHandler
     public static File getGlobalFolder()
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final Path path = server.func_240776_a_(new FolderName("land"));
+        final Path path = server.getWorldPath(new FolderName("land"));
         final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
         return file;
@@ -100,7 +100,8 @@ public class LandSaveHandler
         if (LandSaveHandler.LOAD_GSON == null) LandSaveHandler.LOAD_GSON = new GsonBuilder()
                 .addDeserializationExclusionStrategy(LandSaveHandler.exclusion).setPrettyPrinting().create();
         final File teamsFile = new File(LandSaveHandler.getGlobalFolder(), "landData.json");
-        if (Essentials.config.debug) Essentials.LOGGER.info("Starting Loading Land");
+        // if (Essentials.config.debug)
+        Essentials.LOGGER.info("Starting Loading Land");
         if (teamsFile.exists())
         {
             try
@@ -120,7 +121,8 @@ public class LandSaveHandler
             if (LandManager.instance == null) LandManager.instance = new LandManager();
             LandSaveHandler.saveGlobalData();
         }
-        if (Essentials.config.debug) Essentials.LOGGER.info("Finished Loading Land and Teams");
+        // if (Essentials.config.debug)
+        Essentials.LOGGER.info("Finished Loading Land and Teams");
         // Set default as reservred to prevent it from getting cleaned up.
         LandManager.getDefaultTeam().reserved = true;
     }
@@ -154,9 +156,7 @@ public class LandSaveHandler
                     }
                     else Essentials.LOGGER.debug("Did not find claim! " + old.dim);
                 }
-                if (Essentials.config.debug) Essentials.LOGGER.info("Processing " + team.teamName);
-                for (final KGobalPos land : toAdd)
-                    LandManager.getInstance().addTeamLand(team.teamName, land, false);
+                if (Essentials.config.debug) Essentials.LOGGER.info("Processed " + team.teamName);
             }
             catch (final Exception e)
             {

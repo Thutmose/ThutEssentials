@@ -26,11 +26,11 @@ public class Delete
 {
     private static SuggestionProvider<CommandSource> SUGGEST_NAMES = (ctx, sb) ->
     {
-        final ServerPlayerEntity player = ctx.getSource().asPlayer();
+        final ServerPlayerEntity player = ctx.getSource().getPlayerOrException();
         final List<String> opts = Lists.newArrayList();
         final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundNBT homes = tag.getCompound("homes");
-        opts.addAll(homes.keySet());
+        opts.addAll(homes.getAllKeys());
         opts.replaceAll(s -> s.contains(" ") ? "\"" + s + "\"" : s);
         return net.minecraft.command.ISuggestionProvider.suggest(opts, sb);
     };
@@ -63,18 +63,18 @@ public class Delete
     private static int execute(final CommandSource source, String homeName) throws CommandSyntaxException
     {
         if (homeName == null) homeName = "Home";
-        final ServerPlayerEntity player = source.asPlayer();
+        final ServerPlayerEntity player = source.getPlayerOrException();
         final int ret = HomeManager.removeHome(player, homeName);
         ITextComponent message;
         switch (ret)
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.removed", null, false, homeName);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null, false, homeName);
-            player.sendMessage(message, Util.DUMMY_UUID);
+            player.sendMessage(message, Util.NIL_UUID);
             break;
         }
         return ret;
