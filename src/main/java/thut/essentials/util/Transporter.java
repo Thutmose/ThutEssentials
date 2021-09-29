@@ -22,6 +22,7 @@ import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.KGobalPos;
 
 public class Transporter
@@ -316,7 +317,7 @@ public class Transporter
         {
             if (event.getEntity() != this.entity) return;
             final long time = this.overworld.getGameTime();
-            if (time - this.start > 20)
+            if (time - this.start > Essentials.config.postTeleInvulDur)
             {
                 MinecraftForge.EVENT_BUS.unregister(this);
                 return;
@@ -382,12 +383,11 @@ public class Transporter
             {
                 final ServerPlayerEntity player = (ServerPlayerEntity) entity;
                 player.isChangingDimension = true;
-                player.teleportTo(destWorld, dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
-                        entity.xRot);
+                player.teleportTo(destWorld, dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot, entity.xRot);
                 if (sound)
                 {
-                    destWorld.playLocalSound(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z,
-                            SoundEvents.ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+                    destWorld.playLocalSound(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, SoundEvents.ENDERMAN_TELEPORT,
+                            SoundCategory.BLOCKS, 1.0F, 1.0F, false);
                     player.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
                 }
                 player.isChangingDimension = false;
@@ -406,19 +406,16 @@ public class Transporter
             player.isChangingDimension = true;
         }
         final ServerWorld serverworld = (ServerWorld) entity.getCommandSenderWorld();
-        // TODO did we need to update the mob for what dim it was in?
         Transporter.removeMob(serverworld, entity, true);
         entity.revive();
-        entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
-                entity.xRot);
+        entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot, entity.xRot);
         entity.setLevel(destWorld);
         Transporter.addMob(destWorld, entity);
         if (player != null)
         {
-            player.isChangingDimension = false;
             player.connection.resetPosition();
-            player.connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
-                    entity.xRot);
+            player.connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot, entity.xRot);
+            player.isChangingDimension = false;
         }
     }
 
@@ -426,8 +423,8 @@ public class Transporter
     {
         if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
                 new net.minecraftforge.event.entity.EntityJoinWorldEvent(entity, world))) return;
-        final IChunk ichunk = world.getChunk(MathHelper.floor(entity.getX() / 16.0D), MathHelper.floor(entity
-                .getZ() / 16.0D), ChunkStatus.FULL, true);
+        final IChunk ichunk = world.getChunk(MathHelper.floor(entity.getX() / 16.0D), MathHelper.floor(entity.getZ()
+                / 16.0D), ChunkStatus.FULL, true);
         if (ichunk instanceof Chunk) ichunk.addEntity(entity);
         world.loadFromChunk(entity);
     }
@@ -444,12 +441,11 @@ public class Transporter
         {
             final ServerPlayerEntity player = (ServerPlayerEntity) entity;
             player.isChangingDimension = true;
-            ((ServerPlayerEntity) entity).connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z,
-                    entity.yRot, entity.xRot);
+            ((ServerPlayerEntity) entity).connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
+                    entity.xRot);
             ((ServerPlayerEntity) entity).connection.resetPosition();
             player.isChangingDimension = false;
         }
-        else entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
-                entity.xRot);
+        else entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot, entity.xRot);
     }
 }
