@@ -37,7 +37,12 @@ public class CmdScheduler
             try
             {
                 final Cmd cmd = gson.fromJson(s, Cmd.class);
-                if (cmd.cmd != null && cmd.timer > 0) CmdScheduler.cmds.add(cmd);
+                if (cmd.cmd != null && cmd.timer > 0)
+                {
+                    if (CmdScheduler.cmds.contains(cmd)) Essentials.LOGGER.warn(
+                            "Warning, adding duplicate copy of command: {}", cmd);
+                    CmdScheduler.cmds.add(cmd);
+                }
             }
             catch (final JsonSyntaxException e)
             {
