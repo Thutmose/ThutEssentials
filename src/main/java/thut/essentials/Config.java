@@ -232,10 +232,10 @@ public class Config extends ConfigData
     @Configure(category = Config.MISC)
     public int    spawnActivateDelay = 50;
     @Configure(category = Config.MISC)
-    public long   spawnReUseDelay    = 100;
+    public int    spawnReUseDelay    = 100;
 
     @Configure(category = Config.MISC)
-    public long postTeleInvulDur = 20;
+    public int postTeleInvulDur = 20;
 
     @Configure(category = Config.MISC)
     public double maxSpeed = 10;
