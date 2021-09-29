@@ -9,7 +9,7 @@ buildscript {
         maven {url='https://repo.spongepowered.org/repository/maven-public/'}
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
@@ -21,6 +21,9 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+apply plugin: 'org.spongepowered.mixin'
+
+mixin { add sourceSets.main, "thutessentials.refmap.json" }
 
 ext {
     VERSION_COMPILE = gitVersion("${version_major}.${version_minor}")
@@ -129,6 +132,3 @@ def gitVersion(value) {
     }
     return "${value}.${ver}"
 }
-
-apply plugin: 'org.spongepowered.mixin'
-mixin { add sourceSets.main, "thutessentials.refmap.json" }
