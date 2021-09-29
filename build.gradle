@@ -73,6 +73,7 @@ minecraft {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${version_minecraft}-${version_forge}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 }
 
 jar {
