@@ -6,8 +6,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandEventsHandler;
@@ -16,7 +16,7 @@ import thut.essentials.land.LandManager;
 public class Create
 {
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         // TODO configurable this.
         final String name = "create_team";
@@ -24,7 +24,7 @@ public class Create
         final String perm = LandEventsHandler.PERMCREATETEAM;
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
 
         // Set up the command's arguments
@@ -35,7 +35,7 @@ public class Create
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source, final String teamname)
+    private static int execute(final CommandSourceStack source, final String teamname)
     {
         UUID toAdd = null;
         try

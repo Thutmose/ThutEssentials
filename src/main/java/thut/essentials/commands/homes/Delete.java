@@ -9,12 +9,12 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -24,18 +24,18 @@ import thut.essentials.util.PlayerDataHandler;
 
 public class Delete
 {
-    private static SuggestionProvider<CommandSource> SUGGEST_NAMES = (ctx, sb) ->
+    private static SuggestionProvider<CommandSourceStack> SUGGEST_NAMES = (ctx, sb) ->
     {
-        final ServerPlayerEntity player = ctx.getSource().getPlayerOrException();
+        final ServerPlayer player = ctx.getSource().getPlayerOrException();
         final List<String> opts = Lists.newArrayList();
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT homes = tag.getCompound("homes");
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag homes = tag.getCompound("homes");
         opts.addAll(homes.getAllKeys());
         opts.replaceAll(s -> s.contains(" ") ? "\"" + s + "\"" : s);
-        return net.minecraft.command.ISuggestionProvider.suggest(opts, sb);
+        return net.minecraft.commands.SharedSuggestionProvider.suggest(opts, sb);
     };
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "del_home";
         if (!Essentials.config.commandBlacklist.contains(name))
@@ -44,7 +44,7 @@ public class Delete
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
 
             // Home name argument version.
@@ -60,12 +60,12 @@ public class Delete
         }
     }
 
-    private static int execute(final CommandSource source, String homeName) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, String homeName) throws CommandSyntaxException
     {
         if (homeName == null) homeName = "Home";
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final int ret = HomeManager.removeHome(player, homeName);
-        ITextComponent message;
+        Component message;
         switch (ret)
         {
         case 0:

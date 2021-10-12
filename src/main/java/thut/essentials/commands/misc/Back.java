@@ -8,24 +8,24 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.Util;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.LogicalSidedProvider;
+import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -48,9 +48,9 @@ public class Back
     @SubscribeEvent
     public static void death(final LivingDeathEvent event)
     {
-        if (event.getEntityLiving() instanceof ServerPlayerEntity && Essentials.config.back_on_death)
+        if (event.getEntityLiving() instanceof ServerPlayer && Essentials.config.back_on_death)
         {
-            final CompoundNBT tag = CoordinateUtls.toNBT(CoordinateUtls.forMob(event.getEntityLiving()), "back");
+            final CompoundTag tag = CoordinateUtls.toNBT(CoordinateUtls.forMob(event.getEntityLiving()), "back");
             PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getStringUUID()).put("backPos", tag);
             PlayerDataHandler.saveCustomData(event.getEntityLiving().getStringUUID());
         }
@@ -58,7 +58,7 @@ public class Back
 
     private static boolean registered = false;
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "back";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -70,7 +70,7 @@ public class Back
         Back.registered = true;
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
         command = command.executes(ctx -> Back.execute(ctx.getSource()));
@@ -79,13 +79,13 @@ public class Back
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT tptag = tag.getCompound("tp");
+        final Player player = source.getPlayerOrException();
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag tptag = tag.getCompound("tp");
         final long last = tptag.getLong("backDelay");
-        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(Level.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.backReUseDelay > 0)
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
@@ -101,14 +101,14 @@ public class Back
             }
             final Predicate<Entity> callback = t ->
             {
-                if (!(t instanceof PlayerEntity)) return false;
+                if (!(t instanceof Player)) return false;
                 PlayerDataHandler.getCustomDataTag(t.getStringUUID()).remove("prevPos");
                 tptag.putLong("backDelay", time + Essentials.config.backReUseDelay);
                 tag.put("tp", tptag);
-                PlayerDataHandler.saveCustomData((PlayerEntity) t);
+                PlayerDataHandler.saveCustomData((Player) t);
                 return true;
             };
-            final ITextComponent teleMess = Essentials.config.getMessage("thutessentials.back.succeed");
+            final Component teleMess = Essentials.config.getMessage("thutessentials.back.succeed");
             PlayerMover.setMove(player, Essentials.config.backActivateDelay, spot, teleMess, PlayerMover.INTERUPTED,
                     callback, false);
             return 0;
@@ -122,7 +122,7 @@ public class Back
         final KGobalPos spot = pos;
         if (pos == null) return null;
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final ServerWorld world = server.getLevel(pos.getDimension());
+        final ServerLevel world = server.getLevel(pos.getDimension());
         if (world == null) return null;
         final BlockPos check = spot.getPos();
         if (Back.valid(check, world)) return spot;
@@ -139,7 +139,7 @@ public class Back
         return KGobalPos.getPosition(pos.getDimension(), opt.get().immutable());
     }
 
-    static boolean valid(final BlockPos pos, final World world)
+    static boolean valid(final BlockPos pos, final Level world)
     {
         final BlockState state1 = world.getBlockState(pos);
         final BlockState state2 = world.getBlockState(pos.above());

@@ -11,7 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.ServerTickEvent;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.LogicalSidedProvider;
+import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import thut.essentials.Essentials;
 
 public class CmdScheduler

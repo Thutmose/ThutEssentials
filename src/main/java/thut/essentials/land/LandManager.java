@@ -12,20 +12,20 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.LogicalSidedProvider;
+import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import thut.essentials.Essentials;
 import thut.essentials.land.ClaimedCapability.ClaimSegment;
 import thut.essentials.land.ClaimedCapability.IClaimed;
@@ -36,7 +36,7 @@ public class LandManager
 {
     public static class KGobalPos implements Comparable<KGobalPos>
     {
-        public static KGobalPos getPosition(final RegistryKey<World> dimension, final BlockPos pos)
+        public static KGobalPos getPosition(final ResourceKey<Level> dimension, final BlockPos pos)
         {
             return new KGobalPos(GlobalPos.of(dimension, pos));
         }
@@ -90,7 +90,7 @@ public class LandManager
             return this.pos.pos();
         }
 
-        public RegistryKey<World> getDimension()
+        public ResourceKey<Level> getDimension()
         {
             return this.pos.dimension();
         }
@@ -99,14 +99,14 @@ public class LandManager
 
     public static class Coordinate implements Comparable<Coordinate>
     {
-        private static final Map<Integer, RegistryKey<World>> _oldDim = Maps.newHashMap();
+        private static final Map<Integer, ResourceKey<Level>> _oldDim = Maps.newHashMap();
 
         public int x;
         public int y;
         public int z;
         public int dim;
 
-        public static RegistryKey<World> fromOld(final int dim2)
+        public static ResourceKey<Level> fromOld(final int dim2)
         {
             if (Coordinate._oldDim.isEmpty()) for (final String var : Essentials.config.legacyDimMap)
                 try
@@ -114,7 +114,7 @@ public class LandManager
                     final String[] args = var.split("->");
                     final Integer i = Integer.parseInt(args[0]);
                     final ResourceLocation key = new ResourceLocation(args[1]);
-                    final RegistryKey<World> dim = RegistryKey.create(Registry.DIMENSION_REGISTRY, key);
+                    final ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, key);
                     final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
                     if (server.getLevel(dim) == null)
                     {
@@ -651,7 +651,7 @@ public class LandManager
             this._playerTeams.put(id, _default);
             try
             {
-                final PlayerEntity player = server.getPlayerList().getPlayer(id);
+                final Player player = server.getPlayerList().getPlayer(id);
                 if (player != null)
                 {
                     // TODO update name here.
@@ -669,7 +669,7 @@ public class LandManager
         LandSaveHandler.deleteTeam(teamName);
     }
 
-    public void claimLand(final String team, final World world, final BlockPos pos, final boolean chunkCoords)
+    public void claimLand(final String team, final Level world, final BlockPos pos, final boolean chunkCoords)
     {
         final IClaimed claims = this.getClaimer(world, pos, chunkCoords);
         if (claims == null)
@@ -707,7 +707,7 @@ public class LandManager
         LandSaveHandler.saveTeam(team);
     }
 
-    public void unclaimLand(final String team, final World world, final BlockPos pos, final boolean chunkCoords)
+    public void unclaimLand(final String team, final Level world, final BlockPos pos, final boolean chunkCoords)
     {
         final IClaimed claims = this.getClaimer(world, pos, chunkCoords);
         if (claims == null)
@@ -764,7 +764,7 @@ public class LandManager
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
         try
         {
-            final PlayerEntity player = server.getPlayerList().getPlayer(member);
+            final Player player = server.getPlayerList().getPlayer(member);
             if (player != null)
             {
                 // TODO update name here.
@@ -806,19 +806,19 @@ public class LandManager
         return Lists.newArrayList(invite.teams);
     }
 
-    public LandTeam getLandOwner(final World world, final BlockPos pos)
+    public LandTeam getLandOwner(final Level world, final BlockPos pos)
     {
         return this.getLandOwner(world, pos, false);
     }
 
-    private IClaimed getClaimer(final World world, final BlockPos pos, final boolean chunkCoords)
+    private IClaimed getClaimer(final Level world, final BlockPos pos, final boolean chunkCoords)
     {
         final ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
 
         if (!world.getServer().isSameThread()) return null;
         if (!world.hasChunk(cPos.x, cPos.z)) return null;
 
-        final IChunk chunk = world.getChunk(cPos.x, cPos.z);
+        final ChunkAccess chunk = world.getChunk(cPos.x, cPos.z);
         if (chunk instanceof ICapabilityProvider)
         {
             final IClaimed claims = ((ICapabilityProvider) chunk).getCapability(ClaimedCapability.CAPABILITY).orElse(
@@ -828,7 +828,7 @@ public class LandManager
         return null;
     }
 
-    public LandTeam getLandOwner(final World world, final BlockPos pos, final boolean chunkCoords)
+    public LandTeam getLandOwner(final Level world, final BlockPos pos, final boolean chunkCoords)
     {
         LandTeam owner = LandManager.getWildTeam();
 

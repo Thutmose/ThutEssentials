@@ -18,16 +18,16 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.entity.EntityType;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.fml.loading.FMLPaths;
 import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
@@ -277,7 +277,7 @@ public class Config extends ConfigData
     @Configure(category = Config.MOBS)
     public boolean mobGriefAllowUsesWhitelist = true;
 
-    public RegistryKey<World> spawnDimension = World.OVERWORLD;
+    public ResourceKey<Level> spawnDimension = Level.OVERWORLD;
 
     public Set<ResourceLocation> versioned_dim_keys = Sets.newHashSet();
 
@@ -293,19 +293,19 @@ public class Config extends ConfigData
 
     private final Map<String, String> lang_overrides_map = Maps.newHashMap();
 
-    public IFormattableTextComponent getMessage(final String key, final Object... args)
+    public MutableComponent getMessage(final String key, final Object... args)
     {
-        if (this.lang_overrides_map.containsKey(key)) return new StringTextComponent(String.format(
+        if (this.lang_overrides_map.containsKey(key)) return new TextComponent(String.format(
                 this.lang_overrides_map.get(key), args));
-        else return new TranslationTextComponent(key, args);
+        else return new TranslatableComponent(key, args);
     }
 
-    public void sendFeedback(final CommandSource target, final String key, final boolean log, final Object... args)
+    public void sendFeedback(final CommandSourceStack target, final String key, final boolean log, final Object... args)
     {
         target.sendSuccess(this.getMessage(key, args), log);
     }
 
-    public void sendError(final CommandSource target, final String key, final Object... args)
+    public void sendError(final CommandSourceStack target, final String key, final Object... args)
     {
         target.sendFailure(this.getMessage(key, args));
     }
@@ -313,7 +313,7 @@ public class Config extends ConfigData
     @Override
     public void onUpdated()
     {
-        this.spawnDimension = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(this.spawnWorld));
+        this.spawnDimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(this.spawnWorld));
 
         final File file = this.configpath.resolve(this.lang_file).toFile();
         if (file.exists()) try

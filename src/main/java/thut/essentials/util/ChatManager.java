@@ -4,15 +4,15 @@ import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ForgeI18n;
+import net.minecraftforge.fmllegacy.ForgeI18n;
 import thut.essentials.Essentials;
 
 public class ChatManager
@@ -28,15 +28,15 @@ public class ChatManager
         if (!Essentials.config.useChatFormat) return;
         final String format = Essentials.config.chatFormat;
         final String raw = event.getMessage();
-        final StringTextComponent comp = new StringTextComponent("");
+        final TextComponent comp = new TextComponent("");
         ChatManager.build(comp, format, event.getPlayer().getDisplayName(), raw);
         event.setComponent(comp);
     }
 
-    private static void build(final StringTextComponent comp, final String format, final Object... args)
+    private static void build(final TextComponent comp, final String format, final Object... args)
     {
-        final List<ITextComponent> children = comp.getSiblings();
-        final Matcher matcher = TranslationTextComponent.FORMAT_PATTERN.matcher(format);
+        final List<Component> children = comp.getSiblings();
+        final Matcher matcher = TranslatableComponent.FORMAT_PATTERN.matcher(format);
         try
         {
             int i = 0;
@@ -49,7 +49,7 @@ public class ChatManager
                 l = matcher.end();
                 if (k > j)
                 {
-                    final IFormattableTextComponent itextcomponent = new StringTextComponent(String.format(format
+                    final MutableComponent itextcomponent = new TextComponent(String.format(format
                             .substring(j, k)));
                     itextcomponent.setStyle(comp.getStyle());
                     children.add(itextcomponent);
@@ -59,7 +59,7 @@ public class ChatManager
                 final String s = format.substring(k, l);
                 if ("%".equals(s2) && "%%".equals(s))
                 {
-                    final IFormattableTextComponent itextcomponent2 = new StringTextComponent("%");
+                    final MutableComponent itextcomponent2 = new TextComponent("%");
                     itextcomponent2.setStyle(comp.getStyle());
                     children.add(itextcomponent2);
                 }
@@ -82,7 +82,7 @@ public class ChatManager
                 j = ChatManager.handle(comp, children, args, format);
             if (j < format.length())
             {
-                final IFormattableTextComponent itextcomponent1 = new StringTextComponent(String.format(format
+                final MutableComponent itextcomponent1 = new TextComponent(String.format(format
                         .substring(j)));
                 itextcomponent1.setStyle(comp.getStyle());
                 children.add(itextcomponent1);
@@ -95,34 +95,34 @@ public class ChatManager
         }
     }
 
-    private static ITextComponent getFormatArgumentAsComponent(final int index, final TextComponent comp,
+    private static Component getFormatArgumentAsComponent(final int index, final BaseComponent comp,
             final Object[] args)
     {
         if (index >= args.length)
         {
             Essentials.LOGGER.error("Illegal chat format!");
-            return new StringTextComponent("");
+            return new TextComponent("");
         }
         else
         {
             final Object object = args[index];
-            IFormattableTextComponent itextcomponent;
-            if (object instanceof IFormattableTextComponent) itextcomponent = (IFormattableTextComponent) object;
+            MutableComponent itextcomponent;
+            if (object instanceof MutableComponent) itextcomponent = (MutableComponent) object;
             else
             {
-                itextcomponent = new StringTextComponent(object == null ? "null" : object.toString());
+                itextcomponent = new TextComponent(object == null ? "null" : object.toString());
                 itextcomponent.setStyle(comp.getStyle());
             }
             return itextcomponent;
         }
     }
 
-    public static int handle(final TextComponent parent, final List<ITextComponent> children, final Object[] formatArgs,
+    public static int handle(final BaseComponent parent, final List<Component> children, final Object[] formatArgs,
             final String format)
     {
         try
         {
-            final StringTextComponent component = new StringTextComponent(ForgeI18n.parseFormat(format, formatArgs));
+            final TextComponent component = new TextComponent(ForgeI18n.parseFormat(format, formatArgs));
             component.setStyle(parent.getStyle());
             children.add(component);
             return format.length();

@@ -5,11 +5,11 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -31,12 +31,12 @@ public class Edit
     private static final String PERMTOGGLENPCDAMAGE    = "thutessentials.land.toggle.npcdamage";
     private static final String PERMTOGGLEFAKEPLAYERS  = "thutessentials.land.toggle.fakeplayers";
 
-    public static boolean adminUse(final CommandSource source, final String perm)
+    public static boolean adminUse(final CommandSourceStack source, final String perm)
     {
         if (perm != null && !CommandManager.hasPerm(source, perm)) return false;
         try
         {
-            final ServerPlayerEntity player = source.getPlayerOrException();
+            final ServerPlayer player = source.getPlayerOrException();
             final LandTeam landTeam = LandManager.getTeam(player);
             return landTeam.isAdmin(player);
         }
@@ -47,11 +47,11 @@ public class Edit
 
     }
 
-    public static boolean permUse(final CommandSource source, final String perm)
+    public static boolean permUse(final CommandSourceStack source, final String perm)
     {
         try
         {
-            final ServerPlayerEntity player = source.getPlayerOrException();
+            final ServerPlayer player = source.getPlayerOrException();
             final LandTeam landTeam = LandManager.getTeam(player);
             return landTeam.hasRankPerm(player.getUUID(), perm);
         }
@@ -62,7 +62,7 @@ public class Edit
 
     }
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         PermissionAPI.registerNode(Edit.PERMTOGGLEEXPLODE, DefaultPermissionLevel.OP,
                 "Allowed to toggle explosions on/off in their team land");
@@ -85,9 +85,9 @@ public class Edit
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-        final LiteralArgumentBuilder<CommandSource> base = Commands.literal(name).requires(cs -> CommandManager.hasPerm(
+        final LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(name).requires(cs -> CommandManager.hasPerm(
                 cs, perm));
-        LiteralArgumentBuilder<CommandSource> command;
+        LiteralArgumentBuilder<CommandSourceStack> command;
 
         command = base.then(Commands.literal("public").requires(cs -> Edit.adminUse(cs, null)).executes(ctx -> Edit
                 .toggle_public(ctx.getSource())));
@@ -158,10 +158,10 @@ public class Edit
         commandDispatcher.register(command);
     }
 
-    private static int set_prefix(final CommandSource source, String prefix) throws CommandSyntaxException
+    private static int set_prefix(final CommandSourceStack source, String prefix) throws CommandSyntaxException
     {
         prefix = RuleManager.format(prefix);
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         if (prefix.length() > Essentials.config.prefixLength) prefix = prefix.substring(0,
                 Essentials.config.prefixLength);
@@ -173,10 +173,10 @@ public class Edit
         return 0;
     }
 
-    private static int set_enter(final CommandSource source, String message) throws CommandSyntaxException
+    private static int set_enter(final CommandSourceStack source, String message) throws CommandSyntaxException
     {
         message = RuleManager.format(message);
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.enterMessage = message;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.enter.set", null, false, message),
@@ -185,10 +185,10 @@ public class Edit
         return 0;
     }
 
-    private static int set_exit(final CommandSource source, String message) throws CommandSyntaxException
+    private static int set_exit(final CommandSourceStack source, String message) throws CommandSyntaxException
     {
         message = RuleManager.format(message);
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.exitMessage = message;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.exit.set", null, false, message),
@@ -197,10 +197,10 @@ public class Edit
         return 0;
     }
 
-    private static int set_deny(final CommandSource source, String message) throws CommandSyntaxException
+    private static int set_deny(final CommandSourceStack source, String message) throws CommandSyntaxException
     {
         message = RuleManager.format(message);
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.denyMessage = message;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.deny.set", null, false, message),
@@ -209,9 +209,9 @@ public class Edit
         return 0;
     }
 
-    private static int set_home(final CommandSource source) throws CommandSyntaxException
+    private static int set_home(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.team_home = CoordinateUtls.forMob(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.home.set", null, false,
@@ -220,9 +220,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_frames(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_frames(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.protectFrames = !landTeam.protectFrames;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.frames.set", null, false,
@@ -231,9 +231,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_reserve(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_reserve(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.reserved = !landTeam.reserved;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.reserve.set", null, false,
@@ -242,9 +242,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_ff(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_ff(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.friendlyFire = !landTeam.friendlyFire;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.ff.set", null, false,
@@ -253,9 +253,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_no_player_damage(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_no_player_damage(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noPlayerDamage = !landTeam.noPlayerDamage;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.noplayerdamage.set", null, false,
@@ -264,9 +264,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_no_npc_damage(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_no_npc_damage(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noNPCDamage = !landTeam.noNPCDamage;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nonpcdamage.set", null, false,
@@ -275,9 +275,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_no_mob_spawn(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_no_mob_spawn(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noMobSpawn = !landTeam.noMobSpawn;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nomobspawn.set", null, false,
@@ -286,9 +286,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_no_booms(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_no_booms(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.noExplosions = !landTeam.noExplosions;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.nobooms.set", null, false,
@@ -297,9 +297,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_any_break(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_any_break(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.anyBreak = !landTeam.anyBreak;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.anybreak.set", null, false,
@@ -308,9 +308,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_fake_players(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_fake_players(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.fakePlayers = !landTeam.fakePlayers;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.fakeplayers.set", null, false,
@@ -319,9 +319,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_any_place(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_any_place(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.anyPlace = !landTeam.anyPlace;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.anyplace.set", null, false,
@@ -330,9 +330,9 @@ public class Edit
         return 0;
     }
 
-    private static int toggle_public(final CommandSource source) throws CommandSyntaxException
+    private static int toggle_public(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         landTeam.allPublic = !landTeam.allPublic;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.public.set", null, false,

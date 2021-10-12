@@ -1,16 +1,16 @@
 package thut.essentials.util;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.ClickEvent.Action;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -34,7 +34,7 @@ public class HomeManager
         }
     }
 
-    public static boolean canAddHome(final ServerPlayerEntity player, final int index)
+    public static boolean canAddHome(final ServerPlayer player, final int index)
     {
         for (int i = HomeManager.HOMEPERMS.length - 1; i >= index; i--)
         {
@@ -44,11 +44,11 @@ public class HomeManager
         return false;
     }
 
-    public static KGobalPos getHome(final ServerPlayerEntity player, String home)
+    public static KGobalPos getHome(final ServerPlayer player, String home)
     {
         if (home == null) home = "Home";
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT homes = tag.getCompound("homes");
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag homes = tag.getCompound("homes");
         // Legacy home
         if (homes.contains(home, 11))
         {
@@ -56,7 +56,7 @@ public class HomeManager
             if (pos.length == 4)
             {
                 final BlockPos b = new BlockPos(pos[0], pos[1], pos[2]);
-                final RegistryKey<World> dim = LandManager.Coordinate.fromOld(pos[3]);
+                final ResourceKey<Level> dim = LandManager.Coordinate.fromOld(pos[3]);
                 return KGobalPos.getPosition(dim, b);
             }
             return null;
@@ -65,12 +65,12 @@ public class HomeManager
         return null;
     }
 
-    public static int setHome(final ServerPlayerEntity player, String home)
+    public static int setHome(final ServerPlayer player, String home)
     {
         final BlockPos pos = player.blockPosition();
         if (home == null) home = "Home";
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT homes = tag.getCompound("homes");
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag homes = tag.getCompound("homes");
         final int num = homes.getAllKeys().size();
         // Too many
         if (num >= Essentials.config.maxHomes) return 1;
@@ -81,16 +81,16 @@ public class HomeManager
         final KGobalPos loc = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), pos);
         homes.put(home, CoordinateUtls.toNBT(loc, home));
         tag.put("homes", homes);
-        player.sendMessage(new StringTextComponent("set " + home), Util.NIL_UUID);
+        player.sendMessage(new TextComponent("set " + home), Util.NIL_UUID);
         PlayerDataHandler.saveCustomData(player);
         return 0;
     }
 
-    public static int removeHome(final ServerPlayerEntity player, String home)
+    public static int removeHome(final ServerPlayer player, String home)
     {
         if (home == null) home = "Home";
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT homes = tag.getCompound("homes");
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag homes = tag.getCompound("homes");
         // No home!
         if (!homes.contains(home)) return 1;
         homes.remove(home);
@@ -99,14 +99,14 @@ public class HomeManager
         return 0;
     }
 
-    public static void sendHomeList(final ServerPlayerEntity player)
+    public static void sendHomeList(final ServerPlayer player)
     {
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT homes = tag.getCompound("homes");
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag homes = tag.getCompound("homes");
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.header"), Util.NIL_UUID);
         for (String s : homes.getAllKeys())
         {
-            final IFormattableTextComponent message = CommandManager.makeFormattedComponent(
+            final MutableComponent message = CommandManager.makeFormattedComponent(
                     "thutessentials.homes.entry", null, false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
             final Style style = message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home " + s));

@@ -7,12 +7,12 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -26,7 +26,7 @@ import thut.essentials.util.PlayerDataHandler;
 
 public class Kits
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         String name = "kits";
         if (!Essentials.config.commandBlacklist.contains(name))
@@ -35,7 +35,7 @@ public class Kits
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
             // Register the execution.
             command = command.executes(ctx -> Kits.kits(ctx.getSource()));
@@ -50,7 +50,7 @@ public class Kits
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
 
             command = command.then(Commands.argument("kit_name", StringArgumentType.string()).executes(ctx -> Kits
@@ -68,30 +68,30 @@ public class Kits
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /"
                     + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
             command = command.executes(ctx -> Kits.reload(ctx.getSource()));
             commandDispatcher.register(command);
         }
     }
 
-    private static int reload(final CommandSource source) throws CommandSyntaxException
+    private static int reload(final CommandSourceStack source) throws CommandSyntaxException
     {
         KitManager.init();
         Essentials.config.sendFeedback(source, "thutessentials.kits.reloaded", true);
         return 0;
     }
 
-    private static int kits(final CommandSource source) throws CommandSyntaxException
+    private static int kits(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         KitManager.sendKitsList(player);
         return 0;
     }
 
-    private static int execute(final CommandSource source, final String warpName) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, final String warpName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final MinecraftServer server = player.getServer();
 
         List<ItemStack> stacks;
@@ -123,7 +123,7 @@ public class Kits
         }
 
         final long kitTime = PlayerDataHandler.getCustomDataTag(player).getLong(kitTag);
-        if (delay <= 0 && kitTime != 0 || server.getLevel(World.OVERWORLD).getGameTime() < kitTime)
+        if (delay <= 0 && kitTime != 0 || server.getLevel(Level.OVERWORLD).getGameTime() < kitTime)
         {
             Essentials.config.sendError(source, "thutessentials.kits.too_soon");
             return 1;
@@ -131,7 +131,7 @@ public class Kits
         for (final ItemStack stack : stacks)
         {
             EconomyManager.giveItem(player, stack.copy());
-            PlayerDataHandler.getCustomDataTag(player).putLong(kitTag, server.getLevel(World.OVERWORLD).getGameTime()
+            PlayerDataHandler.getCustomDataTag(player).putLong(kitTag, server.getLevel(Level.OVERWORLD).getGameTime()
                     + delay);
             PlayerDataHandler.saveCustomData(player);
         }

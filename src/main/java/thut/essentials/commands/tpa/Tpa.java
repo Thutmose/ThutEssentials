@@ -4,17 +4,17 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.Util;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -23,7 +23,7 @@ import thut.essentials.util.PlayerDataHandler;
 
 public class Tpa
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "tpa";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -31,7 +31,7 @@ public class Tpa
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
         command = command.then(Commands.argument("target_player", EntityArgument.player()).executes(ctx -> Tpa.execute(
@@ -41,20 +41,20 @@ public class Tpa
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source, final ServerPlayerEntity target)
+    private static int execute(final CommandSourceStack source, final ServerPlayer target)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         if (!Essentials.config.tpaCrossDim && target.getCommandSenderWorld() != player.getCommandSenderWorld())
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.tp.wrongdim"), Util.NIL_UUID);
             return 1;
         }
-        CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        CompoundNBT tpaTag = tag.getCompound("tpa");
+        CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        CompoundTag tpaTag = tag.getCompound("tpa");
 
         final long last = tag.getLong("tpaDelay");
-        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(Level.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.tpaReUseDelay > 0)
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
@@ -68,23 +68,23 @@ public class Tpa
         tpaTag = tag.getCompound("tpa");
         if (tpaTag.getBoolean("ignore")) return 1;
 
-        final IFormattableTextComponent header = ((IFormattableTextComponent) player.getDisplayName()).append(
+        final MutableComponent header = ((MutableComponent) player.getDisplayName()).append(
                 CommandManager.makeFormattedComponent("thutessentials.tpa.requested"));
         target.sendMessage(header, Util.NIL_UUID);
 
-        IFormattableTextComponent tpMessage;
+        MutableComponent tpMessage;
         final String tpaccept = "tpaccept";
-        final IFormattableTextComponent accept = CommandManager.makeFormattedCommandLink("thutessentials.tpa.accept",
+        final MutableComponent accept = CommandManager.makeFormattedCommandLink("thutessentials.tpa.accept",
                 "/" + tpaccept + " " + player.getStringUUID() + " accept");
-        final IFormattableTextComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny", "/"
+        final MutableComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny", "/"
                 + tpaccept + " " + player.getStringUUID() + " deny");
-        tpMessage = accept.append(new StringTextComponent("      /      ")).append(deny);
+        tpMessage = accept.append(new TextComponent("      /      ")).append(deny);
         target.sendMessage(tpMessage, Util.NIL_UUID);
         tpaTag.putString("R", player.getStringUUID());
         tag.put("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(target);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.requestsent",
-                TextFormatting.DARK_GREEN, true, target.getDisplayName()), Util.NIL_UUID);
+                ChatFormatting.DARK_GREEN, true, target.getDisplayName()), Util.NIL_UUID);
         return 0;
     }
 }

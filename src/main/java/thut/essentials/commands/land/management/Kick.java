@@ -7,10 +7,10 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.GameProfileArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -21,7 +21,7 @@ import thut.essentials.land.LandManager.LandTeam;
 public class Kick
 {
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "kick_team_member";
         if (!Essentials.config.commandBlacklist.contains(name))
@@ -30,7 +30,7 @@ public class Kick
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
             command = command.then(Commands.argument("player", GameProfileArgument.gameProfile()).executes(ctx -> Kick
                     .kick(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player"))));
@@ -38,7 +38,7 @@ public class Kick
         }
     }
 
-    private static int kick(final CommandSource source, final Collection<GameProfile> collection)
+    private static int kick(final CommandSourceStack source, final Collection<GameProfile> collection)
             throws CommandSyntaxException
     {
         int i = 0;
@@ -47,9 +47,9 @@ public class Kick
         return i;
     }
 
-    private static int kick(final CommandSource source, final GameProfile player) throws CommandSyntaxException
+    private static int kick(final CommandSourceStack source, final GameProfile player) throws CommandSyntaxException
     {
-        final ServerPlayerEntity user = source.getPlayerOrException();
+        final ServerPlayer user = source.getPlayerOrException();
         final LandTeam teamA = LandManager.getTeam(user);
         final LandTeam teamB = LandManager.getTeam(player.getId());
         if (teamA != teamB)

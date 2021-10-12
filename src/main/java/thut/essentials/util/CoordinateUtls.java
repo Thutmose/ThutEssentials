@@ -1,15 +1,15 @@
 package thut.essentials.util;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.NBTDynamicOps;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import thut.essentials.Essentials;
 import thut.essentials.events.TeleLoadEvent;
@@ -31,11 +31,11 @@ public class CoordinateUtls
         return KGobalPos.getPosition(blockPos.getDimension(), pos);
     }
 
-    public static KGobalPos fromNBT(final CompoundNBT tag)
+    public static KGobalPos fromNBT(final CompoundTag tag)
     {
         if (tag.contains("_v_"))
         {
-            final CompoundNBT nbt = tag;
+            final CompoundTag nbt = tag;
             final Vector3 loc = Vector3.readFromNBT(nbt, "v");
             final String name = nbt.getString("name");
             final int index = nbt.getInt("i");
@@ -52,7 +52,7 @@ public class CoordinateUtls
         }
         try
         {
-            final GlobalPos pos = GlobalPos.CODEC.decode(NBTDynamicOps.INSTANCE, tag).result().get().getFirst();
+            final GlobalPos pos = GlobalPos.CODEC.decode(NbtOps.INSTANCE, tag).result().get().getFirst();
             return new KGobalPos(pos);
         }
         catch (final Exception e)
@@ -63,15 +63,15 @@ public class CoordinateUtls
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends INBT> T toNBT(final KGobalPos pos)
+    public static <T extends Tag> T toNBT(final KGobalPos pos)
     {
-        return (T) GlobalPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, pos.pos).get().left().get();
+        return (T) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos.pos).get().left().get();
     }
 
-    public static CompoundNBT toNBT(final KGobalPos pos, final String name)
+    public static CompoundTag toNBT(final KGobalPos pos, final String name)
     {
         final TeleDest dest = new TeleDest().setName(name).setPos(pos).setVersion(Essentials.config.dim_verison);
-        final CompoundNBT nbt = new CompoundNBT();
+        final CompoundTag nbt = new CompoundTag();
         dest.writeToNBT(nbt);
         return nbt;
     }
@@ -85,7 +85,7 @@ public class CoordinateUtls
         {
             final BlockPos pos = new BlockPos(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(
                     args[2]));
-            final RegistryKey<World> dim = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(
+            final ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(
                     args[3]));
             return KGobalPos.getPosition(dim, pos);
         }

@@ -8,11 +8,11 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.GameProfileArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Util;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -22,7 +22,7 @@ import thut.essentials.land.LandManager.LandTeam;
 
 public class Admins
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         String name = "list_team_admins";
         if (!Essentials.config.commandBlacklist.contains(name))
@@ -31,7 +31,7 @@ public class Admins
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
             command = command.executes(ctx -> Admins.list(ctx.getSource()));
             commandDispatcher.register(command);
@@ -44,7 +44,7 @@ public class Admins
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> Edit.adminUse(cs,
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> Edit.adminUse(cs,
                     perm));
             command = command.then(Commands.argument("player", GameProfileArgument.gameProfile()).executes(ctx -> Admins
                     .remove(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player"))));
@@ -58,7 +58,7 @@ public class Admins
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> Edit.adminUse(cs,
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> Edit.adminUse(cs,
                     perm));
             command = command.then(Commands.argument("player", GameProfileArgument.gameProfile()).executes(ctx -> Admins
                     .add(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player"))));
@@ -66,9 +66,9 @@ public class Admins
         }
     }
 
-    private static int list(final CommandSource source) throws CommandSyntaxException
+    private static int list(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         final String teamName = team.teamName;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.header", null, false,
@@ -83,9 +83,9 @@ public class Admins
         return 0;
     }
 
-    private static int remove(final CommandSource source, final GameProfile player) throws CommandSyntaxException
+    private static int remove(final CommandSourceStack source, final GameProfile player) throws CommandSyntaxException
     {
-        final ServerPlayerEntity user = source.getPlayerOrException();
+        final ServerPlayer user = source.getPlayerOrException();
         final LandTeam teamA = LandManager.getTeam(user);
         final LandTeam teamB = LandManager.getTeam(player.getId());
         if (teamA != teamB)
@@ -100,7 +100,7 @@ public class Admins
         return 0;
     }
 
-    private static int remove(final CommandSource source, final Collection<GameProfile> collection)
+    private static int remove(final CommandSourceStack source, final Collection<GameProfile> collection)
             throws CommandSyntaxException
     {
         int i = 0;
@@ -109,7 +109,7 @@ public class Admins
         return i;
     }
 
-    private static int add(final CommandSource source, final Collection<GameProfile> collection)
+    private static int add(final CommandSourceStack source, final Collection<GameProfile> collection)
             throws CommandSyntaxException
     {
         int i = 0;
@@ -118,9 +118,9 @@ public class Admins
         return i;
     }
 
-    private static int add(final CommandSource source, final GameProfile player) throws CommandSyntaxException
+    private static int add(final CommandSourceStack source, final GameProfile player) throws CommandSyntaxException
     {
-        final ServerPlayerEntity user = source.getPlayerOrException();
+        final ServerPlayer user = source.getPlayerOrException();
         final LandTeam teamA = LandManager.getTeam(user);
         final LandTeam teamB = LandManager.getTeam(player.getId());
         if (teamA != teamB)

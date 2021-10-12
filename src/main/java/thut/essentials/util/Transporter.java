@@ -1,22 +1,23 @@
 package thut.essentials.util;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.pathfinding.PathPoint;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Entity.RemovalReason;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
@@ -29,7 +30,7 @@ public class Transporter
 {
     public static class Vector3
     {
-        public static Vector3 readFromNBT(final CompoundNBT nbt, final String tag)
+        public static Vector3 readFromNBT(final CompoundTag nbt, final String tag)
         {
             if (!nbt.contains(tag + "x")) return null;
 
@@ -99,9 +100,9 @@ public class Transporter
                 final Entity e = (Entity) o;
                 this.set(e.getX(), e.getY(), e.getZ());
             }
-            else if (o instanceof TileEntity)
+            else if (o instanceof BlockEntity)
             {
-                final TileEntity te = (TileEntity) o;
+                final BlockEntity te = (BlockEntity) o;
                 this.set(te.getBlockPos());
             }
             else if (o instanceof double[])
@@ -120,14 +121,14 @@ public class Transporter
                 final BlockPos c = (BlockPos) o;
                 this.set(c.getX(), c.getY(), c.getZ());
             }
-            else if (o instanceof PathPoint)
+            else if (o instanceof Node)
             {
-                final PathPoint p = (PathPoint) o;
+                final Node p = (Node) o;
                 this.set(p.x, p.y, p.z);
             }
-            else if (o instanceof Vector3d)
+            else if (o instanceof Vec3)
             {
-                final Vector3d p = (Vector3d) o;
+                final Vec3 p = (Vec3) o;
                 this.set(p.x, p.y, p.z);
             }
             else if (o instanceof int[])
@@ -166,17 +167,17 @@ public class Transporter
 
         public int intX()
         {
-            return MathHelper.floor(this.x);
+            return Mth.floor(this.x);
         }
 
         public int intY()
         {
-            return MathHelper.floor(this.y);
+            return Mth.floor(this.y);
         }
 
         public int intZ()
         {
-            return MathHelper.floor(this.z);
+            return Mth.floor(this.z);
         }
 
         public void writeToBuff(final ByteBuf data)
@@ -186,7 +187,7 @@ public class Transporter
             data.writeDouble(this.z);
         }
 
-        public void writeToNBT(final CompoundNBT nbt, final String tag)
+        public void writeToNBT(final CompoundTag nbt, final String tag)
         {
             nbt.putDouble(tag + "x", this.x);
             nbt.putDouble(tag + "y", this.y);
@@ -273,7 +274,7 @@ public class Transporter
             return this;
         }
 
-        public void writeToNBT(final CompoundNBT nbt)
+        public void writeToNBT(final CompoundTag nbt)
         {
             this.subLoc.writeToNBT(nbt, "v");
             nbt.put("pos", CoordinateUtls.toNBT(this.loc));
@@ -299,7 +300,7 @@ public class Transporter
 
     private static class InvulnTicker
     {
-        private final ServerWorld overworld;
+        private final ServerLevel overworld;
 
         private final Entity entity;
         private final long   start;
@@ -307,7 +308,7 @@ public class Transporter
         public InvulnTicker(final Entity entity)
         {
             this.entity = entity;
-            this.overworld = entity.getServer().getLevel(World.OVERWORLD);
+            this.overworld = entity.getServer().getLevel(Level.OVERWORLD);
             this.start = this.overworld.getGameTime();
             MinecraftForge.EVENT_BUS.register(this);
         }
@@ -330,11 +331,11 @@ public class Transporter
     private static class TransferTicker
     {
         private final Entity      entity;
-        private final ServerWorld destWorld;
+        private final ServerLevel destWorld;
         private final TeleDest    dest;
         private final boolean     sound;
 
-        public TransferTicker(final ServerWorld destWorld, final Entity entity, final TeleDest dest,
+        public TransferTicker(final ServerLevel destWorld, final Entity entity, final TeleDest dest,
                 final boolean sound)
         {
             this.entity = entity;
@@ -355,7 +356,7 @@ public class Transporter
                 {
                     this.destWorld.playLocalSound(this.dest.subLoc.x, this.dest.subLoc.y,
                             this.dest.subLoc.z,
-                            SoundEvents.ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+                            SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1.0F, 1.0F, false);
                     this.entity.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
                 }
 
@@ -370,7 +371,7 @@ public class Transporter
 
     public static void transferTo(final Entity entity, final TeleDest dest, final boolean sound)
     {
-        if (entity.getCommandSenderWorld() instanceof ServerWorld)
+        if (entity.getCommandSenderWorld() instanceof ServerLevel)
         {
             new InvulnTicker(entity);
             if (dest.loc.getDimension() == entity.level.dimension())
@@ -378,16 +379,16 @@ public class Transporter
                 Transporter.moveMob(entity, dest);
                 return;
             }
-            final ServerWorld destWorld = entity.getServer().getLevel(dest.loc.getDimension());
-            if (entity instanceof ServerPlayerEntity)
+            final ServerLevel destWorld = entity.getServer().getLevel(dest.loc.getDimension());
+            if (entity instanceof ServerPlayer)
             {
-                final ServerPlayerEntity player = (ServerPlayerEntity) entity;
+                final ServerPlayer player = (ServerPlayer) entity;
                 player.isChangingDimension = true;
-                player.teleportTo(destWorld, dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot, entity.xRot);
+                player.teleportTo(destWorld, dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.getYRot(), entity.getXRot());
                 if (sound)
                 {
                     destWorld.playLocalSound(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, SoundEvents.ENDERMAN_TELEPORT,
-                            SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+                            SoundSource.BLOCKS, 1.0F, 1.0F, false);
                     player.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
                 }
                 player.isChangingDimension = false;
@@ -397,55 +398,54 @@ public class Transporter
         }
     }
 
-    private static void transferMob(final ServerWorld destWorld, final TeleDest dest, final Entity entity)
+    private static void transferMob(final ServerLevel destWorld, final TeleDest dest, final Entity entity)
     {
-        ServerPlayerEntity player = null;
-        if (entity instanceof ServerPlayerEntity)
+        ServerPlayer player = null;
+        if (entity instanceof ServerPlayer)
         {
-            player = (ServerPlayerEntity) entity;
+            player = (ServerPlayer) entity;
             player.isChangingDimension = true;
         }
-        final ServerWorld serverworld = (ServerWorld) entity.getCommandSenderWorld();
+        final ServerLevel serverworld = (ServerLevel) entity.getCommandSenderWorld();
         Transporter.removeMob(serverworld, entity, true);
         entity.revive();
-        entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot, entity.xRot);
-        entity.setLevel(destWorld);
+        entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.getYRot(), entity.getXRot());
         Transporter.addMob(destWorld, entity);
         if (player != null)
         {
             player.connection.resetPosition();
-            player.connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot, entity.xRot);
+            player.connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.getYRot(), entity.getXRot());
             player.isChangingDimension = false;
         }
     }
 
-    private static void addMob(final ServerWorld world, final Entity entity)
+    private static void addMob(final ServerLevel world, final Entity entity)
     {
         if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
                 new net.minecraftforge.event.entity.EntityJoinWorldEvent(entity, world))) return;
-        final IChunk ichunk = world.getChunk(MathHelper.floor(entity.getX() / 16.0D), MathHelper.floor(entity.getZ()
+        final ChunkAccess ichunk = world.getChunk(Mth.floor(entity.getX() / 16.0D), Mth.floor(entity.getZ()
                 / 16.0D), ChunkStatus.FULL, true);
-        if (ichunk instanceof Chunk) ichunk.addEntity(entity);
-        world.loadFromChunk(entity);
+        if (ichunk instanceof LevelChunk) ichunk.addEntity(entity);
+        world.addDuringTeleport(entity);
     }
 
-    private static void removeMob(final ServerWorld world, final Entity entity, final boolean keepData)
+    private static void removeMob(final ServerLevel world, final Entity entity, final boolean keepData)
     {
-        entity.remove(keepData);
+        entity.remove(RemovalReason.CHANGED_DIMENSION);
         world.removeEntity(entity, keepData);
     }
 
     private static void moveMob(final Entity entity, final TeleDest dest)
     {
-        if (entity instanceof ServerPlayerEntity)
+        if (entity instanceof ServerPlayer)
         {
-            final ServerPlayerEntity player = (ServerPlayerEntity) entity;
+            final ServerPlayer player = (ServerPlayer) entity;
             player.isChangingDimension = true;
-            ((ServerPlayerEntity) entity).connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot,
-                    entity.xRot);
-            ((ServerPlayerEntity) entity).connection.resetPosition();
+            ((ServerPlayer) entity).connection.teleport(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.getYRot(),
+                    entity.getXRot());
+            ((ServerPlayer) entity).connection.resetPosition();
             player.isChangingDimension = false;
         }
-        else entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.yRot, entity.xRot);
+        else entity.moveTo(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.getYRot(), entity.getXRot());
     }
 }

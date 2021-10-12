@@ -7,14 +7,14 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -31,7 +31,7 @@ public class Unclaim
 {
     public static final String GLOBALPERM = "thutessentials.land.unclaim.any";
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "unclaim";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -41,7 +41,7 @@ public class Unclaim
                 "Permission to unclaim land regardless of owner.");
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
 
         // Entire chunk
@@ -69,10 +69,10 @@ public class Unclaim
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here,
+    private static int execute(final CommandSourceStack source, final boolean up, final boolean down, final boolean here,
             final boolean all) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         final boolean canUnclaimAnything = PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM);
 
@@ -96,9 +96,9 @@ public class Unclaim
         }
         player.getServer().execute(() ->
         {
-            final int x = MathHelper.floor(player.blockPosition().getX() >> 4);
-            final int y = MathHelper.floor(player.blockPosition().getY() >> 4);
-            final int z = MathHelper.floor(player.blockPosition().getZ() >> 4);
+            final int x = Mth.floor(player.blockPosition().getX() >> 4);
+            final int y = Mth.floor(player.blockPosition().getY() >> 4);
+            final int z = Mth.floor(player.blockPosition().getZ() >> 4);
 
             final AtomicInteger worked = new AtomicInteger();
             final AtomicInteger other = new AtomicInteger();
@@ -132,7 +132,7 @@ public class Unclaim
         return 0;
     }
 
-    private static int unclaim(final KGobalPos chunk, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final KGobalPos chunk, final Player player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything, final AtomicInteger worked,
             final AtomicInteger other, final AtomicBoolean ready)
     {
@@ -164,11 +164,11 @@ public class Unclaim
         return 0;
     }
 
-    private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final int x, final int y, final int z, final Player player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything, final AtomicInteger worked,
             final AtomicInteger other, final AtomicBoolean ready)
     {
-        final RegistryKey<World> dim = player.getCommandSenderWorld().dimension();
+        final ResourceKey<Level> dim = player.getCommandSenderWorld().dimension();
         final BlockPos b = new BlockPos(x, y, z);
         final KGobalPos chunk = KGobalPos.getPosition(dim, b);
         return Unclaim.unclaim(chunk, player, team, messages, canUnclaimAnything, worked, other, ready);

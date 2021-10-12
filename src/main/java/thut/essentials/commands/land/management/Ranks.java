@@ -11,12 +11,12 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -29,7 +29,7 @@ import thut.essentials.land.LandSaveHandler;
 
 public class Ranks
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "edit_ranks";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -37,8 +37,8 @@ public class Ranks
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-        LiteralArgumentBuilder<CommandSource> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
-        LiteralArgumentBuilder<CommandSource> command;
+        LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
+        LiteralArgumentBuilder<CommandSourceStack> command;
 
         command = base.then(Commands.literal("list_ranks").executes(ctx -> Ranks.list_ranks(ctx.getSource())));
         commandDispatcher.register(command);
@@ -84,7 +84,7 @@ public class Ranks
 
     }
 
-    private static int set_rank(final CommandSource source, final ServerPlayerEntity player, final String rankName)
+    private static int set_rank(final CommandSourceStack source, final ServerPlayer player, final String rankName)
             throws CommandSyntaxException
     {
         final LandTeam landTeam = LandManager.getTeam(source.getPlayerOrException());
@@ -102,7 +102,7 @@ public class Ranks
         return 0;
     }
 
-    private static int rem_rank(final CommandSource source, final ServerPlayerEntity player, final String rankName)
+    private static int rem_rank(final CommandSourceStack source, final ServerPlayer player, final String rankName)
             throws CommandSyntaxException
     {
         final LandTeam landTeam = LandManager.getTeam(source.getPlayerOrException());
@@ -120,9 +120,9 @@ public class Ranks
         return 0;
     }
 
-    private static int list_ranks(final CommandSource source) throws CommandSyntaxException
+    private static int list_ranks(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.header"), Util.NIL_UUID);
         final List<String> ranks = Lists.newArrayList(landTeam.rankMap.keySet());
@@ -133,10 +133,10 @@ public class Ranks
         return 0;
     }
 
-    private static int add_perm(final CommandSource source, final String rankName, final String perm)
+    private static int add_perm(final CommandSourceStack source, final String rankName, final String perm)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
@@ -152,10 +152,10 @@ public class Ranks
         return 0;
     }
 
-    private static int del_perm(final CommandSource source, final String rankName, final String perm)
+    private static int del_perm(final CommandSourceStack source, final String rankName, final String perm)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
@@ -171,9 +171,9 @@ public class Ranks
         return 0;
     }
 
-    private static int add_rank(final CommandSource source, final String rankName) throws CommandSyntaxException
+    private static int add_rank(final CommandSourceStack source, final String rankName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank != null)
@@ -188,9 +188,9 @@ public class Ranks
         return 0;
     }
 
-    private static int del_rank(final CommandSource source, final String rankName) throws CommandSyntaxException
+    private static int del_rank(final CommandSourceStack source, final String rankName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
@@ -205,9 +205,9 @@ public class Ranks
         return 0;
     }
 
-    private static int list_members(final CommandSource source, final String rankName) throws CommandSyntaxException
+    private static int list_members(final CommandSourceStack source, final String rankName) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final PlayerRank rank = landTeam.rankMap.get(rankName);
         if (rank == null)
@@ -218,7 +218,7 @@ public class Ranks
         final Collection<UUID> c = rank.members;
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.rank.memheader", null, false,
                 rankName), Util.NIL_UUID);
-        final ITextComponent list = Members.getMembers(source.getServer(), c, false);
+        final Component list = Members.getMembers(source.getServer(), c, false);
         player.sendMessage(list, Util.NIL_UUID);
         return 0;
     }

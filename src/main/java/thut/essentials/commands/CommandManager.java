@@ -1,21 +1,22 @@
 package thut.essentials.commands;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.Color;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.ClickEvent.Action;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.ClickEvent.Action;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -27,14 +28,14 @@ public class CommandManager
 {
     public static GameProfile getProfile(final MinecraftServer server, final UUID id)
     {
-        GameProfile profile = null;
+        Optional<GameProfile> profile = null;
         // First check profile cache.
         if (id != null) profile = server.getProfileCache().get(id);
-        if (profile == null) profile = new GameProfile(id, null);
+        if (!profile.isPresent()) profile = Optional.of(new GameProfile(id, null));
 
         // Try to fill profile via secure method.
-        LandEventsHandler.TEAMMANAGER.queueUpdate(profile);
-        return profile;
+        LandEventsHandler.TEAMMANAGER.queueUpdate(profile.get());
+        return profile.get();
     }
 
     public static GameProfile getProfile(final MinecraftServer server, final String arg)
@@ -53,30 +54,30 @@ public class CommandManager
             name = arg;
         }
 
-        GameProfile profile = null;
+        Optional<GameProfile> profile = null;
 
         // First check profile cache.
         if (id != null) profile = server.getProfileCache().get(id);
-        if (profile == null) profile = new GameProfile(id, name);
+        if (!profile.isPresent()) profile = Optional.of(new GameProfile(id, name));
 
         // Try to fill profile via secure method.
-        LandEventsHandler.TEAMMANAGER.queueUpdate(profile);
+        LandEventsHandler.TEAMMANAGER.queueUpdate(profile.get());
 
         // Temporarily update the UUID from server player list if possible
-        if (profile.getId() == null)
+        if (profile.get().getId() == null)
         {
-            final PlayerEntity player = server.getPlayerList().getPlayerByName(profile.getName());
-            profile = player.getGameProfile();
+            final Player player = server.getPlayerList().getPlayerByName(profile.get().getName());
+            profile = Optional.of(player.getGameProfile());
         }
 
-        return profile;
+        return profile.get();
     }
 
-    public static boolean hasPerm(final CommandSource source, final String permission)
+    public static boolean hasPerm(final CommandSourceStack source, final String permission)
     {
         try
         {
-            final ServerPlayerEntity player = source.getPlayerOrException();
+            final ServerPlayer player = source.getPlayerOrException();
             return CommandManager.hasPerm(player, permission);
         }
         catch (final CommandSyntaxException e)
@@ -86,7 +87,7 @@ public class CommandManager
         }
     }
 
-    public static boolean hasPerm(final ServerPlayerEntity player, final String permission)
+    public static boolean hasPerm(final ServerPlayer player, final String permission)
     { /*
        * Check if the node is registered, if not, register it as OP, and send
        * error message about this.
@@ -100,7 +101,7 @@ public class CommandManager
         return PermissionAPI.hasPermission(player, permission);
     }
 
-    public static void register_commands(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register_commands(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         // We do this first, as commands might need it.
         MinecraftForge.EVENT_BUS.register(new PlayerMover());
@@ -166,37 +167,37 @@ public class CommandManager
         thut.essentials.commands.util.Fly.register(commandDispatcher);
     }
 
-    public static IFormattableTextComponent makeFormattedCommandLink(final String text, final String command,
+    public static MutableComponent makeFormattedCommandLink(final String text, final String command,
             final Object... args)
     {
-        final IFormattableTextComponent message = Essentials.config.getMessage(text, args);
+        final MutableComponent message = Essentials.config.getMessage(text, args);
         return message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, command)));
     }
 
-    public static IFormattableTextComponent makeFormattedComponent(final String text,
-            final TextFormatting colour,
+    public static MutableComponent makeFormattedComponent(final String text,
+            final ChatFormatting colour,
             final boolean bold, final Object... args)
     {
-        final IFormattableTextComponent message = Essentials.config.getMessage(text, args);
+        final MutableComponent message = Essentials.config.getMessage(text, args);
         Style style = message.getStyle();
-        if (colour != null) style = style.withColor(Color.fromLegacyFormat(colour));
+        if (colour != null) style = style.withColor(TextColor.fromLegacyFormat(colour));
         if (bold) style = style.withBold(bold);
         return message.setStyle(style);
     }
 
-    public static IFormattableTextComponent makeFormattedComponent(final String text,
-            final TextFormatting colour,
+    public static MutableComponent makeFormattedComponent(final String text,
+            final ChatFormatting colour,
             final boolean bold)
     {
         return CommandManager.makeFormattedComponent(text, colour, bold, new Object[0]);
     }
 
-    public static IFormattableTextComponent makeFormattedComponent(final String text)
+    public static MutableComponent makeFormattedComponent(final String text)
     {
         return CommandManager.makeFormattedComponent(text, null, false, new Object[0]);
     }
 
-    public static IFormattableTextComponent makeFormattedCommandLink(final String text, final String command)
+    public static MutableComponent makeFormattedCommandLink(final String text, final String command)
     {
         return CommandManager.makeFormattedCommandLink(text, command, new Object[0]);
     }

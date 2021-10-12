@@ -6,12 +6,12 @@ import java.util.function.Predicate;
 
 import com.google.common.collect.Maps;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.Util;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,23 +24,23 @@ import thut.essentials.util.Transporter.Vector3;
 public class PlayerMover
 
 {
-    public static ITextComponent INTERUPTED;
+    public static Component INTERUPTED;
 
     private static Vector3 offset = new Vector3().set(0.5, 0.5, 0.5);
 
     private static class Mover
     {
         final long              moveTime;
-        final PlayerEntity      player;
+        final Player      player;
         final KGobalPos         moveTo;
         final KGobalPos         start;
-        final ITextComponent    message;
-        final ITextComponent    failMess;
+        final Component    message;
+        final Component    failMess;
         final boolean           event;
         final Predicate<Entity> callback;
 
-        public Mover(final PlayerEntity player, final long moveTime, final KGobalPos moveTo,
-                final ITextComponent message, final ITextComponent failMess, final Predicate<Entity> callback,
+        public Mover(final Player player, final long moveTime, final KGobalPos moveTo,
+                final Component message, final Component failMess, final Predicate<Entity> callback,
                 final boolean event)
         {
             this.player = player;
@@ -57,7 +57,7 @@ public class PlayerMover
         {
             if (!this.moveTo.isValid()) return;
             if (!this.start.isValid()) return;
-            if (this.player == null || !this.player.inChunk || !this.player.isAddedToWorld()) return;
+            if (this.player == null || !this.player.isAddedToWorld()) return;
             if (this.event) MinecraftForge.EVENT_BUS.post(new MoveEvent(this.player));
             if (Essentials.config.log_teleports) InventoryLogger.log("Teleport from {} {} to {} {} for {} {}",
                     CoordinateUtls.chunkPos(this.start), this.start.getDimension().location(), this.start.getPos(),
@@ -79,20 +79,20 @@ public class PlayerMover
         }
     }
 
-    public static void setMove(final PlayerEntity player, final int moveTime, final KGobalPos moveTo,
-            final ITextComponent message, final ITextComponent failMess)
+    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo,
+            final Component message, final Component failMess)
     {
         PlayerMover.setMove(player, moveTime, moveTo, message, failMess, true);
     }
 
-    public static void setMove(final PlayerEntity player, final int moveTime, final KGobalPos moveTo,
-            final ITextComponent message, final ITextComponent failMess, final boolean event)
+    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo,
+            final Component message, final Component failMess, final boolean event)
     {
         PlayerMover.setMove(player, moveTime, moveTo, message, failMess, null, event);
     }
 
-    public static void setMove(final PlayerEntity player, final int moveTime, final KGobalPos moveTo,
-            final ITextComponent message, final ITextComponent failMess, final Predicate<Entity> callback,
+    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo,
+            final Component message, final Component failMess, final Predicate<Entity> callback,
             final boolean event)
     {
         if (player.getVehicle() != null || player.isVehicle())
@@ -121,20 +121,20 @@ public class PlayerMover
     @SubscribeEvent
     public void playerTick(final LivingUpdateEvent tick)
     {
-        if (!(tick.getEntity().level instanceof ServerWorld)) return;
+        if (!(tick.getEntity().level instanceof ServerLevel)) return;
         if (PlayerMover.toMove.containsKey(tick.getEntity().getUUID()))
         {
             final Mover mover = PlayerMover.toMove.get(tick.getEntity().getUUID());
             final KGobalPos playerPos = CoordinateUtls.forMob(mover.player);
-            final Vector3i diff = playerPos.getPos().subtract(mover.start.getPos());
+            final Vec3i diff = playerPos.getPos().subtract(mover.start.getPos());
             if (tick.getEntity().getCommandSenderWorld().getGameTime() > mover.moveTime)
             {
                 mover.move();
                 PlayerMover.toMove.remove(tick.getEntity().getUUID());
             }
-            else if (diff.distSqr(Vector3i.ZERO) > 1 && mover.moveTime > 0)
+            else if (diff.distSqr(Vec3i.ZERO) > 1 && mover.moveTime > 0)
             {
-                System.out.println(diff.distSqr(Vector3i.ZERO));
+                System.out.println(diff.distSqr(Vec3i.ZERO));
                 if (mover.failMess != null) tick.getEntity().sendMessage(mover.failMess, Util.NIL_UUID);
                 PlayerMover.toMove.remove(tick.getEntity().getUUID());
                 return;

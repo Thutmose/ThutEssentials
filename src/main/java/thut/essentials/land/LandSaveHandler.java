@@ -16,13 +16,13 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.storage.FolderName;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.LogicalSidedProvider;
+import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.Coordinate;
 import thut.essentials.land.LandManager.KGobalPos;
@@ -65,7 +65,7 @@ public class LandSaveHandler
     public static File getGlobalFolder()
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final Path path = server.getWorldPath(new FolderName("land"));
+        final Path path = server.getWorldPath(new LevelResource("land"));
         final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
         return file;
@@ -148,7 +148,7 @@ public class LandSaveHandler
                 for (final Coordinate old : oldList)
                 {
                     final BlockPos b = new BlockPos(old.x, old.y, old.z);
-                    final RegistryKey<World> dim = Coordinate.fromOld(old.dim);
+                    final ResourceKey<Level> dim = Coordinate.fromOld(old.dim);
                     if (dim != null)
                     {
                         toAdd.add(KGobalPos.getPosition(dim, b));

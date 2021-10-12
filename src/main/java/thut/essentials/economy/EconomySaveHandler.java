@@ -16,9 +16,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.storage.FolderName;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.LogicalSidedProvider;
+import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import thut.essentials.Essentials;
 import thut.essentials.economy.EconomyManager.Account;
 import thut.essentials.economy.EconomyManager.Shop;
@@ -44,7 +44,7 @@ public class EconomySaveHandler
     public static File getGlobalFolder()
     {
         final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        final Path path = server.getWorldPath(new FolderName("economy"));
+        final Path path = server.getWorldPath(new LevelResource("economy"));
         final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
         return file;

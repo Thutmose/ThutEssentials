@@ -5,15 +5,16 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntArrayTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
@@ -25,71 +26,62 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
 
-public class WorldStructures implements IHasStructures, ICapabilitySerializable<ListNBT>
+public class WorldStructures implements IHasStructures, ICapabilitySerializable<ListTag>
 {
-    public static class StructInfo implements INBTSerializable<CompoundNBT>
+    public static class StructInfo implements INBTSerializable<CompoundTag>
     {
-        ResourceLocation   key;
-        MutableBoundingBox box;
+        ResourceLocation key;
+        BoundingBox      box;
 
-        public StructInfo(final ResourceLocation key, final MutableBoundingBox box)
+        public StructInfo(final ResourceLocation key, final BoundingBox box)
         {
             this.key = key;
             this.box = box;
         }
 
-        public StructInfo(final CompoundNBT tag)
+        public StructInfo(final CompoundTag tag)
         {
             this.deserializeNBT(tag);
         }
 
         @Override
-        public CompoundNBT serializeNBT()
+        public CompoundTag serializeNBT()
         {
-            final CompoundNBT tag = new CompoundNBT();
+            final CompoundTag tag = new CompoundTag();
             tag.putString("key", this.key.toString());
-            tag.put("box", this.box.createTag());
+            tag.put("box", this.write(this.box));
             return tag;
         }
 
         @Override
-        public void deserializeNBT(final CompoundNBT nbt)
+        public void deserializeNBT(final CompoundTag nbt)
         {
             this.key = new ResourceLocation(nbt.getString("key"));
-            this.box = new MutableBoundingBox(nbt.getIntArray("box"));
-        }
-    }
-
-    public static class Storage implements Capability.IStorage<IHasStructures>
-    {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-        @Override
-        public void readNBT(final Capability<IHasStructures> capability, final IHasStructures instance,
-                final Direction side, final INBT nbt)
-        {
-            if (instance instanceof ICapabilitySerializable) ((ICapabilitySerializable) instance).deserializeNBT(nbt);
+            this.box = this.read(nbt.getIntArray("box"));
         }
 
-        @Override
-        public INBT writeNBT(final Capability<IHasStructures> capability, final IHasStructures instance,
-                final Direction side)
+        private IntArrayTag write(final BoundingBox box)
         {
-            if (instance instanceof ICapabilitySerializable<?>) return ((ICapabilitySerializable<?>) instance)
-                    .serializeNBT();
-            return null;
+            return new IntArrayTag(new int[] { box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box
+                    .maxZ() });
+        }
+
+        private BoundingBox read(final int[] arr)
+        {
+            return new BoundingBox(arr[0], arr[1], arr[2], arr[3], arr[4], arr[5]);
         }
     }
 
     public static void setup()
     {
-        CapabilityManager.INSTANCE.register(IHasStructures.class, new Storage(), WorldStructures::new);
+        CapabilityManager.INSTANCE.register(IHasStructures.class);
         MinecraftForge.EVENT_BUS.register(WorldStructures.class);
     }
 
     @SubscribeEvent
-    public static void attach(final AttachCapabilitiesEvent<World> event)
+    public static void attach(final AttachCapabilitiesEvent<Level> event)
     {
-        if (!(event.getObject() instanceof ServerWorld)) return;
+        if (!(event.getObject() instanceof ServerLevel)) return;
         if (event.getCapabilities().containsKey(WorldStructures.CAPTAG)) return;
         event.addCapability(WorldStructures.CAPTAG, new WorldStructures());
     }
@@ -104,11 +96,12 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
     List<StructInfo> structs = Lists.newArrayList();
 
     @Override
-    public void putStructure(final ResourceLocation key, final MutableBoundingBox box)
+    public void putStructure(final ResourceLocation key, final BoundingBox box)
     {
         synchronized (this.structs)
         {
-            this.structs.add(new StructInfo(key, new MutableBoundingBox(box)));
+            this.structs.add(new StructInfo(key, new BoundingBox(box.minX(), box.minY(), box.minZ(), box.maxX(), box
+                    .maxY(), box.maxZ())));
         }
     }
 
@@ -125,7 +118,7 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
     }
 
     @Override
-    public void removeStructures(final ResourceLocation key, final MutableBoundingBox box)
+    public void removeStructures(final ResourceLocation key, final BoundingBox box)
     {
         synchronized (this.structs)
         {
@@ -140,20 +133,20 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
     }
 
     @Override
-    public ListNBT serializeNBT()
+    public ListTag serializeNBT()
     {
-        final ListNBT list = new ListNBT();
+        final ListTag list = new ListTag();
         for (final StructInfo i : this.structs)
             list.add(i.serializeNBT());
         return list;
     }
 
     @Override
-    public void deserializeNBT(final ListNBT nbt)
+    public void deserializeNBT(final ListTag nbt)
     {
         this.structs.clear();
-        for (final INBT tag : nbt)
-            if (tag instanceof CompoundNBT) this.structs.add(new StructInfo((CompoundNBT) tag));
+        for (final Tag tag : nbt)
+            if (tag instanceof CompoundTag) this.structs.add(new StructInfo((CompoundTag) tag));
     }
 
 }

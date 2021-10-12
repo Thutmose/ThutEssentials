@@ -4,15 +4,15 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -23,7 +23,7 @@ import thut.essentials.util.PlayerMover;
 
 public class Spawn
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "spawn";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -31,7 +31,7 @@ public class Spawn
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
         command = command.executes(ctx -> Spawn.execute(ctx.getSource()));
@@ -40,23 +40,23 @@ public class Spawn
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT tptag = tag.getCompound("tp");
+        final Player player = source.getPlayerOrException();
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag tptag = tag.getCompound("tp");
         final long last = tptag.getLong("spawnDelay");
-        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(Level.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.spawnReUseDelay > 0)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", TextFormatting.RED,
+            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tp.tosoon", ChatFormatting.RED,
                     false), Util.NIL_UUID);
             return 1;
         }
         final MinecraftServer server = player.getServer();
         final KGobalPos spawn = KGobalPos.getPosition(Essentials.config.spawnDimension, server
                 .getLevel(Essentials.config.spawnDimension).getSharedSpawnPos());
-        final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.spawn.succeed");
+        final Component teleMess = CommandManager.makeFormattedComponent("thutessentials.spawn.succeed");
         PlayerMover.setMove(player, Essentials.config.spawnActivateDelay, spawn, teleMess, PlayerMover.INTERUPTED);
         tptag.putLong("spawnDelay", time + Essentials.config.spawnReUseDelay);
         tag.put("tp", tptag);

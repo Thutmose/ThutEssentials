@@ -4,9 +4,9 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -15,7 +15,7 @@ import thut.essentials.land.LandEventsHandler;
 
 public class Show
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "show_land";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -24,7 +24,7 @@ public class Show
                 "Can the player see the ownership status of land nearby.");
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // No target argument version
         command = command.executes(ctx -> Show.execute(ctx.getSource()));
@@ -33,9 +33,9 @@ public class Show
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         if (LandEventsHandler.EntityEventHandler.showLandSet.remove(player.getUUID())) Essentials.config
                 .sendFeedback(source, "thutessentials.team.landdisplay.unset", false);
         else if (LandEventsHandler.EntityEventHandler.showLandSet.add(player.getUUID())) Essentials.config

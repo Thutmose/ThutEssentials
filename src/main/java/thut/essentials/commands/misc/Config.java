@@ -10,10 +10,10 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.commands.CommandRuntimeException;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -22,7 +22,7 @@ import thut.essentials.config.Config.ConfigData;
 
 public class Config
 {
-    protected static int execute(final ConfigData data, final CommandSource source, final String field)
+    protected static int execute(final ConfigData data, final CommandSourceStack source, final String field)
     {
         try
         {
@@ -32,13 +32,13 @@ public class Config
         }
         catch (final Exception e)
         {
-            throw new CommandException(new StringTextComponent("Error with field name " + field));
+            throw new CommandRuntimeException(new TextComponent("Error with field name " + field));
         }
 
         return 0;
     }
 
-    protected static int execute(final ConfigData data, final CommandSource source, final String field,
+    protected static int execute(final ConfigData data, final CommandSourceStack source, final String field,
             final String message)
     {
         Field f = null;
@@ -51,7 +51,7 @@ public class Config
         catch (final Exception e)
         {
             Essentials.LOGGER.error(e);
-            throw new CommandException(new StringTextComponent("Error with field name " + field));
+            throw new CommandRuntimeException(new TextComponent("Error with field name " + field));
         }
         final String[] args = message.split(" ");
         String val = args[0];
@@ -85,7 +85,7 @@ public class Config
         }
         catch (final Exception e)
         {
-            throw new CommandException(new StringTextComponent("Error with setting field name " + field));
+            throw new CommandRuntimeException(new TextComponent("Error with setting field name " + field));
         }
         Essentials.config.sendFeedback(source, "thutcore.command.settings.set", true, field, value);
 
@@ -93,7 +93,7 @@ public class Config
     }
 
     static void handleAdd(final ConfigData data, final String[] args, final Object o, final Field field)
-            throws CommandException
+            throws CommandRuntimeException
     {
         String value = args[1];
         for (int i = 3; i < args.length; i++)
@@ -111,19 +111,19 @@ public class Config
             toSet = Arrays.copyOf((int[]) o, len + 1);
             ((int[]) toSet)[len] = Config.parseInt(value);
         }
-        else throw new CommandException(new StringTextComponent("This can only by done for arrays."));
+        else throw new CommandRuntimeException(new TextComponent("This can only by done for arrays."));
         try
         {
             data.updateField(field, toSet);
         }
         catch (final Exception e)
         {
-            throw new CommandException(new StringTextComponent("Error with setting field name " + field));
+            throw new CommandRuntimeException(new TextComponent("Error with setting field name " + field));
         }
     }
 
     static void handleRemove(final ConfigData data, final String[] args, final Object o, final Field field)
-            throws CommandException
+            throws CommandRuntimeException
     {
         String value = args[1];
         for (int i = 3; i < args.length; i++)
@@ -150,19 +150,19 @@ public class Config
             for (int i = 0; i < values.size(); i++)
                 arr[i] = values.get(i);
         }
-        else throw new CommandException(new StringTextComponent("This can only by done for arrays."));
+        else throw new CommandRuntimeException(new TextComponent("This can only by done for arrays."));
         try
         {
             data.updateField(field, toSet);
         }
         catch (final Exception e)
         {
-            throw new CommandException(new StringTextComponent("Error with setting field name " + field));
+            throw new CommandRuntimeException(new TextComponent("Error with setting field name " + field));
         }
     }
 
     static void handleSet(final ConfigData data, final String[] args, final Object o, final Field field)
-            throws CommandException
+            throws CommandRuntimeException
     {
         final int num = Config.parseInt(args[1]);
         String value = args[2];
@@ -179,18 +179,18 @@ public class Config
             ((int[]) o)[num] = Config.parseInt(value);
             toSet = ((int[]) o).clone();
         }
-        else throw new CommandException(new StringTextComponent("This can only by done for arrays."));
+        else throw new CommandRuntimeException(new TextComponent("This can only by done for arrays."));
         try
         {
             data.updateField(field, toSet);
         }
         catch (final Exception e)
         {
-            throw new CommandException(new StringTextComponent("Error with setting field name " + field));
+            throw new CommandRuntimeException(new TextComponent("Error with setting field name " + field));
         }
     }
 
-    public static SuggestionProvider<CommandSource> MakeProvider(final ConfigData data)
+    public static SuggestionProvider<CommandSourceStack> MakeProvider(final ConfigData data)
     {
         final List<String> values = Lists.newArrayList();
         for (final Field f : data.commonValues.keySet())
@@ -199,10 +199,10 @@ public class Config
             values.add(f.getName());
         for (final Field f : data.clientValues.keySet())
             values.add(f.getName());
-        return (ctx, sb) -> net.minecraft.command.ISuggestionProvider.suggest(values, sb);
+        return (ctx, sb) -> net.minecraft.commands.SharedSuggestionProvider.suggest(values, sb);
     }
 
-    public static int parseInt(final String input) throws CommandException
+    public static int parseInt(final String input) throws CommandRuntimeException
     {
         try
         {
@@ -210,12 +210,12 @@ public class Config
         }
         catch (final NumberFormatException var2)
         {
-            throw new CommandException(Essentials.config.getMessage("commands.generic.num.invalid", new Object[] {
+            throw new CommandRuntimeException(Essentials.config.getMessage("commands.generic.num.invalid", new Object[] {
                     input }));
         }
     }
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String prefix = "teconfig";
         String name = "";
@@ -225,7 +225,7 @@ public class Config
         PermissionAPI.registerNode(perm1, DefaultPermissionLevel.OP, "Is the player allowed to check configs for "
                 + data.MODID);
 
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm1)).then(Commands.argument("option", StringArgumentType.string()).suggests(Config.MakeProvider(
                         data)).executes(ctx -> Config.execute(data, ctx.getSource(), StringArgumentType.getString(ctx,
                                 "option"))));

@@ -5,13 +5,13 @@ import java.util.Map;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.HoverEvent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -22,7 +22,7 @@ import thut.essentials.land.LandManager.LandTeam;
 public class Teams
 {
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "team_teams";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -31,7 +31,7 @@ public class Teams
                 "Can the player see the list of teams.");
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // No target argument version
         command = command.executes(ctx -> Teams.execute(ctx.getSource()));
@@ -40,7 +40,7 @@ public class Teams
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source)
+    private static int execute(final CommandSourceStack source)
     {
         Essentials.config.sendFeedback(source, "thutessentials.team.teams", false);
         final Map<String, LandTeam> teamMap = LandManager.getInstance()._teamMap;
@@ -50,11 +50,11 @@ public class Teams
             String emptyTip = "";
             final String lastSeenTip = "[" + (source.getServer().getNextTickTime() - team.lastSeen) / 1000 * 3600 + "h]";
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
-            final IFormattableTextComponent message = new StringTextComponent(TextFormatting.AQUA + "["
-                    + TextFormatting.YELLOW + s + TextFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
+            final MutableComponent message = new TextComponent(ChatFormatting.AQUA + "["
+                    + ChatFormatting.YELLOW + s + ChatFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
 
             final ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/team_members " + s);
-            final IFormattableTextComponent tooltip = Members.getMembers(source.getServer(), team, false);
+            final MutableComponent tooltip = Members.getMembers(source.getServer(), team, false);
             final HoverEvent event2 = new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
             message.setStyle(message.getStyle().withClickEvent(event).withHoverEvent(event2));
             source.sendSuccess(message, false);

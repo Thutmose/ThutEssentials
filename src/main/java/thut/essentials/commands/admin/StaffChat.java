@@ -10,15 +10,15 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.command.arguments.GameProfileArgument;
-import net.minecraft.command.arguments.MessageArgument;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.commands.arguments.MessageArgument;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -33,7 +33,7 @@ import thut.essentials.commands.CommandManager;
 public class StaffChat
 {
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "staff";
         String perm;
@@ -44,7 +44,7 @@ public class StaffChat
         StaffChat.createCommand(commandDispatcher, "sc", perm);
     }
 
-    private static void createCommand(final CommandDispatcher<CommandSource> commandDispatcher, final String name,
+    private static void createCommand(final CommandDispatcher<CommandSourceStack> commandDispatcher, final String name,
             final String perm)
     {
         //@formatter:off
@@ -52,7 +52,7 @@ public class StaffChat
             .then(Commands.literal("add").then(Commands.argument("target", GameProfileArgument.gameProfile())
                 .executes(context -> StaffChat.addStaff(context.getSource(), GameProfileArgument.getGameProfiles(context, "target")))))
             .then(Commands.literal("remove").then(Commands.argument("target", GameProfileArgument.gameProfile())
-                .suggests((context, builder) -> ISuggestionProvider
+                .suggests((context, builder) -> SharedSuggestionProvider
                     .suggest(Essentials.config.staff.stream().map(UUID::fromString).map(id -> context.getSource().getServer().getPlayerList().getPlayer(id))
                         .map(player -> player != null ? player.getName().getString() : "Unknown").collect(Collectors.toList()), builder))
                 .executes(context -> StaffChat.removeStaff(context.getSource(), GameProfileArgument.getGameProfiles(context, "target")))))
@@ -61,10 +61,10 @@ public class StaffChat
         //@formatter:on
     }
 
-    private static int removeStaff(final CommandSource source, final Collection<GameProfile> target)
+    private static int removeStaff(final CommandSourceStack source, final Collection<GameProfile> target)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         final List<String> staffList = Lists.newArrayList(Essentials.config.staff);
         final GameProfile gameProfile = target.stream().findFirst().get();
 
@@ -87,10 +87,10 @@ public class StaffChat
         }
     }
 
-    private static int addStaff(final CommandSource source, final Collection<GameProfile> target)
+    private static int addStaff(final CommandSourceStack source, final Collection<GameProfile> target)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         final List<String> staffList = Lists.newArrayList(Essentials.config.staff);
 
         final GameProfile gameProfile = target.stream().findFirst().get();
@@ -114,18 +114,18 @@ public class StaffChat
         }
     }
 
-    private static int execute(final CommandSource source, final ITextComponent message) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, final Component message) throws CommandSyntaxException
     {
-        final PlayerEntity sender = source.getPlayerOrException();
-        final ITextComponent textComponent = CommandManager.makeFormattedComponent("[Staff] <" + sender.getName()
-                .getString() + "> " + message.getString(), TextFormatting.YELLOW, false);
+        final Player sender = source.getPlayerOrException();
+        final Component textComponent = CommandManager.makeFormattedComponent("[Staff] <" + sender.getName()
+                .getString() + "> " + message.getString(), ChatFormatting.YELLOW, false);
         source.getServer().sendMessage(textComponent, Util.NIL_UUID);
         Essentials.config.staff.forEach(s ->
         {
             try
             {
                 final UUID id = UUID.fromString(s);
-                final PlayerEntity player = source.getServer().getPlayerList().getPlayer(id);
+                final Player player = source.getServer().getPlayerList().getPlayer(id);
                 if (player != null) player.sendMessage(textComponent, Util.NIL_UUID);
             }
             catch (final Exception e)

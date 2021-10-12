@@ -7,16 +7,15 @@ import com.google.common.collect.Sets;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.IntArrayNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntArrayTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
@@ -32,7 +31,7 @@ import thut.essentials.land.LandManager.LandTeam;
 
 public class ClaimedCapability
 {
-    public static class ClaimInfo implements INBTSerializable<CompoundNBT>
+    public static class ClaimInfo implements INBTSerializable<CompoundTag>
     {
         public Set<UUID> publicMobs    = Sets.newHashSet();
         public Set<UUID> protectedMobs = Sets.newHashSet();
@@ -40,29 +39,29 @@ public class ClaimedCapability
         public Set<BlockPos> publicBlocks = Sets.newHashSet();
 
         @Override
-        public CompoundNBT serializeNBT()
+        public CompoundTag serializeNBT()
         {
-            final CompoundNBT tag = new CompoundNBT();
-            final ListNBT mobListPub = new ListNBT();
-            this.publicMobs.forEach(uuid -> mobListPub.add(NBTUtil.createUUID(uuid)));
+            final CompoundTag tag = new CompoundTag();
+            final ListTag mobListPub = new ListTag();
+            this.publicMobs.forEach(uuid -> mobListPub.add(NbtUtils.createUUID(uuid)));
             tag.put("public_mobs", mobListPub);
-            final ListNBT mobListProt = new ListNBT();
-            this.protectedMobs.forEach(uuid -> mobListProt.add(NBTUtil.createUUID(uuid)));
+            final ListTag mobListProt = new ListTag();
+            this.protectedMobs.forEach(uuid -> mobListProt.add(NbtUtils.createUUID(uuid)));
             tag.put("protected_mobs", mobListProt);
-            final ListNBT pubBlocks = new ListNBT();
-            this.publicBlocks.forEach(b -> pubBlocks.add(NBTUtil.writeBlockPos(b)));
+            final ListTag pubBlocks = new ListTag();
+            this.publicBlocks.forEach(b -> pubBlocks.add(NbtUtils.writeBlockPos(b)));
             tag.put("public_blocks", pubBlocks);
             return tag;
         }
 
         @Override
-        public void deserializeNBT(final CompoundNBT nbt)
+        public void deserializeNBT(final CompoundTag nbt)
         {
 
         }
     }
 
-    public static class ClaimSegment implements INBTSerializable<IntArrayNBT>
+    public static class ClaimSegment implements INBTSerializable<IntArrayTag>
     {
         /**
          * This is the UUID of the TeamLand associated with this claim, not the
@@ -75,17 +74,17 @@ public class ClaimedCapability
         public UUID owner = null;
 
         @Override
-        public IntArrayNBT serializeNBT()
+        public IntArrayTag serializeNBT()
         {
-            return NBTUtil.createUUID(this.owner);
+            return NbtUtils.createUUID(this.owner);
         }
 
         @Override
-        public void deserializeNBT(final IntArrayNBT nbt)
+        public void deserializeNBT(final IntArrayTag nbt)
         {
             try
             {
-                this.owner = NBTUtil.loadUUID(nbt);
+                this.owner = NbtUtils.loadUUID(nbt);
             }
             catch (final Exception e)
             {
@@ -101,25 +100,6 @@ public class ClaimedCapability
         ClaimInfo getInfo();
     }
 
-    public static class Storage implements Capability.IStorage<IClaimed>
-    {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-        @Override
-        public void readNBT(final Capability<IClaimed> capability, final IClaimed instance, final Direction side,
-                final INBT nbt)
-        {
-            if (instance instanceof ICapabilitySerializable) ((ICapabilitySerializable) instance).deserializeNBT(nbt);
-        }
-
-        @Override
-        public INBT writeNBT(final Capability<IClaimed> capability, final IClaimed instance, final Direction side)
-        {
-            if (instance instanceof ICapabilitySerializable<?>) return ((ICapabilitySerializable<?>) instance)
-                    .serializeNBT();
-            return null;
-        }
-    }
-
     @CapabilityInject(IClaimed.class)
     public static final Capability<IClaimed> CAPABILITY = null;
 
@@ -127,18 +107,18 @@ public class ClaimedCapability
 
     public static void setup()
     {
-        CapabilityManager.INSTANCE.register(IClaimed.class, new Storage(), ClaimImpl::new);
+        CapabilityManager.INSTANCE.register(IClaimed.class);
         MinecraftForge.EVENT_BUS.register(ClaimedCapability.class);
     }
 
     @SubscribeEvent
-    public static void attach(final AttachCapabilitiesEvent<Chunk> event)
+    public static void attach(final AttachCapabilitiesEvent<LevelChunk> event)
     {
         if (event.getCapabilities().containsKey(ClaimedCapability.CAPTAG)) return;
         event.addCapability(ClaimedCapability.CAPTAG, new ClaimImpl(event.getObject()));
     }
 
-    public static class ClaimImpl implements IClaimed, ICapabilitySerializable<CompoundNBT>
+    public static class ClaimImpl implements IClaimed, ICapabilitySerializable<CompoundTag>
     {
         private final LazyOptional<IClaimed> holder = LazyOptional.of(() -> this);
 
@@ -150,9 +130,9 @@ public class ClaimedCapability
         {
         }
 
-        public ClaimImpl(final Chunk chunk)
+        public ClaimImpl(final LevelChunk chunk)
         {
-            final World world = chunk.getLevel();
+            final Level world = chunk.getLevel();
             if (world.isClientSide) return;
 
             for (int y = 0; y < 16; y++)
@@ -191,9 +171,9 @@ public class ClaimedCapability
         }
 
         @Override
-        public CompoundNBT serializeNBT()
+        public CompoundTag serializeNBT()
         {
-            final CompoundNBT tag = new CompoundNBT();
+            final CompoundTag tag = new CompoundTag();
             tag.put("info", this.info.serializeNBT());
             for (final Entry<ClaimSegment> s : this.claims.int2ObjectEntrySet())
             {
@@ -205,7 +185,7 @@ public class ClaimedCapability
         }
 
         @Override
-        public void deserializeNBT(final CompoundNBT nbt)
+        public void deserializeNBT(final CompoundTag nbt)
         {
             this.info.deserializeNBT(nbt.getCompound("info"));
             for (final String key : nbt.getAllKeys())
@@ -213,7 +193,7 @@ public class ClaimedCapability
                 {
                     final int i = Integer.parseInt(key.replace("seg_", ""));
                     final ClaimSegment claim = new ClaimSegment();
-                    claim.deserializeNBT((IntArrayNBT) nbt.get(key));
+                    claim.deserializeNBT((IntArrayTag) nbt.get(key));
                     if (!LandManager.isWild(LandManager.getInstance().getTeamForLand(claim.owner))) this.claims.put(i,
                             claim);
                 }

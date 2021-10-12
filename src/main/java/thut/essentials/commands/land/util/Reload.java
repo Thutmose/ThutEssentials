@@ -4,8 +4,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -15,7 +15,7 @@ import thut.essentials.land.LandSaveHandler;
 public class Reload
 {
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         // TODO configurable this.
         final String name = "reload_teams";
@@ -25,7 +25,7 @@ public class Reload
                 "Can the player reload the teams list.");
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // No target argument version
         command = command.executes(ctx -> Reload.execute(ctx.getSource()));
@@ -34,7 +34,7 @@ public class Reload
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
         Essentials.config.sendFeedback(source, "thutessentials.team.reloaded", false);
         LandSaveHandler.loadGlobalData();

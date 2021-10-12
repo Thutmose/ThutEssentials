@@ -12,17 +12,17 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.tags.ITag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.tags.Tag;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.ClickEvent.Action;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.Util;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.ClickEvent.Action;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
@@ -194,7 +194,7 @@ public class KitManager
         Item item = ForgeRegistries.ITEMS.getValue(loc);
         if (item == null)
         {
-            final ITag<Item> tags = ItemTags.getAllTags().getTagOrEmpty(loc);
+            final Tag<Item> tags = ItemTags.getAllTags().getTagOrEmpty(loc);
             if (tags != null)
             {
                 item = tags.getRandomElement(new Random(2));
@@ -206,7 +206,7 @@ public class KitManager
         stack.setCount(size);
         if (!tag.isEmpty()) try
         {
-            stack.setTag(JsonToNBT.parseTag(tag));
+            stack.setTag(TagParser.parseTag(tag));
         }
         catch (final CommandSyntaxException e)
         {
@@ -215,12 +215,12 @@ public class KitManager
         return stack;
     }
 
-    public static void sendKitsList(final ServerPlayerEntity player)
+    public static void sendKitsList(final ServerPlayer player)
     {
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         final PlayerContext context = new PlayerContext(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.header"), Util.NIL_UUID);
-        IFormattableTextComponent message;
+        MutableComponent message;
         if (!KitManager.kit.isEmpty() && manager.hasPermission(player.getGameProfile(), "thutessentials.kit.default",
                 context))
         {

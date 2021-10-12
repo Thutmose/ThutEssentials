@@ -4,12 +4,12 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.Util;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -18,7 +18,7 @@ import thut.essentials.util.PlayerDataHandler;
 
 public class TpToggle
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "tptoggle";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -26,7 +26,7 @@ public class TpToggle
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
         command = command.executes(ctx -> TpToggle.execute(ctx.getSource()));
@@ -35,17 +35,17 @@ public class TpToggle
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT tpaTag = tag.getCompound("tpa");
+        final Player player = source.getPlayerOrException();
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag tpaTag = tag.getCompound("tpa");
         final boolean ignore = !tpaTag.getBoolean("ignore");
         tpaTag.putBoolean("ignore", ignore);
         tag.put("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.ignoreset" + ignore,
-                TextFormatting.DARK_GREEN, true), Util.NIL_UUID);
+                ChatFormatting.DARK_GREEN, true), Util.NIL_UUID);
         return 0;
     }
 }

@@ -7,20 +7,20 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.gen.Heightmap.Type;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap.Types;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -33,7 +33,7 @@ public class RTP
 {
     public static BlockPos centre = null;
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "rtp";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -41,7 +41,7 @@ public class RTP
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
         command = command.executes(ctx -> RTP.execute(ctx.getSource()));
@@ -50,13 +50,13 @@ public class RTP
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT tptag = tag.getCompound("tp");
+        final ServerPlayer player = source.getPlayerOrException();
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag tptag = tag.getCompound("tp");
         final long last = tptag.getLong("rtpDelay");
-        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(Level.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.rtpReUseDelay > 0)
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
@@ -67,13 +67,13 @@ public class RTP
         {
             final Predicate<Entity> callback = t ->
             {
-                if (!(t instanceof PlayerEntity)) return false;
+                if (!(t instanceof Player)) return false;
                 tptag.putLong("bedDelay", time + Essentials.config.rtpReUseDelay);
                 tag.put("tp", tptag);
-                PlayerDataHandler.saveCustomData((PlayerEntity) t);
+                PlayerDataHandler.saveCustomData((Player) t);
                 return true;
             };
-            final ITextComponent teleMess = Essentials.config.getMessage("thutessentials.rtp.succeed");
+            final Component teleMess = Essentials.config.getMessage("thutessentials.rtp.succeed");
             PlayerMover.setMove(player, Essentials.config.rtpActivateDelay, spot, teleMess, PlayerMover.INTERUPTED,
                     callback, false);
             return 0;
@@ -82,9 +82,9 @@ public class RTP
         return 1;
     }
 
-    private static KGobalPos getRTPSpot(final ServerPlayerEntity player)
+    private static KGobalPos getRTPSpot(final ServerPlayer player)
     {
-        final ServerWorld world = (ServerWorld) player.getCommandSenderWorld();
+        final ServerLevel world = (ServerLevel) player.getCommandSenderWorld();
         final Random rand = new Random();
         final int dx = rand.nextInt(Essentials.config.rtpDistance) * (rand.nextBoolean() ? 1 : -1);
         final int dz = rand.nextInt(Essentials.config.rtpDistance) * (rand.nextBoolean() ? 1 : -1);
@@ -100,8 +100,8 @@ public class RTP
         // Ensure the chunk exists.
         world.getChunk(new BlockPos(x, 0, z));
         // Find the height at that location
-        final int y = world.getHeight(Type.MOTION_BLOCKING, x, z);
-        final RegistryKey<World> dim = world.dimension();
+        final int y = world.getHeight(Types.MOTION_BLOCKING, x, z);
+        final ResourceKey<Level> dim = world.dimension();
         KGobalPos spot = KGobalPos.getPosition(dim, new BlockPos(x, y + 1, z));
         final BlockPos check = spot.getPos();
 
@@ -128,7 +128,7 @@ public class RTP
         return null;
     }
 
-    private static boolean valid(final BlockPos pos, final World world)
+    private static boolean valid(final BlockPos pos, final Level world)
     {
         final BlockState state1 = world.getBlockState(pos);
         final BlockState state2 = world.getBlockState(pos.above());

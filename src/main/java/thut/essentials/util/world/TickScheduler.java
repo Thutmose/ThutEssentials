@@ -6,16 +6,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.Lists;
 
-import net.minecraft.util.RegistryKey;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
 
 public class TickScheduler
 {
-    private static final Map<RegistryKey<World>, List<Runnable>> endTickRuns   = new ConcurrentHashMap<>();
-    private static final Map<RegistryKey<World>, List<Runnable>> startTickRuns = new ConcurrentHashMap<>();
+    private static final Map<ResourceKey<Level>, List<Runnable>> endTickRuns   = new ConcurrentHashMap<>();
+    private static final Map<ResourceKey<Level>, List<Runnable>> startTickRuns = new ConcurrentHashMap<>();
 
     public static class CustomRunnable implements Runnable
     {
@@ -42,9 +42,9 @@ public class TickScheduler
         }
     }
 
-    public static void Schedule(final RegistryKey<World> key, final Runnable task, final boolean postTick)
+    public static void Schedule(final ResourceKey<Level> key, final Runnable task, final boolean postTick)
     {
-        final Map<RegistryKey<World>, List<Runnable>> map = postTick ? TickScheduler.endTickRuns
+        final Map<ResourceKey<Level>, List<Runnable>> map = postTick ? TickScheduler.endTickRuns
                 : TickScheduler.startTickRuns;
         synchronized (map)
         {
@@ -56,10 +56,10 @@ public class TickScheduler
 
     public static void onWorldTick(final WorldTickEvent event)
     {
-        if (event.world instanceof ServerWorld)
+        if (event.world instanceof ServerLevel)
         {
-            final RegistryKey<World> key = event.world.dimension();
-            final Map<RegistryKey<World>, List<Runnable>> map = event.phase == Phase.END ? TickScheduler.endTickRuns
+            final ResourceKey<Level> key = event.world.dimension();
+            final Map<ResourceKey<Level>, List<Runnable>> map = event.phase == Phase.END ? TickScheduler.endTickRuns
                     : TickScheduler.startTickRuns;
             synchronized (map)
             {

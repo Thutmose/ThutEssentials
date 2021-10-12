@@ -6,18 +6,18 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
 import thut.essentials.Essentials;
 
 public class RuleManager
 {
-    final static Map<String, TextFormatting> charCodeMap = Maps.newHashMap();
+    final static Map<String, ChatFormatting> charCodeMap = Maps.newHashMap();
 
     static
     {
         try
         {
-            for (final TextFormatting format : TextFormatting.values())
+            for (final ChatFormatting format : ChatFormatting.values())
                 try
                 {
                     final char code = format.code;
@@ -55,7 +55,7 @@ public class RuleManager
                     }
                     final String toReplace = rule.substring(index, index + 2);
                     final String num = toReplace.replace("&", "");
-                    final TextFormatting format = RuleManager.charCodeMap.get(num);
+                    final ChatFormatting format = RuleManager.charCodeMap.get(num);
                     if (format != null) rule = rule.replaceAll(toReplace, format + "");
                     else index++;
                 }

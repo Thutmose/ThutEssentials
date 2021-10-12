@@ -1,6 +1,6 @@
 package thut.essentials.util;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
@@ -38,10 +38,10 @@ public class PvPManager
     {
         if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.pvpPerms) return;
-        if (!(evt.getTarget() instanceof ServerPlayerEntity)) return;
-        if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
-        final ServerPlayerEntity attacker = (ServerPlayerEntity) evt.getPlayer();
-        final ServerPlayerEntity attacked = (ServerPlayerEntity) evt.getTarget();
+        if (!(evt.getTarget() instanceof ServerPlayer)) return;
+        if (!(evt.getPlayer() instanceof ServerPlayer)) return;
+        final ServerPlayer attacker = (ServerPlayer) evt.getPlayer();
+        final ServerPlayer attacked = (ServerPlayer) evt.getTarget();
         if (PermissionAPI.hasPermission(attacker, PvPManager.PERMPVP) && PermissionAPI.hasPermission(attacked,
                 PvPManager.PERMPVP)) return;
         evt.setCanceled(true);
@@ -52,10 +52,10 @@ public class PvPManager
     {
         if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.pvpPerms) return;
-        if (!(evt.getEntity() instanceof ServerPlayerEntity)) return;
-        if (!(evt.getSource().getEntity() instanceof ServerPlayerEntity)) return;
-        final ServerPlayerEntity attacker = (ServerPlayerEntity) evt.getSource().getEntity();
-        final ServerPlayerEntity attacked = (ServerPlayerEntity) evt.getEntity();
+        if (!(evt.getEntity() instanceof ServerPlayer)) return;
+        if (!(evt.getSource().getEntity() instanceof ServerPlayer)) return;
+        final ServerPlayer attacker = (ServerPlayer) evt.getSource().getEntity();
+        final ServerPlayer attacked = (ServerPlayer) evt.getEntity();
         if (PermissionAPI.hasPermission(attacker, PvPManager.PERMPVP) && PermissionAPI.hasPermission(attacked,
                 PvPManager.PERMPVP)) return;
         evt.setCanceled(true);

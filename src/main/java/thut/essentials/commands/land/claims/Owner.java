@@ -4,13 +4,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -20,7 +20,7 @@ import thut.essentials.land.LandManager.LandTeam;
 
 public class Owner
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "land_owner";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -28,7 +28,7 @@ public class Owner
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
         command = command.executes(ctx -> Owner.execute(ctx.getSource()));
@@ -37,14 +37,14 @@ public class Owner
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
-        final int x = MathHelper.floor(player.blockPosition().getX() >> 4);
-        final int y = MathHelper.floor(player.blockPosition().getY() >> 4);
-        final int z = MathHelper.floor(player.blockPosition().getZ() >> 4);
+        final Player player = source.getPlayerOrException();
+        final int x = Mth.floor(player.blockPosition().getX() >> 4);
+        final int y = Mth.floor(player.blockPosition().getY() >> 4);
+        final int z = Mth.floor(player.blockPosition().getZ() >> 4);
         if (y < 0 || y > 15) return 1;
-        final World dim = player.getCommandSenderWorld();
+        final Level dim = player.getCommandSenderWorld();
         final BlockPos b = new BlockPos(x, y, z);
         final LandTeam owner = LandManager.getInstance().getLandOwner(dim, b, true);
 

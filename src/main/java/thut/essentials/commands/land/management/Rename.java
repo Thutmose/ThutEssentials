@@ -5,9 +5,9 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandEventsHandler;
@@ -17,7 +17,7 @@ import thut.essentials.land.LandManager.LandTeam;
 public class Rename
 {
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         // TODO configurable this.
         final String name = "rename_team";
@@ -25,7 +25,7 @@ public class Rename
         final String perm = LandEventsHandler.PERMCREATETEAM;
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
 
         // Set up the command's arguments
         command = command.then(Commands.argument("team_name", StringArgumentType.string()).executes(ctx -> Rename
@@ -35,9 +35,9 @@ public class Rename
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source, final String teamname) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, final String teamname) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         if (team == null || team == LandManager.getDefaultTeam())
         {

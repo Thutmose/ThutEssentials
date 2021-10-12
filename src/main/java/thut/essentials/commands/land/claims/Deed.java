@@ -7,17 +7,17 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -36,11 +36,11 @@ public class Deed
     @SubscribeEvent(receiveCanceled = true)
     public static void interact(final PlayerInteractEvent.RightClickItem evt)
     {
-        if (!(evt.getPlayer() instanceof ServerPlayerEntity)) return;
+        if (!(evt.getPlayer() instanceof ServerPlayer)) return;
         final ItemStack stack = evt.getItemStack();
         if (!stack.hasTag() || !stack.getTag().getBoolean("isDeed")) return;
 
-        final ServerPlayerEntity player = (ServerPlayerEntity) evt.getPlayer();
+        final ServerPlayer player = (ServerPlayer) evt.getPlayer();
         if (!PermissionAPI.hasPermission(player, Deed.CANREDEEMDEEDS))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
@@ -58,10 +58,10 @@ public class Deed
         final int num = stack.getTag().getInt("num");
         int n = 0;
         int x = 0, z = 0;
-        final World world = player.getCommandSenderWorld();
+        final Level world = player.getCommandSenderWorld();
         for (int i = 0; i < num; i++)
         {
-            final CompoundNBT tag = stack.getTag().getCompound("" + i);
+            final CompoundTag tag = stack.getTag().getCompound("" + i);
             final KGobalPos c = CoordinateUtls.fromNBT(tag);
             if (c == null) continue;
             if (c.getDimension() != world.dimension())
@@ -97,7 +97,7 @@ public class Deed
 
     private static boolean registered = false;
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "reclaim_deed";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -113,7 +113,7 @@ public class Deed
         Deed.registered = true;
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
 
         // Entire chunk
@@ -136,10 +136,10 @@ public class Deed
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here)
+    private static int execute(final CommandSourceStack source, final boolean up, final boolean down, final boolean here)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         final boolean canUnclaimAnything = PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM);
 
@@ -159,7 +159,7 @@ public class Deed
 
             final Set<KGobalPos> deeds = Sets.newHashSet();
 
-            final RegistryKey<World> dim = player.getCommandSenderWorld().dimension();
+            final ResourceKey<Level> dim = player.getCommandSenderWorld().dimension();
             boolean done = false;
             if (here)
             {
@@ -202,7 +202,7 @@ public class Deed
             if (!deeds.isEmpty())
             {
                 final ItemStack deed = new ItemStack(Items.PAPER);
-                deed.setTag(new CompoundNBT());
+                deed.setTag(new CompoundTag());
                 deed.getTag().putInt("num", deeds.size());
                 deed.getTag().putBoolean("isDeed", true);
                 int i = 0;
@@ -218,7 +218,7 @@ public class Deed
         return 0;
     }
 
-    private static int unclaim(final KGobalPos chunk, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final KGobalPos chunk, final Player player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
@@ -235,7 +235,7 @@ public class Deed
             return 3;
         }
 
-        final World world = player.getCommandSenderWorld();
+        final Level world = player.getCommandSenderWorld();
         LandManager.getInstance().unclaimLand(team.teamName, world, chunk.getPos(), true);
         // ensure the deed team exist, and that it is set to reserved.
         Deed.initDeedTeam();
@@ -253,10 +253,10 @@ public class Deed
         team.reserved = true;
     }
 
-    private static int unclaim(final int x, final int y, final int z, final PlayerEntity player, final LandTeam team,
+    private static int unclaim(final int x, final int y, final int z, final Player player, final LandTeam team,
             final boolean messages, final boolean canUnclaimAnything)
     {
-        final RegistryKey<World> dim = player.getCommandSenderWorld().dimension();
+        final ResourceKey<Level> dim = player.getCommandSenderWorld().dimension();
         final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
         return Deed.unclaim(chunk, player, team, messages, canUnclaimAnything);
     }

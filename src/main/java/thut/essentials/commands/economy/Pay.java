@@ -5,11 +5,11 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Util;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -18,7 +18,7 @@ import thut.essentials.economy.EconomyManager;
 
 public class Pay
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         // TODO configurable this.
         final String name = "pay";
@@ -27,7 +27,7 @@ public class Pay
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
         // Register the execution.
         command = command.then(Commands.argument("target_player", EntityArgument.player()).then(Commands.argument(
@@ -38,10 +38,10 @@ public class Pay
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source, final ServerPlayerEntity payee, final int toSend)
+    private static int execute(final CommandSourceStack source, final ServerPlayer payee, final int toSend)
             throws CommandSyntaxException
     {
-        ServerPlayerEntity player = null;
+        ServerPlayer player = null;
         int senderBalance = Integer.MAX_VALUE;
         try
         {

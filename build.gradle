@@ -22,6 +22,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
+apply from: 'https://raw.githubusercontent.com/SizableShrimp/Forge-Class-Remapper/main/classremapper.gradle'
 
 mixin { add sourceSets.main, "thutessentials.refmap.json" }
 
@@ -35,7 +36,7 @@ version = "${version_minecraft}-${VERSION_COMPILE}"
 group = 'thut'
 archivesBaseName = "${compile_name}"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+java.toolchain.languageVersion = JavaLanguageVersion.of(16)
 
 minecraft {
     mappings channel: "${channel_mappings}", version: "${version_mappings}"

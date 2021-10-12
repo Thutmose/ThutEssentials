@@ -7,15 +7,15 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.ClickEvent.Action;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.Util;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -134,7 +134,7 @@ public class WarpManager
         return WarpManager.warpLocs.get(name);
     }
 
-    public static void sendWarpsList(final ServerPlayerEntity player)
+    public static void sendWarpsList(final ServerPlayer player)
     {
         final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         final PlayerContext context = new PlayerContext(player);
@@ -149,7 +149,7 @@ public class WarpManager
             }
             s = args[0];
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
-            final IFormattableTextComponent message = CommandManager.makeFormattedComponent(
+            final MutableComponent message = CommandManager.makeFormattedComponent(
                     "thutessentials.warps.entry", null, false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
             Style style = message.getStyle();
@@ -159,13 +159,13 @@ public class WarpManager
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.footer"), Util.NIL_UUID);
     }
 
-    public static int attemptWarp(final ServerPlayerEntity player, final String warpName)
+    public static int attemptWarp(final ServerPlayer player, final String warpName)
     {
         final KGobalPos warp = WarpManager.getWarp(warpName);
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT tptag = tag.getCompound("tp");
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag tptag = tag.getCompound("tp");
         final long last = tptag.getLong("warpDelay");
-        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(Level.OVERWORLD).getGameTime();
         // Too Soon
         if (last > time && Essentials.config.warpReUseDelay > 0) return 1;
         if (warp != null)
@@ -174,7 +174,7 @@ public class WarpManager
             final PlayerContext context = new PlayerContext(player);
             // No allowed
             if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + warpName, context)) return 2;
-            final ITextComponent teleMess = CommandManager.makeFormattedComponent("thutessentials.warps.warped", null,
+            final Component teleMess = CommandManager.makeFormattedComponent("thutessentials.warps.warped", null,
                     false, warpName);
             PlayerMover.setMove(player, Essentials.config.warpActivateDelay, warp, teleMess, PlayerMover.INTERUPTED);
             tptag.putLong("warpDelay", time + Essentials.config.warpReUseDelay);

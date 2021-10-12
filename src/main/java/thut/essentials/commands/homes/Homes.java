@@ -5,13 +5,13 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -23,7 +23,7 @@ import thut.essentials.util.PlayerMover;
 
 public class Homes
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         String name = "homes";
         if (!Essentials.config.commandBlacklist.contains(name))
@@ -32,7 +32,7 @@ public class Homes
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
             // Register the execution.
             command = command.executes(ctx -> Homes.execute(ctx.getSource()));
@@ -47,7 +47,7 @@ public class Homes
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
 
             // Home name argument version.
@@ -62,38 +62,38 @@ public class Homes
         }
     }
 
-    private static int execute(final CommandSource source) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         HomeManager.sendHomeList(player);
         return 0;
     }
 
-    private static int execute(final CommandSource source, String homeName) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, String homeName) throws CommandSyntaxException
     {
         if (homeName == null) homeName = "Home";
 
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final KGobalPos home = HomeManager.getHome(player, homeName);
         if (home == null)
         {
-            final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null,
+            final Component message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null,
                     false, homeName);
             player.sendMessage(message, Util.NIL_UUID);
             return 1;
         }
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
-        final CompoundNBT tptag = tag.getCompound("tp");
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
+        final CompoundTag tptag = tag.getCompound("tp");
         final long last = tptag.getLong("homeDelay");
-        final long time = player.getServer().getLevel(World.OVERWORLD).getGameTime();
+        final long time = player.getServer().getLevel(Level.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.homeReUseDelay > 0)
         {
-            final ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
+            final Component message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
             player.sendMessage(message, Util.NIL_UUID);
             return 2;
         }
 
-        ITextComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.warping", null, false,
+        Component message = CommandManager.makeFormattedComponent("thutessentials.homes.warping", null, false,
                 homeName);
         player.sendMessage(message, Util.NIL_UUID);
         message = CommandManager.makeFormattedComponent("thutessentials.homes.warped", null, false, homeName);

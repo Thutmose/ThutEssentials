@@ -7,11 +7,11 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.GameProfileArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -23,14 +23,14 @@ import thut.essentials.util.RuleManager;
 
 public class Nick
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "nick";
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
 
         command = command.then(Commands.argument("player", GameProfileArgument.gameProfile()).then(Commands.argument(
@@ -52,17 +52,17 @@ public class Nick
         NameManager.init();
     }
 
-    private static int add_name_prefix(final CommandSource source, final Collection<GameProfile> target, String prefix)
+    private static int add_name_prefix(final CommandSourceStack source, final Collection<GameProfile> target, String prefix)
     {
         if (prefix.length() > 8) prefix = prefix.substring(0, 8);
         prefix = RuleManager.format(prefix);
         final MinecraftServer server = source.getServer();
         for (final GameProfile p : target)
         {
-            final ServerPlayerEntity player = server.getPlayerList().getPlayer(p.getId());
+            final ServerPlayer player = server.getPlayerList().getPlayer(p.getId());
             if (player == null) continue;
 
-            final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+            final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
             tag.putString("nick_pref", prefix);
             PlayerDataHandler.saveCustomData(player);
             player.refreshDisplayName();
@@ -70,16 +70,16 @@ public class Nick
         return 0;
     }
 
-    private static int add_name_suffix(final CommandSource source, final Collection<GameProfile> target, String prefix)
+    private static int add_name_suffix(final CommandSourceStack source, final Collection<GameProfile> target, String prefix)
     {
         if (prefix.length() > 8) prefix = prefix.substring(0, 8);
         prefix = RuleManager.format(prefix);
         final MinecraftServer server = source.getServer();
         for (final GameProfile p : target)
         {
-            final ServerPlayerEntity player = server.getPlayerList().getPlayer(p.getId());
+            final ServerPlayer player = server.getPlayerList().getPlayer(p.getId());
             if (player == null) continue;
-            final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+            final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
             tag.putString("nick_suff", prefix);
             PlayerDataHandler.saveCustomData(player);
             player.refreshDisplayName();
@@ -87,16 +87,16 @@ public class Nick
         return 0;
     }
 
-    private static int set_nick(final CommandSource source, final Collection<GameProfile> target, String nick)
+    private static int set_nick(final CommandSourceStack source, final Collection<GameProfile> target, String nick)
     {
         if (nick.length() > 16) nick = nick.substring(0, 16);
         nick = RuleManager.format(nick);
         final MinecraftServer server = source.getServer();
         for (final GameProfile p : target)
         {
-            final ServerPlayerEntity player = server.getPlayerList().getPlayer(p.getId());
+            final ServerPlayer player = server.getPlayerList().getPlayer(p.getId());
             if (player == null) continue;
-            final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+            final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
             if ("_".equals(nick) && player != null) if (tag.contains("nick_orig")) nick = tag.getString("nick_orig");
             if (!tag.contains("nick_orig")) tag.putString("nick_orig", p.getName());
             tag.putString("nick", nick);

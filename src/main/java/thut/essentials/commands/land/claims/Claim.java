@@ -10,19 +10,19 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.Util;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
+import net.minecraftforge.fmlserverevents.FMLServerStoppingEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -44,7 +44,7 @@ public class Claim
 
     private static final Map<UUID, KGobalPos> claimstarts = Maps.newHashMap();
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "claim";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -59,7 +59,7 @@ public class Claim
                 "Permission to use /claim start and /claim end to bulk claim chunks.");
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
 
         // Entire chunk
@@ -105,8 +105,8 @@ public class Claim
     public static void livingUpdate(final LivingUpdateEvent evt)
     {
         if (!evt.getEntity().isAlive() || !Claim.autoclaimers.contains(evt.getEntity().getUUID()) || !(evt
-                .getEntityLiving() instanceof ServerPlayerEntity)) return;
-        final ServerPlayerEntity player = (ServerPlayerEntity) evt.getEntityLiving();
+                .getEntityLiving() instanceof ServerPlayer)) return;
+        final ServerPlayer player = (ServerPlayer) evt.getEntityLiving();
         final LandTeam team = LandManager.getTeam(player);
 
         BlockPos here;
@@ -118,10 +118,10 @@ public class Claim
         final KGobalPos oldChunk = CoordinateUtls.chunkPos(KGobalPos.getPosition(player.getCommandSenderWorld()
                 .dimension(), old));
         if (newChunk.equals(oldChunk)) return;
-        final World dim = player.getCommandSenderWorld();
+        final Level dim = player.getCommandSenderWorld();
 
-        final int x = MathHelper.floor(player.blockPosition().getX() >> 4);
-        final int z = MathHelper.floor(player.blockPosition().getZ() >> 4);
+        final int x = Mth.floor(player.blockPosition().getX() >> 4);
+        final int z = Mth.floor(player.blockPosition().getZ() >> 4);
         final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
         for (int i = 0; i < 16; i++)
             Claim.claim(x, i, z, dim, player, team, false, noLimit);
@@ -135,9 +135,9 @@ public class Claim
         MinecraftForge.EVENT_BUS.unregister(Claim.class);
     }
 
-    private static int executeCheck(final CommandSource source) throws CommandSyntaxException
+    private static int executeCheck(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         final int count = LandManager.getInstance().countLand(team.teamName);
         final int teamCount = team.member.size();
@@ -147,9 +147,9 @@ public class Claim
         return 0;
     }
 
-    private static int executeStart(final CommandSource source) throws CommandSyntaxException
+    private static int executeStart(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
@@ -164,9 +164,9 @@ public class Claim
         return 0;
     }
 
-    private static int executeEnd(final CommandSource source) throws CommandSyntaxException
+    private static int executeEnd(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
@@ -188,13 +188,13 @@ public class Claim
         }
         player.getServer().execute(() ->
         {        // easy way to sort the x, z coordinates by min/max
-            final AxisAlignedBB box = new AxisAlignedBB(start.getPos(), end.getPos());
+            final AABB box = new AABB(start.getPos(), end.getPos());
             final boolean noLimit = PermissionAPI.hasPermission(player, Claim.BYPASSLIMIT);
-            final World dim = player.getCommandSenderWorld();
+            final Level dim = player.getCommandSenderWorld();
             int n = 0;
             // Convert to chunk coordinates for the loop with the >> 4
-            for (int x = MathHelper.floor(box.minX) >> 4; x <= MathHelper.floor(box.maxX) >> 4; x++)
-                for (int z = MathHelper.floor(box.minZ) >> 4; z <= MathHelper.floor(box.maxZ) >> 4; z++)
+            for (int x = Mth.floor(box.minX) >> 4; x <= Mth.floor(box.maxX) >> 4; x++)
+                for (int z = Mth.floor(box.minZ) >> 4; z <= Mth.floor(box.maxZ) >> 4; z++)
                     for (int y = 0; y < 16; y++)
 
                         n += Claim.claim(x, y, z, dim, player, team, false, noLimit);
@@ -204,9 +204,9 @@ public class Claim
         return 0;
     }
 
-    private static int executeAuto(final CommandSource source) throws CommandSyntaxException
+    private static int executeAuto(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         if (Claim.autoclaimers.contains(player.getUUID()))
         {
             Claim.autoclaimers.remove(player.getUUID());
@@ -220,10 +220,10 @@ public class Claim
         return 0;
     }
 
-    private static int execute(final CommandSource source, final boolean up, final boolean down, final boolean here)
+    private static int execute(final CommandSourceStack source, final boolean up, final boolean down, final boolean here)
             throws CommandSyntaxException
     {
-        final PlayerEntity player = source.getPlayerOrException();
+        final Player player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
@@ -238,7 +238,7 @@ public class Claim
             final int x = player.blockPosition().getX() >> 4;
             final int y = player.blockPosition().getY() >> 4;
             final int z = player.blockPosition().getZ() >> 4;
-            final World dim = player.getCommandSenderWorld();
+            final Level dim = player.getCommandSenderWorld();
 
             if (here)
             {
@@ -279,13 +279,13 @@ public class Claim
         return 0;
     }
 
-    public static int claim(final int x, final int y, final int z, final World dim, final PlayerEntity player,
+    public static int claim(final int x, final int y, final int z, final Level dim, final Player player,
             final LandTeam team, final boolean messages, final boolean noLimit)
     {
         return Claim.claim(dim, new BlockPos(x, y, z), player, team, messages, noLimit);
     }
 
-    public static int claim(final World world, final BlockPos chunkCoord, final PlayerEntity player,
+    public static int claim(final Level world, final BlockPos chunkCoord, final Player player,
             final LandTeam team, final boolean messages, final boolean noLimit)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(world, chunkCoord, true);

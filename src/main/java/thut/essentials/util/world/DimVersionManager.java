@@ -2,15 +2,15 @@ package thut.essentials.util.world;
 
 import java.io.File;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.IntNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.SaveFormat.LevelSave;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.Util;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
@@ -34,7 +34,7 @@ public class DimVersionManager
         void setVersion(int vers);
     }
 
-    public static class VersionHolder implements IVersioned, ICapabilitySerializable<IntNBT>
+    public static class VersionHolder implements IVersioned, ICapabilitySerializable<IntTag>
     {
         private final LazyOptional<IVersioned> holder = LazyOptional.of(() -> this);
 
@@ -50,13 +50,13 @@ public class DimVersionManager
         }
 
         @Override
-        public IntNBT serializeNBT()
+        public IntTag serializeNBT()
         {
-            return IntNBT.valueOf(this.vers);
+            return IntTag.valueOf(this.vers);
         }
 
         @Override
-        public void deserializeNBT(final IntNBT nbt)
+        public void deserializeNBT(final IntTag nbt)
         {
             this.vers = nbt.getAsInt();
         }
@@ -80,30 +80,11 @@ public class DimVersionManager
         }
     }
 
-    public static class Storage implements Capability.IStorage<IVersioned>
-    {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-        @Override
-        public void readNBT(final Capability<IVersioned> capability, final IVersioned instance, final Direction side,
-                final INBT nbt)
-        {
-            if (instance instanceof ICapabilitySerializable) ((ICapabilitySerializable) instance).deserializeNBT(nbt);
-        }
-
-        @Override
-        public INBT writeNBT(final Capability<IVersioned> capability, final IVersioned instance, final Direction side)
-        {
-            if (instance instanceof ICapabilitySerializable<?>) return ((ICapabilitySerializable<?>) instance)
-                    .serializeNBT();
-            return null;
-        }
-    }
-
     public static void init()
     {
-        CapabilityManager.INSTANCE.register(IVersioned.class, new Storage(), VersionHolder::new);
+        CapabilityManager.INSTANCE.register(IVersioned.class);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleTeleLoading);
-        MinecraftForge.EVENT_BUS.addGenericListener(World.class, DimVersionManager::attach);
+        MinecraftForge.EVENT_BUS.addGenericListener(Level.class, DimVersionManager::attach);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWorldLoad);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWarnPlayer);
     }
@@ -113,10 +94,10 @@ public class DimVersionManager
     @CapabilityInject(IVersioned.class)
     public static final Capability<IVersioned> CAPABILITY = null;
 
-    public static void attach(final AttachCapabilitiesEvent<World> event)
+    public static void attach(final AttachCapabilitiesEvent<Level> event)
     {
-        if (!(event.getObject() instanceof ServerWorld)) return;
-        final ServerWorld world = (ServerWorld) event.getObject();
+        if (!(event.getObject() instanceof ServerLevel)) return;
+        final ServerLevel world = (ServerLevel) event.getObject();
         if (!Essentials.config.versioned_dim_keys.contains(world.dimension().location())) return;
         if (event.getCapabilities().containsKey(DimVersionManager.CAPTAG)) return;
         event.addCapability(DimVersionManager.CAPTAG, new VersionHolder(Essentials.config.dim_verison));
@@ -137,14 +118,14 @@ public class DimVersionManager
 
     public static void handleWorldLoad(final WorldEvent.Load event)
     {
-        if (!(event.getWorld() instanceof ServerWorld)) return;
-        final ServerWorld world = (ServerWorld) event.getWorld();
+        if (!(event.getWorld() instanceof ServerLevel)) return;
+        final ServerLevel world = (ServerLevel) event.getWorld();
         final IVersioned vers = world.getCapability(DimVersionManager.CAPABILITY).orElse(null);
         // Not all worlds will have this, only ones to track!
         if (vers == null) return;
         if (vers.getVersion() < Essentials.config.dim_verison)
         {
-            final LevelSave var = world.getServer().storageSource;
+            final LevelStorageAccess var = world.getServer().storageSource;
             final File file = var.getDimensionPath(world.dimension());
             int i = 0;
             File named_file = new File(file.getParent(), file.getName() + "_" + i++);
@@ -164,9 +145,9 @@ public class DimVersionManager
 
     public static void handleWarnPlayer(final EntityJoinWorldEvent event)
     {
-        if (!(event.getEntity() instanceof ServerPlayerEntity)) return;
+        if (!(event.getEntity() instanceof ServerPlayer)) return;
         if (!Essentials.config.versioned_dim_warning) return;
-        final ServerWorld world = (ServerWorld) event.getWorld();
+        final ServerLevel world = (ServerLevel) event.getWorld();
         if (!Essentials.config.versioned_dim_keys.contains(world.dimension().location())) return;
         event.getEntity().sendMessage(Essentials.config.getMessage("thutessentials.dimversions.warning"),
                 Util.NIL_UUID);

@@ -9,9 +9,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -20,15 +20,15 @@ import thut.essentials.util.WarpManager;
 
 public class Delete
 {
-    private static SuggestionProvider<CommandSource> SUGGEST_NAMES = (ctx, sb) ->
+    private static SuggestionProvider<CommandSourceStack> SUGGEST_NAMES = (ctx, sb) ->
     {
         final List<String> opts = Lists.newArrayList();
         opts.addAll(WarpManager.warpLocs.keySet());
         opts.replaceAll(s -> s.contains(" ") ? "\"" + s + "\"" : s);
-        return net.minecraft.command.ISuggestionProvider.suggest(opts, sb);
+        return net.minecraft.commands.SharedSuggestionProvider.suggest(opts, sb);
     };
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "del_warp";
         if (!Essentials.config.commandBlacklist.contains(name))
@@ -37,7 +37,7 @@ public class Delete
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /"
                     + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
 
             // Home name argument version.
@@ -47,10 +47,10 @@ public class Delete
         }
     }
 
-    private static int execute(final CommandSource source, final String homeName) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, final String homeName) throws CommandSyntaxException
     {
         final int ret = WarpManager.delWarp(homeName);
-        ITextComponent message;
+        Component message;
         switch (ret)
         {
         case 0:

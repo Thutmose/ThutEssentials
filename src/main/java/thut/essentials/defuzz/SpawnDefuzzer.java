@@ -5,11 +5,11 @@ import java.util.UUID;
 
 import com.google.common.collect.Sets;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent;
@@ -27,11 +27,11 @@ public class SpawnDefuzzer
 
     final static Set<UUID> logins = Sets.newHashSet();
 
-    private static boolean shouldDefuz(final ServerPlayerEntity player, final boolean respawn)
+    private static boolean shouldDefuz(final ServerPlayer player, final boolean respawn)
     {
         if (!Essentials.config.defuzzKey.isEmpty())
         {
-            final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(player);
+            final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
             if (!tag.getString("__defuzz_key__").equals(Essentials.config.defuzzKey)) return true;
         }
         if (!respawn)
@@ -48,9 +48,9 @@ public class SpawnDefuzzer
     public static void deFuzzRespawn(final PlayerRespawnEvent event)
     {
         if (!Essentials.config.defuzz) return;
-        if (!(event.getPlayer() instanceof ServerPlayerEntity)) return;
-        final ServerWorld world = event.getPlayer().getServer().getLevel(Essentials.config.spawnDimension);
-        final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
+        if (!(event.getPlayer() instanceof ServerPlayer)) return;
+        final ServerLevel world = event.getPlayer().getServer().getLevel(Essentials.config.spawnDimension);
+        final ServerPlayer player = (ServerPlayer) event.getPlayer();
         final BlockPos worldSpawn = world.getSharedSpawnPos();
         if (SpawnDefuzzer.shouldDefuz(player, true))
         {
@@ -71,11 +71,11 @@ public class SpawnDefuzzer
     {
         if (!Essentials.config.defuzz) return;
         if (SpawnDefuzzer.logins.contains(evt.getEntity().getUUID()) && evt
-                .getEntity() instanceof ServerPlayerEntity)
+                .getEntity() instanceof ServerPlayer)
         {
-            final ServerPlayerEntity player = (ServerPlayerEntity) evt.getEntity();
+            final ServerPlayer player = (ServerPlayer) evt.getEntity();
             SpawnDefuzzer.logins.remove(evt.getEntity().getUUID());
-            final ServerWorld world = player.getServer().getLevel(Essentials.config.spawnDimension);
+            final ServerLevel world = player.getServer().getLevel(Essentials.config.spawnDimension);
             final BlockPos worldSpawn = world.getSharedSpawnPos();
             if (SpawnDefuzzer.shouldDefuz(player, false))
             {
@@ -91,9 +91,9 @@ public class SpawnDefuzzer
     public static void deFuzzSpawn(final PlayerLoggedInEvent event)
     {
         if (!Essentials.config.defuzz) return;
-        if (event.getPlayer() instanceof ServerPlayerEntity)
+        if (event.getPlayer() instanceof ServerPlayer)
         {
-            final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
+            final ServerPlayer player = (ServerPlayer) event.getPlayer();
             Essentials.LOGGER.info("Login detected, adding player to logins for defuzz.");
             SpawnDefuzzer.logins.add(player.getUUID());
         }

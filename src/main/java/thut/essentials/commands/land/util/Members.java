@@ -10,11 +10,11 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -25,7 +25,7 @@ import thut.essentials.land.LandManager.LandTeam;
 public class Members
 {
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         // TODO configurable this.
         final String name = "team_members";
@@ -35,7 +35,7 @@ public class Members
                 "Can the player see the list members of a team.");
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
                 perm));
 
         command = command.then(Commands.argument("team_name", StringArgumentType.string()).executes(ctx -> Members
@@ -45,7 +45,7 @@ public class Members
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSource source, final String teamname)
+    private static int execute(final CommandSourceStack source, final String teamname)
     {
         final LandTeam team = LandManager.getInstance().getTeam(teamname, false);
         if (team == null)
@@ -58,17 +58,17 @@ public class Members
         return 0;
     }
 
-    public static IFormattableTextComponent getMembers(final MinecraftServer server, final LandTeam team,
+    public static MutableComponent getMembers(final MinecraftServer server, final LandTeam team,
             final boolean tabbed)
     {
         final Collection<UUID> c = team.member;
         return Members.getMembers(server, c, tabbed);
     }
 
-    public static IFormattableTextComponent getMembers(final MinecraftServer server, final Collection<UUID> c,
+    public static MutableComponent getMembers(final MinecraftServer server, final Collection<UUID> c,
             final boolean tabbed)
     {
-        final StringTextComponent mess = new StringTextComponent("");
+        final TextComponent mess = new TextComponent("");
         final List<UUID> ids = Lists.newArrayList(c);
         for (int i = 0; i < ids.size(); i++)
         {

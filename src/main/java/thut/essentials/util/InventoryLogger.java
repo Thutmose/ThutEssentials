@@ -9,13 +9,13 @@ import java.util.Set;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.IContainerListener;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.INameable;
-import net.minecraft.util.NonNullList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerListener;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.Nameable;
+import net.minecraft.core.NonNullList;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
@@ -26,24 +26,26 @@ import thut.essentials.land.LandManager.KGobalPos;
 
 public class InventoryLogger
 {
-    private static class Listener implements IContainerListener
+    private static class Listener implements ContainerListener
     {
-        final PlayerEntity    player;
+        final Player    player;
         final List<ItemStack> initialList = Lists.newArrayList();
 
-        public Listener(final PlayerEntity player, final Container opened)
+        public Listener(final Player player, final AbstractContainerMenu opened)
         {
             this.player = player;
             this.initialList.addAll(opened.lastSlots);
         }
 
         @Override
-        public void refreshContainer(final Container containerToSend, final NonNullList<ItemStack> itemsList)
+        public void dataChanged(final AbstractContainerMenu p_150524_, final int p_150525_, final int p_150526_)
         {
+            // TODO Auto-generated method stub
+
         }
 
         @Override
-        public void slotChanged(final Container containerToSend, final int slotInd, final ItemStack stack)
+        public void slotChanged(final AbstractContainerMenu containerToSend, final int slotInd, final ItemStack stack)
         {
             try
             {
@@ -52,10 +54,10 @@ public class InventoryLogger
                 while (slotInd >= this.initialList.size())
                     this.initialList.add(ItemStack.EMPTY);
                 final ItemStack oldStack = this.initialList.get(slotInd);
-                final IInventory inventory = containerToSend.getSlot(slotInd).container;
+                final Container inventory = containerToSend.getSlot(slotInd).container;
                 String invName = inventory.toString();
-                if (inventory instanceof INameable && ((INameable) inventory).getName() != null)
-                    invName = ((INameable) inventory).getName().getString();
+                if (inventory instanceof Nameable && ((Nameable) inventory).getName() != null)
+                    invName = ((Nameable) inventory).getName().getString();
                 final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(this.player));
 
                 if (oldStack.isEmpty() && !stack.isEmpty()) InventoryLogger.log("slot_place {}: {} {}, {} {} {}", c,
@@ -77,11 +79,6 @@ public class InventoryLogger
                 Collections.sort(temp);
                 Essentials.config.inventory_log_blacklist = temp;
             }
-        }
-
-        @Override
-        public void setContainerData(final Container containerIn, final int varToUpdate, final int newValue)
-        {
         }
 
     }

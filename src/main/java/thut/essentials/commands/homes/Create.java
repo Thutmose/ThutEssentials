@@ -5,11 +5,11 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -18,7 +18,7 @@ import thut.essentials.util.HomeManager;
 
 public class Create
 {
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "set_home";
         if (!Essentials.config.commandBlacklist.contains(name))
@@ -27,7 +27,7 @@ public class Create
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
 
             // Home name argument version.
@@ -42,12 +42,12 @@ public class Create
         }
     }
 
-    private static int execute(final CommandSource source, String homeName) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, String homeName) throws CommandSyntaxException
     {
         if (homeName == null) homeName = "Home";
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final int ret = HomeManager.setHome(player, homeName);
-        ITextComponent message;
+        Component message;
         switch (ret)
         {
         case 0:

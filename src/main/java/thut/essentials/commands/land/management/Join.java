@@ -10,12 +10,12 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Util;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -27,9 +27,9 @@ import thut.essentials.land.LandManager.LandTeam;
 public class Join
 {
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
-        final SuggestionProvider<CommandSource> suggestor = (ctx, sb) -> ISuggestionProvider.suggest(Join.getTeams(),
+        final SuggestionProvider<CommandSourceStack> suggestor = (ctx, sb) -> SharedSuggestionProvider.suggest(Join.getTeams(),
                 sb);
 
         String name = "join_team";
@@ -39,7 +39,7 @@ public class Join
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
             command = command.then(Commands.argument("team", StringArgumentType.string()).suggests(suggestor).executes(
                     ctx -> Join.execute(ctx.getSource(), null, StringArgumentType.getString(ctx, "team"))));
@@ -53,7 +53,7 @@ public class Join
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
             command = command.executes(ctx -> Join.execute(ctx.getSource(), null, LandManager
                     .getDefaultTeam().teamName));
@@ -67,7 +67,7 @@ public class Join
             PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /"
                     + name);
 
-            LiteralArgumentBuilder<CommandSource> command = Commands.literal(name).requires(cs -> CommandManager
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
                     .hasPerm(cs, perm));
             command = command.then(Commands.argument("team", StringArgumentType.string()).suggests(suggestor).then(
                     Commands.argument("player", EntityArgument.player()).executes(ctx -> Join.execute(ctx.getSource(),
@@ -83,7 +83,7 @@ public class Join
         return teams;
     }
 
-    private static int execute(final CommandSource source, ServerPlayerEntity player, final String team)
+    private static int execute(final CommandSourceStack source, ServerPlayer player, final String team)
             throws CommandSyntaxException
     {
         final boolean forced = player != null;

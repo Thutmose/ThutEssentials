@@ -12,10 +12,10 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Util;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.Util;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -39,7 +39,7 @@ public class Relations
         Collections.sort(Relations.perms);
     }
 
-    public static SuggestionProvider<CommandSource> suggestTeams()
+    public static SuggestionProvider<CommandSourceStack> suggestTeams()
     {
         return (ctx, sb) ->
         {
@@ -47,16 +47,16 @@ public class Relations
             for (final String s : LandManager.getInstance()._teamMap.keySet())
                 values.add(s);
             Collections.sort(values);
-            return net.minecraft.command.ISuggestionProvider.suggest(values, sb);
+            return net.minecraft.commands.SharedSuggestionProvider.suggest(values, sb);
         };
     }
 
-    public static SuggestionProvider<CommandSource> suggestPerms()
+    public static SuggestionProvider<CommandSourceStack> suggestPerms()
     {
-        return (ctx, sb) -> net.minecraft.command.ISuggestionProvider.suggest(Relations.perms, sb);
+        return (ctx, sb) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Relations.perms, sb);
     }
 
-    public static void register(final CommandDispatcher<CommandSource> commandDispatcher)
+    public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "team_relations";
         if (Essentials.config.commandBlacklist.contains(name)) return;
@@ -64,8 +64,8 @@ public class Relations
         String perm;
         PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-        LiteralArgumentBuilder<CommandSource> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
-        LiteralArgumentBuilder<CommandSource> command;
+        LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
+        LiteralArgumentBuilder<CommandSourceStack> command;
 
         command = base.then(Commands.literal("list").executes(ctx -> Relations.list(ctx.getSource())));
         commandDispatcher.register(command);
@@ -98,7 +98,7 @@ public class Relations
         commandDispatcher.register(command);
     }
 
-    private static int list(final CommandSource source)
+    private static int list(final CommandSourceStack source)
     {
         Essentials.config.sendFeedback(source, "thutessentials.team.relations.header", false);
         for (final String s : Relations.perms)
@@ -106,9 +106,9 @@ public class Relations
         return 0;
     }
 
-    private static int relations_all(final CommandSource source) throws CommandSyntaxException
+    private static int relations_all(final CommandSourceStack source) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final List<String> keys = Lists.newArrayList(landTeam.relations.keySet());
         if (keys.isEmpty()) player.sendMessage(CommandManager.makeFormattedComponent(
@@ -118,9 +118,9 @@ public class Relations
         return 0;
     }
 
-    private static int relations(final CommandSource source, final String team) throws CommandSyntaxException
+    private static int relations(final CommandSourceStack source, final String team) throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final Relation relate = landTeam.relations.get(team);
         if (relate == null)
@@ -136,10 +136,10 @@ public class Relations
         return 0;
     }
 
-    private static int set(final CommandSource source, final String other, final String perm)
+    private static int set(final CommandSourceStack source, final String other, final String perm)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         if (!Relations.perms.contains(perm))
         {
@@ -161,10 +161,10 @@ public class Relations
         return 0;
     }
 
-    private static int unset(final CommandSource source, final String other, final String perm)
+    private static int unset(final CommandSourceStack source, final String other, final String perm)
             throws CommandSyntaxException
     {
-        final ServerPlayerEntity player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         if (!Relations.perms.contains(perm))
         {

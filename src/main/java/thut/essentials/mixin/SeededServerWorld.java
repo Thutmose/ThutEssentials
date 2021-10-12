@@ -7,19 +7,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.profiler.IProfiler;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.ISpawnWorldInfo;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.storage.WritableLevelData;
 import thut.essentials.Essentials;
 
-@Mixin(ServerWorld.class)
-public abstract class SeededServerWorld extends World
+@Mixin(ServerLevel.class)
+public abstract class SeededServerWorld extends Level
 {
-    protected SeededServerWorld(final ISpawnWorldInfo worldInfo, final RegistryKey<World> dimension,
-            final DimensionType dimensionType, final Supplier<IProfiler> profiler, final boolean isRemote,
+    protected SeededServerWorld(final WritableLevelData worldInfo, final ResourceKey<Level> dimension,
+            final DimensionType dimensionType, final Supplier<ProfilerFiller> profiler, final boolean isRemote,
             final boolean isDebug, final long seed)
     {
         super(worldInfo, dimension, dimensionType, profiler, isRemote, isDebug, seed);

@@ -7,29 +7,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.level.Level;
 import thut.essentials.util.PlayerDataHandler;
 
-@Mixin(ServerPlayerEntity.class)
-public abstract class MixinServerPlayerEntity extends PlayerEntity
+@Mixin(ServerPlayer.class)
+public abstract class MixinServerPlayerEntity extends Player
 {
 
-    public MixinServerPlayerEntity(final World p_i241920_1_, final BlockPos p_i241920_2_, final float p_i241920_3_,
+    public MixinServerPlayerEntity(final Level p_i241920_1_, final BlockPos p_i241920_2_, final float p_i241920_3_,
             final GameProfile p_i241920_4_)
     {
         super(p_i241920_1_, p_i241920_2_, p_i241920_3_, p_i241920_4_);
     }
 
     @Inject(method = "getTabListDisplayName", at = @At(value = "RETURN"), cancellable = true)
-    private void onGetTabListDisplayName(final CallbackInfoReturnable<ITextComponent> cir)
+    private void onGetTabListDisplayName(final CallbackInfoReturnable<Component> cir)
     {
-        final CompoundNBT tag = PlayerDataHandler.getCustomDataTag(this);
-        if (tag.contains("nick")) cir.setReturnValue(new StringTextComponent(tag.getString("nick")));
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(this);
+        if (tag.contains("nick")) cir.setReturnValue(new TextComponent(tag.getString("nick")));
     }
 }
