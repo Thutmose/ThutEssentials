@@ -20,6 +20,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fmllegacy.network.FMLNetworkConstants;
 import net.minecraftforge.fmlserverevents.FMLServerStartedEvent;
 import net.minecraftforge.fmlserverevents.FMLServerStartingEvent;
 import net.minecraftforge.fmlserverevents.FMLServerStoppingEvent;
@@ -86,7 +87,8 @@ public class Essentials
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
 
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class,
-                () -> new IExtensionPoint.DisplayTest(() -> "thutessentials", (incoming, isNetwork) -> true));
+                () -> new IExtensionPoint.DisplayTest(() -> FMLNetworkConstants.IGNORESERVERONLY, (ver,
+                        remote) -> true));
     }
 
     public void setup(final FMLCommonSetupEvent event)
