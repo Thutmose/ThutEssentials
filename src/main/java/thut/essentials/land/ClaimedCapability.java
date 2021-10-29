@@ -18,13 +18,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
@@ -100,19 +100,22 @@ public class ClaimedCapability
         ClaimInfo getInfo();
     }
 
-    @CapabilityInject(IClaimed.class)
-    public static final Capability<IClaimed> CAPABILITY = null;
+    public static final Capability<IClaimed> CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
 
     private static final ResourceLocation CAPTAG = new ResourceLocation(Essentials.MODID, "claims");
 
     public static void setup()
     {
-        CapabilityManager.INSTANCE.register(IClaimed.class);
-        MinecraftForge.EVENT_BUS.register(ClaimedCapability.class);
+        MinecraftForge.EVENT_BUS.addListener(ClaimedCapability::registerCapabilities);
+        MinecraftForge.EVENT_BUS.addGenericListener(LevelChunk.class, ClaimedCapability::attach);
     }
 
-    @SubscribeEvent
-    public static void attach(final AttachCapabilitiesEvent<LevelChunk> event)
+    private static void registerCapabilities(final RegisterCapabilitiesEvent event)
+    {
+        event.register(IClaimed.class);
+    }
+
+    private static void attach(final AttachCapabilitiesEvent<LevelChunk> event)
     {
         if (event.getCapabilities().containsKey(ClaimedCapability.CAPTAG)) return;
         event.addCapability(ClaimedCapability.CAPTAG, new ClaimImpl(event.getObject()));
@@ -137,8 +140,8 @@ public class ClaimedCapability
 
             for (int y = 0; y < 16; y++)
             {
-                final KGobalPos pos = KGobalPos.getPosition(world.dimension(), new BlockPos(chunk.getPos().x, y,
-                        chunk.getPos().z));
+                final KGobalPos pos = KGobalPos.getPosition(world.dimension(), new BlockPos(chunk.getPos().x, y, chunk
+                        .getPos().z));
                 if (LandManager.getInstance()._landMap.containsKey(pos))
                 {
                     final LandTeam team = LandManager.getInstance()._landMap.remove(pos);

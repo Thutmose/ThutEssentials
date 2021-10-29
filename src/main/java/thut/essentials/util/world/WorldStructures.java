@@ -17,13 +17,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
 
 public class WorldStructures implements IHasStructures, ICapabilitySerializable<ListTag>
@@ -74,12 +74,16 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
 
     public static void setup()
     {
-        CapabilityManager.INSTANCE.register(IHasStructures.class);
-        MinecraftForge.EVENT_BUS.register(WorldStructures.class);
+        MinecraftForge.EVENT_BUS.addListener(WorldStructures::registerCapabilities);
+        MinecraftForge.EVENT_BUS.addGenericListener(Level.class, WorldStructures::attach);
     }
 
-    @SubscribeEvent
-    public static void attach(final AttachCapabilitiesEvent<Level> event)
+    private static void registerCapabilities(final RegisterCapabilitiesEvent event)
+    {
+        event.register(IHasStructures.class);
+    }
+
+    private static void attach(final AttachCapabilitiesEvent<Level> event)
     {
         if (!(event.getObject() instanceof ServerLevel)) return;
         if (event.getCapabilities().containsKey(WorldStructures.CAPTAG)) return;
@@ -88,8 +92,7 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
 
     private static final ResourceLocation CAPTAG = new ResourceLocation(Essentials.MODID, "genned_structures");
 
-    @CapabilityInject(IHasStructures.class)
-    public static final Capability<IHasStructures> CAPABILITY = null;
+    public static final Capability<IHasStructures> CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
 
     private final LazyOptional<IHasStructures> holder = LazyOptional.of(() -> this);
 

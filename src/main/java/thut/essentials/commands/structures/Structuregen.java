@@ -2,9 +2,6 @@ package thut.essentials.commands.structures;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mojang.brigadier.CommandDispatcher;
@@ -13,28 +10,14 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import com.mojang.datafixers.util.Either;
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.feature.ConfiguredStructureFeature;
-import net.minecraft.world.level.StructureFeatureManager;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
-import net.minecraft.server.level.ChunkHolder;
-import net.minecraft.server.level.ChunkMap;
-import net.minecraft.server.level.ServerChunkCache;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ThreadedLevelLightEngine;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -82,16 +65,16 @@ public class Structuregen
             final List<LevelChunk> originals, final WorldGenRegionWrapper worldRegion, final int minY, final int maxY,
             final boolean doStructures, final ChunkPos mid)
     {
-        final ServerLevel world = worldRegion.world;
-        final StructureManager templates = world.getStructureManager();
-        final ServerChunkCache chunkProvider = world.getChunkSource();
-        final ChunkGenerator generator = chunkProvider.generator;
-        final ThreadedLevelLightEngine lightManager = chunkProvider.getLightEngine();
-
-        final CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> future = new CompletableFuture<>();
-
-        final Function<ChunkAccess, CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> loadingFunction = (
-                chunk) -> future;
+//        final ServerLevel world = worldRegion.world;
+//        final StructureManager templates = world.getStructureManager();
+//        final ServerChunkCache chunkProvider = world.getChunkSource();
+//        final ChunkGenerator generator = chunkProvider.generator;
+//        final ThreadedLevelLightEngine lightManager = chunkProvider.getLightEngine();
+//
+//        final CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> future = new CompletableFuture<>();
+//
+//        final Function<ChunkAccess, CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> loadingFunction = (
+//                chunk) -> future;
 
         try
         {
@@ -172,15 +155,15 @@ public class Structuregen
 
     private static int execute_reset(final CommandSourceStack source, final int radius) throws CommandSyntaxException
     {
-
-        final ServerPlayer player = source.getPlayerOrException();
-        final ChunkAccess chunk = player.getCommandSenderWorld().getChunkAt(player.blockPosition());
-        final ServerLevel worldIn = player.getLevel();
-        final ChunkPos chunkpos = chunk.getPos();
-
-        final ServerChunkCache chunkProvider = worldIn.getChunkSource();
-        final ChunkMap manager = chunkProvider.chunkMap;
-
+//
+//        final ServerPlayer player = source.getPlayerOrException();
+//        final ChunkAccess chunk = player.getCommandSenderWorld().getChunkAt(player.blockPosition());
+//        final ServerLevel worldIn = player.getLevel();
+//        final ChunkPos chunkpos = chunk.getPos();
+//
+//        final ServerChunkCache chunkProvider = worldIn.getChunkSource();
+//        final ChunkMap manager = chunkProvider.chunkMap;
+//
 //        TickScheduler.Schedule(worldIn.dimension(), () ->
 //        {
 //            ChunkPos.rangeClosed(chunkpos, radius).forEach(p ->
@@ -211,27 +194,26 @@ public class Structuregen
         return 0;
     }
 
-    @SuppressWarnings("unchecked")
     private static int execute_generate(final CommandSourceStack source, final String structname)
             throws CommandSyntaxException
     {
-        final ServerPlayer player = source.getPlayerOrException();
-
-        final ResourceLocation key = new ResourceLocation(structname);
-        if (!BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE.keySet().contains(key)) return 1;
-
-        final ChunkAccess chunk = player.getCommandSenderWorld().getChunkAt(player.blockPosition());
-        final ServerLevel worldIn = player.getLevel();
-        final ChunkGenerator generator = worldIn.getChunkSource().generator;
-        final RegistryAccess reg = worldIn.getServer().registryAccess();
-        final StructureManager templateManager = worldIn.getStructureManager();
-        final int refs = 0;
-        final long seed = worldIn.getRandom().nextLong();
-        final Biome biome = worldIn.getBiome(player.blockPosition());
-        final StructureFeatureManager structManager = worldIn.structureFeatureManager();
-        final ChunkPos pos = chunk.getPos();
-        final ConfiguredStructureFeature<?, ?> feature = BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE.get(key);
-
+//        final ServerPlayer player = source.getPlayerOrException();
+//
+//        final ResourceLocation key = new ResourceLocation(structname);
+//        if (!BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE.keySet().contains(key)) return 1;
+//
+//        final ChunkAccess chunk = player.getCommandSenderWorld().getChunkAt(player.blockPosition());
+//        final ServerLevel worldIn = player.getLevel();
+//        final ChunkGenerator generator = worldIn.getChunkSource().generator;
+//        final RegistryAccess reg = worldIn.getServer().registryAccess();
+//        final StructureManager templateManager = worldIn.getStructureManager();
+//        final int refs = 0;
+//        final long seed = worldIn.getRandom().nextLong();
+//        final Biome biome = worldIn.getBiome(player.blockPosition());
+//        final StructureFeatureManager structManager = worldIn.structureFeatureManager();
+//        final ChunkPos pos = chunk.getPos();
+//        final ConfiguredStructureFeature<?, ?> feature = BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE.get(key);
+//
 //        final StructureFeature<?> structure = feature.feature;
 //        @SuppressWarnings("rawtypes")
 //        final StructureStart start = structure.createStart(pos.x, pos.z, BoundingBox.infinite(), refs, seed);

@@ -112,15 +112,11 @@ public class PlayerDataHandler
             for (final Class<? extends PlayerData> type : PlayerDataHandler.dataMap)
                 try
                 {
-                    final PlayerData toAdd = type.newInstance();
+                    final PlayerData toAdd = type.getConstructor().newInstance();
                     this.data.put(type, toAdd);
                     this.idMap.put(toAdd.getIdentifier(), toAdd);
                 }
-                catch (final InstantiationException e)
-                {
-                    e.printStackTrace();
-                }
-                catch (final IllegalAccessException e)
+                catch (final Exception e)
                 {
                     e.printStackTrace();
                 }

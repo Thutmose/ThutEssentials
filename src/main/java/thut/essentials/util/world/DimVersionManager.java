@@ -3,7 +3,6 @@ package thut.essentials.util.world;
 import java.io.File;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -13,9 +12,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -82,7 +82,7 @@ public class DimVersionManager
 
     public static void init()
     {
-        CapabilityManager.INSTANCE.register(IVersioned.class);
+        MinecraftForge.EVENT_BUS.addListener(DimVersionManager::registerCapabilities);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleTeleLoading);
         MinecraftForge.EVENT_BUS.addGenericListener(Level.class, DimVersionManager::attach);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWorldLoad);
@@ -91,10 +91,14 @@ public class DimVersionManager
 
     private static final ResourceLocation CAPTAG = new ResourceLocation(Essentials.MODID, "version");
 
-    @CapabilityInject(IVersioned.class)
-    public static final Capability<IVersioned> CAPABILITY = null;
+    public static final Capability<IVersioned> CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
 
-    public static void attach(final AttachCapabilitiesEvent<Level> event)
+    private static void registerCapabilities(final RegisterCapabilitiesEvent event)
+    {
+        event.register(IVersioned.class);
+    }
+
+    private static void attach(final AttachCapabilitiesEvent<Level> event)
     {
         if (!(event.getObject() instanceof ServerLevel)) return;
         final ServerLevel world = (ServerLevel) event.getObject();
@@ -103,7 +107,7 @@ public class DimVersionManager
         event.addCapability(DimVersionManager.CAPTAG, new VersionHolder(Essentials.config.dim_verison));
     }
 
-    public static void handleTeleLoading(final TeleLoadEvent event)
+    private static void handleTeleLoading(final TeleLoadEvent event)
     {
         final TeleDest dest = event.getOverride();
         if (dest == null) return;
@@ -116,7 +120,7 @@ public class DimVersionManager
         }
     }
 
-    public static void handleWorldLoad(final WorldEvent.Load event)
+    private static void handleWorldLoad(final WorldEvent.Load event)
     {
         if (!(event.getWorld() instanceof ServerLevel)) return;
         final ServerLevel world = (ServerLevel) event.getWorld();
@@ -143,7 +147,7 @@ public class DimVersionManager
         vers.setVersion(Essentials.config.dim_verison);
     }
 
-    public static void handleWarnPlayer(final EntityJoinWorldEvent event)
+    private static void handleWarnPlayer(final EntityJoinWorldEvent event)
     {
         if (!(event.getEntity() instanceof ServerPlayer)) return;
         if (!Essentials.config.versioned_dim_warning) return;
