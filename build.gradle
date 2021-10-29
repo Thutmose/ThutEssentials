@@ -22,7 +22,9 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
-apply from: 'https://raw.githubusercontent.com/SizableShrimp/Forge-Class-Remapper/main/classremapper.gradle'
+
+eclipseJdtApt.enabled = false
+eclipseFactoryPath.enabled = false
 
 mixin { add sourceSets.main, "thutessentials.refmap.json" }
 
