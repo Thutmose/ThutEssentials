@@ -20,8 +20,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -86,7 +84,7 @@ public class Bed
         if (player.getRespawnPosition() == null) return null;
         final KGobalPos pos = KGobalPos.getPosition(player.getRespawnDimension(), player.getRespawnPosition());
         final KGobalPos spot = pos;
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         final ServerLevel world = server.getLevel(pos.getDimension());
         if (world == null) return null;
         final BlockPos check = pos.getPos();

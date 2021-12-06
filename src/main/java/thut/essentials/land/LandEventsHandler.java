@@ -56,6 +56,7 @@ import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.event.world.BlockEvent.EntityPlaceEvent;
@@ -65,8 +66,6 @@ import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fmllegacy.LogicalSidedProvider;
-import net.minecraftforge.fmlserverevents.FMLServerStartedEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -386,7 +385,7 @@ public class LandEventsHandler
 
         private void sendNearbyChunks(final ServerPlayer player)
         {
-            final ParticleOptions otherowned = ParticleTypes.BARRIER;
+            final ParticleOptions otherowned = ParticleTypes.ANGRY_VILLAGER;
             final ParticleOptions owned = ParticleTypes.HAPPY_VILLAGER;
             final ParticleOptions chunkloaded = ParticleTypes.HEART;
             ParticleOptions show = null;
@@ -1253,7 +1252,7 @@ public class LandEventsHandler
         public static Set<KGobalPos> allLoaded = Sets.newConcurrentHashSet();
 
         @SubscribeEvent
-        public static void ServerLoaded(final FMLServerStartedEvent event)
+        public static void ServerLoaded(final ServerStartedEvent event)
         {
             if (!Essentials.config.chunkLoading) return;
             ChunkLoadHandler.server.tell(new TickTask(1, () ->
@@ -1419,7 +1418,7 @@ public class LandEventsHandler
     public void tick(final ServerTickEvent event)
     {
         if (this.toCheck.isEmpty() || event.phase != Phase.END) return;
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         if (server.getNextTickTime() % 200 != 0) return;
         GameProfile profile = this.toCheck.get(0);
         try
@@ -1441,7 +1440,7 @@ public class LandEventsHandler
     {
         final Player entityPlayer = evt.getPlayer();
         final LandTeam team = LandManager.getTeam(entityPlayer);
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         team.lastSeen = server.getNextTickTime();
     }
 
@@ -1450,7 +1449,7 @@ public class LandEventsHandler
     {
         final Player entityPlayer = evt.getPlayer();
         final LandTeam team = LandManager.getTeam(entityPlayer);
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         team.lastSeen = server.getNextTickTime();
     }
 

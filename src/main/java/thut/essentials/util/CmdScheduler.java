@@ -10,8 +10,6 @@ import com.google.gson.JsonSyntaxException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.ServerTickEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import thut.essentials.Essentials;
 
 public class CmdScheduler
@@ -54,7 +52,7 @@ public class CmdScheduler
     {
         if (event.phase != Phase.END) return;
         CmdScheduler.tick++;
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         for (final Cmd cmd : CmdScheduler.cmds)
             if (cmd._last_run + cmd.timer < CmdScheduler.tick)
             {

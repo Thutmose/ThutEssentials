@@ -2,13 +2,13 @@ package thut.essentials.util.world;
 
 import java.io.File;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.Util;
-import net.minecraft.world.level.Level;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
@@ -130,7 +130,7 @@ public class DimVersionManager
         if (vers.getVersion() < Essentials.config.dim_verison)
         {
             final LevelStorageAccess var = world.getServer().storageSource;
-            final File file = var.getDimensionPath(world.dimension());
+            final File file = var.getDimensionPath(world.dimension()).toFile();
             int i = 0;
             File named_file = new File(file.getParent(), file.getName() + "_" + i++);
             while (named_file.exists())

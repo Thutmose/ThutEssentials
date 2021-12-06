@@ -21,8 +21,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.Coordinate;
 import thut.essentials.land.LandManager.KGobalPos;
@@ -64,7 +62,7 @@ public class LandSaveHandler
 
     public static File getGlobalFolder()
     {
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         final Path path = server.getWorldPath(new LevelResource("land"));
         final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
@@ -133,7 +131,7 @@ public class LandSaveHandler
                 .addDeserializationExclusionStrategy(LandSaveHandler.exclusion).setPrettyPrinting().create();
         final File folder = LandSaveHandler.getTeamFolder();
         if (Essentials.config.debug) Essentials.LOGGER.info("Starting Loading Teams");
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         for (final File file : folder.listFiles())
             try
             {

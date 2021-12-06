@@ -10,8 +10,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.appender.FileAppender;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.IExtensionPoint;
@@ -20,10 +25,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fmllegacy.network.FMLNetworkConstants;
-import net.minecraftforge.fmlserverevents.FMLServerStartedEvent;
-import net.minecraftforge.fmlserverevents.FMLServerStartingEvent;
-import net.minecraftforge.fmlserverevents.FMLServerStoppingEvent;
+import net.minecraftforge.network.NetworkConstants;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
@@ -40,10 +42,12 @@ import thut.essentials.util.world.WorldStructures;
 @Mod(Essentials.MODID)
 public class Essentials
 {
-    public static final String MODID  = "thutessentials";
+    public static final String MODID = "thutessentials";
     public static final Config config = new Config();
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger(Essentials.MODID);
+
+    public static MinecraftServer server = null;
 
     public Essentials()
     {
@@ -57,9 +61,9 @@ public class Essentials
             try
             {
                 final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-                Files.move(FMLPaths.GAMEDIR.get().resolve("logs").resolve(log + ".log"), FMLPaths.GAMEDIR.get().resolve(
-                        "logs").resolve("old").resolve(String.format("%s_%s%s", log, LocalDateTime.now().format(dtf)
-                                .replace(":", "-"), ".log")));
+                Files.move(FMLPaths.GAMEDIR.get().resolve("logs").resolve(log + ".log"),
+                        FMLPaths.GAMEDIR.get().resolve("logs").resolve("old").resolve(String.format("%s_%s%s", log,
+                                LocalDateTime.now().format(dtf).replace(":", "-"), ".log")));
             }
             catch (final IOException e)
             {
@@ -67,8 +71,8 @@ public class Essentials
             }
         }
         final org.apache.logging.log4j.core.Logger logger = (org.apache.logging.log4j.core.Logger) Essentials.LOGGER;
-        final FileAppender appender = FileAppender.newBuilder().withFileName(logfile.getAbsolutePath()).setName(
-                Essentials.MODID).build();
+        final FileAppender appender = FileAppender.newBuilder().withFileName(logfile.getAbsolutePath())
+                .setName(Essentials.MODID).build();
         logger.addAppender(appender);
         appender.start();
 
@@ -87,8 +91,7 @@ public class Essentials
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
 
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class,
-                () -> new IExtensionPoint.DisplayTest(() -> FMLNetworkConstants.IGNORESERVERONLY, (ver,
-                        remote) -> true));
+                () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (ver, remote) -> true));
     }
 
     public void setup(final FMLCommonSetupEvent event)
@@ -102,7 +105,13 @@ public class Essentials
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void serverStarting(final FMLServerStartingEvent event)
+    public void serverAboutStart(final ServerAboutToStartEvent event)
+    {
+        server = event.getServer();
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void serverStarting(final ServerStartingEvent event)
     {
         if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.getInstance();
@@ -112,7 +121,7 @@ public class Essentials
     }
 
     @SubscribeEvent
-    public void serverStarted(final FMLServerStartedEvent event)
+    public void serverStarted(final ServerStartedEvent event)
     {
         if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.getInstance();
@@ -126,7 +135,7 @@ public class Essentials
     }
 
     @SubscribeEvent
-    public void serverUnload(final FMLServerStoppingEvent evt)
+    public void serverUnload(final ServerStoppingEvent evt)
     {
         if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.clearInstance();

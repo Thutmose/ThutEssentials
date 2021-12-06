@@ -17,8 +17,6 @@ import com.google.gson.GsonBuilder;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import thut.essentials.Essentials;
 import thut.essentials.economy.EconomyManager.Account;
 import thut.essentials.economy.EconomyManager.Shop;
@@ -43,7 +41,7 @@ public class EconomySaveHandler
 
     public static File getGlobalFolder()
     {
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         final Path path = server.getWorldPath(new LevelResource("economy"));
         final File file = path.toFile();
         if (!file.exists()) file.mkdirs();
@@ -52,7 +50,7 @@ public class EconomySaveHandler
 
     public static void saveGlobalData()
     {
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         if (server == null) return;
         final Gson gson = new GsonBuilder().addSerializationExclusionStrategy(EconomySaveHandler.exclusion)
                 .setPrettyPrinting().create();
@@ -71,7 +69,7 @@ public class EconomySaveHandler
 
     public static void loadGlobalData()
     {
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         if (server != null)
         {
             final File teamsFile = new File(EconomySaveHandler.getGlobalFolder(), "economy.json");

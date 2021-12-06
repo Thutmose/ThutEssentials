@@ -22,8 +22,7 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fmllegacy.LogicalSidedProvider;
+import thut.essentials.Essentials;
 
 public class PlayerDataHandler
 {
@@ -186,7 +185,7 @@ public class PlayerDataHandler
 
     public static File getFileForUUID(final String uuid, final String fileName)
     {
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         Path path = server.getWorldPath(new LevelResource("thutessentials"));
         // This is to the uuid specific folder
         path = path.resolve(uuid);
@@ -230,7 +229,7 @@ public class PlayerDataHandler
         // something may have requested the manager for an offline player, which
         // would have loaded it.
         final Set<String> toUnload = Sets.newHashSet();
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         for (final String uuid : this.data.keySet())
         {
             final ServerPlayer player = server.getPlayerList().getPlayer(UUID.fromString(uuid));

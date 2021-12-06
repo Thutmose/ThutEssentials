@@ -21,8 +21,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fmlserverevents.FMLServerStoppingEvent;
 import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
@@ -128,7 +128,7 @@ public class Claim
     }
 
     @SubscribeEvent
-    public static void serverUnload(final FMLServerStoppingEvent evt)
+    public static void serverUnload(final ServerStoppingEvent evt)
     {
         Claim.autoclaimers.clear();
         Claim.claimstarts.clear();

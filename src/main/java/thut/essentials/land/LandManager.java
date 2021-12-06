@@ -24,8 +24,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fmllegacy.LogicalSidedProvider;
 import thut.essentials.Essentials;
 import thut.essentials.land.ClaimedCapability.ClaimSegment;
 import thut.essentials.land.ClaimedCapability.IClaimed;
@@ -115,7 +113,7 @@ public class LandManager
                     final Integer i = Integer.parseInt(args[0]);
                     final ResourceLocation key = new ResourceLocation(args[1]);
                     final ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, key);
-                    final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+                    final MinecraftServer server = Essentials.server;
                     if (server.getLevel(dim) == null)
                     {
                         Essentials.LOGGER.error("Dim {} is not a valid world, skipping!", key);
@@ -644,7 +642,7 @@ public class LandManager
         if (team == _default) return;
         for (final KGobalPos c : team.land.claims)
             this._landMap.remove(c);
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         for (final UUID id : team.member)
         {
             _default.member.add(id);
@@ -761,7 +759,7 @@ public class LandManager
         final Invites invite = this.invites.get(member);
         if (invite != null) invite.teams.remove(team);
         LandSaveHandler.saveTeam(team);
-        final MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
+        final MinecraftServer server = Essentials.server;
         try
         {
             final Player player = server.getPlayerList().getPlayer(member);
