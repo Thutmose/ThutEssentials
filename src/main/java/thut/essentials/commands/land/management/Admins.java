@@ -8,17 +8,17 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.Util;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class Admins
 {
@@ -28,7 +28,7 @@ public class Admins
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
@@ -41,7 +41,7 @@ public class Admins
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> Edit.adminUse(cs,
@@ -55,7 +55,7 @@ public class Admins
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
 
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> Edit.adminUse(cs,

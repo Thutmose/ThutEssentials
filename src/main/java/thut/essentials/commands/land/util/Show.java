@@ -7,11 +7,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandEventsHandler;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class Show
 {
@@ -20,7 +20,7 @@ public class Show
         final String name = "show_land";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL,
                 "Can the player see the ownership status of land nearby.");
 
         // Setup with name and permission

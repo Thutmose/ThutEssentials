@@ -5,19 +5,19 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.Util;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
+import net.minecraft.server.level.ServerPlayer;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.CoordinateUtls;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.RuleManager;
 
 public class Edit
@@ -64,26 +64,26 @@ public class Edit
 
     public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
-        PermissionAPI.registerNode(Edit.PERMTOGGLEEXPLODE, DefaultPermissionLevel.OP,
+        PermNodes.registerNode(Edit.PERMTOGGLEEXPLODE, DefaultPermissionLevel.OP,
                 "Allowed to toggle explosions on/off in their team land");
-        PermissionAPI.registerNode(Edit.PERMTOGGLEMOBS, DefaultPermissionLevel.OP,
+        PermNodes.registerNode(Edit.PERMTOGGLEMOBS, DefaultPermissionLevel.OP,
                 "Allowed to toggle mob spawns on/off in their team land");
-        PermissionAPI.registerNode(Edit.PERMRESERVELAND, DefaultPermissionLevel.OP,
+        PermNodes.registerNode(Edit.PERMRESERVELAND, DefaultPermissionLevel.OP,
                 "Allowed to toggle reserved status on/off for their team");
-        PermissionAPI.registerNode(Edit.PERMTOGGLEFF, DefaultPermissionLevel.OP,
+        PermNodes.registerNode(Edit.PERMTOGGLEFF, DefaultPermissionLevel.OP,
                 "Allowed to toggle friendly fire on/off for their team");
-        PermissionAPI.registerNode(Edit.PERMTOGGLEPLAYERDAMAGE, DefaultPermissionLevel.OP,
+        PermNodes.registerNode(Edit.PERMTOGGLEPLAYERDAMAGE, DefaultPermissionLevel.OP,
                 "Allowed to toggle player damage on/off in their team land");
-        PermissionAPI.registerNode(Edit.PERMTOGGLENPCDAMAGE, DefaultPermissionLevel.ALL,
+        PermNodes.registerNode(Edit.PERMTOGGLENPCDAMAGE, DefaultPermissionLevel.ALL,
                 "Allowed to toggle npc damage on/off in their team land");
-        PermissionAPI.registerNode(Edit.PERMTOGGLEFAKEPLAYERS, DefaultPermissionLevel.ALL,
+        PermNodes.registerNode(Edit.PERMTOGGLEFAKEPLAYERS, DefaultPermissionLevel.ALL,
                 "Allowed to toggle whether fakeplayers are ignored for land stuff.");
 
         final String name = "edit_team";
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
         String perm;
-        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         final LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(name).requires(cs -> CommandManager.hasPerm(
                 cs, perm));

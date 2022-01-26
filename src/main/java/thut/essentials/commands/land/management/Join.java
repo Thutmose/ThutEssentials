@@ -10,39 +10,38 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.Util;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class Join
 {
 
     public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
-        final SuggestionProvider<CommandSourceStack> suggestor = (ctx, sb) -> SharedSuggestionProvider.suggest(Join.getTeams(),
-                sb);
+        final SuggestionProvider<CommandSourceStack> suggestor = (ctx, sb) -> SharedSuggestionProvider
+                .suggest(Join.getTeams(), sb);
 
         String name = "join_team";
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
-                    + name);
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
-                    .hasPerm(cs, perm));
-            command = command.then(Commands.argument("team", StringArgumentType.string()).suggests(suggestor).executes(
-                    ctx -> Join.execute(ctx.getSource(), null, StringArgumentType.getString(ctx, "team"))));
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                    .requires(cs -> CommandManager.hasPerm(cs, perm));
+            command = command.then(Commands.argument("team", StringArgumentType.string()).suggests(suggestor)
+                    .executes(ctx -> Join.execute(ctx.getSource(), null, StringArgumentType.getString(ctx, "team"))));
             commandDispatcher.register(command);
         }
 
@@ -50,13 +49,12 @@ public class Join
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
-                    + name);
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
-                    .hasPerm(cs, perm));
-            command = command.executes(ctx -> Join.execute(ctx.getSource(), null, LandManager
-                    .getDefaultTeam().teamName));
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                    .requires(cs -> CommandManager.hasPerm(cs, perm));
+            command = command
+                    .executes(ctx -> Join.execute(ctx.getSource(), null, LandManager.getDefaultTeam().teamName));
             commandDispatcher.register(command);
         }
 
@@ -64,11 +62,10 @@ public class Join
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /"
-                    + name);
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
 
-            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
-                    .hasPerm(cs, perm));
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                    .requires(cs -> CommandManager.hasPerm(cs, perm));
             command = command.then(Commands.argument("team", StringArgumentType.string()).suggests(suggestor).then(
                     Commands.argument("player", EntityArgument.player()).executes(ctx -> Join.execute(ctx.getSource(),
                             EntityArgument.getPlayer(ctx, "player"), StringArgumentType.getString(ctx, "team")))));
@@ -102,13 +99,13 @@ public class Join
             return 1;
         }
 
-        boolean canJoinInvite = PermissionAPI.hasPermission(player, LandEventsHandler.PERMJOINTEAMINVITED);
+        boolean canJoinInvite = PermNodes.getBooleanPerm(player, LandEventsHandler.PERMJOINTEAMINVITED);
         canJoinInvite = canJoinInvite && LandManager.getInstance().hasInvite(player.getUUID(), team);
-        final boolean canJoinNoInvite = forced || PermissionAPI.hasPermission(player,
-                LandEventsHandler.PERMJOINTEAMNOINVITE);
+        final boolean canJoinNoInvite = forced
+                || PermNodes.getBooleanPerm(player, LandEventsHandler.PERMJOINTEAMNOINVITE);
         canJoinInvite = canJoinInvite || teamtojoin.teamName.equalsIgnoreCase(Essentials.config.defaultTeamName);
-        if (canJoinInvite && teamtojoin.member.size() == 0) canJoinInvite = !LandManager.getInstance().getTeam(team,
-                false).reserved;
+        if (canJoinInvite && teamtojoin.member.size() == 0)
+            canJoinInvite = !LandManager.getInstance().getTeam(team, false).reserved;
         if (canJoinInvite || canJoinNoInvite)
         {
             LandManager.getInstance().addToTeam(player.getUUID(), team);

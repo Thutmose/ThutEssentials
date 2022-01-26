@@ -7,23 +7,20 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.Util;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.IPermissionHandler;
-import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.context.PlayerContext;
 import thut.essentials.Config;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager.KGobalPos;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class WarpManager
 {
@@ -45,7 +42,12 @@ public class WarpManager
         warpsField = temp;
     }
 
-    public static void init()
+    public static void registerPerms()
+    {
+        init();
+    }
+
+    private static void init()
     {
         WarpManager.warpLocs = Maps.newHashMap();
         for (final String s : Essentials.config.warps)
@@ -64,13 +66,10 @@ public class WarpManager
             final KGobalPos warp = CoordinateUtls.fromString(args[1]);
             if (warp != null) WarpManager.warpLocs.put(args[0], warp);
         }
-
-        final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         for (final String s : WarpManager.warpLocs.keySet())
         {
             final String node = "thutessentials.warp." + s;
-            if (!manager.getRegisteredNodes().contains(node)) manager.registerNode(node, DefaultPermissionLevel.ALL,
-                    "Warp to " + s);
+            PermNodes.registerNode(node, DefaultPermissionLevel.ALL, "Warp to " + s);
         }
     }
 
@@ -78,7 +77,8 @@ public class WarpManager
     {
         final String[] args = val.split(" ");
         final int dim = args.length == 4 ? Integer.parseInt(args[3]) : 0;
-        return new int[] { Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]), dim };
+        return new int[]
+        { Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]), dim };
     }
 
     public static int setWarp(final KGobalPos pos, final String name)
@@ -94,18 +94,15 @@ public class WarpManager
             }
             if (args[0].equals(name)) return 1;
         }
-        warps.removeIf(s ->
-        {
+        warps.removeIf(s -> {
             if (!s.contains("->")) return true;
             return CoordinateUtls.fromString(s) == null;
         });
         final String warp = name + "->" + CoordinateUtls.toString(pos);
         warps.add(warp);
         WarpManager.warpLocs.put(name, pos);
-        final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
         final String node = "thutessentials.warp." + name;
-        if (!manager.getRegisteredNodes().contains(node)) manager.registerNode(node, DefaultPermissionLevel.ALL,
-                "Warp to " + name);
+        PermNodes.registerNode(node, DefaultPermissionLevel.ALL, "Warp to " + name);
         Essentials.config.warps = warps;
         Essentials.config.write();
         return 0;
@@ -136,8 +133,6 @@ public class WarpManager
 
     public static void sendWarpsList(final ServerPlayer player)
     {
-        final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-        final PlayerContext context = new PlayerContext(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.header"), Util.NIL_UUID);
         for (String s : Essentials.config.warps)
         {
@@ -148,9 +143,9 @@ public class WarpManager
                 continue;
             }
             s = args[0];
-            if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + s, context)) continue;
-            final MutableComponent message = CommandManager.makeFormattedComponent(
-                    "thutessentials.warps.entry", null, false, s);
+            if (!PermNodes.getBooleanPerm(player, "thutessentials.warp." + s)) continue;
+            final MutableComponent message = CommandManager.makeFormattedComponent("thutessentials.warps.entry", null,
+                    false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
             Style style = message.getStyle();
             style = style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
@@ -170,12 +165,10 @@ public class WarpManager
         if (last > time && Essentials.config.warpReUseDelay > 0) return 1;
         if (warp != null)
         {
-            final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-            final PlayerContext context = new PlayerContext(player);
             // No allowed
-            if (!manager.hasPermission(player.getGameProfile(), "thutessentials.warp." + warpName, context)) return 2;
-            final Component teleMess = CommandManager.makeFormattedComponent("thutessentials.warps.warped", null,
-                    false, warpName);
+            if (!PermNodes.getBooleanPerm(player, "thutessentials.warp." + warpName)) return 2;
+            final Component teleMess = CommandManager.makeFormattedComponent("thutessentials.warps.warped", null, false,
+                    warpName);
             PlayerMover.setMove(player, Essentials.config.warpActivateDelay, warp, teleMess, PlayerMover.INTERUPTED);
             tptag.putLong("warpDelay", time + Essentials.config.warpReUseDelay);
             tag.put("tp", tptag);

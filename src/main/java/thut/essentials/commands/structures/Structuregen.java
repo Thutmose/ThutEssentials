@@ -2,6 +2,7 @@ package thut.essentials.commands.structures;
 
 import java.util.List;
 import java.util.Set;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mojang.brigadier.CommandDispatcher;
@@ -10,18 +11,19 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
+import net.minecraft.world.level.chunk.LevelChunk;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.world.WorldGenRegionWrapper;
 
 public class Structuregen
@@ -32,7 +34,7 @@ public class Structuregen
     {
         final String name = "gen_structure";
         String perm;
-        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
+        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
         LiteralArgumentBuilder<CommandSourceStack> command;

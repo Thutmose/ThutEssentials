@@ -5,19 +5,19 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.HomeManager;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
 
@@ -29,7 +29,7 @@ public class Homes
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
             // Setup with name and permission
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
@@ -44,7 +44,7 @@ public class Homes
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
                     + name);
             // Setup with name and permission
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager

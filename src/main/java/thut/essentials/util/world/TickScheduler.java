@@ -7,8 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.google.common.collect.Lists;
 
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
 

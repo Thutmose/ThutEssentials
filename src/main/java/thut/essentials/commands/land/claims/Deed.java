@@ -7,22 +7,20 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.Util;
-import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
@@ -30,6 +28,8 @@ import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.CoordinateUtls;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class Deed
 {
@@ -41,7 +41,7 @@ public class Deed
         if (!stack.hasTag() || !stack.getTag().getBoolean("isDeed")) return;
 
         final ServerPlayer player = (ServerPlayer) evt.getPlayer();
-        if (!PermissionAPI.hasPermission(player, Deed.CANREDEEMDEEDS))
+        if (!PermNodes.getBooleanPerm(player, Deed.CANREDEEMDEEDS))
         {
             player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
                     Util.NIL_UUID);
@@ -75,8 +75,8 @@ public class Deed
             // Unclaim from deed team first.
             LandManager.getInstance().unclaimLand(Deed.DEEDTEAM, world, c.getPos(), true);
             // Then claim for the new owner.
-            final int re = Claim.claim(world, c.getPos(), player, team, false, PermissionAPI.hasPermission(player,
-                    Deed.BYPASSLIMIT));
+            final int re = Claim.claim(world, c.getPos(), player, team, false,
+                    PermNodes.getBooleanPerm(player, Deed.BYPASSLIMIT));
             if (re == 0)
             {
                 n++;
@@ -90,7 +90,7 @@ public class Deed
         else stack.setHoverName(Essentials.config.getMessage("thutessentials.deed.for", num - n, x << 4, z << 4));
     }
 
-    private static final String BYPASSLIMIT    = "thutessentials.land.deed.nolimit";
+    private static final String BYPASSLIMIT = "thutessentials.land.deed.nolimit";
     private static final String CANREDEEMDEEDS = "thutessentials.land.deed";
 
     private static final String DEEDTEAM = "__deeds__";
@@ -102,10 +102,10 @@ public class Deed
         final String name = "reclaim_deed";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
-        PermissionAPI.registerNode(Deed.BYPASSLIMIT, DefaultPermissionLevel.OP,
+        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerNode(Deed.BYPASSLIMIT, DefaultPermissionLevel.OP,
                 "Permission to bypass the land per player limit for a team using deeds.");
-        PermissionAPI.registerNode(Deed.CANREDEEMDEEDS, DefaultPermissionLevel.ALL,
+        PermNodes.registerNode(Deed.CANREDEEMDEEDS, DefaultPermissionLevel.ALL,
                 "Permission to use deeds to claim land.");
 
         // Register to bus
@@ -113,35 +113,35 @@ public class Deed
         Deed.registered = true;
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                .requires(cs -> CommandManager.hasPerm(cs, perm));
 
         // Entire chunk
         command = command.executes(ctx -> Deed.execute(ctx.getSource(), true, true, false));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command.then(Commands.literal("up").executes(ctx -> Deed.execute(ctx.getSource(), true, false,
-                false)));
+        command = command
+                .then(Commands.literal("up").executes(ctx -> Deed.execute(ctx.getSource(), true, false, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command.then(Commands.literal("down").executes(ctx -> Deed.execute(ctx.getSource(), false, true,
-                false)));
+        command = command
+                .then(Commands.literal("down").executes(ctx -> Deed.execute(ctx.getSource(), false, true, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command.then(Commands.literal("here").executes(ctx -> Deed.execute(ctx.getSource(), false, false,
-                true)));
+        command = command
+                .then(Commands.literal("here").executes(ctx -> Deed.execute(ctx.getSource(), false, false, true)));
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSourceStack source, final boolean up, final boolean down, final boolean here)
-            throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, final boolean up, final boolean down,
+            final boolean here) throws CommandSyntaxException
     {
-        final Player player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
-        final boolean canUnclaimAnything = PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM);
+        final boolean canUnclaimAnything = PermNodes.getBooleanPerm(player, Unclaim.GLOBALPERM);
 
         if (!canUnclaimAnything && !team.hasRankPerm(player.getUUID(), LandTeam.UNCLAIMPERM))
         {
@@ -150,8 +150,7 @@ public class Deed
             return 1;
         }
 
-        player.getServer().execute(() ->
-        {
+        player.getServer().execute(() -> {
 
             final int x = player.blockPosition().getX() >> 4;
             final int y = player.blockPosition().getY() >> 4;
@@ -174,8 +173,8 @@ public class Deed
             }
             else
             {
-                final int min = down ? 0 : y;
-                final int max = up ? 16 : y;
+                final int min = down ? player.getLevel().getMinSection() : y;
+                final int max = up ? player.getLevel().getMaxSection() : y;
 
                 int claimnum = 0;
                 int owned_other = 0;
@@ -191,12 +190,15 @@ public class Deed
                     }
                     else if (check == 3) owned_other++;
                 }
-                if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
-                        "thutessentials.unclaim.notallowed.notowner", owned_other), Util.NIL_UUID);
-                if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
-                        team.teamName), Util.NIL_UUID);
-                else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
-                        team.teamName), Util.NIL_UUID);
+                if (owned_other > 0) player.sendMessage(
+                        Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owned_other),
+                        Util.NIL_UUID);
+                if (done) player.sendMessage(
+                        Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum, team.teamName),
+                        Util.NIL_UUID);
+                else player.sendMessage(
+                        Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum, team.teamName),
+                        Util.NIL_UUID);
             }
 
             if (!deeds.isEmpty())
@@ -206,10 +208,9 @@ public class Deed
                 deed.getTag().putInt("num", deeds.size());
                 deed.getTag().putBoolean("isDeed", true);
                 int i = 0;
-                for (final KGobalPos c : deeds)
-                    deed.getTag().put("" + i++, CoordinateUtls.toNBT(c, "deed"));
-                deed.setHoverName(Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4,
-                        z << 4));
+                for (final KGobalPos c : deeds) deed.getTag().put("" + i++, CoordinateUtls.toNBT(c, "deed"));
+                deed.setHoverName(
+                        Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4, z << 4));
                 if (!player.addItem(deed)) player.drop(deed, false);
             }
             LandSaveHandler.saveTeam(team.teamName);
@@ -218,8 +219,8 @@ public class Deed
         return 0;
     }
 
-    private static int unclaim(final KGobalPos chunk, final Player player, final LandTeam team,
-            final boolean messages, final boolean canUnclaimAnything)
+    private static int unclaim(final KGobalPos chunk, final Player player, final LandTeam team, final boolean messages,
+            final boolean canUnclaimAnything)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (LandManager.isWild(owner))
@@ -230,8 +231,9 @@ public class Deed
         }
         else if (owner != team && !canUnclaimAnything)
         {
-            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner",
-                    owner.teamName), Util.NIL_UUID);
+            if (messages) player.sendMessage(
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owner.teamName),
+                    Util.NIL_UUID);
             return 3;
         }
 

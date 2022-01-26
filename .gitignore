@@ -21,3 +21,4 @@ build
 eclipse
 run
 /.apt_generated_tests/
+/.apt_generated/

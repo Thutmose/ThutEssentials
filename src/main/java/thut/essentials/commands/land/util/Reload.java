@@ -6,11 +6,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class Reload
 {
@@ -21,7 +21,7 @@ public class Reload
         final String name = "reload_teams";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.OP,
+        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.OP,
                 "Can the player reload the teams list.");
 
         // Setup with name and permission

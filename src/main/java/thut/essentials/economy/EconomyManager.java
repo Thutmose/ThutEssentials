@@ -8,25 +8,25 @@ import java.util.function.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.decoration.ItemFrame;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Container;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.world.level.block.entity.SignBlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult.Type;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult.Type;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
@@ -34,12 +34,12 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class EconomyManager
 {
@@ -316,14 +316,14 @@ public class EconomyManager
             if (!EconomyManager.init)
             {
                 EconomyManager.init = true;
-                PermissionAPI.registerNode(EconomyManager.PERMMAKESHOP, DefaultPermissionLevel.ALL,
+                PermNodes.registerNode(EconomyManager.PERMMAKESHOP, DefaultPermissionLevel.ALL,
                         "Allowed to make a shop that sells from a chest.");
-                PermissionAPI.registerNode(EconomyManager.PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
+                PermNodes.registerNode(EconomyManager.PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
                         "Allowed to make a shop that sells infinite items.");
 
-                PermissionAPI.registerNode(EconomyManager.PERMKILLSHOP, DefaultPermissionLevel.ALL,
+                PermNodes.registerNode(EconomyManager.PERMKILLSHOP, DefaultPermissionLevel.ALL,
                         "Allowed to remove a shop made by this player.");
-                PermissionAPI.registerNode(EconomyManager.PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
+                PermNodes.registerNode(EconomyManager.PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
                         "Allowed to remove a shop made by another player.");
             }
             MinecraftForge.EVENT_BUS.register(EconomyManager.instance);
@@ -357,7 +357,7 @@ public class EconomyManager
                 final boolean infinite = evt.getItemStack().getHoverName().getContents().contains(
                         "InfShop");
                 final String permission = infinite ? EconomyManager.PERMMAKEINFSHOP : EconomyManager.PERMMAKESHOP;
-                if (!PermissionAPI.hasPermission(evt.getPlayer(), permission))
+                if (!PermNodes.getBooleanPerm((ServerPlayer) evt.getPlayer(), permission))
                 {
                     evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent(
                             "thutessentials.econ.not_allowed"), Util.NIL_UUID);
@@ -419,7 +419,7 @@ public class EconomyManager
                 final UUID owner = this._revBank.get(account);
                 final String perm = evt.getPlayer().getUUID().equals(owner) ? EconomyManager.PERMKILLSHOP
                         : EconomyManager.PERMKILLSHOPOTHER;
-                if (PermissionAPI.hasPermission(evt.getPlayer(), perm))
+                if (PermNodes.getBooleanPerm((ServerPlayer) evt.getPlayer(), perm))
                 {
                     EconomyManager.removeShop(c);
                     evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.remove"),

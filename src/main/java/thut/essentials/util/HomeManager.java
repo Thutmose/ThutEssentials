@@ -1,18 +1,19 @@
 package thut.essentials.util;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.Style;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.PermissionAPI;
+import net.minecraftforge.server.permission.nodes.PermissionNode;
+import net.minecraftforge.server.permission.nodes.PermissionTypes;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
@@ -20,28 +21,22 @@ import thut.essentials.land.LandManager.KGobalPos;
 
 public class HomeManager
 {
-    public static String[] HOMEPERMS = null;
+    public static final PermissionNode<Integer> HOMES_PERM = new PermissionNode<>("thutessentials", "homes.max",
+            PermissionTypes.INTEGER, (p, i, x) ->
+            {
+                return Essentials.config.maxHomes;
+            });
 
     public static void registerPerms()
     {
-        if (HomeManager.HOMEPERMS != null && HomeManager.HOMEPERMS.length >= Essentials.config.maxHomes) return;
-        HomeManager.HOMEPERMS = new String[Essentials.config.maxHomes];
-        for (int i = 0; i < Essentials.config.maxHomes; i++)
-        {
-            HomeManager.HOMEPERMS[i] = "thutessentials.homes.max." + (i + 1);
-            PermissionAPI.registerNode(HomeManager.HOMEPERMS[i], DefaultPermissionLevel.ALL,
-                    "Can the player have this many homes (checked when adding a home).");
-        }
+        PermNodes.registerNode(HOMES_PERM);
     }
 
     public static boolean canAddHome(final ServerPlayer player, final int index)
     {
-        for (int i = HomeManager.HOMEPERMS.length - 1; i >= index; i--)
-        {
-            final String perm = HomeManager.HOMEPERMS[i];
-            if (PermissionAPI.hasPermission(player, perm)) return true;
-        }
-        return false;
+        @SuppressWarnings("unchecked")
+        int homes = PermissionAPI.getPermission(player, HOMES_PERM);
+        return index < homes;
     }
 
     public static KGobalPos getHome(final ServerPlayer player, String home)
@@ -106,8 +101,8 @@ public class HomeManager
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.header"), Util.NIL_UUID);
         for (String s : homes.getAllKeys())
         {
-            final MutableComponent message = CommandManager.makeFormattedComponent(
-                    "thutessentials.homes.entry", null, false, s);
+            final MutableComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.entry", null,
+                    false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
             final Style style = message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home " + s));
             player.sendMessage(message.setStyle(style), Util.NIL_UUID);

@@ -14,11 +14,11 @@ import net.minecraft.commands.CommandRuntimeException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.config.Config.ConfigData;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class Config
 {
@@ -222,7 +222,7 @@ public class Config
         name = prefix;
         final String perm1 = "command." + name + ".check";
         final ConfigData data = Essentials.config;
-        PermissionAPI.registerNode(perm1, DefaultPermissionLevel.OP, "Is the player allowed to check configs for "
+        PermNodes.registerNode(perm1, DefaultPermissionLevel.OP, "Is the player allowed to check configs for "
                 + data.MODID);
 
         LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
@@ -232,7 +232,7 @@ public class Config
         commandDispatcher.register(command);
 
         final String perm2 = "command." + name + ".set";
-        PermissionAPI.registerNode(perm2, DefaultPermissionLevel.OP, "Is the player allowed to set configs for "
+        PermNodes.registerNode(perm2, DefaultPermissionLevel.OP, "Is the player allowed to set configs for "
                 + data.MODID);
 
         command = Commands.literal(name).then(Commands.argument("option", StringArgumentType.string()).suggests(Config

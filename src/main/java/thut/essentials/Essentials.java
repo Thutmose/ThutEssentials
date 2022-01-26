@@ -115,7 +115,6 @@ public class Essentials
     {
         if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.getInstance();
-        LandEventsHandler.TEAMMANAGER.registerPerms();
         LandEventsHandler.ChunkLoadHandler.server = event.getServer();
         Essentials.LOGGER.info("Server Started");
     }

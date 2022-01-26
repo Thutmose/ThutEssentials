@@ -34,62 +34,59 @@ import thut.essentials.config.Configure;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.ChatManager;
 import thut.essentials.util.CmdScheduler;
-import thut.essentials.util.HomeManager;
 import thut.essentials.util.InventoryLogger;
-import thut.essentials.util.KitManager;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerMover;
 import thut.essentials.util.PvPManager;
-import thut.essentials.util.WarpManager;
 
 public class Config extends ConfigData
 {
-    public static final String LAND  = "land";
-    public static final String MISC  = "misc";
-    public static final String HOME  = "homes";
-    public static final String WARP  = "warps";
-    public static final String KITS  = "kits";
-    public static final String BACK  = "back";
-    public static final String BED   = "bed";
-    public static final String ECON  = "economy";
+    public static final String LAND = "land";
+    public static final String MISC = "misc";
+    public static final String HOME = "homes";
+    public static final String WARP = "warps";
+    public static final String KITS = "kits";
+    public static final String BACK = "back";
+    public static final String BED = "bed";
+    public static final String ECON = "economy";
     public static final String STAFF = "staff";
-    public static final String LOGS  = "logging";
-    public static final String CHAT  = "chat";
-    public static final String RTP   = "rtp";
-    public static final String TPA   = "tpa";
-    public static final String MOBS  = "mobs";
+    public static final String LOGS = "logging";
+    public static final String CHAT = "chat";
+    public static final String RTP = "rtp";
+    public static final String TPA = "tpa";
+    public static final String MOBS = "mobs";
 
     @Configure(category = Config.LAND)
-    public boolean defaultMessages    = true;
+    public boolean defaultMessages = true;
     @Configure(category = Config.LAND)
-    public boolean denyExplosions     = true;
+    public boolean denyExplosions = true;
     @Configure(category = Config.LAND)
-    public boolean chunkLoading       = true;
+    public boolean chunkLoading = true;
     @Configure(category = Config.LAND)
-    public boolean landEnabled        = true;
+    public boolean landEnabled = true;
     @Configure(category = Config.LAND)
-    public String  defaultTeamName    = "Plebs";
+    public String defaultTeamName = "Plebs";
     @Configure(category = Config.LAND)
-    public boolean wildernessTeam     = false;
+    public boolean wildernessTeam = false;
     @Configure(category = Config.LAND)
-    public String  wildernessTeamName = "Wilderness";
+    public String wildernessTeamName = "Wilderness";
     @Configure(category = Config.LAND)
-    public boolean logTeamChat        = true;
+    public boolean logTeamChat = true;
     @Configure(category = Config.LAND)
-    public int     teamLandPerPlayer  = 125;
+    public int teamLandPerPlayer = 125;
     @Configure(category = Config.LAND)
-    public int     prefixLength       = 12;
+    public int prefixLength = 12;
     @Configure(category = Config.LAND)
-    public int     maxChunkloads      = 9;
+    public int maxChunkloads = 9;
     @Configure(category = Config.LAND)
-    public boolean noMobGriefing      = true;
+    public boolean noMobGriefing = true;
 
     @Configure(category = Config.LAND)
-    public List<String> itemUseWhitelist    = Lists.newArrayList();
+    public List<String> itemUseWhitelist = Lists.newArrayList();
     @Configure(category = Config.LAND)
-    public List<String> blockUseWhitelist   = Lists.newArrayList();
+    public List<String> blockUseWhitelist = Lists.newArrayList();
     @Configure(category = Config.LAND)
-    public List<String> mobUseWhitelist     = Lists.newArrayList();
+    public List<String> mobUseWhitelist = Lists.newArrayList();
     @Configure(category = Config.LAND)
     public List<String> blockBreakWhitelist = Lists.newArrayList();
     @Configure(category = Config.LAND)
@@ -117,7 +114,7 @@ public class Config extends ConfigData
     //@formatter:on
     );
     @Configure(category = Config.LAND)
-    public List<String> legacyDimMap      = Lists.newArrayList(
+    public List<String> legacyDimMap = Lists.newArrayList(
     //@formatter:off
             "0->overworld",
             "-1->the_nether",
@@ -129,40 +126,40 @@ public class Config extends ConfigData
     public boolean foodWhitelisted = true;
 
     @Configure(category = Config.HOME)
-    public int maxHomes          = 2;
+    public int maxHomes = 2;
     @Configure(category = Config.HOME)
     public int homeActivateDelay = 50;
     @Configure(category = Config.HOME)
-    public int homeReUseDelay    = 100;
+    public int homeReUseDelay = 100;
 
     @Configure(category = Config.HOME)
     public int kitReuseDelay = -1;
 
     @Configure(category = Config.WARP)
-    public List<String> warps             = Lists.newArrayList();
+    public List<String> warps = Lists.newArrayList();
     @Configure(category = Config.WARP)
-    public int          warpActivateDelay = 50;
+    public int warpActivateDelay = 50;
     @Configure(category = Config.WARP)
-    public int          warpReUseDelay    = 100;
+    public int warpReUseDelay = 100;
 
     @Configure(category = Config.BACK)
-    public int     backRangeCheck    = 5;
+    public int backRangeCheck = 5;
     @Configure(category = Config.BACK)
-    public int     backReUseDelay    = 100;
+    public int backReUseDelay = 100;
     @Configure(category = Config.BACK)
-    public int     backActivateDelay = 50;
+    public int backActivateDelay = 50;
     @Configure(category = Config.BACK)
-    public boolean back_on_death     = true;
+    public boolean back_on_death = true;
     @Configure(category = Config.BACK)
-    public boolean back_on_tp        = true;
+    public boolean back_on_tp = true;
 
     @Configure(category = Config.BED)
-    public int bedReUseDelay    = 100;
+    public int bedReUseDelay = 100;
     @Configure(category = Config.BED)
     public int bedActivateDelay = 50;
 
     @Configure(category = Config.RTP)
-    public int rtpReUseDelay    = 100;
+    public int rtpReUseDelay = 100;
     @Configure(category = Config.RTP)
     public int rtpActivateDelay = 50;
 
@@ -170,40 +167,40 @@ public class Config extends ConfigData
     public String rtpCentre = "0,0";
 
     @Configure(category = Config.RTP)
-    public int     rtpDistance      = 5000;
+    public int rtpDistance = 5000;
     @Configure(category = Config.RTP)
-    public boolean rtpSpawnCentred  = true;
+    public boolean rtpSpawnCentred = true;
     @Configure(category = Config.RTP)
     public boolean rtpPlayerCentred = false;
 
     @Configure(category = Config.ECON)
-    public List<String> sellTags    = Lists.newArrayList("Sell", "Sells", "Sale");
+    public List<String> sellTags = Lists.newArrayList("Sell", "Sells", "Sale");
     @Configure(category = Config.ECON)
     public List<String> recycleTags = Lists.newArrayList("Recycle");
 
     @Configure(category = Config.ECON)
-    public boolean shopsEnabled   = true;
+    public boolean shopsEnabled = true;
     @Configure(category = Config.ECON)
-    public int     initialBalance = 1000;
+    public int initialBalance = 1000;
 
     @Configure(category = Config.CHAT)
     public boolean useChatFormat = true;
     @Configure(category = Config.CHAT)
-    public String  chatFormat    = "<%s> %s";
+    public String chatFormat = "<%s> %s";
 
     @Configure(category = Config.LOGS)
     public List<String> inventory_log_blacklist = Lists.newArrayList();
     @Configure(category = Config.LOGS)
-    public boolean      log_interactions        = true;
+    public boolean log_interactions = true;
     @Configure(category = Config.LOGS)
-    public boolean      log_teleports           = true;
+    public boolean log_teleports = true;
     @Configure(category = Config.LOGS)
-    public boolean      log_inventory_use       = true;
+    public boolean log_inventory_use = true;
 
     @Configure(category = Config.TPA)
     public int tpaActivateDelay = 50;
     @Configure(category = Config.TPA)
-    public int tpaReUseDelay    = 100;
+    public int tpaReUseDelay = 100;
 
     @Configure(category = Config.TPA)
     public boolean tpaCrossDim = true;
@@ -211,16 +208,16 @@ public class Config extends ConfigData
     @Configure(category = Config.MISC)
     public List<String> commandBlacklist = Lists.newArrayList();
     @Configure(category = Config.MISC)
-    public List<String> rules            = Lists.newArrayList();
+    public List<String> rules = Lists.newArrayList();
     @Configure(category = Config.MISC)
-    public List<String> invulnMobs       = Lists.newArrayList();
+    public List<String> invulnMobs = Lists.newArrayList();
 
     @Configure(category = Config.MISC)
-    public boolean debug             = false;
+    public boolean debug = false;
     @Configure(category = Config.MISC)
-    public boolean defuzz            = true;
+    public boolean defuzz = true;
     @Configure(category = Config.MISC)
-    public String  defuzzKey         = "";
+    public String defuzzKey = "";
     @Configure(category = Config.MISC)
     public boolean comandDisableSpam = true;
 
@@ -228,11 +225,13 @@ public class Config extends ConfigData
     public boolean pvpPerms = false;
 
     @Configure(category = Config.MISC)
-    public String spawnWorld         = "minecraft:overworld";
+    public String spawnWorld = "minecraft:overworld";
     @Configure(category = Config.MISC)
-    public int    spawnActivateDelay = 50;
+    public String firstSpawn = "";
     @Configure(category = Config.MISC)
-    public int    spawnReUseDelay    = 100;
+    public int spawnActivateDelay = 50;
+    @Configure(category = Config.MISC)
+    public int spawnReUseDelay = 100;
 
     @Configure(category = Config.MISC)
     public int postTeleInvulDur = 20;
@@ -295,8 +294,8 @@ public class Config extends ConfigData
 
     public MutableComponent getMessage(final String key, final Object... args)
     {
-        if (this.lang_overrides_map.containsKey(key)) return new TextComponent(String.format(
-                this.lang_overrides_map.get(key), args));
+        if (this.lang_overrides_map.containsKey(key))
+            return new TextComponent(String.format(this.lang_overrides_map.get(key), args));
         else return new TranslatableComponent(key, args);
     }
 
@@ -321,17 +320,16 @@ public class Config extends ConfigData
             final BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
             final Gson gson = new GsonBuilder().create();
             final JsonObject o = gson.fromJson(in, JsonObject.class);
-            for (final Entry<String, JsonElement> entry : o.entrySet())
-                try
-                {
-                    final String key = entry.getKey();
-                    final String value = entry.getValue().getAsString();
-                    this.lang_overrides_map.put(key, value);
-                }
-                catch (final Exception e)
-                {
-                    Essentials.LOGGER.error("Error with keypair {}, {}", entry.getKey(), entry.getValue());
-                }
+            for (final Entry<String, JsonElement> entry : o.entrySet()) try
+            {
+                final String key = entry.getKey();
+                final String value = entry.getValue().getAsString();
+                this.lang_overrides_map.put(key, value);
+            }
+            catch (final Exception e)
+            {
+                Essentials.LOGGER.error("Error with keypair {}, {}", entry.getKey(), entry.getValue());
+            }
         }
         catch (final Exception e)
         {
@@ -359,8 +357,7 @@ public class Config extends ConfigData
         this.versioned_dims.forEach(s -> this.versioned_dim_keys.add(new ResourceLocation(s)));
 
         this.versioned_dim_seed_map.clear();
-        this.versioned_dim_seeds.forEach(s ->
-        {
+        this.versioned_dim_seeds.forEach(s -> {
             if (!s.contains("->")) return;
             final String[] args = s.split("->");
             if (args.length < 2) return;
@@ -381,9 +378,6 @@ public class Config extends ConfigData
         Essentials.LOGGER.info("" + this.versioned_dim_keys);
         Essentials.LOGGER.info("" + this.versioned_dim_seed_map);
 
-        HomeManager.registerPerms();
-        WarpManager.init();
-        KitManager.init();
         ChatManager.init();
         MobManager.init();
         PlayerMover.INTERUPTED = this.getMessage("thutessentials.tp.standstill");

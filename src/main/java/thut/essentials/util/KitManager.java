@@ -12,25 +12,22 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.TagParser;
-import net.minecraft.tags.Tag;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.Util;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.Tag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.IPermissionHandler;
-import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.context.PlayerContext;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.xml.bind.Factory;
 import thut.essentials.xml.bind.annotation.XmlAnyAttribute;
 import thut.essentials.xml.bind.annotation.XmlElement;
@@ -68,11 +65,16 @@ public class KitManager
         @XmlAnyAttribute
         public Map<QName, String> values = Maps.newHashMap();
         @XmlElement(name = "tag")
-        public String             tag;
+        public String tag;
     }
 
-    public static List<ItemStack>     kit  = Lists.newArrayList();
+    public static List<ItemStack> kit = Lists.newArrayList();
     public static Map<String, KitSet> kits = Maps.newHashMap();
+
+    public static void registerPerms()
+    {
+        init();
+    }
 
     public static void init()
     {
@@ -98,45 +100,40 @@ public class KitManager
                 e1.printStackTrace();
             }
 
-            for (final XMLStarterItems items : database.kits)
-                if (items.values.containsKey(ident))
+            for (final XMLStarterItems items : database.kits) if (items.values.containsKey(ident))
+            {
+                final KitSet set = new KitSet();
+                final String name = items.values.get(ident);
+                if (KitManager.kits.containsKey(name)) Essentials.LOGGER.warn("Duplicate kit: " + name);
+                final List<ItemStack> list = Lists.newArrayList();
+                for (final Drop drop : items.drops)
                 {
-                    final KitSet set = new KitSet();
-                    final String name = items.values.get(ident);
-                    if (KitManager.kits.containsKey(name)) Essentials.LOGGER.warn("Duplicate kit: " + name);
-                    final List<ItemStack> list = Lists.newArrayList();
-                    for (final Drop drop : items.drops)
-                    {
-                        final ItemStack stack = KitManager.getStackFromDrop(drop);
-                        if (!stack.isEmpty()) list.add(stack);
-                    }
-                    try
-                    {
-                        set.cooldown = Integer.parseInt(items.values.get(cooldown));
-                    }
-                    catch (final Exception e)
-                    {
-                        set.cooldown = Essentials.config.kitReuseDelay;
-                    }
-                    final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-                    final String node = "thutessentials.kit." + name;
-                    if (!manager.getRegisteredNodes().contains(node)) manager.registerNode(node,
-                            DefaultPermissionLevel.ALL, "Can get the Kit " + name);
-                    set.stacks = list;
-                    KitManager.kits.put(name, set);
+                    final ItemStack stack = KitManager.getStackFromDrop(drop);
+                    if (!stack.isEmpty()) list.add(stack);
                 }
-                else
+                try
                 {
-                    final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-                    final String node = "thutessentials.kit.default";
-                    if (!manager.getRegisteredNodes().contains(node)) manager.registerNode(node,
-                            DefaultPermissionLevel.ALL, "Can get the default Kit");
-                    for (final Drop drop : items.drops)
-                    {
-                        final ItemStack stack = KitManager.getStackFromDrop(drop);
-                        if (!stack.isEmpty()) KitManager.kit.add(stack);
-                    }
+                    set.cooldown = Integer.parseInt(items.values.get(cooldown));
                 }
+                catch (final Exception e)
+                {
+                    set.cooldown = Essentials.config.kitReuseDelay;
+                }
+                final String node = "thutessentials.kit." + name;
+                PermNodes.registerNode(node, DefaultPermissionLevel.ALL, "Can get the Kit " + name);
+                set.stacks = list;
+                KitManager.kits.put(name, set);
+            }
+            else
+            {
+                final String node = "thutessentials.kit.default";
+                PermNodes.registerNode(node, DefaultPermissionLevel.ALL, "Can get the default Kit");
+                for (final Drop drop : items.drops)
+                {
+                    final ItemStack stack = KitManager.getStackFromDrop(drop);
+                    if (!stack.isEmpty()) KitManager.kit.add(stack);
+                }
+            }
         }
         catch (final Exception e)
         {
@@ -184,10 +181,9 @@ public class KitManager
         int size = 1;
         String tag = "";
 
-        for (final QName key : values.keySet())
-            if (key.toString().equals("id")) id = values.get(key);
-            else if (key.toString().equals("n")) size = Integer.parseInt(values.get(key));
-            else if (key.toString().equals("tag")) tag = values.get(key).trim();
+        for (final QName key : values.keySet()) if (key.toString().equals("id")) id = values.get(key);
+        else if (key.toString().equals("n")) size = Integer.parseInt(values.get(key));
+        else if (key.toString().equals("tag")) tag = values.get(key).trim();
         if (id.isEmpty()) return ItemStack.EMPTY;
         final ResourceLocation loc = new ResourceLocation(id);
         ItemStack stack = ItemStack.EMPTY;
@@ -217,12 +213,9 @@ public class KitManager
 
     public static void sendKitsList(final ServerPlayer player)
     {
-        final IPermissionHandler manager = PermissionAPI.getPermissionHandler();
-        final PlayerContext context = new PlayerContext(player);
         player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.header"), Util.NIL_UUID);
         MutableComponent message;
-        if (!KitManager.kit.isEmpty() && manager.hasPermission(player.getGameProfile(), "thutessentials.kit.default",
-                context))
+        if (!KitManager.kit.isEmpty() && PermNodes.getBooleanPerm(player, "thutessentials.kit.default"))
         {
             message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, "Default");
             message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit Default")));
@@ -230,7 +223,7 @@ public class KitManager
         }
         for (String s : KitManager.kits.keySet())
         {
-            if (!manager.hasPermission(player.getGameProfile(), "thutessentials.kit." + s, context)) continue;
+            if (!PermNodes.getBooleanPerm(player, "thutessentials.kit." + s)) continue;
             if (s.contains(" ")) s = "\"" + s + "\"";
             message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, s);
             message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit " + s)));

@@ -6,9 +6,8 @@ import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class PvPManager
 {
@@ -30,7 +29,7 @@ public class PvPManager
         if (PvPManager.registered) return;
         PvPManager.registered = true;
         // This defaults to OP, as the pvpPerms needed at all defaults to false.
-        PermissionAPI.registerNode(PvPManager.PERMPVP, DefaultPermissionLevel.OP, "Can the player harm other players.");
+        PermNodes.registerNode(PvPManager.PERMPVP, DefaultPermissionLevel.OP, "Can the player harm other players.");
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -42,8 +41,9 @@ public class PvPManager
         if (!(evt.getPlayer() instanceof ServerPlayer)) return;
         final ServerPlayer attacker = (ServerPlayer) evt.getPlayer();
         final ServerPlayer attacked = (ServerPlayer) evt.getTarget();
-        if (PermissionAPI.hasPermission(attacker, PvPManager.PERMPVP) && PermissionAPI.hasPermission(attacked,
-                PvPManager.PERMPVP)) return;
+        if (PermNodes.getBooleanPerm(attacker, PvPManager.PERMPVP)
+                && PermNodes.getBooleanPerm(attacked, PvPManager.PERMPVP))
+            return;
         evt.setCanceled(true);
     }
 
@@ -56,8 +56,9 @@ public class PvPManager
         if (!(evt.getSource().getEntity() instanceof ServerPlayer)) return;
         final ServerPlayer attacker = (ServerPlayer) evt.getSource().getEntity();
         final ServerPlayer attacked = (ServerPlayer) evt.getEntity();
-        if (PermissionAPI.hasPermission(attacker, PvPManager.PERMPVP) && PermissionAPI.hasPermission(attacked,
-                PvPManager.PERMPVP)) return;
+        if (PermNodes.getBooleanPerm(attacker, PvPManager.PERMPVP)
+                && PermNodes.getBooleanPerm(attacked, PvPManager.PERMPVP))
+            return;
         evt.setCanceled(true);
     }
 }

@@ -7,17 +7,16 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.UnclaimLandEvent;
@@ -26,6 +25,8 @@ import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandManager.TeamLand;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.util.PermNodes;
+import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class Unclaim
 {
@@ -36,45 +37,45 @@ public class Unclaim
         final String name = "unclaim";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermissionAPI.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
-        PermissionAPI.registerNode(Unclaim.GLOBALPERM, DefaultPermissionLevel.OP,
+        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerNode(Unclaim.GLOBALPERM, DefaultPermissionLevel.OP,
                 "Permission to unclaim land regardless of owner.");
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                .requires(cs -> CommandManager.hasPerm(cs, perm));
 
         // Entire chunk
         command = command.executes(ctx -> Unclaim.execute(ctx.getSource(), true, true, false, false));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command.then(Commands.literal("up").executes(ctx -> Unclaim.execute(ctx.getSource(), true, false,
-                false, false)));
+        command = command.then(
+                Commands.literal("up").executes(ctx -> Unclaim.execute(ctx.getSource(), true, false, false, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command.then(Commands.literal("down").executes(ctx -> Unclaim.execute(ctx.getSource(), false, true,
-                false, false)));
+        command = command.then(
+                Commands.literal("down").executes(ctx -> Unclaim.execute(ctx.getSource(), false, true, false, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command.then(Commands.literal("here").executes(ctx -> Unclaim.execute(ctx.getSource(), false, false,
-                true, false)));
+        command = command.then(
+                Commands.literal("here").executes(ctx -> Unclaim.execute(ctx.getSource(), false, false, true, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command.then(Commands.literal("everything").executes(ctx -> Unclaim.execute(ctx.getSource(), false,
-                false, false, true)));
+        command = command.then(Commands.literal("everything")
+                .executes(ctx -> Unclaim.execute(ctx.getSource(), false, false, false, true)));
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSourceStack source, final boolean up, final boolean down, final boolean here,
-            final boolean all) throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, final boolean up, final boolean down,
+            final boolean here, final boolean all) throws CommandSyntaxException
     {
-        final Player player = source.getPlayerOrException();
+        final ServerPlayer player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
-        final boolean canUnclaimAnything = PermissionAPI.hasPermission(player, Unclaim.GLOBALPERM);
+        final boolean canUnclaimAnything = PermNodes.getBooleanPerm(player, Unclaim.GLOBALPERM);
 
         if (!canUnclaimAnything && !team.hasRankPerm(player.getUUID(), LandTeam.UNCLAIMPERM))
         {
@@ -94,8 +95,7 @@ public class Unclaim
                     Util.NIL_UUID);
             return 0;
         }
-        player.getServer().execute(() ->
-        {
+        player.getServer().execute(() -> {
             final int x = Mth.floor(player.blockPosition().getX() >> 4);
             final int y = Mth.floor(player.blockPosition().getY() >> 4);
             final int z = Mth.floor(player.blockPosition().getZ() >> 4);
@@ -110,8 +110,8 @@ public class Unclaim
                 LandSaveHandler.saveTeam(team.teamName);
                 return;
             }
-            final int min = down ? 0 : y;
-            final int max = up ? 16 : y;
+            final int min = down ? player.getLevel().getMinSection() : y;
+            final int max = up ? player.getLevel().getMaxSection() : y;
             boolean done = false;
             int claimnum = 0;
             int owned_other = 0;
@@ -121,23 +121,27 @@ public class Unclaim
             claimnum = worked.get();
             owned_other = other.get();
             done = claimnum != 0;
-            if (owned_other > 0) player.sendMessage(Essentials.config.getMessage(
-                    "thutessentials.unclaim.notallowed.notowner", owned_other), Util.NIL_UUID);
-            if (done) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum,
-                    team.teamName), Util.NIL_UUID);
-            else player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum,
-                    team.teamName), Util.NIL_UUID);
+            if (owned_other > 0) player.sendMessage(
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owned_other),
+                    Util.NIL_UUID);
+            if (done) player.sendMessage(
+                    Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum, team.teamName),
+                    Util.NIL_UUID);
+            else player.sendMessage(
+                    Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum, team.teamName),
+                    Util.NIL_UUID);
             LandSaveHandler.saveTeam(team.teamName);
         });
         return 0;
     }
 
-    private static int unclaim(final KGobalPos chunk, final Player player, final LandTeam team,
-            final boolean messages, final boolean canUnclaimAnything, final AtomicInteger worked,
-            final AtomicInteger other, final AtomicBoolean ready)
+    private static int unclaim(final KGobalPos chunk, final Player player, final LandTeam team, final boolean messages,
+            final boolean canUnclaimAnything, final AtomicInteger worked, final AtomicInteger other,
+            final AtomicBoolean ready)
     {
 
-        final LandTeam owner = LandManager.getInstance().getLandOwner(player.getCommandSenderWorld(), chunk.getPos(), true);
+        final LandTeam owner = LandManager.getInstance().getLandOwner(player.getCommandSenderWorld(), chunk.getPos(),
+                true);
         if (LandManager.isWild(owner))
         {
             if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
@@ -147,8 +151,9 @@ public class Unclaim
         }
         else if (owner != team && !canUnclaimAnything)
         {
-            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner",
-                    owner.teamName), Util.NIL_UUID);
+            if (messages) player.sendMessage(
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owner.teamName),
+                    Util.NIL_UUID);
             other.getAndIncrement();
             ready.getAndSet(true);
             return 3;
