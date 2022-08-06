@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.xml.namespace.QName;
@@ -13,18 +14,19 @@ import com.google.common.collect.Maps;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.Util;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.tags.ITag;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -187,18 +189,18 @@ public class KitManager
         if (id.isEmpty()) return ItemStack.EMPTY;
         final ResourceLocation loc = new ResourceLocation(id);
         ItemStack stack = ItemStack.EMPTY;
-        Item item = ForgeRegistries.ITEMS.getValue(loc);
-        if (item == null)
+        Optional<Item> item = Optional.ofNullable(ForgeRegistries.ITEMS.getValue(loc));
+        if (item.isEmpty())
         {
-            final Tag<Item> tags = ItemTags.getAllTags().getTagOrEmpty(loc);
-            if (tags != null)
+            ITag<Item> tagged = ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, loc));
+            if (tagged != null)
             {
-                item = tags.getRandomElement(new Random(2));
-                if (item != null) return new ItemStack(item);
+                item = tagged.getRandomElement(new Random());
+                if (!item.isEmpty()) return new ItemStack(item.get());
             }
         }
-        if (item == null) return ItemStack.EMPTY;
-        if (stack.isEmpty()) stack = new ItemStack(item, 1);
+        if (item.isEmpty()) return ItemStack.EMPTY;
+        if (stack.isEmpty()) stack = new ItemStack(item.get(), 1);
         stack.setCount(size);
         if (!tag.isEmpty()) try
         {

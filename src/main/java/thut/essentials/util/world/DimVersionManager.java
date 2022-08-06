@@ -143,7 +143,6 @@ public class DimVersionManager
                 file.renameTo(named_file);
             }
         }
-        world.getChunkSource().getGenerator().strongholdSeed = world.getSeed();
         vers.setVersion(Essentials.config.dim_verison);
     }
 
