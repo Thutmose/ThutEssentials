@@ -19,7 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
@@ -102,12 +102,12 @@ public class Claim
     }
 
     @SubscribeEvent
-    public static void livingUpdate(final LivingUpdateEvent evt)
+    public static void livingUpdate(final LivingTickEvent evt)
     {
         if (!evt.getEntity().isAlive() || !Claim.autoclaimers.contains(evt.getEntity().getUUID())
-                || !(evt.getEntityLiving() instanceof ServerPlayer))
+                || !(evt.getEntity() instanceof ServerPlayer))
             return;
-        final ServerPlayer player = (ServerPlayer) evt.getEntityLiving();
+        final ServerPlayer player = (ServerPlayer) evt.getEntity();
         final LandTeam team = LandManager.getTeam(player);
 
         BlockPos here;

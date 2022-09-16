@@ -11,7 +11,7 @@ import com.google.common.collect.Sets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -30,7 +30,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.world.BlockEvent.BreakEvent;
+import net.minecraftforge.event.level.BlockEvent.BreakEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
@@ -76,14 +76,14 @@ public class EconomyManager
                 return false;
             }
             final SignBlockEntity sign = (SignBlockEntity) tile;
-            this.sell = Essentials.config.sellTags.contains(sign.messages[0].getContents());
-            this.recycle = Essentials.config.recycleTags.contains(sign.messages[0].getContents());
+            this.sell = Essentials.config.sellTags.contains(sign.messages[0].getString());
+            this.recycle = Essentials.config.recycleTags.contains(sign.messages[0].getString());
             try
             {
-                this.number = Integer.parseInt(sign.messages[1].getContents());
+                this.number = Integer.parseInt(sign.messages[1].getString());
                 if (this.ignoreTag)
                 {
-                    if (this.number != 1) sign.messages[1] = new TextComponent("1");
+                    if (this.number != 1) sign.messages[1] = Component.literal("1");
                     this.number = 1;
                 }
             }
@@ -94,7 +94,7 @@ public class EconomyManager
             }
             try
             {
-                this.cost = Integer.parseInt(sign.messages[3].getContents());
+                this.cost = Integer.parseInt(sign.messages[3].getString());
             }
             catch (final NumberFormatException e)
             {
@@ -354,38 +354,38 @@ public class EconomyManager
     @SubscribeEvent(receiveCanceled = true)
     public void interactRightClickEntity(final PlayerInteractEvent.EntityInteract evt)
     {
-        if (!(evt.getPlayer() instanceof ServerPlayer)) return;
+        if (!(evt.getEntity() instanceof ServerPlayer)) return;
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrame)
         {
-            final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getCommandSenderWorld().dimension(),
+            final KGobalPos c = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
                     evt.getPos().below());
             Shop shop = EconomyManager.getShop(c);
-            final BlockEntity tile = evt.getWorld().getBlockEntity(c.getPos());
+            final BlockEntity tile = evt.getLevel().getBlockEntity(c.getPos());
             if (evt.getItemStack() != null && tile instanceof SignBlockEntity && shop == null
-                    && (evt.getItemStack().getHoverName().getContents().contains("Shop")
-                            || evt.getItemStack().getHoverName().getContents().contains("InfShop")))
+                    && (evt.getItemStack().getHoverName().getString().contains("Shop")
+                            || evt.getItemStack().getHoverName().getString().contains("InfShop")))
             {
-                final boolean infinite = evt.getItemStack().getHoverName().getContents().contains("InfShop");
+                final boolean infinite = evt.getItemStack().getHoverName().getString().contains("InfShop");
                 final String permission = infinite ? EconomyManager.PERMMAKEINFSHOP : EconomyManager.PERMMAKESHOP;
-                if (!PermNodes.getBooleanPerm((ServerPlayer) evt.getPlayer(), permission))
+                if (!PermNodes.getBooleanPerm((ServerPlayer) evt.getEntity(), permission))
                 {
-                    ChatHelper.sendSystemMessage(evt.getPlayer(),
+                    ChatHelper.sendSystemMessage(evt.getEntity(),
                             CommandManager.makeFormattedComponent("thutessentials.econ.not_allowed"));
                     return;
                 }
                 try
                 {
-                    final boolean noTag = evt.getItemStack().getHoverName().getContents().contains("noTag");
-                    shop = EconomyManager.addShop((ServerPlayer) evt.getPlayer(), (ItemFrame) evt.getTarget(), c,
+                    final boolean noTag = evt.getItemStack().getHoverName().getString().contains("noTag");
+                    shop = EconomyManager.addShop((ServerPlayer) evt.getEntity(), (ItemFrame) evt.getTarget(), c,
                             infinite, noTag);
-                    ChatHelper.sendSystemMessage(evt.getPlayer(),
+                    ChatHelper.sendSystemMessage(evt.getEntity(),
                             CommandManager.makeFormattedComponent("thutessentials.econ.made"));
 
                 }
                 catch (final Exception e)
                 {
-                    ChatHelper.sendSystemMessage(evt.getPlayer(),
+                    ChatHelper.sendSystemMessage(evt.getEntity(),
                             CommandManager.makeFormattedComponent("thutessentials.econ.errored"));
                     Essentials.LOGGER.error(e);
                 }
@@ -415,7 +415,7 @@ public class EconomyManager
     @SubscribeEvent(receiveCanceled = true)
     public void interactLeftClickEntity(final AttackEntityEvent evt)
     {
-        if (evt.getPlayer().getCommandSenderWorld().isClientSide) return;
+        if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrame)
         {
@@ -427,15 +427,15 @@ public class EconomyManager
                 evt.setCanceled(true);
                 final Account account = this._shopMap.get(c);
                 final UUID owner = this._revBank.get(account);
-                final String perm = evt.getPlayer().getUUID().equals(owner) ? EconomyManager.PERMKILLSHOP
+                final String perm = evt.getEntity().getUUID().equals(owner) ? EconomyManager.PERMKILLSHOP
                         : EconomyManager.PERMKILLSHOPOTHER;
-                if (PermNodes.getBooleanPerm((ServerPlayer) evt.getPlayer(), perm))
+                if (PermNodes.getBooleanPerm((ServerPlayer) evt.getEntity(), perm))
                 {
                     EconomyManager.removeShop(c);
-                    ChatHelper.sendSystemMessage(evt.getPlayer(),
+                    ChatHelper.sendSystemMessage(evt.getEntity(),
                             CommandManager.makeFormattedComponent("thutessentials.econ.remove"));
                 }
-                else ChatHelper.sendSystemMessage(evt.getPlayer(),
+                else ChatHelper.sendSystemMessage(evt.getEntity(),
                         CommandManager.makeFormattedComponent("thutessentials.econ.not_allowed_remove"));
             }
         }
@@ -449,12 +449,12 @@ public class EconomyManager
     @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGH)
     public void interactRightClickBlock(final PlayerInteractEvent.RightClickBlock evt)
     {
-        if (!(evt.getPlayer() instanceof ServerPlayer) || !Essentials.config.shopsEnabled) return;
-        final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getCommandSenderWorld().dimension(), evt.getPos());
+        if (!(evt.getEntity() instanceof ServerPlayer) || !Essentials.config.shopsEnabled) return;
+        final KGobalPos c = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
         final Shop shop = EconomyManager.getShop(c);
         if (shop != null)
         {
-            shop.transact((ServerPlayer) evt.getPlayer(), evt.getItemStack(), this._shopMap.get(c));
+            shop.transact((ServerPlayer) evt.getEntity(), evt.getItemStack(), this._shopMap.get(c));
             evt.setCanceled(true);
         }
     }
@@ -496,7 +496,7 @@ public class EconomyManager
             final BlockEntity down = owner.getCommandSenderWorld().getBlockEntity(location.getPos().below());
             if (down instanceof SignBlockEntity)
             {
-                final String[] var = ((SignBlockEntity) down).messages[0].getContents().split(",");
+                final String[] var = ((SignBlockEntity) down).messages[0].getString().split(",");
                 final int dx = Integer.parseInt(var[0]);
                 final int dy = Integer.parseInt(var[1]);
                 final int dz = Integer.parseInt(var[2]);

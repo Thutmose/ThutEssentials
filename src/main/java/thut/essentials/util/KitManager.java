@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 
 import javax.xml.namespace.QName;
 
@@ -21,6 +20,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -194,7 +194,7 @@ public class KitManager
             ITag<Item> tagged = ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, loc));
             if (tagged != null)
             {
-                item = tagged.getRandomElement(new Random());
+                item = tagged.getRandomElement(RandomSource.create());
                 if (!item.isEmpty()) return new ItemStack(item.get());
             }
         }

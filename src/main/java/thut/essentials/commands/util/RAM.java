@@ -8,7 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.util.PermNodes;
@@ -59,7 +59,7 @@ public class RAM
 
     private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        source.sendSuccess(new TextComponent(RAM.memInfo()), false);
+        source.sendSuccess(Component.literal(RAM.memInfo()), false);
         return 0;
     }
 

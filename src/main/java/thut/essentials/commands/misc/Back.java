@@ -39,18 +39,18 @@ public class Back
     @SubscribeEvent
     public static void move(final MoveEvent event)
     {
-        if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntityLiving()
+        if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntity()
                 .getStringUUID()).put("backPos", CoordinateUtls.toNBT(event.getPos(), "backPos"));
     }
 
     @SubscribeEvent
     public static void death(final LivingDeathEvent event)
     {
-        if (event.getEntityLiving() instanceof ServerPlayer && Essentials.config.back_on_death)
+        if (event.getEntity() instanceof ServerPlayer && Essentials.config.back_on_death)
         {
-            final CompoundTag tag = CoordinateUtls.toNBT(CoordinateUtls.forMob(event.getEntityLiving()), "back");
-            PlayerDataHandler.getCustomDataTag(event.getEntityLiving().getStringUUID()).put("backPos", tag);
-            PlayerDataHandler.saveCustomData(event.getEntityLiving().getStringUUID());
+            final CompoundTag tag = CoordinateUtls.toNBT(CoordinateUtls.forMob(event.getEntity()), "back");
+            PlayerDataHandler.getCustomDataTag(event.getEntity().getStringUUID()).put("backPos", tag);
+            PlayerDataHandler.saveCustomData(event.getEntity().getStringUUID());
         }
     }
 

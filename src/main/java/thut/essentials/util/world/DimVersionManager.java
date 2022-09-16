@@ -2,7 +2,6 @@ package thut.essentials.util.world;
 
 import java.io.File;
 
-import net.minecraft.Util;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.resources.ResourceLocation;
@@ -18,11 +17,12 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import thut.essentials.Essentials;
 import thut.essentials.events.TeleLoadEvent;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.Transporter.TeleDest;
 
 public class DimVersionManager
@@ -41,8 +41,7 @@ public class DimVersionManager
         int vers = 0;
 
         public VersionHolder()
-        {
-        }
+        {}
 
         public VersionHolder(final int vers)
         {
@@ -91,7 +90,9 @@ public class DimVersionManager
 
     private static final ResourceLocation CAPTAG = new ResourceLocation(Essentials.MODID, "version");
 
-    public static final Capability<IVersioned> CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
+    public static final Capability<IVersioned> CAPABILITY = CapabilityManager.get(new CapabilityToken<>()
+    {
+    });
 
     private static void registerCapabilities(final RegisterCapabilitiesEvent event)
     {
@@ -120,10 +121,10 @@ public class DimVersionManager
         }
     }
 
-    private static void handleWorldLoad(final WorldEvent.Load event)
+    private static void handleWorldLoad(final LevelEvent.Load event)
     {
-        if (!(event.getWorld() instanceof ServerLevel)) return;
-        final ServerLevel world = (ServerLevel) event.getWorld();
+        if (!(event.getLevel() instanceof ServerLevel)) return;
+        final ServerLevel world = (ServerLevel) event.getLevel();
         final IVersioned vers = world.getCapability(DimVersionManager.CAPABILITY).orElse(null);
         // Not all worlds will have this, only ones to track!
         if (vers == null) return;
@@ -133,8 +134,7 @@ public class DimVersionManager
             final File file = var.getDimensionPath(world.dimension()).toFile();
             int i = 0;
             File named_file = new File(file.getParent(), file.getName() + "_" + i++);
-            while (named_file.exists())
-                named_file = new File(file.getParent(), file.getName() + "_" + i);
+            while (named_file.exists()) named_file = new File(file.getParent(), file.getName() + "_" + i);
             if (file.exists())
             {
                 final File prev = new File(file.getParent(), file.getName());
@@ -146,14 +146,13 @@ public class DimVersionManager
         vers.setVersion(Essentials.config.dim_verison);
     }
 
-    private static void handleWarnPlayer(final EntityJoinWorldEvent event)
+    private static void handleWarnPlayer(final EntityJoinLevelEvent event)
     {
-        if (!(event.getEntity() instanceof ServerPlayer)) return;
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!Essentials.config.versioned_dim_warning) return;
-        final ServerLevel world = (ServerLevel) event.getWorld();
+        final ServerLevel world = (ServerLevel) event.getLevel();
         if (!Essentials.config.versioned_dim_keys.contains(world.dimension().location())) return;
-        event.getEntity().sendMessage(Essentials.config.getMessage("thutessentials.dimversions.warning"),
-                Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.dimversions.warning"));
     }
 
 }

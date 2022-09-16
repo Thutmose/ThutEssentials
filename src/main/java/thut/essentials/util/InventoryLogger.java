@@ -99,27 +99,27 @@ public class InventoryLogger
     @SubscribeEvent
     public static void PlayerLoggedInEvent(final PlayerLoggedInEvent event)
     {
-        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        InventoryLogger.log("log-in {} {}", c, event.getPlayer().getUUID(), event.getPlayer().getName()
+        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getEntity()));
+        InventoryLogger.log("log-in {} {}", c, event.getEntity().getUUID(), event.getEntity().getName()
                 .getString());
     }
 
     @SubscribeEvent
     public static void PlayerLoggedOutEvent(final PlayerLoggedOutEvent event)
     {
-        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        InventoryLogger.log("log-out {} {}", c, event.getPlayer().getUUID(), event.getPlayer().getName()
+        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getEntity()));
+        InventoryLogger.log("log-out {} {}", c, event.getEntity().getUUID(), event.getEntity().getName()
                 .getString());
     }
 
     @SubscribeEvent
     public static void openInventory(final PlayerContainerEvent.Open event)
     {
-        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getPlayer()));
-        InventoryLogger.log("open {} {} {}", c, event.getContainer().getClass(), event.getPlayer().getUUID(), event
-                .getPlayer().getName().getString());
+        final KGobalPos c = CoordinateUtls.chunkPos(CoordinateUtls.forMob(event.getEntity()));
+        InventoryLogger.log("open {} {} {}", c, event.getContainer().getClass(), event.getEntity().getUUID(), event
+                .getEntity().getName().getString());
         if (!InventoryLogger.blacklist.contains(event.getContainer().getClass().getName())) event.getContainer()
-                .addSlotListener(new Listener(event.getPlayer(), event.getContainer()));
+                .addSlotListener(new Listener(event.getEntity(), event.getContainer()));
     }
 
     public static void log(String format, final KGobalPos location, final Object... args)

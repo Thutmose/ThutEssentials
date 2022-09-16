@@ -21,9 +21,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -32,12 +31,12 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
 import thut.essentials.land.LandEventsHandler;
-import thut.essentials.util.ChatManager;
 import thut.essentials.util.CmdScheduler;
 import thut.essentials.util.InventoryLogger;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerMover;
 import thut.essentials.util.PvPManager;
+import thut.essentials.util.RegHelper;
 
 public class Config extends ConfigData
 {
@@ -271,7 +270,7 @@ public class Config extends ConfigData
     @Configure(category = Config.MOBS)
     public List<String> mobGriefAllowBlacklist = Lists.newArrayList();
     @Configure(category = Config.MOBS)
-    public List<String> mobGriefAllowWhitelist = Lists.newArrayList(EntityType.VILLAGER.getRegistryName().toString());
+    public List<String> mobGriefAllowWhitelist = Lists.newArrayList(RegHelper.getKey(EntityType.VILLAGER).toString());
 
     @Configure(category = Config.MOBS)
     public boolean mobGriefAllowUsesWhitelist = true;
@@ -295,8 +294,8 @@ public class Config extends ConfigData
     public MutableComponent getMessage(final String key, final Object... args)
     {
         if (this.lang_overrides_map.containsKey(key))
-            return new TextComponent(String.format(this.lang_overrides_map.get(key), args));
-        else return new TranslatableComponent(key, args);
+            return Component.literal(String.format(this.lang_overrides_map.get(key), args));
+        else return Component.translatable(key, args);
     }
 
     public void sendFeedback(final CommandSourceStack target, final String key, final boolean log, final Object... args)
@@ -378,7 +377,6 @@ public class Config extends ConfigData
         Essentials.LOGGER.info("" + this.versioned_dim_keys);
         Essentials.LOGGER.info("" + this.versioned_dim_seed_map);
 
-        ChatManager.init();
         MobManager.init();
         PlayerMover.INTERUPTED = this.getMessage("thutessentials.tp.standstill");
         LandEventsHandler.init();

@@ -11,7 +11,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -118,7 +117,7 @@ public class StaffChat
         final Player sender = source.getPlayerOrException();
         final Component textComponent = CommandManager.makeFormattedComponent("[Staff] <" + sender.getName()
                 .getString() + "> " + message.getString(), ChatFormatting.YELLOW, false);
-        source.getServer().sendMessage(textComponent, Util.NIL_UUID);
+        source.getServer().sendSystemMessage(textComponent);
         Essentials.config.staff.forEach(s ->
         {
             try

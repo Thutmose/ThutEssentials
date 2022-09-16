@@ -13,7 +13,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandRuntimeException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.config.Config.ConfigData;
@@ -32,7 +32,7 @@ public class Config
         }
         catch (final Exception e)
         {
-            throw new CommandRuntimeException(new TextComponent("Error with field name " + field));
+            throw new CommandRuntimeException(Component.literal("Error with field name " + field));
         }
 
         return 0;
@@ -51,7 +51,7 @@ public class Config
         catch (final Exception e)
         {
             Essentials.LOGGER.error(e);
-            throw new CommandRuntimeException(new TextComponent("Error with field name " + field));
+            throw new CommandRuntimeException(Component.literal("Error with field name " + field));
         }
         final String[] args = message.split(" ");
         String val = args[0];
@@ -85,7 +85,7 @@ public class Config
         }
         catch (final Exception e)
         {
-            throw new CommandRuntimeException(new TextComponent("Error with setting field name " + field));
+            throw new CommandRuntimeException(Component.literal("Error with setting field name " + field));
         }
         Essentials.config.sendFeedback(source, "thutcore.command.settings.set", true, field, value);
 
@@ -111,14 +111,14 @@ public class Config
             toSet = Arrays.copyOf((int[]) o, len + 1);
             ((int[]) toSet)[len] = Config.parseInt(value);
         }
-        else throw new CommandRuntimeException(new TextComponent("This can only by done for arrays."));
+        else throw new CommandRuntimeException(Component.literal("This can only by done for arrays."));
         try
         {
             data.updateField(field, toSet);
         }
         catch (final Exception e)
         {
-            throw new CommandRuntimeException(new TextComponent("Error with setting field name " + field));
+            throw new CommandRuntimeException(Component.literal("Error with setting field name " + field));
         }
     }
 
@@ -150,14 +150,14 @@ public class Config
             for (int i = 0; i < values.size(); i++)
                 arr[i] = values.get(i);
         }
-        else throw new CommandRuntimeException(new TextComponent("This can only by done for arrays."));
+        else throw new CommandRuntimeException(Component.literal("This can only by done for arrays."));
         try
         {
             data.updateField(field, toSet);
         }
         catch (final Exception e)
         {
-            throw new CommandRuntimeException(new TextComponent("Error with setting field name " + field));
+            throw new CommandRuntimeException(Component.literal("Error with setting field name " + field));
         }
     }
 
@@ -179,14 +179,14 @@ public class Config
             ((int[]) o)[num] = Config.parseInt(value);
             toSet = ((int[]) o).clone();
         }
-        else throw new CommandRuntimeException(new TextComponent("This can only by done for arrays."));
+        else throw new CommandRuntimeException(Component.literal("This can only by done for arrays."));
         try
         {
             data.updateField(field, toSet);
         }
         catch (final Exception e)
         {
-            throw new CommandRuntimeException(new TextComponent("Error with setting field name " + field));
+            throw new CommandRuntimeException(Component.literal("Error with setting field name " + field));
         }
     }
 

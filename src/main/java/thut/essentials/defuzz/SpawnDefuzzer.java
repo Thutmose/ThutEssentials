@@ -10,7 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -54,7 +54,7 @@ public class SpawnDefuzzer
     public static void deFuzzRespawn(final PlayerRespawnEvent event)
     {
         if (!Essentials.config.defuzz) return;
-        if (!(event.getPlayer() instanceof ServerPlayer player)) return;
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
         DefuzMode mode = SpawnDefuzzer.shouldDefuz(player, true);
         if (mode != DefuzMode.NONE)
         {
@@ -78,7 +78,7 @@ public class SpawnDefuzzer
      *
      * @param evt
      */
-    public static void EntityUpdate(final LivingUpdateEvent evt)
+    public static void EntityUpdate(final LivingTickEvent evt)
     {
         if (!Essentials.config.defuzz) return;
         if (SpawnDefuzzer.logins.contains(evt.getEntity().getUUID()) && evt.getEntity() instanceof ServerPlayer player)
@@ -106,7 +106,7 @@ public class SpawnDefuzzer
     public static void deFuzzSpawn(final PlayerLoggedInEvent event)
     {
         if (!Essentials.config.defuzz) return;
-        if (event.getPlayer() instanceof ServerPlayer player)
+        if (event.getEntity() instanceof ServerPlayer player)
         {
             Essentials.LOGGER.info("Login detected, adding player to logins for defuzz.");
             SpawnDefuzzer.logins.add(player.getUUID());

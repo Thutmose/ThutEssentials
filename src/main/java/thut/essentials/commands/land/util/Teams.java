@@ -9,9 +9,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
@@ -50,7 +50,7 @@ public class Teams
             String emptyTip = "";
             final String lastSeenTip = "[" + (source.getServer().getNextTickTime() - team.lastSeen) / 1000 * 3600 + "h]";
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
-            final MutableComponent message = new TextComponent(ChatFormatting.AQUA + "["
+            final MutableComponent message = Component.literal(ChatFormatting.AQUA + "["
                     + ChatFormatting.YELLOW + s + ChatFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
 
             final ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/team_members " + s);

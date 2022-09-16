@@ -9,8 +9,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -77,7 +77,7 @@ public class Tpa
                 "/" + tpaccept + " " + player.getStringUUID() + " accept");
         final MutableComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny",
                 "/" + tpaccept + " " + player.getStringUUID() + " deny");
-        tpMessage = accept.append(new TextComponent("      /      ")).append(deny);
+        tpMessage = accept.append(Component.literal("      /      ")).append(deny);
         ChatHelper.sendSystemMessage(target, tpMessage);
         tpaTag.putString("R", player.getStringUUID());
         tag.put("tpa", tpaTag);

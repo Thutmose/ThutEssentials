@@ -31,21 +31,20 @@ public class CmdScheduler
     {
         CmdScheduler.cmds.clear();
         final Gson gson = new GsonBuilder().create();
-        for (final String s : Essentials.config.scheduledCommands)
-            try
+        for (final String s : Essentials.config.scheduledCommands) try
+        {
+            final Cmd cmd = gson.fromJson(s, Cmd.class);
+            if (cmd.cmd != null && cmd.timer > 0)
             {
-                final Cmd cmd = gson.fromJson(s, Cmd.class);
-                if (cmd.cmd != null && cmd.timer > 0)
-                {
-                    if (CmdScheduler.cmds.contains(cmd)) Essentials.LOGGER.warn(
-                            "Warning, adding duplicate copy of command: {}", cmd);
-                    CmdScheduler.cmds.add(cmd);
-                }
+                if (CmdScheduler.cmds.contains(cmd))
+                    Essentials.LOGGER.warn("Warning, adding duplicate copy of command: {}", cmd);
+                CmdScheduler.cmds.add(cmd);
             }
-            catch (final JsonSyntaxException e)
-            {
-                Essentials.LOGGER.error(e);
-            }
+        }
+        catch (final JsonSyntaxException e)
+        {
+            Essentials.LOGGER.error(e);
+        }
     }
 
     public static void onTick(final ServerTickEvent event)
@@ -53,11 +52,10 @@ public class CmdScheduler
         if (event.phase != Phase.END) return;
         CmdScheduler.tick++;
         final MinecraftServer server = Essentials.server;
-        for (final Cmd cmd : CmdScheduler.cmds)
-            if (cmd._last_run + cmd.timer < CmdScheduler.tick)
-            {
-                cmd._last_run = CmdScheduler.tick;
-                server.getCommands().performCommand(server.createCommandSourceStack(), cmd.cmd);
-            }
+        for (final Cmd cmd : CmdScheduler.cmds) if (cmd._last_run + cmd.timer < CmdScheduler.tick)
+        {
+            cmd._last_run = CmdScheduler.tick;
+            server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd.cmd);
+        }
     }
 }

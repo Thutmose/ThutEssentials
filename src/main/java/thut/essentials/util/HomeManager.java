@@ -4,9 +4,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -74,7 +74,7 @@ public class HomeManager
         final KGobalPos loc = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), pos);
         homes.put(home, CoordinateUtls.toNBT(loc, home));
         tag.put("homes", homes);
-        ChatHelper.sendSystemMessage(player, new TextComponent("set " + home));
+        ChatHelper.sendSystemMessage(player, Component.literal("set " + home));
         PlayerDataHandler.saveCustomData(player);
         return 0;
     }

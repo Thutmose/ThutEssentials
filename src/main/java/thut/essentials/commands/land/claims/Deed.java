@@ -36,11 +36,11 @@ public class Deed
     @SubscribeEvent(receiveCanceled = true)
     public static void interact(final PlayerInteractEvent.RightClickItem evt)
     {
-        if (!(evt.getPlayer() instanceof ServerPlayer)) return;
+        if (!(evt.getEntity() instanceof ServerPlayer)) return;
         final ItemStack stack = evt.getItemStack();
         if (!stack.hasTag() || !stack.getTag().getBoolean("isDeed")) return;
 
-        final ServerPlayer player = (ServerPlayer) evt.getPlayer();
+        final ServerPlayer player = (ServerPlayer) evt.getEntity();
         if (!PermNodes.getBooleanPerm(player, Deed.CANREDEEMDEEDS))
         {
             ChatHelper.sendSystemMessage(player,

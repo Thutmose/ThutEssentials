@@ -8,12 +8,11 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import thut.essentials.Essentials;
@@ -55,13 +54,13 @@ public class Chat
         final MinecraftServer server = source.getServer();
         final LandTeam team = LandManager.getTeam(sender);
 
-        final MutableComponent mess = new TextComponent("[Team]" + sender.getDisplayName()
+        final MutableComponent mess = Component.literal("[Team]" + sender.getDisplayName()
                 .getString()
                 + ": ");
         mess.setStyle(mess.getStyle().withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
         mess.append(CommandManager.makeFormattedComponent(RuleManager.format(message), ChatFormatting.AQUA, false));
 
-        if (Essentials.config.logTeamChat) server.sendMessage(mess, Util.NIL_UUID);
+        if (Essentials.config.logTeamChat) server.sendSystemMessage(mess);
         for (final UUID id : team.member)
             try
             {

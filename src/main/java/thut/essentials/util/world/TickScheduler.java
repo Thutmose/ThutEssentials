@@ -9,8 +9,8 @@ import com.google.common.collect.Lists;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.event.TickEvent.LevelTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
-import net.minecraftforge.event.TickEvent.WorldTickEvent;
 
 public class TickScheduler
 {
@@ -54,11 +54,11 @@ public class TickScheduler
         }
     }
 
-    public static void onWorldTick(final WorldTickEvent event)
+    public static void onWorldTick(final LevelTickEvent event)
     {
-        if (event.world instanceof ServerLevel)
+        if (event.level instanceof ServerLevel)
         {
-            final ResourceKey<Level> key = event.world.dimension();
+            final ResourceKey<Level> key = event.level.dimension();
             final Map<ResourceKey<Level>, List<Runnable>> map = event.phase == Phase.END ? TickScheduler.endTickRuns
                     : TickScheduler.startTickRuns;
             synchronized (map)

@@ -15,6 +15,6 @@ public class MoveEvent extends PlayerEvent
 
     public KGobalPos getPos()
     {
-        return CoordinateUtls.forMob(this.getPlayer());
+        return CoordinateUtls.forMob(this.getEntity());
     }
 }

@@ -12,8 +12,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
@@ -68,7 +68,7 @@ public class Members
     public static MutableComponent getMembers(final MinecraftServer server, final Collection<UUID> c,
             final boolean tabbed)
     {
-        final TextComponent mess = new TextComponent("");
+        final MutableComponent mess = Component.literal("");
         final List<UUID> ids = Lists.newArrayList(c);
         for (int i = 0; i < ids.size(); i++)
         {

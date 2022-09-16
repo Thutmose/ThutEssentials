@@ -15,7 +15,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.data.BuiltinRegistries;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -58,7 +58,7 @@ public class Structuregen
     private static SuggestionProvider<CommandSourceStack> SUGGEST_NAMES = (ctx, sb) ->
     {
         final List<String> opts = Lists.newArrayList();
-        for (final ResourceLocation loc : BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE.keySet())
+        for (final ResourceLocation loc : BuiltinRegistries.STRUCTURES.keySet())
             opts.add(loc.toString());
         return net.minecraft.commands.SharedSuggestionProvider.suggest(opts, sb);
     };
@@ -192,7 +192,7 @@ public class Structuregen
 //            manager.promoteChunkMap();
 //        }, true);
 
-        source.sendSuccess(new TextComponent("Reset Scheduled"), false);
+        source.sendSuccess(Component.literal("Reset Scheduled"), false);
         return 0;
     }
 

@@ -42,7 +42,7 @@ public class MobManager
     public static boolean isWhitelistedForGriefing(final Entity mob)
     {
         if (mob == null) return false;
-        return MobManager.griefWhitelist.contains(mob.getType().getRegistryName());
+        return MobManager.griefWhitelist.contains(RegHelper.getKey(mob));
     }
 
     @SubscribeEvent
@@ -50,14 +50,14 @@ public class MobManager
     {
         if (Essentials.config.mobGriefAllowUsesWhitelist)
         {
-            final boolean valid = evt.getEntity() != null && MobManager.griefWhitelist.contains(evt.getEntity()
-                    .getType().getRegistryName());
+            final boolean valid = evt.getEntity() != null
+                    && MobManager.griefWhitelist.contains(RegHelper.getKey(evt.getEntity()));
             evt.setResult(valid ? Result.ALLOW : Result.DEFAULT);
         }
         else
         {
-            final boolean valid = evt.getEntity() != null && MobManager.griefBlacklist.contains(evt.getEntity()
-                    .getType().getRegistryName());
+            final boolean valid = evt.getEntity() != null
+                    && MobManager.griefBlacklist.contains(RegHelper.getKey(evt.getEntity()));
             evt.setResult(valid ? Result.DENY : Result.DEFAULT);
         }
     }
@@ -68,11 +68,11 @@ public class MobManager
         if (evt.getResult() != Result.DEFAULT) return;
         if (Essentials.config.mobSpawnUsesWhitelist)
         {
-            final boolean valid = MobManager.spawnWhitelist.contains(evt.getEntity().getType().getRegistryName());
+            final boolean valid = MobManager.spawnWhitelist.contains(RegHelper.getKey(evt.getEntity()));
             evt.setResult(valid ? Result.DEFAULT : Result.DENY);
             return;
         }
-        final boolean valid = MobManager.spawnBlacklist.contains(evt.getEntity().getType().getRegistryName());
+        final boolean valid = MobManager.spawnBlacklist.contains(RegHelper.getKey(evt.getEntity()));
         evt.setResult(valid ? Result.DENY : Result.DEFAULT);
     }
 
@@ -82,11 +82,11 @@ public class MobManager
         if (evt.getResult() != Result.DEFAULT) return;
         if (Essentials.config.mobSpawnUsesWhitelist)
         {
-            final boolean valid = MobManager.spawnWhitelist.contains(evt.getEntity().getType().getRegistryName());
+            final boolean valid = MobManager.spawnWhitelist.contains(RegHelper.getKey(evt.getEntity()));
             evt.setResult(valid ? Result.DEFAULT : Result.DENY);
             return;
         }
-        final boolean valid = MobManager.spawnBlacklist.contains(evt.getEntity().getType().getRegistryName());
+        final boolean valid = MobManager.spawnBlacklist.contains(RegHelper.getKey(evt.getEntity()));
         evt.setResult(valid ? Result.DENY : Result.DEFAULT);
     }
 }

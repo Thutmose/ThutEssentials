@@ -38,8 +38,8 @@ public class PvPManager
         if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.pvpPerms) return;
         if (!(evt.getTarget() instanceof ServerPlayer)) return;
-        if (!(evt.getPlayer() instanceof ServerPlayer)) return;
-        final ServerPlayer attacker = (ServerPlayer) evt.getPlayer();
+        if (!(evt.getEntity() instanceof ServerPlayer)) return;
+        final ServerPlayer attacker = (ServerPlayer) evt.getEntity();
         final ServerPlayer attacked = (ServerPlayer) evt.getTarget();
         if (PermNodes.getBooleanPerm(attacker, PvPManager.PERMPVP)
                 && PermNodes.getBooleanPerm(attacked, PvPManager.PERMPVP))

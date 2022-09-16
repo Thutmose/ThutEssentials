@@ -13,7 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
 import thut.essentials.events.MoveEvent;
@@ -116,7 +116,7 @@ public class PlayerMover
     static Map<UUID, Mover> toMove = Maps.newHashMap();
 
     @SubscribeEvent
-    public void playerTick(final LivingUpdateEvent tick)
+    public void playerTick(final LivingTickEvent tick)
     {
         if (!(tick.getEntity().level instanceof ServerLevel) || !(tick.getEntity() instanceof ServerPlayer player))
             return;

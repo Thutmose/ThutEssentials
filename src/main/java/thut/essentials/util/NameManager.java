@@ -2,7 +2,6 @@ package thut.essentials.util;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +14,7 @@ public class NameManager
 
     private static void onPlayerDisplayName(final NameFormat event)
     {
-        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(event.getPlayer());
+        final CompoundTag tag = PlayerDataHandler.getCustomDataTag(event.getEntity());
         String nick = tag.getString("nick");
         final String pref = tag.getString("nick_pref");
         final String suff = tag.getString("nick_suff");
@@ -24,14 +23,14 @@ public class NameManager
         if (nick.trim().isEmpty()) nick = old;
         nick = pref + nick + suff;
         if (nick.length() > 16) nick = nick.substring(0, 16);
-        final Component comp = new TextComponent(RuleManager.format(nick));
+        final Component comp = Component.literal(RuleManager.format(nick));
         event.setDisplayname(comp);
-        if (event.getPlayer() instanceof ServerPlayer && !old.equals(nick))
+        if (event.getEntity() instanceof ServerPlayer && !old.equals(nick))
         {
             final MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            final ServerPlayer player = (ServerPlayer) event.getPlayer();
-            server.getPlayerList().broadcastAll(new ClientboundPlayerInfoPacket(
-                    ClientboundPlayerInfoPacket.Action.UPDATE_DISPLAY_NAME, player));
+            final ServerPlayer player = (ServerPlayer) event.getEntity();
+            server.getPlayerList().broadcastAll(
+                    new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.UPDATE_DISPLAY_NAME, player));
         }
     }
 

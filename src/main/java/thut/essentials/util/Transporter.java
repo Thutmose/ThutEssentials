@@ -19,8 +19,8 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent.LevelTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
-import net.minecraftforge.event.TickEvent.WorldTickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
@@ -218,14 +218,13 @@ public class Transporter
         public int version = 0;
 
         public TeleDest()
-        {
-        }
+        {}
 
         public TeleDest setLoc(final KGobalPos loc, final Vector3 subLoc)
         {
             this.loc = loc;
             this.subLoc = subLoc;
-            this.name = loc.getPos().toString() + " " + loc.getDimension().getRegistryName();
+            this.name = loc.getPos().toString() + " " + loc.getDimension().location();
             return this;
         }
 
@@ -234,9 +233,9 @@ public class Transporter
             if (pos != null)
             {
                 this.loc = pos;
-                this.subLoc = new Vector3().set(this.loc.getPos().getX(), this.loc.getPos().getY(), this.loc.getPos()
-                        .getZ());
-                this.name = this.loc.getPos().toString() + " " + this.loc.getDimension().getRegistryName();
+                this.subLoc = new Vector3().set(this.loc.getPos().getX(), this.loc.getPos().getY(),
+                        this.loc.getPos().getZ());
+                this.name = this.loc.getPos().toString() + " " + this.loc.getDimension().location();
             }
             return this;
         }
@@ -292,8 +291,8 @@ public class Transporter
 
         public boolean withinDist(final TeleDest other, final double dist)
         {
-            if (other.loc.getDimension() == this.loc.getDimension()) return other.loc.getPos().closerThan(this.loc
-                    .getPos(), dist);
+            if (other.loc.getDimension() == this.loc.getDimension())
+                return other.loc.getPos().closerThan(this.loc.getPos(), dist);
             return false;
         }
     }
@@ -303,7 +302,7 @@ public class Transporter
         private final ServerLevel overworld;
 
         private final Entity entity;
-        private final long   start;
+        private final long start;
 
         public InvulnTicker(final Entity entity)
         {
@@ -330,10 +329,10 @@ public class Transporter
 
     private static class TransferTicker
     {
-        private final Entity      entity;
+        private final Entity entity;
         private final ServerLevel destWorld;
-        private final TeleDest    dest;
-        private final boolean     sound;
+        private final TeleDest dest;
+        private final boolean sound;
 
         public TransferTicker(final ServerLevel destWorld, final Entity entity, final TeleDest dest,
                 final boolean sound)
@@ -346,16 +345,15 @@ public class Transporter
         }
 
         @SubscribeEvent
-        public void TickEvent(final WorldTickEvent event)
+        public void TickEvent(final LevelTickEvent event)
         {
-            if (event.world == this.entity.getCommandSenderWorld() && event.phase == Phase.END)
+            if (event.level == this.entity.getCommandSenderWorld() && event.phase == Phase.END)
             {
                 MinecraftForge.EVENT_BUS.unregister(this);
                 Transporter.transferMob(this.destWorld, this.dest, this.entity);
                 if (this.sound)
                 {
-                    this.destWorld.playLocalSound(this.dest.subLoc.x, this.dest.subLoc.y,
-                            this.dest.subLoc.z,
+                    this.destWorld.playLocalSound(this.dest.subLoc.x, this.dest.subLoc.y, this.dest.subLoc.z,
                             SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1.0F, 1.0F, false);
                     this.entity.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
                 }
@@ -384,7 +382,8 @@ public class Transporter
             {
                 final ServerPlayer player = (ServerPlayer) entity;
                 player.isChangingDimension = true;
-                player.teleportTo(destWorld, dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.getYRot(), entity.getXRot());
+                player.teleportTo(destWorld, dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, entity.getYRot(),
+                        entity.getXRot());
                 if (sound)
                 {
                     destWorld.playLocalSound(dest.subLoc.x, dest.subLoc.y, dest.subLoc.z, SoundEvents.ENDERMAN_TELEPORT,
@@ -421,19 +420,18 @@ public class Transporter
 
     private static void addMob(final ServerLevel world, final Entity entity)
     {
-        if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
-                new net.minecraftforge.event.entity.EntityJoinWorldEvent(entity, world))) return;
-        final ChunkAccess ichunk = world.getChunk(Mth.floor(entity.getX() / 16.0D), Mth.floor(entity.getZ()
-                / 16.0D), ChunkStatus.FULL, true);
+        if (net.minecraftforge.common.MinecraftForge.EVENT_BUS
+                .post(new net.minecraftforge.event.entity.EntityJoinLevelEvent(entity, world)))
+            return;
+        final ChunkAccess ichunk = world.getChunk(Mth.floor(entity.getX() / 16.0D), Mth.floor(entity.getZ() / 16.0D),
+                ChunkStatus.FULL, true);
         if (ichunk instanceof LevelChunk) ichunk.addEntity(entity);
         world.addDuringTeleport(entity);
     }
 
-    @SuppressWarnings("removal")
     private static void removeMob(final ServerLevel world, final Entity entity, final boolean keepData)
     {
         entity.remove(RemovalReason.CHANGED_DIMENSION);
-        world.removeEntity(entity, keepData);
     }
 
     private static void moveMob(final Entity entity, final TeleDest dest)
