@@ -21,6 +21,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -75,13 +76,12 @@ public class StaffChat
             Essentials.config.staff = staffList;
             Essentials.config.onUpdated();
             Essentials.config.write();
-            player.sendMessage(CommandManager.makeFormattedComponent("Removed form Staff: " + gameProfile.getName()),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("Removed form Staff: " + gameProfile.getName()));
             return 1;
         }
         catch (final Exception e)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("Error removing a Staff"), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("Error removing a Staff"));
             e.printStackTrace();
             return 0;
         }
@@ -102,13 +102,12 @@ public class StaffChat
             Essentials.config.staff = staffList;
             Essentials.config.onUpdated();
             Essentials.config.write();
-            player.sendMessage(CommandManager.makeFormattedComponent("Added to Staff: " + gameProfile.getName()),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("Added to Staff: " + gameProfile.getName()));
             return 1;
         }
         catch (final Exception e)
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("Error adding to Staff"), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("Error adding to Staff"));
             e.printStackTrace();
             return 0;
         }
@@ -126,7 +125,7 @@ public class StaffChat
             {
                 final UUID id = UUID.fromString(s);
                 final Player player = source.getServer().getPlayerList().getPlayer(id);
-                if (player != null) player.sendMessage(textComponent, Util.NIL_UUID);
+                if (player != null) ChatHelper.sendSystemMessage(player, textComponent);
             }
             catch (final Exception e)
             {

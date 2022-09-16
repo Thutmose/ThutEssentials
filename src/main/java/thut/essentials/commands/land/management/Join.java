@@ -10,7 +10,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -21,6 +20,7 @@ import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -109,8 +109,8 @@ public class Join
         if (canJoinInvite || canJoinNoInvite)
         {
             LandManager.getInstance().addToTeam(player.getUUID(), team);
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.joined", null, false,
-                    teamtojoin.teamName), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.team.joined", null, false,
+                    teamtojoin.teamName));
             return 0;
         }
         return 1;

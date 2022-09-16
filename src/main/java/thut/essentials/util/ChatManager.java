@@ -49,8 +49,7 @@ public class ChatManager
                 l = matcher.end();
                 if (k > j)
                 {
-                    final MutableComponent itextcomponent = new TextComponent(String.format(format
-                            .substring(j, k)));
+                    final MutableComponent itextcomponent = new TextComponent(String.format(format.substring(j, k)));
                     itextcomponent.setStyle(comp.getStyle());
                     children.add(itextcomponent);
                 }
@@ -82,8 +81,7 @@ public class ChatManager
                 j = ChatManager.handle(comp, children, args, format);
             if (j < format.length())
             {
-                final MutableComponent itextcomponent1 = new TextComponent(String.format(format
-                        .substring(j)));
+                final MutableComponent itextcomponent1 = new TextComponent(String.format(format.substring(j)));
                 itextcomponent1.setStyle(comp.getStyle());
                 children.add(itextcomponent1);
             }
@@ -107,7 +105,7 @@ public class ChatManager
         {
             final Object object = args[index];
             MutableComponent itextcomponent;
-            if (object instanceof MutableComponent) itextcomponent = (MutableComponent) object;
+            if (object instanceof MutableComponent comp2) itextcomponent = comp2;
             else
             {
                 itextcomponent = new TextComponent(object == null ? "null" : object.toString());

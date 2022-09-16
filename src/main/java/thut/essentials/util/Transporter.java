@@ -429,6 +429,7 @@ public class Transporter
         world.addDuringTeleport(entity);
     }
 
+    @SuppressWarnings("removal")
     private static void removeMob(final ServerLevel world, final Entity entity, final boolean keepData)
     {
         entity.remove(RemovalReason.CHANGED_DIMENSION);

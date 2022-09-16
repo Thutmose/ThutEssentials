@@ -1,6 +1,5 @@
 package thut.essentials.util;
 
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
@@ -34,7 +33,6 @@ public class HomeManager
 
     public static boolean canAddHome(final ServerPlayer player, final int index)
     {
-        @SuppressWarnings("unchecked")
         int homes = PermissionAPI.getPermission(player, HOMES_PERM);
         return index < homes;
     }
@@ -76,7 +74,7 @@ public class HomeManager
         final KGobalPos loc = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), pos);
         homes.put(home, CoordinateUtls.toNBT(loc, home));
         tag.put("homes", homes);
-        player.sendMessage(new TextComponent("set " + home), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, new TextComponent("set " + home));
         PlayerDataHandler.saveCustomData(player);
         return 0;
     }
@@ -98,15 +96,15 @@ public class HomeManager
     {
         final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
         final CompoundTag homes = tag.getCompound("homes");
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.header"), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.homes.header"));
         for (String s : homes.getAllKeys())
         {
             final MutableComponent message = CommandManager.makeFormattedComponent("thutessentials.homes.entry", null,
                     false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
             final Style style = message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/home " + s));
-            player.sendMessage(message.setStyle(style), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message.setStyle(style));
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.homes.footer"), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.homes.footer"));
     }
 }

@@ -5,13 +5,13 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.WarpManager;
@@ -68,19 +68,19 @@ public class Warps
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.warping", null, false, warpName);
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             break;
         case 2:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.noperms");
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             break;
         case 3:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.noexists_use");
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             break;
         }
         return ret;

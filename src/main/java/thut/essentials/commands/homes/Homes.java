@@ -5,7 +5,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.nbt.CompoundTag;
@@ -15,6 +14,7 @@ import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager.KGobalPos;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -79,7 +79,7 @@ public class Homes
         {
             final Component message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null,
                     false, homeName);
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             return 1;
         }
         final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
@@ -89,13 +89,13 @@ public class Homes
         if (last > time && Essentials.config.homeReUseDelay > 0)
         {
             final Component message = CommandManager.makeFormattedComponent("thutessentials.tp.tosoon");
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             return 2;
         }
 
         Component message = CommandManager.makeFormattedComponent("thutessentials.homes.warping", null, false,
                 homeName);
-        player.sendMessage(message, Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, message);
         message = CommandManager.makeFormattedComponent("thutessentials.homes.warped", null, false, homeName);
         tptag.putLong("homeDelay", time + Essentials.config.homeReUseDelay);
         tag.put("tp", tptag);

@@ -20,6 +20,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.RuleManager;
@@ -65,7 +66,7 @@ public class Chat
             try
             {
                 final Player player = server.getPlayerList().getPlayer(id);
-                if (player != null) player.sendMessage(mess, Util.NIL_UUID);
+                if (player != null) ChatHelper.sendSystemMessage(player, mess);
             }
             catch (final Exception e)
             {

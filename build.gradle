@@ -90,7 +90,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${version_minecraft}-${version_forge}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     
-    implementation fg.deobf("curse.maven:thutperms-247126:3597710")
+    implementation fg.deobf("curse.maven:thutperms-247126:3921688")
 }
 
 jar {

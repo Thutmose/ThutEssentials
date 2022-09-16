@@ -10,7 +10,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.nbt.CompoundTag;
@@ -18,6 +17,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -26,8 +26,8 @@ import thut.essentials.util.PlayerMover;
 
 public class TpAccept
 {
-    private static SuggestionProvider<CommandSourceStack> SUGGEST = (ctx, sb) -> net.minecraft.commands.SharedSuggestionProvider
-            .suggest(Lists.newArrayList("accept", "deny"), sb);
+    private static SuggestionProvider<CommandSourceStack> SUGGEST = (ctx,
+            sb) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Lists.newArrayList("accept", "deny"), sb);
 
     public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
@@ -38,13 +38,13 @@ public class TpAccept
         PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                .requires(cs -> CommandManager.hasPerm(cs, perm));
 
-        command = command.then(Commands.argument("uuid", StringArgumentType.string()).then(Commands.argument(
-                "accept/deny", StringArgumentType.string()).suggests(TpAccept.SUGGEST).executes(ctx -> TpAccept.execute(
-                        ctx.getSource(), StringArgumentType.getString(ctx, "uuid"), StringArgumentType.getString(ctx,
-                                "accept/deny")))));
+        command = command.then(Commands.argument("uuid", StringArgumentType.string())
+                .then(Commands.argument("accept/deny", StringArgumentType.string()).suggests(TpAccept.SUGGEST)
+                        .executes(ctx -> TpAccept.execute(ctx.getSource(), StringArgumentType.getString(ctx, "uuid"),
+                                StringArgumentType.getString(ctx, "accept/deny")))));
 
         // Actually register the command.
         commandDispatcher.register(command);
@@ -67,19 +67,19 @@ public class TpAccept
         final Player target = server.getPlayerList().getPlayer(UUID.fromString(uuid));
         if (option.equals("accept"))
         {
-            target.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.accepted_user",
-                    ChatFormatting.GREEN, true), Util.NIL_UUID);
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.accepted_target",
-                    ChatFormatting.GREEN, true), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(target, CommandManager
+                    .makeFormattedComponent("thutessentials.tpa.accepted_user", ChatFormatting.GREEN, true));
+            ChatHelper.sendSystemMessage(player, CommandManager
+                    .makeFormattedComponent("thutessentials.tpa.accepted_target", ChatFormatting.GREEN, true));
             PlayerMover.setMove(target, Essentials.config.tpaActivateDelay, CoordinateUtls.forMob(player), null,
                     PlayerMover.INTERUPTED);
         }
         else if (option.equals("deny"))
         {
-            target.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.denied_user",
-                    ChatFormatting.RED, true), Util.NIL_UUID);
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.denied_target",
-                    ChatFormatting.RED, true), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(target,
+                    CommandManager.makeFormattedComponent("thutessentials.tpa.denied_user", ChatFormatting.RED, true));
+            ChatHelper.sendSystemMessage(player, CommandManager
+                    .makeFormattedComponent("thutessentials.tpa.denied_target", ChatFormatting.RED, true));
         }
         return 0;
     }

@@ -6,10 +6,10 @@ import java.util.function.Predicate;
 
 import com.google.common.collect.Maps;
 
-import net.minecraft.Util;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,18 +30,17 @@ public class PlayerMover
 
     private static class Mover
     {
-        final long              moveTime;
-        final Player      player;
-        final KGobalPos         moveTo;
-        final KGobalPos         start;
-        final Component    message;
-        final Component    failMess;
-        final boolean           event;
+        final long moveTime;
+        final Player player;
+        final KGobalPos moveTo;
+        final KGobalPos start;
+        final Component message;
+        final Component failMess;
+        final boolean event;
         final Predicate<Entity> callback;
 
-        public Mover(final Player player, final long moveTime, final KGobalPos moveTo,
-                final Component message, final Component failMess, final Predicate<Entity> callback,
-                final boolean event)
+        public Mover(final Player player, final long moveTime, final KGobalPos moveTo, final Component message,
+                final Component failMess, final Predicate<Entity> callback, final boolean event)
         {
             this.player = player;
             this.moveTime = moveTime;
@@ -75,43 +74,41 @@ public class PlayerMover
                 Essentials.LOGGER.error(e);
             }
             if (this.callback != null) this.callback.test(this.player);
-            if (this.message != null) this.player.sendMessage(this.message, Util.NIL_UUID);
+            if (this.message != null) ChatHelper.sendSystemMessage(player, this.message);
         }
     }
 
-    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo,
-            final Component message, final Component failMess)
+    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo, final Component message,
+            final Component failMess)
     {
         PlayerMover.setMove(player, moveTime, moveTo, message, failMess, true);
     }
 
-    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo,
-            final Component message, final Component failMess, final boolean event)
+    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo, final Component message,
+            final Component failMess, final boolean event)
     {
         PlayerMover.setMove(player, moveTime, moveTo, message, failMess, null, event);
     }
 
-    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo,
-            final Component message, final Component failMess, final Predicate<Entity> callback,
-            final boolean event)
+    public static void setMove(final Player player, final int moveTime, final KGobalPos moveTo, final Component message,
+            final Component failMess, final Predicate<Entity> callback, final boolean event)
     {
         if (player.getVehicle() != null || player.isVehicle())
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.dismount"), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.tp.dismount"));
             return;
         }
-        player.getServer().executeBlocking(() ->
-        {
+        player.getServer().executeBlocking(() -> {
             if (!PlayerMover.toMove.containsKey(player.getUUID()))
             {
                 long time = moveTime;
                 if (time > 0)
                 {
-                    player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tele_init"), Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.tp.tele_init"));
                     time += player.getCommandSenderWorld().getGameTime();
                 }
-                PlayerMover.toMove.put(player.getUUID(), new Mover(player, time, moveTo, message, failMess,
-                        callback, event));
+                PlayerMover.toMove.put(player.getUUID(),
+                        new Mover(player, time, moveTo, message, failMess, callback, event));
             }
         });
     }
@@ -121,22 +118,22 @@ public class PlayerMover
     @SubscribeEvent
     public void playerTick(final LivingUpdateEvent tick)
     {
-        if (!(tick.getEntity().level instanceof ServerLevel)) return;
-        if (PlayerMover.toMove.containsKey(tick.getEntity().getUUID()))
+        if (!(tick.getEntity().level instanceof ServerLevel) || !(tick.getEntity() instanceof ServerPlayer player))
+            return;
+        if (PlayerMover.toMove.containsKey(player.getUUID()))
         {
-            final Mover mover = PlayerMover.toMove.get(tick.getEntity().getUUID());
+            final Mover mover = PlayerMover.toMove.get(player.getUUID());
             final KGobalPos playerPos = CoordinateUtls.forMob(mover.player);
             final Vec3i diff = playerPos.getPos().subtract(mover.start.getPos());
-            if (tick.getEntity().getCommandSenderWorld().getGameTime() > mover.moveTime)
+            if (player.getCommandSenderWorld().getGameTime() > mover.moveTime)
             {
                 mover.move();
-                PlayerMover.toMove.remove(tick.getEntity().getUUID());
+                PlayerMover.toMove.remove(player.getUUID());
             }
             else if (diff.distSqr(Vec3i.ZERO) > 1 && mover.moveTime > 0)
             {
-                System.out.println(diff.distSqr(Vec3i.ZERO));
-                if (mover.failMess != null) tick.getEntity().sendMessage(mover.failMess, Util.NIL_UUID);
-                PlayerMover.toMove.remove(tick.getEntity().getUUID());
+                if (mover.failMess != null) ChatHelper.sendSystemMessage(player, mover.failMess);
+                PlayerMover.toMove.remove(player.getUUID());
                 return;
             }
         }

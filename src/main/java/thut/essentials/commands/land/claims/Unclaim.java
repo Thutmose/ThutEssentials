@@ -7,7 +7,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -25,6 +24,7 @@ import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandManager.TeamLand;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -79,8 +79,7 @@ public class Unclaim
 
         if (!canUnclaimAnything && !team.hasRankPerm(player.getUUID(), LandTeam.UNCLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"));
             return 1;
         }
 
@@ -91,8 +90,8 @@ public class Unclaim
             team.land = new TeamLand();
             LandManager.getInstance()._team_land.put(team.land.uuid, team);
             LandSaveHandler.saveTeam(team.teamName);
-            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done.num", num, team.teamName),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.unclaim.done.num", num, team.teamName)
+                   );
             return 0;
         }
         player.getServer().execute(() -> {
@@ -121,15 +120,15 @@ public class Unclaim
             claimnum = worked.get();
             owned_other = other.get();
             done = claimnum != 0;
-            if (owned_other > 0) player.sendMessage(
-                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owned_other),
-                    Util.NIL_UUID);
-            if (done) player.sendMessage(
-                    Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum, team.teamName),
-                    Util.NIL_UUID);
-            else player.sendMessage(
-                    Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum, team.teamName),
-                    Util.NIL_UUID);
+            if (owned_other > 0) ChatHelper.sendSystemMessage(player, 
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owned_other)
+                   );
+            if (done) ChatHelper.sendSystemMessage(player, 
+                    Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum, team.teamName)
+                   );
+            else ChatHelper.sendSystemMessage(player, 
+                    Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum, team.teamName)
+                   );
             LandSaveHandler.saveTeam(team.teamName);
         });
         return 0;
@@ -144,16 +143,16 @@ public class Unclaim
                 true);
         if (LandManager.isWild(owner))
         {
-            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
-                    Util.NIL_UUID);
+            if (messages) ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner")
+                   );
             ready.getAndSet(true);
             return 2;
         }
         else if (owner != team && !canUnclaimAnything)
         {
-            if (messages) player.sendMessage(
-                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owner.teamName),
-                    Util.NIL_UUID);
+            if (messages) ChatHelper.sendSystemMessage(player, 
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owner.teamName)
+                   );
             other.getAndIncrement();
             ready.getAndSet(true);
             return 3;
@@ -163,8 +162,8 @@ public class Unclaim
         LandManager.getInstance().unclaimLand(team.teamName, player.getCommandSenderWorld(), chunk.getPos(), true);
         worked.getAndIncrement();
         ready.getAndSet(true);
-        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
-                Util.NIL_UUID);
+        if (messages) ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName)
+               );
 
         return 0;
     }

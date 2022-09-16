@@ -7,7 +7,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -27,6 +26,7 @@ import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -43,15 +43,15 @@ public class Deed
         final ServerPlayer player = (ServerPlayer) evt.getPlayer();
         if (!PermNodes.getBooleanPerm(player, Deed.CANREDEEMDEEDS))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return;
         }
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return;
         }
 
@@ -66,8 +66,8 @@ public class Deed
             if (c == null) continue;
             if (c.getDimension() != world.dimension())
             {
-                player.sendMessage(Essentials.config.getMessage("thutessentials.deed.notallowed.wrongdim"),
-                        Util.NIL_UUID);
+                ChatHelper.sendSystemMessage(player,
+                        Essentials.config.getMessage("thutessentials.deed.notallowed.wrongdim"));
                 return;
             }
             x = c.getPos().getX();
@@ -84,8 +84,8 @@ public class Deed
             }
         }
         stack.getTag().putInt("num", num - n);
-        player.sendMessage(Essentials.config.getMessage("thutessentials.deed.claimed", n, team.teamName),
-                Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.deed.claimed", n, team.teamName));
         if (n == num) stack.grow(-1);
         else stack.setHoverName(Essentials.config.getMessage("thutessentials.deed.for", num - n, x << 4, z << 4));
     }
@@ -145,8 +145,8 @@ public class Deed
 
         if (!canUnclaimAnything && !team.hasRankPerm(player.getUUID(), LandTeam.UNCLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"));
             return 1;
         }
 
@@ -190,15 +190,12 @@ public class Deed
                     }
                     else if (check == 3) owned_other++;
                 }
-                if (owned_other > 0) player.sendMessage(
-                        Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owned_other),
-                        Util.NIL_UUID);
-                if (done) player.sendMessage(
-                        Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum, team.teamName),
-                        Util.NIL_UUID);
-                else player.sendMessage(
-                        Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum, team.teamName),
-                        Util.NIL_UUID);
+                if (owned_other > 0) ChatHelper.sendSystemMessage(player,
+                        Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owned_other));
+                if (done) ChatHelper.sendSystemMessage(player,
+                        Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum, team.teamName));
+                else ChatHelper.sendSystemMessage(player,
+                        Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum, team.teamName));
             }
 
             if (!deeds.isEmpty())
@@ -225,15 +222,14 @@ public class Deed
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
         if (LandManager.isWild(owner))
         {
-            if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"),
-                    Util.NIL_UUID);
+            if (messages) ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.noowner"));
             return 2;
         }
         else if (owner != team && !canUnclaimAnything)
         {
-            if (messages) player.sendMessage(
-                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owner.teamName),
-                    Util.NIL_UUID);
+            if (messages) ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owner.teamName));
             return 3;
         }
 
@@ -243,8 +239,8 @@ public class Deed
         Deed.initDeedTeam();
         // Transfers the claim over to the "deed team"
         LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.getPos(), true);
-        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName),
-                Util.NIL_UUID);
+        if (messages) ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
 
         return 0;
     }

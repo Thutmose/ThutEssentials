@@ -12,7 +12,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,6 +20,7 @@ import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandManager.Relation;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -111,8 +111,8 @@ public class Relations
         final ServerPlayer player = source.getPlayerOrException();
         final LandTeam landTeam = LandManager.getTeam(player);
         final List<String> keys = Lists.newArrayList(landTeam.relations.keySet());
-        if (keys.isEmpty()) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.none"), Util.NIL_UUID);
+        if (keys.isEmpty()) ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent(
+                "thutessentials.team.relations.none"));
         for (final String team : keys)
             Relations.relations(source, team);
         return 0;
@@ -128,11 +128,11 @@ public class Relations
             Essentials.config.sendError(source, "thutessentials.team.relations.notfound", team);
             return 1;
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.with", null, false,
-                team), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.team.relations.with", null, false,
+                team));
         for (final String s : relate.perms)
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.entry", null, false,
-                    s), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.team.relations.entry", null, false,
+                    s));
         return 0;
     }
 
@@ -154,10 +154,10 @@ public class Relations
         }
         Relation relation = landTeam.relations.get(other);
         if (relation == null) landTeam.relations.put(other, relation = new Relation());
-        if (relation.perms.add(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.set", null, false, perm), Util.NIL_UUID);
-        else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.had", null, false,
-                other), Util.NIL_UUID);
+        if (relation.perms.add(perm)) ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent(
+                "thutessentials.team.relations.set", null, false, perm));
+        else ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.team.relations.had", null, false,
+                other));
         return 0;
     }
 
@@ -179,10 +179,10 @@ public class Relations
         }
         Relation relation = landTeam.relations.get(other);
         if (relation == null) landTeam.relations.put(other, relation = new Relation());
-        if (relation.perms.remove(perm)) player.sendMessage(CommandManager.makeFormattedComponent(
-                "thutessentials.team.relations.unset", null, false, perm, other), Util.NIL_UUID);
-        else player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.relations.nohad", null,
-                false, other), Util.NIL_UUID);
+        if (relation.perms.remove(perm)) ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent(
+                "thutessentials.team.relations.unset", null, false, perm, other));
+        else ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.team.relations.nohad", null,
+                false, other));
         return 0;
     }
 

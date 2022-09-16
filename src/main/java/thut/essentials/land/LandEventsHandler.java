@@ -10,7 +10,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -72,6 +71,7 @@ import thut.essentials.events.DenyItemUseEvent;
 import thut.essentials.events.DenyItemUseEvent.UseType;
 import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.InventoryLogger;
 import thut.essentials.util.ItemList;
@@ -186,8 +186,8 @@ public class LandEventsHandler
             if (team == null)
             {
                 if (PermNodes.getBooleanPerm(player, LandEventsHandler.PERMPLACEWILD)) return;
-                player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.placeblock"),
-                        Util.NIL_UUID);
+                ChatHelper.sendSystemMessage(player,
+                        CommandManager.makeFormattedComponent("msg.team.nowildperms.placeblock"));
                 evt.setCanceled(true);
                 player.inventoryMenu.sendAllDataToRemote();
                 return;
@@ -244,8 +244,8 @@ public class LandEventsHandler
                 if (team == null)
                 {
                     if (PermNodes.getBooleanPerm(player, LandEventsHandler.PERMBREAKWILD)) return;
-                    player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.breakblock"),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(player,
+                            CommandManager.makeFormattedComponent("msg.team.nowildperms.breakblock"));
                     evt.setCanceled(true);
                     return;
 
@@ -563,7 +563,7 @@ public class LandEventsHandler
                         }
                         player.connection.teleport(entry_point.getX() + 0.5, entry_point.getY() + 0.5,
                                 entry_point.getZ() + 0.5, player.getYRot(), player.getXRot());
-                        player.sendMessage(message, Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player, message);
                         return;
                     }
 
@@ -933,8 +933,8 @@ public class LandEventsHandler
                         LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
                         break;
                     case WILD:
-                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"));
                         break;
                     default:
                         break;
@@ -979,8 +979,8 @@ public class LandEventsHandler
                         LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
                         break;
                     case WILD:
-                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.usemob"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("msg.team.nowildperms.usemob"));
                         break;
                     default:
                         break;
@@ -1025,8 +1025,8 @@ public class LandEventsHandler
                         LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
                         break;
                     case WILD:
-                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.usemob"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("msg.team.nowildperms.usemob"));
                         break;
                     default:
                         break;
@@ -1062,8 +1062,7 @@ public class LandEventsHandler
                     final UUID id = evt.getTarget().getUUID();
                     final boolean isPublic = owner.public_mobs.contains(id);
                     LandManager.getInstance().toggleMobPublic(id, owner);
-                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setmob.public." + !isPublic),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(), Essentials.config.getMessage("msg.team.setmob.public." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
                         InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.getPos(),
@@ -1080,8 +1079,7 @@ public class LandEventsHandler
                     final UUID id = evt.getTarget().getUUID();
                     final boolean isPublic = owner.protected_mobs.contains(id);
                     LandManager.getInstance().toggleMobProtect(id, owner);
-                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setmob.protect." + !isPublic),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(), Essentials.config.getMessage("msg.team.setmob.protect." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
                         InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.getPos(),
@@ -1118,8 +1116,8 @@ public class LandEventsHandler
                         LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
                         break;
                     case WILD:
-                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"));
                         break;
                     default:
                         break;
@@ -1163,8 +1161,8 @@ public class LandEventsHandler
                         LandEventsHandler.sendMessage(player, owner, LandEventsHandler.DENY);
                         break;
                     case WILD:
-                        player.sendMessage(CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("msg.team.nowildperms.useblock"));
                         break;
                     default:
                         break;
@@ -1203,8 +1201,7 @@ public class LandEventsHandler
                     final boolean isPublic = LandManager.getInstance().isPublic(blockLoc, owner);
                     if (isPublic) LandManager.getInstance().unsetPublic(blockLoc, owner);
                     else LandManager.getInstance().setPublic(blockLoc, owner);
-                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setpublic.block." + !isPublic),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(), Essentials.config.getMessage("msg.team.setpublic.block." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
                         InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.getPos(),
@@ -1218,8 +1215,7 @@ public class LandEventsHandler
                     final boolean isPublic = owner.public_break.contains(blockLoc);
                     if (owner.public_break.contains(blockLoc)) owner.public_break.remove(blockLoc);
                     else owner.public_break.add(blockLoc);
-                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setbreak.block." + !isPublic),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(), Essentials.config.getMessage("msg.team.setbreak.block." + !isPublic));
                     LandSaveHandler.saveTeam(owner.teamName);
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
@@ -1234,8 +1230,7 @@ public class LandEventsHandler
                     final boolean isPublic = owner.public_place.contains(blockLoc);
                     if (owner.public_place.contains(blockLoc)) owner.public_place.remove(blockLoc);
                     else owner.public_place.add(blockLoc);
-                    evt.getPlayer().sendMessage(Essentials.config.getMessage("msg.team.setplace.block." + !isPublic),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(), Essentials.config.getMessage("msg.team.setplace.block." + !isPublic));
                     LandSaveHandler.saveTeam(owner.teamName);
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)

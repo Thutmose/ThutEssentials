@@ -20,6 +20,7 @@ import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import net.minecraftforge.server.permission.nodes.PermissionTypes;
 import thut.essentials.Essentials;
+import thut.essentials.economy.EconomyManager;
 import thut.essentials.land.LandEventsHandler;
 
 @Mod.EventBusSubscriber
@@ -58,7 +59,6 @@ public class PermNodes
         return (PermissionNode<Boolean>) NODES.get(name);
     }
 
-    @SuppressWarnings("unchecked")
     public static boolean getBooleanPerm(ServerPlayer player, String name)
     {
         PermissionNode<Boolean> node = getBooleanNode(name);
@@ -88,6 +88,7 @@ public class PermNodes
         KitManager.registerPerms();
         WarpManager.registerPerms();
         LandEventsHandler.TEAMMANAGER.registerPerms();
+        EconomyManager.registerPerms();
 
         Set<PermissionNode<?>> nodes = Sets.newHashSet();
         nodes.addAll(NODES.values());

@@ -5,7 +5,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -16,6 +15,7 @@ import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager.KGobalPos;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.WarpManager;
@@ -50,11 +50,11 @@ public class Create
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.added", null, false, warpName);
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.exists", null, false, warpName);
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             break;
         }
         return ret;

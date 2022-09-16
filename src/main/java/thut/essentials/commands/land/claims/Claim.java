@@ -10,7 +10,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -30,6 +29,7 @@ import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -143,8 +143,8 @@ public class Claim
         final int count = LandManager.getInstance().countLand(team.teamName);
         final int teamCount = team.member.size();
         final int maxLand = team.maxLand < 0 ? teamCount * Essentials.config.teamLandPerPlayer : team.maxLand;
-        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.count", count, maxLand),
-                Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.claim.claimed.count", count, maxLand));
         return 0;
     }
 
@@ -154,14 +154,14 @@ public class Claim
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return 1;
         }
         final KGobalPos start = CoordinateUtls.forMob(player);
         Claim.claimstarts.put(player.getUUID(), start);
-        player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.set", player.blockPosition()),
-                Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.claim.start.set", player.blockPosition()));
         return 0;
     }
 
@@ -171,20 +171,20 @@ public class Claim
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return 1;
         }
         final KGobalPos end = CoordinateUtls.forMob(player);
         final KGobalPos start = Claim.claimstarts.get(player.getUUID());
         if (start == null)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.not_set"), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.claim.start.not_set"));
             return 1;
         }
         if (end.getDimension() != start.getDimension())
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.wrong_dim"), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.claim.start.wrong_dim"));
             return 1;
         }
         player.getServer().execute(() -> { // easy way to sort the x, z
@@ -199,8 +199,8 @@ public class Claim
                     for (int y = dim.getMinSection(); y < dim.getMaxSection(); y++)
 
                         n += Claim.claim(x, y, z, dim, player, team, false, noLimit);
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.start.end", n, team.teamName),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.start.end", n, team.teamName));
         });
         return 0;
     }
@@ -228,8 +228,8 @@ public class Claim
         final LandTeam team = LandManager.getTeam(player);
         if (!team.hasRankPerm(player.getUUID(), LandTeam.CLAIMPERM))
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return 1;
         }
         final boolean noLimit = PermNodes.getBooleanPerm(player, Claim.BYPASSLIMIT);
@@ -263,19 +263,17 @@ public class Claim
                 else notclaimed++;
                 if (check == 3)
                 {
-                    player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(player,
+                            Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"));
                     break;
                 }
             }
-            if (notclaimed > 0)
-                player.sendMessage(Essentials.config.getMessage("thutessentials.claim.warn.alreadyclaimed", notclaimed),
-                        Util.NIL_UUID);
-            if (claimed) player.sendMessage(
-                    Essentials.config.getMessage("thutessentials.claim.claimed.num", claimnum, team.teamName),
-                    Util.NIL_UUID);
-            else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed.failed", team.teamName),
-                    Util.NIL_UUID);
+            if (notclaimed > 0) ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.warn.alreadyclaimed", notclaimed));
+            if (claimed) ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.claimed.num", claimnum, team.teamName));
+            else ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.claimed.failed", team.teamName));
             if (claimed) LandSaveHandler.saveTeam(team.teamName);
         });
         return 0;
@@ -293,9 +291,8 @@ public class Claim
         final LandTeam owner = LandManager.getInstance().getLandOwner(world, chunkCoord, true);
         if (!LandManager.isWild(owner))
         {
-            if (messages) player.sendMessage(
-                    Essentials.config.getMessage("thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName),
-                    Util.NIL_UUID);
+            if (messages) ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.notallowed.alreadyclaimedby", owner.teamName));
             return 1;
         }
         final int teamCount = team.member.size();
@@ -303,17 +300,16 @@ public class Claim
         final int count = LandManager.getInstance().countLand(team.teamName);
         if (count >= maxLand && !noLimit)
         {
-            if (messages)
-                player.sendMessage(Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"),
-                        Util.NIL_UUID);
+            if (messages) ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"));
             return 3;
         }
         final KGobalPos pos = KGobalPos.getPosition(world.dimension(), chunkCoord);
         final ClaimLandEvent event = new ClaimLandEvent(pos, player, team.teamName);
         MinecraftForge.EVENT_BUS.post(event);
         LandManager.getInstance().claimLand(team.teamName, world, chunkCoord, true);
-        if (messages) player.sendMessage(Essentials.config.getMessage("thutessentials.claim.claimed", team.teamName),
-                Util.NIL_UUID);
+        if (messages) ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.claim.claimed", team.teamName));
         return 0;
     }
 

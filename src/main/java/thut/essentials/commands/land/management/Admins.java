@@ -8,7 +8,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
@@ -17,6 +16,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -71,14 +71,14 @@ public class Admins
         final ServerPlayer player = source.getPlayerOrException();
         final LandTeam team = LandManager.getTeam(player);
         final String teamName = team.teamName;
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.header", null, false,
-                teamName), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.team.admins.header", null, false,
+                teamName));
         final Collection<UUID> c = team.admin;
         for (final UUID o : c)
         {
             final GameProfile profile = CommandManager.getProfile(source.getServer(), o);
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.admins.entry", null, false,
-                    profile.getName()), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.team.admins.entry", null, false,
+                    profile.getName()));
         }
         return 0;
     }

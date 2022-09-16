@@ -8,7 +8,6 @@ import java.util.function.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -38,6 +37,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -45,9 +45,9 @@ public class EconomyManager
 {
     public static class Account
     {
-        int                  balance;
-        Set<Shop>            shops    = Sets.newHashSet();
-        UUID                 _id;
+        int balance;
+        Set<Shop> shops = Sets.newHashSet();
+        UUID _id;
         Map<KGobalPos, Shop> _shopMap = Maps.newHashMap();
     }
 
@@ -55,13 +55,13 @@ public class EconomyManager
     {
         KGobalPos location;
         KGobalPos storage;
-        UUID      frameId;
-        boolean   infinite  = false;
-        boolean   ignoreTag = false;
-        boolean   recycle   = false;
-        boolean   sell;
-        int       cost;
-        int       number;
+        UUID frameId;
+        boolean infinite = false;
+        boolean ignoreTag = false;
+        boolean recycle = false;
+        boolean sell;
+        int cost;
+        int number;
 
         public boolean transact(final ServerPlayer player, final ItemStack heldStack, final Account shopAccount)
         {
@@ -104,8 +104,8 @@ public class EconomyManager
 
             if (this.recycle && heldStack.isEmpty())
             {
-                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_recycle"),
-                        Util.NIL_UUID);
+                ChatHelper.sendSystemMessage(player,
+                        CommandManager.makeFormattedComponent("thutessentials.econ.no_recycle"));
                 return false;
             }
             else if (stack.isEmpty())
@@ -118,8 +118,8 @@ public class EconomyManager
                 final int balance = EconomyManager.getBalance(player);
                 if (balance < this.cost)
                 {
-                    player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_you"),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(player,
+                            CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_you"));
                     return false;
                 }
                 stack = stack.copy();
@@ -152,8 +152,8 @@ public class EconomyManager
                     if (count < this.number || inv == null)
                     {
                         Essentials.LOGGER.debug(this.number + " " + count + " " + this.storage);
-                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_shop"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("thutessentials.econ.no_items_shop"));
                         return false;
                     }
                     int i = 0;
@@ -163,8 +163,8 @@ public class EconomyManager
                     for (int j = 0; j < inv.getContainerSize(); ++j)
                     {
                         final ItemStack itemstack = inv.getItem(j);
-                        if (!itemstack.isEmpty() && itemstack.getItem() == itemIn && (itemNBT == null || NbtUtils
-                                .compareNbt(itemNBT, itemstack.getTag(), true)))
+                        if (!itemstack.isEmpty() && itemstack.getItem() == itemIn
+                                && (itemNBT == null || NbtUtils.compareNbt(itemNBT, itemstack.getTag(), true)))
                         {
 
                             final int k = removeCount <= 0 ? itemstack.getCount()
@@ -183,23 +183,22 @@ public class EconomyManager
                 EconomyManager.giveItem(player, stack);
                 EconomyManager.addBalance(shopAccount._id, this.cost);
                 EconomyManager.addBalance(player, -this.cost);
-                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null,
-                        false, EconomyManager.getBalance(player)), Util.NIL_UUID);
+                ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent(
+                        "thutessentials.econ.balance.remaining", null, false, EconomyManager.getBalance(player)));
             }
             else
             {
                 final int balance = this.infinite ? Integer.MAX_VALUE : shopAccount.balance;
                 if (balance < this.cost)
                 {
-                    player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_shop"),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(player,
+                            CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_shop"));
                     return false;
                 }
                 int count = 0;
                 final ItemStack toTest = stack.copy();
                 toTest.setCount(1);
-                final Predicate<ItemStack> valid = i ->
-                {
+                final Predicate<ItemStack> valid = i -> {
                     final ItemStack temp = i.copy();
                     temp.setCount(1);
                     return ItemStack.matches(temp, toTest);
@@ -209,8 +208,8 @@ public class EconomyManager
                     count = heldStack.getCount();
                     if (count < this.number)
                     {
-                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
                         return false;
                     }
                     stack = heldStack;
@@ -223,8 +222,8 @@ public class EconomyManager
                         if (!item.isEmpty()) if (valid.test(item)) count += item.getCount();
                     if (count < this.number)
                     {
-                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
                         return false;
                     }
                 }
@@ -232,8 +231,8 @@ public class EconomyManager
                 {
                     if (this.storage == null)
                     {
-                        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.no_storage"),
-                                Util.NIL_UUID);
+                        ChatHelper.sendSystemMessage(player,
+                                CommandManager.makeFormattedComponent("thutessentials.econ.no_storage"));
                         return false;
                     }
                     final BlockEntity te = player.level.getBlockEntity(this.storage.getPos());
@@ -248,8 +247,7 @@ public class EconomyManager
                             if (inv.getItem(i).isEmpty() || a.sameItem(inv.getItem(i)))
                             {
                                 int n = 0;
-                                if (!inv.getItem(i).isEmpty() && (n = inv.getItem(i).getCount() + a
-                                        .getCount()) < 65)
+                                if (!inv.getItem(i).isEmpty() && (n = inv.getItem(i).getCount() + a.getCount()) < 65)
                                 {
                                     a.setCount(n);
                                     count = 0;
@@ -265,12 +263,13 @@ public class EconomyManager
                         }
                     }
                 }
-                player.getInventory().clearOrCountMatchingItems(valid, this.number, player.inventoryMenu.getCraftSlots());
+                player.getInventory().clearOrCountMatchingItems(valid, this.number,
+                        player.inventoryMenu.getCraftSlots());
                 player.inventoryMenu.broadcastChanges();
                 EconomyManager.addBalance(shopAccount._id, -this.cost);
                 EconomyManager.addBalance(player, this.cost);
-                player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null,
-                        false, EconomyManager.getBalance(player)), Util.NIL_UUID);
+                ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent(
+                        "thutessentials.econ.balance.remaining", null, false, EconomyManager.getBalance(player)));
             }
             return false;
         }
@@ -278,10 +277,10 @@ public class EconomyManager
 
     public static final int VERSION = 1;
 
-    public static final String PERMMAKESHOP    = "thutessentials.economy.make_shop";
+    public static final String PERMMAKESHOP = "thutessentials.economy.make_shop";
     public static final String PERMMAKEINFSHOP = "thutessentials.economy.make_infinite_shop";
 
-    public static final String PERMKILLSHOP      = "thutessentials.economy.kill_shop";
+    public static final String PERMKILLSHOP = "thutessentials.economy.kill_shop";
     public static final String PERMKILLSHOPOTHER = "thutessentials.economy.kill_shop_other";
 
     public static final UUID DEFAULT_ID = new UUID(0, 0);
@@ -293,9 +292,9 @@ public class EconomyManager
     public int version = EconomyManager.VERSION;
     public int initial = 1000;
 
-    public Map<UUID, Account>      bank     = Maps.newHashMap();
+    public Map<UUID, Account> bank = Maps.newHashMap();
     public Map<KGobalPos, Account> _shopMap = Maps.newHashMap();
-    public Map<Account, UUID>      _revBank = Maps.newHashMap();
+    public Map<Account, UUID> _revBank = Maps.newHashMap();
 
     public static void clearInstance()
     {
@@ -331,6 +330,19 @@ public class EconomyManager
         return EconomyManager.instance;
     }
 
+    public static void registerPerms()
+    {
+        PermNodes.registerNode(EconomyManager.PERMMAKESHOP, DefaultPermissionLevel.ALL,
+                "Allowed to make a shop that sells from a chest.");
+        PermNodes.registerNode(EconomyManager.PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
+                "Allowed to make a shop that sells infinite items.");
+
+        PermNodes.registerNode(EconomyManager.PERMKILLSHOP, DefaultPermissionLevel.ALL,
+                "Allowed to remove a shop made by this player.");
+        PermNodes.registerNode(EconomyManager.PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
+                "Allowed to remove a shop made by another player.");
+    }
+
     public EconomyManager()
     {
         MinecraftForge.EVENT_BUS.register(this);
@@ -346,37 +358,35 @@ public class EconomyManager
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrame)
         {
-            final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getCommandSenderWorld().dimension(), evt.getPos()
-                    .below());
+            final KGobalPos c = KGobalPos.getPosition(evt.getPlayer().getCommandSenderWorld().dimension(),
+                    evt.getPos().below());
             Shop shop = EconomyManager.getShop(c);
             final BlockEntity tile = evt.getWorld().getBlockEntity(c.getPos());
-            if (evt.getItemStack() != null && tile instanceof SignBlockEntity && shop == null && (evt.getItemStack()
-                    .getHoverName().getContents().contains("Shop") || evt.getItemStack()
-                            .getHoverName().getContents().contains("InfShop")))
+            if (evt.getItemStack() != null && tile instanceof SignBlockEntity && shop == null
+                    && (evt.getItemStack().getHoverName().getContents().contains("Shop")
+                            || evt.getItemStack().getHoverName().getContents().contains("InfShop")))
             {
-                final boolean infinite = evt.getItemStack().getHoverName().getContents().contains(
-                        "InfShop");
+                final boolean infinite = evt.getItemStack().getHoverName().getContents().contains("InfShop");
                 final String permission = infinite ? EconomyManager.PERMMAKEINFSHOP : EconomyManager.PERMMAKESHOP;
                 if (!PermNodes.getBooleanPerm((ServerPlayer) evt.getPlayer(), permission))
                 {
-                    evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent(
-                            "thutessentials.econ.not_allowed"), Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(),
+                            CommandManager.makeFormattedComponent("thutessentials.econ.not_allowed"));
                     return;
                 }
                 try
                 {
-                    final boolean noTag = evt.getItemStack().getHoverName().getContents().contains(
-                            "noTag");
-                    shop = EconomyManager.addShop((ServerPlayer) evt.getPlayer(), (ItemFrame) evt
-                            .getTarget(), c, infinite, noTag);
-                    evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.made"),
-                            Util.NIL_UUID);
+                    final boolean noTag = evt.getItemStack().getHoverName().getContents().contains("noTag");
+                    shop = EconomyManager.addShop((ServerPlayer) evt.getPlayer(), (ItemFrame) evt.getTarget(), c,
+                            infinite, noTag);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(),
+                            CommandManager.makeFormattedComponent("thutessentials.econ.made"));
 
                 }
                 catch (final Exception e)
                 {
-                    evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.errored"),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(),
+                            CommandManager.makeFormattedComponent("thutessentials.econ.errored"));
                     Essentials.LOGGER.error(e);
                 }
             }
@@ -395,8 +405,8 @@ public class EconomyManager
         final Entity target = hit.getEntity();
         if (target instanceof ItemFrame)
         {
-            final KGobalPos c = KGobalPos.getPosition(target.getCommandSenderWorld().dimension(), target.blockPosition()
-                    .below());
+            final KGobalPos c = KGobalPos.getPosition(target.getCommandSenderWorld().dimension(),
+                    target.blockPosition().below());
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null) evt.setCanceled(true);
         }
@@ -409,8 +419,8 @@ public class EconomyManager
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrame)
         {
-            final KGobalPos c = KGobalPos.getPosition(evt.getTarget().getCommandSenderWorld().dimension(), evt
-                    .getTarget().blockPosition().below());
+            final KGobalPos c = KGobalPos.getPosition(evt.getTarget().getCommandSenderWorld().dimension(),
+                    evt.getTarget().blockPosition().below());
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null)
             {
@@ -422,11 +432,11 @@ public class EconomyManager
                 if (PermNodes.getBooleanPerm((ServerPlayer) evt.getPlayer(), perm))
                 {
                     EconomyManager.removeShop(c);
-                    evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.remove"),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(evt.getPlayer(),
+                            CommandManager.makeFormattedComponent("thutessentials.econ.remove"));
                 }
-                else evt.getPlayer().sendMessage(CommandManager.makeFormattedComponent(
-                        "thutessentials.econ.not_allowed_remove"), Util.NIL_UUID);
+                else ChatHelper.sendSystemMessage(evt.getPlayer(),
+                        CommandManager.makeFormattedComponent("thutessentials.econ.not_allowed_remove"));
             }
         }
     }
@@ -476,8 +486,8 @@ public class EconomyManager
         shop.location = location;
         shop.ignoreTag = noTag;
         // Assign the infinite shops to the default id account.
-        final Account account = EconomyManager.getInstance().getAccount(infinite ? EconomyManager.DEFAULT_ID
-                : owner.getUUID());
+        final Account account = EconomyManager.getInstance()
+                .getAccount(infinite ? EconomyManager.DEFAULT_ID : owner.getUUID());
         account.shops.add(shop);
         account._shopMap.put(location, shop);
         EconomyManager.getInstance()._shopMap.put(location, account);
@@ -491,15 +501,15 @@ public class EconomyManager
                 final int dy = Integer.parseInt(var[1]);
                 final int dz = Integer.parseInt(var[2]);
 
-                final BlockPos pos = new BlockPos(location.getPos().getX() + dx, location.getPos().getY() + dy, location
-                        .getPos().getZ() + dz);
-                final BreakEvent event = new BreakEvent(owner.getCommandSenderWorld(), pos, owner.getCommandSenderWorld()
-                        .getBlockState(pos), owner);
+                final BlockPos pos = new BlockPos(location.getPos().getX() + dx, location.getPos().getY() + dy,
+                        location.getPos().getZ() + dz);
+                final BreakEvent event = new BreakEvent(owner.getCommandSenderWorld(), pos,
+                        owner.getCommandSenderWorld().getBlockState(pos), owner);
                 MinecraftForge.EVENT_BUS.post(event);
                 if (event.isCanceled())
                 {
-                    owner.sendMessage(CommandManager.makeFormattedComponent("thutessentials.econ.not_allowed_link"),
-                            Util.NIL_UUID);
+                    ChatHelper.sendSystemMessage(owner,
+                            CommandManager.makeFormattedComponent("thutessentials.econ.not_allowed_link"));
                     return null;
                 }
 
@@ -568,8 +578,9 @@ public class EconomyManager
         if (flag)
         {
             entityplayer.level.playSound((ServerPlayer) null, entityplayer.getX(), entityplayer.getY(),
-                    entityplayer.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((entityplayer
-                            .getRandom().nextFloat() - entityplayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                    entityplayer.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
+                    ((entityplayer.getRandom().nextFloat() - entityplayer.getRandom().nextFloat()) * 0.7F + 1.0F)
+                            * 2.0F);
             entityplayer.inventoryMenu.broadcastChanges();
         }
         else

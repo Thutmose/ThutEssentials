@@ -5,7 +5,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -17,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.PlayerDataHandler;
@@ -31,23 +31,22 @@ public class Tpa
         PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                .requires(cs -> CommandManager.hasPerm(cs, perm));
         // Register the execution.
-        command = command.then(Commands.argument("target_player", EntityArgument.player()).executes(ctx -> Tpa.execute(
-                ctx.getSource(), EntityArgument.getPlayer(ctx, "target_player"))));
+        command = command.then(Commands.argument("target_player", EntityArgument.player())
+                .executes(ctx -> Tpa.execute(ctx.getSource(), EntityArgument.getPlayer(ctx, "target_player"))));
 
         // Actually register the command.
         commandDispatcher.register(command);
     }
 
-    private static int execute(final CommandSourceStack source, final ServerPlayer target)
-            throws CommandSyntaxException
+    private static int execute(final CommandSourceStack source, final ServerPlayer target) throws CommandSyntaxException
     {
         final Player player = source.getPlayerOrException();
         if (!Essentials.config.tpaCrossDim && target.getCommandSenderWorld() != player.getCommandSenderWorld())
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.wrongdim"), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.tp.wrongdim"));
             return 1;
         }
         CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
@@ -57,7 +56,7 @@ public class Tpa
         final long time = player.getServer().getLevel(Level.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.tpaReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.tp.tosoon"));
             return 1;
         }
         tpaTag.putLong("tpaDelay", time + Essentials.config.tpaReUseDelay);
@@ -68,23 +67,23 @@ public class Tpa
         tpaTag = tag.getCompound("tpa");
         if (tpaTag.getBoolean("ignore")) return 1;
 
-        final MutableComponent header = ((MutableComponent) player.getDisplayName()).append(
-                CommandManager.makeFormattedComponent("thutessentials.tpa.requested"));
-        target.sendMessage(header, Util.NIL_UUID);
+        final MutableComponent header = ((MutableComponent) player.getDisplayName())
+                .append(CommandManager.makeFormattedComponent("thutessentials.tpa.requested"));
+        ChatHelper.sendSystemMessage(target, header);
 
         MutableComponent tpMessage;
         final String tpaccept = "tpaccept";
         final MutableComponent accept = CommandManager.makeFormattedCommandLink("thutessentials.tpa.accept",
                 "/" + tpaccept + " " + player.getStringUUID() + " accept");
-        final MutableComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny", "/"
-                + tpaccept + " " + player.getStringUUID() + " deny");
+        final MutableComponent deny = CommandManager.makeFormattedCommandLink("thutessentials.tpa.deny",
+                "/" + tpaccept + " " + player.getStringUUID() + " deny");
         tpMessage = accept.append(new TextComponent("      /      ")).append(deny);
-        target.sendMessage(tpMessage, Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(target, tpMessage);
         tpaTag.putString("R", player.getStringUUID());
         tag.put("tpa", tpaTag);
         PlayerDataHandler.saveCustomData(target);
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.tpa.requestsent",
-                ChatFormatting.DARK_GREEN, true, target.getDisplayName()), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.tpa.requestsent",
+                ChatFormatting.DARK_GREEN, true, target.getDisplayName()));
         return 0;
     }
 }

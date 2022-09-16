@@ -9,7 +9,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.nbt.CompoundTag;
@@ -17,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -70,11 +70,11 @@ public class Delete
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.removed", null, false, homeName);
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null, false, homeName);
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
             break;
         }
         return ret;

@@ -13,7 +13,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.ClickEvent;
@@ -215,13 +214,13 @@ public class KitManager
 
     public static void sendKitsList(final ServerPlayer player)
     {
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.header"), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.kits.header"));
         MutableComponent message;
         if (!KitManager.kit.isEmpty() && PermNodes.getBooleanPerm(player, "thutessentials.kit.default"))
         {
             message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, "Default");
             message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit Default")));
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
         }
         for (String s : KitManager.kits.keySet())
         {
@@ -229,8 +228,8 @@ public class KitManager
             if (s.contains(" ")) s = "\"" + s + "\"";
             message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, s);
             message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit " + s)));
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.kits.footer"), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.kits.footer"));
     }
 }

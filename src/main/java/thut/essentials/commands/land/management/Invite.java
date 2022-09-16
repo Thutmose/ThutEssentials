@@ -6,7 +6,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -16,6 +15,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -28,11 +28,10 @@ public class Invite
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
-                    + name);
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
-                    .hasPerm(cs, perm));
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                    .requires(cs -> CommandManager.hasPerm(cs, perm));
             command = command.executes(ctx -> Invite.execute_invites(ctx.getSource()));
             commandDispatcher.register(command);
         }
@@ -41,13 +40,12 @@ public class Invite
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /"
-                    + name);
+            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
-            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
-                    .hasPerm(cs, perm));
-            command = command.then(Commands.argument("player", EntityArgument.player()).executes(ctx -> Invite
-                    .execute_invite(ctx.getSource(), EntityArgument.getPlayer(ctx, "player"))));
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                    .requires(cs -> CommandManager.hasPerm(cs, perm));
+            command = command.then(Commands.argument("player", EntityArgument.player())
+                    .executes(ctx -> Invite.execute_invite(ctx.getSource(), EntityArgument.getPlayer(ctx, "player"))));
             commandDispatcher.register(command);
         }
     }
@@ -58,18 +56,18 @@ public class Invite
         final List<String> c = LandManager.getInstance().getInvites(player.getUUID());
         if (c.isEmpty())
         {
-            player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.none"),
-                    Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player,
+                    CommandManager.makeFormattedComponent("thutessentials.team.invite.none"));
             return 1;
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invites"), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.team.invites"));
         final String cmd = "join_team";
         for (final String element : c)
         {
             final String command = "/" + cmd + " " + element;
             final Component message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link",
                     command, null, false, c);
-            player.sendMessage(message, Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message);
         }
         return 0;
     }
@@ -100,8 +98,8 @@ public class Invite
         final String team = landTeam.teamName;
         if (LandManager.getInstance().hasInvite(invitee.getUUID(), team))
         {
-            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyinvited",
-                    null, false, invitee.getDisplayName().getString()));
+            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyinvited", null,
+                    false, invitee.getDisplayName().getString()));
             return 1;
         }
         final boolean invite = LandManager.getInstance().invite(inviter.getUUID(), invitee.getUUID());
@@ -113,14 +111,14 @@ public class Invite
 
         final String cmd = "join_team";
         final String command = "/" + cmd + " " + team;
-        final Component header = CommandManager.makeFormattedComponent(
-                "thutessentials.team.invite.invited_recieve", null, false, landTeam.teamName, inviter.getDisplayName());
-        final Component message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link",
-                command, null, false, landTeam.teamName);
-        invitee.sendMessage(header, Util.NIL_UUID);
-        invitee.sendMessage(message, Util.NIL_UUID);
-        inviter.sendMessage(CommandManager.makeFormattedComponent("thutessentials.team.invite.invited_sent", null,
-                false, invitee.getDisplayName().getString()), Util.NIL_UUID);
+        final Component header = CommandManager.makeFormattedComponent("thutessentials.team.invite.invited_recieve",
+                null, false, landTeam.teamName, inviter.getDisplayName());
+        final Component message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link", command,
+                null, false, landTeam.teamName);
+        ChatHelper.sendSystemMessage(invitee, header);
+        ChatHelper.sendSystemMessage(invitee, message);
+        ChatHelper.sendSystemMessage(inviter, CommandManager.makeFormattedComponent(
+                "thutessentials.team.invite.invited_sent", null, false, invitee.getDisplayName().getString()));
 
         return 0;
     }

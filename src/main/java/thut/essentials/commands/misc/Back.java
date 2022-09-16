@@ -8,7 +8,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -28,6 +27,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.MoveEvent;
 import thut.essentials.land.LandManager.KGobalPos;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -86,7 +86,7 @@ public class Back
         final long time = player.getServer().getLevel(Level.OVERWORLD).getGameTime();
         if (last > time && Essentials.config.backReUseDelay > 0)
         {
-            player.sendMessage(Essentials.config.getMessage("thutessentials.tp.tosoon"), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.tp.tosoon"));
             return 1;
         }
         if (tag.contains("backPos"))
@@ -94,7 +94,7 @@ public class Back
             final KGobalPos spot = Back.getBackSpot(CoordinateUtls.fromNBT(tag.getCompound("backPos")));
             if (spot == null)
             {
-                player.sendMessage(Essentials.config.getMessage("thutessentials.back.noroom"), Util.NIL_UUID);
+                ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.back.noroom"));
                 return 1;
             }
             final Predicate<Entity> callback = t ->
@@ -111,7 +111,7 @@ public class Back
                     callback, false);
             return 0;
         }
-        player.sendMessage(Essentials.config.getMessage("thutessentials.back.noback"), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.back.noback"));
         return 1;
     }
 

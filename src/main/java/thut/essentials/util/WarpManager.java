@@ -7,7 +7,6 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
@@ -133,7 +132,7 @@ public class WarpManager
 
     public static void sendWarpsList(final ServerPlayer player)
     {
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.header"), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.warps.header"));
         for (String s : Essentials.config.warps)
         {
             final String[] args = s.split("->");
@@ -149,9 +148,9 @@ public class WarpManager
             if (s.contains(" ")) s = "\"" + s + "\"";
             Style style = message.getStyle();
             style = style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/warp " + s));
-            player.sendMessage(message.setStyle(style), Util.NIL_UUID);
+            ChatHelper.sendSystemMessage(player, message.setStyle(style));
         }
-        player.sendMessage(CommandManager.makeFormattedComponent("thutessentials.warps.footer"), Util.NIL_UUID);
+        ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.warps.footer"));
     }
 
     public static int attemptWarp(final ServerPlayer player, final String warpName)

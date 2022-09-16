@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -15,6 +14,7 @@ import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -48,10 +48,9 @@ public class Owner
         final BlockPos b = new BlockPos(x, y, z);
         final LandTeam owner = LandManager.getInstance().getLandOwner(dim, b, true);
 
-        if (!LandManager.isWild(owner))
-            player.sendMessage(Essentials.config.getMessage("thutessentials.claim.ownedby", owner.teamName),
-                    Util.NIL_UUID);
-        else player.sendMessage(Essentials.config.getMessage("thutessentials.claim.unowned"), Util.NIL_UUID);
+        if (!LandManager.isWild(owner)) ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.claim.ownedby", owner.teamName));
+        else ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.claim.unowned"));
         return 0;
     }
 }
