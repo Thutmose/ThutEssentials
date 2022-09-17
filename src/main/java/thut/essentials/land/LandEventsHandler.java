@@ -1519,22 +1519,28 @@ public class LandEventsHandler
 
     private static Component getDenyMessage(final LandTeam team)
     {
-        if (team != null && !team.denyMessage.isEmpty()) return Component.literal(team.denyMessage);
+        if (team != null && !team.denyMessage.isEmpty()) return getMessage(team.denyMessage);
         if (!Essentials.config.defaultMessages) return null;
         return CommandManager.makeFormattedComponent("msg.team.deny", null, false, team.teamName);
     }
 
     private static Component getEnterMessage(final LandTeam team)
     {
-        if (team != null && !team.enterMessage.isEmpty()) return Component.literal(team.enterMessage);
+        if (team != null && !team.enterMessage.isEmpty()) return getMessage(team.enterMessage);
         if (!Essentials.config.defaultMessages) return null;
         return CommandManager.makeFormattedComponent("msg.team.enterLand", null, false, team.teamName);
     }
 
     private static Component getExitMessage(final LandTeam team)
     {
-        if (team != null && !team.exitMessage.isEmpty()) return Component.literal(team.exitMessage);
+        if (team != null && !team.exitMessage.isEmpty()) return getMessage(team.exitMessage);
         if (!Essentials.config.defaultMessages) return null;
         return CommandManager.makeFormattedComponent("msg.team.exitLand", null, false, team.teamName);
+    }
+
+    private static Component getMessage(String msg)
+    {
+        if (msg.equals("-")) return null;
+        return Component.literal(msg);
     }
 }

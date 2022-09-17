@@ -106,26 +106,25 @@ public class LandManager
 
         public static ResourceKey<Level> fromOld(final int dim2)
         {
-            if (Coordinate._oldDim.isEmpty()) for (final String var : Essentials.config.legacyDimMap)
-                try
+            if (Coordinate._oldDim.isEmpty()) for (final String var : Essentials.config.legacyDimMap) try
+            {
+                final String[] args = var.split("->");
+                final Integer i = Integer.parseInt(args[0]);
+                final ResourceLocation key = new ResourceLocation(args[1]);
+                final ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, key);
+                final MinecraftServer server = Essentials.server;
+                if (server.getLevel(dim) == null)
                 {
-                    final String[] args = var.split("->");
-                    final Integer i = Integer.parseInt(args[0]);
-                    final ResourceLocation key = new ResourceLocation(args[1]);
-                    final ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, key);
-                    final MinecraftServer server = Essentials.server;
-                    if (server.getLevel(dim) == null)
-                    {
-                        Essentials.LOGGER.error("Dim {} is not a valid world, skipping!", key);
-                        continue;
-                    }
-                    Essentials.LOGGER.error("Dim {} mapped to {}", dim2, key);
-                    Coordinate._oldDim.put(i, dim);
+                    Essentials.LOGGER.error("Dim {} is not a valid world, skipping!", key);
+                    continue;
                 }
-                catch (final NumberFormatException e)
-                {
-                    Essentials.LOGGER.error("Error parsing dimension map for {}", var);
-                }
+                Essentials.LOGGER.error("Dim {} mapped to {}", dim2, key);
+                Coordinate._oldDim.put(i, dim);
+            }
+            catch (final NumberFormatException e)
+            {
+                Essentials.LOGGER.error("Error parsing dimension map for {}", var);
+            }
             return Coordinate._oldDim.get(dim2);
         }
 
@@ -146,8 +145,9 @@ public class LandManager
         @Override
         public int compareTo(final Coordinate p_compareTo_1_)
         {
-            return this.y == p_compareTo_1_.y ? this.z == p_compareTo_1_.z ? this.x - p_compareTo_1_.x
-                    : this.dim == p_compareTo_1_.dim ? this.z - p_compareTo_1_.z : this.dim - p_compareTo_1_.dim
+            return this.y == p_compareTo_1_.y
+                    ? this.z == p_compareTo_1_.z ? this.x - p_compareTo_1_.x
+                            : this.dim == p_compareTo_1_.dim ? this.z - p_compareTo_1_.z : this.dim - p_compareTo_1_.dim
                     : this.y - p_compareTo_1_.y;
         }
     }
@@ -165,11 +165,11 @@ public class LandManager
     public static class PlayerRank
     {
         /** Who has this rank. */
-        public Set<UUID>   members = Sets.newHashSet();
+        public Set<UUID> members = Sets.newHashSet();
         /** Optional prefix for the rank. */
-        public String      prefix;
+        public String prefix;
         /** Perms for this rank. */
-        public Set<String> perms   = Sets.newHashSet();
+        public Set<String> perms = Sets.newHashSet();
     }
 
     public static class Relation
@@ -184,128 +184,125 @@ public class LandManager
         /** Can edit enter/leave/deny messages. */
         public static final String EDITMESSAGES = "editMessages";
         /** Can claim. */
-        public static final String CLAIMPERM    = "claim";
+        public static final String CLAIMPERM = "claim";
         /** can unclaim */
-        public static final String UNCLAIMPERM  = "unclaim";
+        public static final String UNCLAIMPERM = "unclaim";
         /** Can change prefixes */
-        public static final String SETPREFIX    = "prefix";
+        public static final String SETPREFIX = "prefix";
         /** Can set team home. */
-        public static final String SETHOME      = "sethome";
+        public static final String SETHOME = "sethome";
         /** Can invite people */
-        public static final String INVITE       = "invite";
+        public static final String INVITE = "invite";
         /** Can kick people */
-        public static final String KICK         = "kick";
+        public static final String KICK = "kick";
         /** Can chunkload. */
-        public static final String LOADPERM     = "cload";
+        public static final String LOADPERM = "cload";
         /** Can chunkload. */
-        public static final String UNLOADPERM   = "uncload";
+        public static final String UNLOADPERM = "uncload";
 
         // These are perms checked for relations
         /** Can interact with things freely */
         public static final String PUBLIC = "public";
         /** Can place blocks */
-        public static final String PLACE  = "place";
+        public static final String PLACE = "place";
         /** Can break blocks. */
-        public static final String BREAK  = "break";
+        public static final String BREAK = "break";
         /** Are counted as "ally" by any system that cares about that. */
-        public static final String ALLY   = "ally";
+        public static final String ALLY = "ally";
 
-        public TeamLand                land           = new TeamLand();
-        public String                  teamName;
+        public TeamLand land = new TeamLand();
+        public String teamName;
         /** Admins of this team. */
-        public Set<UUID>               admin          = Sets.newHashSet();
+        public Set<UUID> admin = Sets.newHashSet();
         /** UUIDs of members of this team. */
-        public Set<UUID>               member         = Sets.newHashSet();
+        public Set<UUID> member = Sets.newHashSet();
         /**
          * Mobs in here are specifically set as protected, this is a whitelist,
          * anything not in here is not protected.
          */
-        public Set<UUID>               protected_mobs = Sets.newHashSet();
+        public Set<UUID> protected_mobs = Sets.newHashSet();
         /**
-         * Mobs in heere are specifically set to be public, this is a
-         * whitelist, anything not in here is not public, unless team is set to
-         * allPublic
+         * Mobs in heere are specifically set to be public, this is a whitelist,
+         * anything not in here is not public, unless team is set to allPublic
          */
-        public Set<UUID>               public_mobs    = Sets.newHashSet();
+        public Set<UUID> public_mobs = Sets.newHashSet();
         /** Non-Stored map for quick lookup of rank for each member. */
-        public Map<UUID, PlayerRank>   _ranksMembers  = Maps.newHashMap();
+        public Map<UUID, PlayerRank> _ranksMembers = Maps.newHashMap();
         /** Maps of rank name to rank, this is what is actually stored. */
-        public Map<String, PlayerRank> rankMap        = Maps.newHashMap();
+        public Map<String, PlayerRank> rankMap = Maps.newHashMap();
         /** List of public blocks for the team. */
-        public Set<KGobalPos>          public_use     = Sets.newHashSet();
+        public Set<KGobalPos> public_use = Sets.newHashSet();
         /** List of public blocks for the team. TODO implement this. */
-        public Set<KGobalPos>          public_break   = Sets.newHashSet();
+        public Set<KGobalPos> public_break = Sets.newHashSet();
         /** List of public blocks for the team. TODO implement this. */
-        public Set<KGobalPos>          public_place   = Sets.newHashSet();
+        public Set<KGobalPos> public_place = Sets.newHashSet();
         /** Home coordinate for the team, used for thome command. */
-        public KGobalPos               team_home;
+        public KGobalPos team_home;
         /** Deprecated for further save compat. */
         @Deprecated
-        public Coordinate              home;
+        public Coordinate home;
         /** Message sent on exiting team land. */
-        public String                  exitMessage    = "";
+        public String exitMessage = "";
         /** Mssage sent on entering team land. */
-        public String                  enterMessage   = "";
+        public String enterMessage = "";
         /** Message sent when denying interactions in the team. */
-        public String                  denyMessage    = "";
+        public String denyMessage = "";
         /** Prefix infront of team members names. */
-        public String                  prefix         = "";
+        public String prefix = "";
         /**
-         * If true, this team is not cleaned up when empty, and cannot be
-         * freely joined when empty.
+         * If true, this team is not cleaned up when empty, and cannot be freely
+         * joined when empty.
          */
-        public boolean                 reserved       = false;
+        public boolean reserved = false;
         /** If this is player specific, currently not used. */
-        public boolean                 players        = false;
+        public boolean players = false;
         /** If true, players cannot take damage here. */
-        public boolean                 noPlayerDamage = false;
+        public boolean noPlayerDamage = false;
         /** If true, INPCs cannot take damage here. */
-        public boolean                 noNPCDamage    = false;
+        public boolean noNPCDamage = false;
         /** If true, fakeplayers can run. */
-        public boolean                 fakePlayers    = false;
+        public boolean fakePlayers = false;
         /** If true, mobs cannot spawn here. */
-        public boolean                 noMobSpawn     = false;
+        public boolean noMobSpawn = false;
         /** If true, team members can hurt each other. */
-        public boolean                 friendlyFire   = true;
+        public boolean friendlyFire = true;
         /** If true, explosions cannot occur in team land. */
-        public boolean                 noExplosions   = false;
+        public boolean noExplosions = false;
         /**
          * If true, anything in this team's land is considered public for
          * interactions.
          */
-        public boolean                 allPublic      = false;
+        public boolean allPublic = false;
         /** If true, any player can place in this teams land. */
-        public boolean                 anyPlace       = false;
+        public boolean anyPlace = false;
         /** If true, any player can break in this teams land. */
-        public boolean                 anyBreak       = false;
+        public boolean anyBreak = false;
         /** If false, itemframes are not protected from projectiles. */
-        public boolean                 protectFrames  = true;
+        public boolean protectFrames = true;
         /** Map of details about team relations. */
-        public Map<String, Relation>   relations      = Maps.newHashMap();
+        public Map<String, Relation> relations = Maps.newHashMap();
         /** Last time a member of this team was seen. */
-        public long                    lastSeen       = 0;
+        public long lastSeen = 0;
         /**
          * Override of maximum land allowed for the team, if this is not -1, it
          * will be used instead.
          */
-        public int                     maxLand        = -1;
+        public int maxLand = -1;
         /**
          * Override of maximum land allowed for the team, if this is not -1, it
          * will be used instead.
          */
-        public int                     maxLoaded      = -1;
+        public int maxLoaded = -1;
 
         /**
-         * Random UUID for the team, this can be used for things like
-         * accounts.
+         * Random UUID for the team, this can be used for things like accounts.
          */
         public UUID uuid = UUID.randomUUID();
 
         private GameProfile _teamprofile;
 
         public LandTeam()
-        {
-        }
+        {}
 
         public LandTeam(final String name)
         {
@@ -427,12 +424,10 @@ public class LandManager
         public void init(final MinecraftServer server)
         {
             final Set<UUID> members = Sets.newHashSet(this.member);
-            if (!this.teamName.equals(Essentials.config.defaultTeamName)) for (final UUID id : members)
-                LandManager.getInstance()._playerTeams.put(id, this);
-            for (final UUID id : this.public_mobs)
-                LandManager.getInstance()._public_mobs.put(id, this);
-            for (final UUID id : this.protected_mobs)
-                LandManager.getInstance()._protected_mobs.put(id, this);
+            if (!this.teamName.equals(Essentials.config.defaultTeamName))
+                for (final UUID id : members) LandManager.getInstance()._playerTeams.put(id, this);
+            for (final UUID id : this.public_mobs) LandManager.getInstance()._public_mobs.put(id, this);
+            for (final UUID id : this.protected_mobs) LandManager.getInstance()._protected_mobs.put(id, this);
 
             LandManager.getInstance()._team_land.put(this.land.uuid, this);
         }
@@ -496,8 +491,7 @@ public class LandManager
         if (LandManager.instance != null)
         {
             LandSaveHandler.saveGlobalData();
-            for (final String s : LandManager.instance._teamMap.keySet())
-                LandSaveHandler.saveTeam(s);
+            for (final String s : LandManager.instance._teamMap.keySet()) LandSaveHandler.saveTeam(s);
         }
         LandManager.instance = null;
     }
@@ -561,18 +555,17 @@ public class LandManager
         return wilds;
     }
 
-    public Map<String, LandTeam>    _teamMap        = Maps.newConcurrentMap();
-    public Map<KGobalPos, LandTeam> _landMap        = Maps.newConcurrentMap();
-    protected Map<UUID, LandTeam>   _playerTeams    = Maps.newConcurrentMap();
-    protected Map<UUID, Invites>    invites         = Maps.newHashMap();
-    protected Map<UUID, LandTeam>   _protected_mobs = Maps.newConcurrentMap();
-    protected Map<UUID, LandTeam>   _public_mobs    = Maps.newConcurrentMap();
-    public Map<UUID, LandTeam>      _team_land      = Maps.newConcurrentMap();
-    public int                      version         = LandManager.VERSION;
+    public Map<String, LandTeam> _teamMap = Maps.newConcurrentMap();
+    public Map<KGobalPos, LandTeam> _landMap = Maps.newConcurrentMap();
+    protected Map<UUID, LandTeam> _playerTeams = Maps.newConcurrentMap();
+    protected Map<UUID, Invites> invites = Maps.newHashMap();
+    protected Map<UUID, LandTeam> _protected_mobs = Maps.newConcurrentMap();
+    protected Map<UUID, LandTeam> _public_mobs = Maps.newConcurrentMap();
+    public Map<UUID, LandTeam> _team_land = Maps.newConcurrentMap();
+    public int version = LandManager.VERSION;
 
     LandManager()
-    {
-    }
+    {}
 
     public LandTeam getTeamForLand(final UUID landId)
     {
@@ -628,8 +621,7 @@ public class LandManager
         final LandTeam team = this._teamMap.remove(oldName);
         if (team == null) throw new IllegalArgumentException("thutessentials.team.notfound");
         this._teamMap.put(newName, team);
-        for (final Invites i : this.invites.values())
-            if (i.teams.remove(oldName)) i.teams.add(newName);
+        for (final Invites i : this.invites.values()) if (i.teams.remove(oldName)) i.teams.add(newName);
         team.teamName = newName;
         LandSaveHandler.saveTeam(newName);
         LandSaveHandler.deleteTeam(oldName);
@@ -640,8 +632,7 @@ public class LandManager
         final LandTeam team = this._teamMap.remove(teamName);
         final LandTeam _default = LandManager.getDefaultTeam();
         if (team == _default) return;
-        for (final KGobalPos c : team.land.claims)
-            this._landMap.remove(c);
+        for (final KGobalPos c : team.land.claims) this._landMap.remove(c);
         final MinecraftServer server = Essentials.server;
         for (final UUID id : team.member)
         {
@@ -662,8 +653,7 @@ public class LandManager
         }
         this._team_land.remove(team.land.uuid);
         LandSaveHandler.saveTeam(_default.teamName);
-        for (final Invites i : this.invites.values())
-            i.teams.remove(teamName);
+        for (final Invites i : this.invites.values()) i.teams.remove(teamName);
         LandSaveHandler.deleteTeam(teamName);
     }
 
@@ -817,10 +807,9 @@ public class LandManager
         if (!world.hasChunk(cPos.x, cPos.z)) return null;
 
         final ChunkAccess chunk = world.getChunk(cPos.x, cPos.z);
-        if (chunk instanceof ICapabilityProvider)
+        if (chunk instanceof ICapabilityProvider caps)
         {
-            final IClaimed claims = ((ICapabilityProvider) chunk).getCapability(ClaimedCapability.CAPABILITY).orElse(
-                    null);
+            final IClaimed claims = caps.getCapability(ClaimedCapability.CAPABILITY).orElse(null);
             return claims;
         }
         return null;
