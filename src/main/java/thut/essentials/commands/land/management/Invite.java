@@ -28,7 +28,7 @@ public class Invite
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
                     .requires(cs -> CommandManager.hasPerm(cs, perm));
@@ -40,7 +40,7 @@ public class Invite
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
                     .requires(cs -> CommandManager.hasPerm(cs, perm));

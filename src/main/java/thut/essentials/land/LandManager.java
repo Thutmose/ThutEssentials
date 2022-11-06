@@ -358,6 +358,50 @@ public class LandManager
             if (rank != null) rank.perms.remove(perm);
         }
 
+        public void addMember(UUID member)
+        {
+            if (this.admin.isEmpty() && !this.teamName.equals(Essentials.config.defaultTeamName))
+                this.admin.add(member);
+            LandManager manager = LandManager.getInstance();
+            if (manager._playerTeams.containsKey(member))
+            {
+                final LandTeam old = manager._playerTeams.remove(member);
+                old.member.remove(member);
+                old.admin.remove(member);
+                LandSaveHandler.saveTeam(old.teamName);
+            }
+            this.member.add(member);
+            manager._playerTeams.put(member, this);
+            final Invites invite = manager.invites.get(member);
+            if (invite != null) invite.teams.remove(this.teamName);
+            LandSaveHandler.saveTeam(this.teamName);
+            this.onMemberUpdated(member);
+        }
+
+        public void onMemberUpdated(UUID member)
+        {
+            final MinecraftServer server = Essentials.server;
+            if (Essentials.config.vanillaTeamUse)
+            {
+                var scoreboard = server.getScoreboard();
+                var team = scoreboard.getPlayerTeam(this.teamName);
+                if (team == null) team = scoreboard.addPlayerTeam(this.teamName);
+                scoreboard.addPlayerToTeam(member.toString(), team);
+            }
+            try
+            {
+                final Player player = server.getPlayerList().getPlayer(member);
+                if (player != null)
+                {
+                    // TODO update name here.
+                }
+            }
+            catch (final Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
         /**
          * This is for checking whether the player is in a team with a relation
          * that allows breaking blocks in our land.
@@ -424,11 +468,13 @@ public class LandManager
         public void init(final MinecraftServer server)
         {
             final Set<UUID> members = Sets.newHashSet(this.member);
-            if (!this.teamName.equals(Essentials.config.defaultTeamName))
-                for (final UUID id : members) LandManager.getInstance()._playerTeams.put(id, this);
+            for (final UUID id : members)
+            {
+                LandManager.getInstance()._playerTeams.put(id, this);
+                this.onMemberUpdated(id);
+            }
             for (final UUID id : this.public_mobs) LandManager.getInstance()._public_mobs.put(id, this);
             for (final UUID id : this.protected_mobs) LandManager.getInstance()._protected_mobs.put(id, this);
-
             LandManager.getInstance()._team_land.put(this.land.uuid, this);
         }
 
@@ -451,28 +497,16 @@ public class LandManager
         public static UUID _WILDUUID_ = new UUID(1234, 1234);
 
         public UUID uuid = UUID.randomUUID();
-
-        public Set<KGobalPos> claims = Sets.newHashSet();
+        
         public Set<KGobalPos> loaded = Sets.newHashSet();
 
         public HashSet<Coordinate> land = Sets.newHashSet();
 
         public int claimed = 0;
 
-        public boolean addLand(final KGobalPos land)
-        {
-            return this.claims.add(land);
-        }
-
         public int countLand()
         {
-            return this.claimed + this.claims.size();
-        }
-
-        public boolean removeLand(final KGobalPos land)
-        {
-            this.loaded.remove(land);
-            return this.claims.remove(land);
+            return this.claimed;
         }
 
         public Set<KGobalPos> getLoaded()
@@ -632,7 +666,6 @@ public class LandManager
         final LandTeam team = this._teamMap.remove(teamName);
         final LandTeam _default = LandManager.getDefaultTeam();
         if (team == _default) return;
-        for (final KGobalPos c : team.land.claims) this._landMap.remove(c);
         final MinecraftServer server = Essentials.server;
         for (final UUID id : team.member)
         {
@@ -717,7 +750,6 @@ public class LandManager
             final KGobalPos b = KGobalPos.getPosition(world.dimension(), pos);
             c = CoordinateUtls.chunkPos(b);
         }
-        t.land.claims.remove(c);
         final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
         final ClaimSegment seg = claims.getSegment(y);
         if (seg.owner != null && seg.owner.equals(t.land.uuid)) t.land.claimed--;
@@ -736,32 +768,7 @@ public class LandManager
     public void addToTeam(final UUID member, final String team)
     {
         final LandTeam t = this.getTeam(team, true);
-        if (t.admin.isEmpty() && !t.teamName.equals(Essentials.config.defaultTeamName)) t.admin.add(member);
-        if (this._playerTeams.containsKey(member))
-        {
-            final LandTeam old = this._playerTeams.remove(member);
-            old.member.remove(member);
-            old.admin.remove(member);
-            LandSaveHandler.saveTeam(old.teamName);
-        }
-        t.member.add(member);
-        this._playerTeams.put(member, t);
-        final Invites invite = this.invites.get(member);
-        if (invite != null) invite.teams.remove(team);
-        LandSaveHandler.saveTeam(team);
-        final MinecraftServer server = Essentials.server;
-        try
-        {
-            final Player player = server.getPlayerList().getPlayer(member);
-            if (player != null)
-            {
-                // TODO update name here.
-            }
-        }
-        catch (final Exception e)
-        {
-            e.printStackTrace();
-        }
+        t.addMember(member);
     }
 
     public int countLand(final String team)

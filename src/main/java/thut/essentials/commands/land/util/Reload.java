@@ -21,7 +21,7 @@ public class Reload
         final String name = "reload_teams";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP,
                 "Can the player reload the teams list.");
 
         // Setup with name and permission

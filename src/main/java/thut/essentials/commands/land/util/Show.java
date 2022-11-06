@@ -20,7 +20,7 @@ public class Show
         final String name = "show_land";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
                 "Can the player see the ownership status of land nearby.");
 
         // Setup with name and permission

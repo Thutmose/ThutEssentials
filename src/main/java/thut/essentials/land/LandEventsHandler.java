@@ -1346,59 +1346,59 @@ public class LandEventsHandler
 
     public void registerPerms()
     {
-        PermNodes.registerNode(LandEventsHandler.PERMBREAKWILD, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMBREAKWILD, DefaultPermissionLevel.ALL,
                 "Can the player break blocks in unowned land.");
-        PermNodes.registerNode(LandEventsHandler.PERMBREAKOWN, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMBREAKOWN, DefaultPermissionLevel.ALL,
                 "Can the player break blocks in their own land.");
-        PermNodes.registerNode(LandEventsHandler.PERMBREAKOTHER, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMBREAKOTHER, DefaultPermissionLevel.OP,
                 "Can the player break blocks in other player's land.");
 
-        PermNodes.registerNode(LandEventsHandler.PERMPLACEWILD, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMPLACEWILD, DefaultPermissionLevel.ALL,
                 "Can the player place blocks in unowned land.");
-        PermNodes.registerNode(LandEventsHandler.PERMPLACEOWN, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMPLACEOWN, DefaultPermissionLevel.ALL,
                 "Can the player place blocks in their own land.");
-        PermNodes.registerNode(LandEventsHandler.PERMPLACEOTHER, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMPLACEOTHER, DefaultPermissionLevel.OP,
                 "Can the player place blocks in other player's land.");
 
-        PermNodes.registerNode(LandEventsHandler.PERMUSEITEMWILD, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEITEMWILD, DefaultPermissionLevel.ALL,
                 "Can the player use items in unowned land.");
-        PermNodes.registerNode(LandEventsHandler.PERMUSEITEMOWN, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEITEMOWN, DefaultPermissionLevel.ALL,
                 "Can the player use items in their own land.");
-        PermNodes.registerNode(LandEventsHandler.PERMUSEITEMOTHER, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEITEMOTHER, DefaultPermissionLevel.OP,
                 "Can the player use items in other player's land.");
 
-        PermNodes.registerNode(LandEventsHandler.PERMUSEBLOCKWILD, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEBLOCKWILD, DefaultPermissionLevel.ALL,
                 "Can the player use items in unowned land.");
-        PermNodes.registerNode(LandEventsHandler.PERMUSEBLOCKOWN, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEBLOCKOWN, DefaultPermissionLevel.ALL,
                 "Can the player use items in their own land.");
-        PermNodes.registerNode(LandEventsHandler.PERMUSEBLOCKOTHER, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEBLOCKOTHER, DefaultPermissionLevel.OP,
                 "Can the player use items in other player's land.");
 
-        PermNodes.registerNode(LandEventsHandler.PERMUSEMOBWILD, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEMOBWILD, DefaultPermissionLevel.ALL,
                 "Can the player interact with mobs in unowned land.");
-        PermNodes.registerNode(LandEventsHandler.PERMUSEMOBOWN, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEMOBOWN, DefaultPermissionLevel.ALL,
                 "Can the player interact with mobs in their own land.");
-        PermNodes.registerNode(LandEventsHandler.PERMUSEMOBOTHER, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUSEMOBOTHER, DefaultPermissionLevel.ALL,
                 "Can the player interact with mobs in other player's land.");
 
-        PermNodes.registerNode(LandEventsHandler.PERMENTERWILD, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMENTERWILD, DefaultPermissionLevel.ALL,
                 "Can the player enter unowned land.");
-        PermNodes.registerNode(LandEventsHandler.PERMENTEROWN, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMENTEROWN, DefaultPermissionLevel.ALL,
                 "Can the player enter their own land.");
-        PermNodes.registerNode(LandEventsHandler.PERMENTEROTHER, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMENTEROTHER, DefaultPermissionLevel.ALL,
                 "Can the player enter other player's land.");
 
-        PermNodes.registerNode(LandEventsHandler.PERMCREATETEAM, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMCREATETEAM, DefaultPermissionLevel.ALL,
                 "Can the player create a team.");
-        PermNodes.registerNode(LandEventsHandler.PERMJOINTEAMINVITED, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMJOINTEAMINVITED, DefaultPermissionLevel.ALL,
                 "Can the player join a team with an invite.");
-        PermNodes.registerNode(LandEventsHandler.PERMJOINTEAMNOINVITE, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMJOINTEAMNOINVITE, DefaultPermissionLevel.OP,
                 "Can the player join a team without an invite.");
 
-        PermNodes.registerNode(LandEventsHandler.PERMPROTECTMOB, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMPROTECTMOB, DefaultPermissionLevel.ALL,
                 "Can the player protect mobs in their team's land.");
 
-        PermNodes.registerNode(LandEventsHandler.PERMUNCLAIMOTHER, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(LandEventsHandler.PERMUNCLAIMOTHER, DefaultPermissionLevel.OP,
                 "Can the player unclaim any land.");
 
     }

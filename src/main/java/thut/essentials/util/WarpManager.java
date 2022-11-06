@@ -25,6 +25,8 @@ public class WarpManager
 {
     public static Map<String, KGobalPos> warpLocs;
 
+    public static final String NO_WARP = "warps.blacklist";
+
     final static Field warpsField;
 
     static
@@ -65,11 +67,7 @@ public class WarpManager
             final KGobalPos warp = CoordinateUtls.fromString(args[1]);
             if (warp != null) WarpManager.warpLocs.put(args[0], warp);
         }
-        for (final String s : WarpManager.warpLocs.keySet())
-        {
-            final String node = "thutessentials.warp." + s;
-            PermNodes.registerNode(node, DefaultPermissionLevel.ALL, "Warp to " + s);
-        }
+        PermNodes.registerStringNode(NO_WARP, DefaultPermissionLevel.ALL, "Cannot use these warps", "");
     }
 
     static int[] getInt(final String val)
@@ -100,8 +98,6 @@ public class WarpManager
         final String warp = name + "->" + CoordinateUtls.toString(pos);
         warps.add(warp);
         WarpManager.warpLocs.put(name, pos);
-        final String node = "thutessentials.warp." + name;
-        PermNodes.registerNode(node, DefaultPermissionLevel.ALL, "Warp to " + name);
         Essentials.config.warps = warps;
         Essentials.config.write();
         return 0;
@@ -142,7 +138,7 @@ public class WarpManager
                 continue;
             }
             s = args[0];
-            if (!PermNodes.getBooleanPerm(player, "thutessentials.warp." + s)) continue;
+            if (PermNodes.hasStringInList(player, NO_WARP, s)) continue;
             final MutableComponent message = CommandManager.makeFormattedComponent("thutessentials.warps.entry", null,
                     false, s);
             if (s.contains(" ")) s = "\"" + s + "\"";
@@ -165,7 +161,7 @@ public class WarpManager
         if (warp != null)
         {
             // No allowed
-            if (!PermNodes.getBooleanPerm(player, "thutessentials.warp." + warpName)) return 2;
+            if (PermNodes.hasStringInList(player, NO_WARP, warpName)) return 2;
             final Component teleMess = CommandManager.makeFormattedComponent("thutessentials.warps.warped", null, false,
                     warpName);
             PlayerMover.setMove(player, Essentials.config.warpActivateDelay, warp, teleMess, PlayerMover.INTERUPTED);

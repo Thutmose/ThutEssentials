@@ -37,8 +37,8 @@ public class Unclaim
         final String name = "unclaim";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
-        PermNodes.registerNode(Unclaim.GLOBALPERM, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(Unclaim.GLOBALPERM, DefaultPermissionLevel.OP,
                 "Permission to unclaim land regardless of owner.");
 
         // Setup with name and permission

@@ -22,7 +22,7 @@ public class Check
         final String name = "my_team";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
                 "Can the player see their own team's name.");
 
         // Setup with name and permission

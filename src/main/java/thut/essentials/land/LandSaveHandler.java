@@ -4,26 +4,19 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
-import com.google.common.collect.Lists;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import thut.essentials.Essentials;
-import thut.essentials.land.LandManager.Coordinate;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 
 public class LandSaveHandler
@@ -139,21 +132,6 @@ public class LandSaveHandler
                 final LandTeam team = LandSaveHandler.LOAD_GSON.fromJson(json, LandTeam.class);
                 LandManager.getInstance()._teamMap.put(team.teamName, team);
                 team.init(server);
-
-                // Here we convert over the old land to the new format.
-                final List<KGobalPos> toAdd = Lists.newArrayList(team.land.claims);
-                final List<Coordinate> oldList = Lists.newArrayList(team.land.land);
-                for (final Coordinate old : oldList)
-                {
-                    final BlockPos b = new BlockPos(old.x, old.y, old.z);
-                    final ResourceKey<Level> dim = Coordinate.fromOld(old.dim);
-                    if (dim != null)
-                    {
-                        toAdd.add(KGobalPos.getPosition(dim, b));
-                        team.land.land.remove(old);
-                    }
-                    else Essentials.LOGGER.debug("Did not find claim! " + old.dim);
-                }
                 if (Essentials.config.debug) Essentials.LOGGER.info("Processed " + team.teamName);
             }
             catch (final Exception e)

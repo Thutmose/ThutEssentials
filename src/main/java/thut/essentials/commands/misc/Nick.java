@@ -27,7 +27,7 @@ public class Nick
     {
         final String name = "nick";
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
         LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,

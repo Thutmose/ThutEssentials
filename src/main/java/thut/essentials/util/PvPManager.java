@@ -29,7 +29,7 @@ public class PvPManager
         if (PvPManager.registered) return;
         PvPManager.registered = true;
         // This defaults to OP, as the pvpPerms needed at all defaults to false.
-        PermNodes.registerNode(PvPManager.PERMPVP, DefaultPermissionLevel.OP, "Can the player harm other players.");
+        PermNodes.registerBooleanNode(PvPManager.PERMPVP, DefaultPermissionLevel.OP, "Can the player harm other players.");
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

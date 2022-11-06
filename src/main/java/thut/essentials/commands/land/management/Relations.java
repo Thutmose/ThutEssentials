@@ -62,7 +62,7 @@ public class Relations
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(name).requires(cs -> Edit.adminUse(cs, perm));
         LiteralArgumentBuilder<CommandSourceStack> command;

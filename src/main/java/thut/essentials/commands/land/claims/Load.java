@@ -29,7 +29,7 @@ public class Load
         final String name = "chunkload";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Setup with name and permission
         LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)

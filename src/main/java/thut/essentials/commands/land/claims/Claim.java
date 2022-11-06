@@ -50,12 +50,12 @@ public class Claim
         if (Essentials.config.commandBlacklist.contains(name)) return;
         MinecraftForge.EVENT_BUS.register(Claim.class);
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
-        PermNodes.registerNode(Claim.BYPASSLIMIT, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(Claim.BYPASSLIMIT, DefaultPermissionLevel.OP,
                 "Permission to bypass the land per player limit for a team.");
-        PermNodes.registerNode(Claim.AUTOCLAIM, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(Claim.AUTOCLAIM, DefaultPermissionLevel.OP,
                 "Permission to use autoclaim to claim land as they walk around.");
-        PermNodes.registerNode(Claim.BULKCLAIM, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(Claim.BULKCLAIM, DefaultPermissionLevel.OP,
                 "Permission to use /claim start and /claim end to bulk claim chunks.");
 
         // Setup with name and permission

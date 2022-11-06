@@ -30,7 +30,8 @@ public class Kits
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+                    "Can the player use /" + name);
             // Setup with name and permission
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
                     .requires(cs -> CommandManager.hasPerm(cs, perm));
@@ -44,7 +45,8 @@ public class Kits
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+                    "Can the player use /" + name);
             // Setup with name and permission
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
                     .requires(cs -> CommandManager.hasPerm(cs, perm));
@@ -61,7 +63,8 @@ public class Kits
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
+            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP,
+                    "Can the player use /" + name);
             // Setup with name and permission
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
                     .requires(cs -> CommandManager.hasPerm(cs, perm));
@@ -92,7 +95,6 @@ public class Kits
         List<ItemStack> stacks;
         int delay = Essentials.config.kitReuseDelay;
         String kitTag = "kitTime";
-        String perm = "thutessentials.kit.default";
         // Specific kit.
         if (warpName != null)
         {
@@ -102,14 +104,24 @@ public class Kits
                 Essentials.config.sendError(source, "thutessentials.kits.no_kit");
                 return 1;
             }
-            perm = "thutessentials.kit." + warpName;
+            if (kit.OP && !PermNodes.hasStringInList(player, KitManager.KIT, warpName))
+            {
+                Essentials.config.sendError(source, "thutessentials.kits.noperms");
+                return 1;
+            }
+            if (PermNodes.hasStringInList(player, KitManager.NO_KIT, warpName))
+            {
+                Essentials.config.sendError(source, "thutessentials.kits.noperms");
+                return 1;
+            }
+
             kitTag = "kitTime_" + warpName;
             delay = kit.cooldown;
             stacks = kit.stacks;
         }
         else stacks = KitManager.kit;
 
-        if (!PermNodes.getBooleanPerm(player, perm))
+        if (!PermNodes.getBooleanPerm(player, KitManager.DEFAULT_KIT))
         {
             Essentials.config.sendError(source, "thutessentials.kits.noperms");
             return 1;

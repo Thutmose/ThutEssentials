@@ -61,7 +61,7 @@ public class Back
         final String name = "back";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         // Register to bus
         if (!Back.registered) MinecraftForge.EVENT_BUS.register(Back.class);

@@ -315,14 +315,14 @@ public class EconomyManager
             if (!EconomyManager.init)
             {
                 EconomyManager.init = true;
-                PermNodes.registerNode(EconomyManager.PERMMAKESHOP, DefaultPermissionLevel.ALL,
+                PermNodes.registerBooleanNode(EconomyManager.PERMMAKESHOP, DefaultPermissionLevel.ALL,
                         "Allowed to make a shop that sells from a chest.");
-                PermNodes.registerNode(EconomyManager.PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
+                PermNodes.registerBooleanNode(EconomyManager.PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
                         "Allowed to make a shop that sells infinite items.");
 
-                PermNodes.registerNode(EconomyManager.PERMKILLSHOP, DefaultPermissionLevel.ALL,
+                PermNodes.registerBooleanNode(EconomyManager.PERMKILLSHOP, DefaultPermissionLevel.ALL,
                         "Allowed to remove a shop made by this player.");
-                PermNodes.registerNode(EconomyManager.PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
+                PermNodes.registerBooleanNode(EconomyManager.PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
                         "Allowed to remove a shop made by another player.");
             }
             MinecraftForge.EVENT_BUS.register(EconomyManager.instance);
@@ -332,14 +332,14 @@ public class EconomyManager
 
     public static void registerPerms()
     {
-        PermNodes.registerNode(EconomyManager.PERMMAKESHOP, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(EconomyManager.PERMMAKESHOP, DefaultPermissionLevel.ALL,
                 "Allowed to make a shop that sells from a chest.");
-        PermNodes.registerNode(EconomyManager.PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(EconomyManager.PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
                 "Allowed to make a shop that sells infinite items.");
 
-        PermNodes.registerNode(EconomyManager.PERMKILLSHOP, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(EconomyManager.PERMKILLSHOP, DefaultPermissionLevel.ALL,
                 "Allowed to remove a shop made by this player.");
-        PermNodes.registerNode(EconomyManager.PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(EconomyManager.PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
                 "Allowed to remove a shop made by another player.");
     }
 

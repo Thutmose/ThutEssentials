@@ -34,7 +34,7 @@ public class Structuregen
     {
         final String name = "gen_structure";
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
         LiteralArgumentBuilder<CommandSourceStack> command;

@@ -37,7 +37,7 @@ public class StaffChat
     {
         final String name = "staff";
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
         StaffChat.createCommand(commandDispatcher, name, perm);

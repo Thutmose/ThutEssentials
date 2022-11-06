@@ -102,10 +102,10 @@ public class Deed
         final String name = "reclaim_deed";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
-        PermNodes.registerNode(Deed.BYPASSLIMIT, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(Deed.BYPASSLIMIT, DefaultPermissionLevel.OP,
                 "Permission to bypass the land per player limit for a team using deeds.");
-        PermNodes.registerNode(Deed.CANREDEEMDEEDS, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(Deed.CANREDEEMDEEDS, DefaultPermissionLevel.ALL,
                 "Permission to use deeds to claim land.");
 
         // Register to bus

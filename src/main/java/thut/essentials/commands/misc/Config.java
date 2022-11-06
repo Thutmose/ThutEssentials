@@ -222,7 +222,7 @@ public class Config
         name = prefix;
         final String perm1 = "command." + name + ".check";
         final ConfigData data = Essentials.config;
-        PermNodes.registerNode(perm1, DefaultPermissionLevel.OP, "Is the player allowed to check configs for "
+        PermNodes.registerBooleanNode(perm1, DefaultPermissionLevel.OP, "Is the player allowed to check configs for "
                 + data.MODID);
 
         LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
@@ -232,7 +232,7 @@ public class Config
         commandDispatcher.register(command);
 
         final String perm2 = "command." + name + ".set";
-        PermNodes.registerNode(perm2, DefaultPermissionLevel.OP, "Is the player allowed to set configs for "
+        PermNodes.registerBooleanNode(perm2, DefaultPermissionLevel.OP, "Is the player allowed to set configs for "
                 + data.MODID);
 
         command = Commands.literal(name).then(Commands.argument("option", StringArgumentType.string()).suggests(Config

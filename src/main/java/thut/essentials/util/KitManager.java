@@ -36,6 +36,10 @@ import thut.essentials.xml.bind.annotation.XmlRootElement;
 
 public class KitManager
 {
+    public static final String NO_KIT = "kits.blacklist";
+    public static final String KIT = "kits.whitelist";
+    public static final String DEFAULT_KIT = "kits.default";
+
     @XmlRootElement(name = "Kits")
     public static class Kits
     {
@@ -46,7 +50,7 @@ public class KitManager
     public static class KitSet
     {
         public Integer cooldown = null;
-
+        public Boolean OP = false;
         public List<ItemStack> stacks = null;
     }
 
@@ -87,6 +91,10 @@ public class KitManager
         KitManager.kits.clear();
         KitManager.kit.clear();
 
+        PermNodes.registerStringNode(NO_KIT, DefaultPermissionLevel.ALL, "Cannot use these kits", "");
+        PermNodes.registerStringNode(KIT, DefaultPermissionLevel.OP, "Can use these extra kits", "");
+        PermNodes.registerBooleanNode(DEFAULT_KIT, DefaultPermissionLevel.ALL, "Can get the default Kit");
+
         // Load Kits
         if (newKits) try
         {
@@ -120,15 +128,11 @@ public class KitManager
                 {
                     set.cooldown = Essentials.config.kitReuseDelay;
                 }
-                final String node = "thutessentials.kit." + name;
-                PermNodes.registerNode(node, DefaultPermissionLevel.ALL, "Can get the Kit " + name);
                 set.stacks = list;
                 KitManager.kits.put(name, set);
             }
             else
             {
-                final String node = "thutessentials.kit.default";
-                PermNodes.registerNode(node, DefaultPermissionLevel.ALL, "Can get the default Kit");
                 for (final Drop drop : items.drops)
                 {
                     final ItemStack stack = KitManager.getStackFromDrop(drop);
@@ -216,7 +220,7 @@ public class KitManager
     {
         ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent("thutessentials.kits.header"));
         MutableComponent message;
-        if (!KitManager.kit.isEmpty() && PermNodes.getBooleanPerm(player, "thutessentials.kit.default"))
+        if (!KitManager.kit.isEmpty() && PermNodes.getBooleanPerm(player, DEFAULT_KIT))
         {
             message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, "Default");
             message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit Default")));
@@ -224,7 +228,9 @@ public class KitManager
         }
         for (String s : KitManager.kits.keySet())
         {
-            if (!PermNodes.getBooleanPerm(player, "thutessentials.kit." + s)) continue;
+            KitSet kit = kits.get(s);
+            if (kit.OP && !PermNodes.hasStringInList(player, KIT, s)) continue;
+            if (PermNodes.hasStringInList(player, NO_KIT, s)) continue;
             if (s.contains(" ")) s = "\"" + s + "\"";
             message = CommandManager.makeFormattedComponent("thutessentials.kits.entry", null, false, s);
             message.setStyle(message.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/kit " + s)));

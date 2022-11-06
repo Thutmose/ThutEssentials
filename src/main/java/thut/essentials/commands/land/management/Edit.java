@@ -64,26 +64,26 @@ public class Edit
 
     public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
-        PermNodes.registerNode(Edit.PERMTOGGLEEXPLODE, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(Edit.PERMTOGGLEEXPLODE, DefaultPermissionLevel.OP,
                 "Allowed to toggle explosions on/off in their team land");
-        PermNodes.registerNode(Edit.PERMTOGGLEMOBS, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(Edit.PERMTOGGLEMOBS, DefaultPermissionLevel.OP,
                 "Allowed to toggle mob spawns on/off in their team land");
-        PermNodes.registerNode(Edit.PERMRESERVELAND, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(Edit.PERMRESERVELAND, DefaultPermissionLevel.OP,
                 "Allowed to toggle reserved status on/off for their team");
-        PermNodes.registerNode(Edit.PERMTOGGLEFF, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(Edit.PERMTOGGLEFF, DefaultPermissionLevel.OP,
                 "Allowed to toggle friendly fire on/off for their team");
-        PermNodes.registerNode(Edit.PERMTOGGLEPLAYERDAMAGE, DefaultPermissionLevel.OP,
+        PermNodes.registerBooleanNode(Edit.PERMTOGGLEPLAYERDAMAGE, DefaultPermissionLevel.OP,
                 "Allowed to toggle player damage on/off in their team land");
-        PermNodes.registerNode(Edit.PERMTOGGLENPCDAMAGE, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(Edit.PERMTOGGLENPCDAMAGE, DefaultPermissionLevel.ALL,
                 "Allowed to toggle npc damage on/off in their team land");
-        PermNodes.registerNode(Edit.PERMTOGGLEFAKEPLAYERS, DefaultPermissionLevel.ALL,
+        PermNodes.registerBooleanNode(Edit.PERMTOGGLEFAKEPLAYERS, DefaultPermissionLevel.ALL,
                 "Allowed to toggle whether fakeplayers are ignored for land stuff.");
 
         final String name = "edit_team";
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
         String perm;
-        PermNodes.registerNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
 
         final LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(name)
                 .requires(cs -> CommandManager.hasPerm(cs, perm));
