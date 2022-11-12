@@ -497,7 +497,7 @@ public class LandManager
         public static UUID _WILDUUID_ = new UUID(1234, 1234);
 
         public UUID uuid = UUID.randomUUID();
-        
+
         public Set<KGobalPos> loaded = Sets.newHashSet();
 
         public HashSet<Coordinate> land = Sets.newHashSet();
@@ -724,6 +724,7 @@ public class LandManager
             final KGobalPos b = KGobalPos.getPosition(world.dimension(), pos);
             c = CoordinateUtls.chunkPos(b);
         }
+        world.getChunk(c.getPos().getX(), c.getPos().getZ()).setUnsaved(true);
         InventoryLogger.log("claimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
     }
