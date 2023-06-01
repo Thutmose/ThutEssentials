@@ -287,8 +287,6 @@ public class EconomyManager
 
     public static EconomyManager instance;
 
-    private static boolean init = false;
-
     public int version = EconomyManager.VERSION;
     public int initial = 1000;
 
@@ -312,19 +310,6 @@ public class EconomyManager
         {
             EconomySaveHandler.loadGlobalData();
             EconomyManager.instance.initial = Essentials.config.initialBalance;
-            if (!EconomyManager.init)
-            {
-                EconomyManager.init = true;
-                PermNodes.registerBooleanNode(EconomyManager.PERMMAKESHOP, DefaultPermissionLevel.ALL,
-                        "Allowed to make a shop that sells from a chest.");
-                PermNodes.registerBooleanNode(EconomyManager.PERMMAKEINFSHOP, DefaultPermissionLevel.OP,
-                        "Allowed to make a shop that sells infinite items.");
-
-                PermNodes.registerBooleanNode(EconomyManager.PERMKILLSHOP, DefaultPermissionLevel.ALL,
-                        "Allowed to remove a shop made by this player.");
-                PermNodes.registerBooleanNode(EconomyManager.PERMKILLSHOPOTHER, DefaultPermissionLevel.OP,
-                        "Allowed to remove a shop made by another player.");
-            }
             MinecraftForge.EVENT_BUS.register(EconomyManager.instance);
         }
         return EconomyManager.instance;
