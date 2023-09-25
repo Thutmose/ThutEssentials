@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -300,7 +300,7 @@ public class Config extends ConfigData {
 
     public void sendFeedback(final CommandSourceStack target, final String key, final boolean log,
             final Object... args) {
-        target.sendSuccess(this.getMessage(key, args), log);
+        target.sendSuccess(()->this.getMessage(key, args), log);
     }
 
     public void sendError(final CommandSourceStack target, final String key, final Object... args) {
@@ -309,7 +309,7 @@ public class Config extends ConfigData {
 
     @Override
     public void onUpdated() {
-        this.spawnDimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(this.spawnWorld));
+        this.spawnDimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(this.spawnWorld));
 
         final File file = this.configpath.resolve(this.lang_file).toFile();
         if (file.exists())

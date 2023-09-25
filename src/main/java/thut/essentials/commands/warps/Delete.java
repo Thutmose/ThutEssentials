@@ -20,8 +20,7 @@ import thut.essentials.util.WarpManager;
 
 public class Delete
 {
-    private static SuggestionProvider<CommandSourceStack> SUGGEST_NAMES = (ctx, sb) ->
-    {
+    private static SuggestionProvider<CommandSourceStack> SUGGEST_NAMES = (ctx, sb) -> {
         final List<String> opts = Lists.newArrayList();
         opts.addAll(WarpManager.warpLocs.keySet());
         opts.replaceAll(s -> s.contains(" ") ? "\"" + s + "\"" : s);
@@ -34,11 +33,11 @@ public class Delete
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /"
-                    + name);
+            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP,
+                    "Can the player use /" + name);
             // Setup with name and permission
-            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager
-                    .hasPerm(cs, perm));
+            LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                    .requires(cs -> CommandManager.hasPerm(cs, perm));
 
             // Home name argument version.
             command = command.then(Commands.argument("warp", StringArgumentType.string()).suggests(Delete.SUGGEST_NAMES)
@@ -55,11 +54,11 @@ public class Delete
         {
         case 0:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.removed", null, false, homeName);
-            source.sendSuccess(message, true);
+            source.sendSuccess(() -> message, true);
             break;
         case 1:
             message = CommandManager.makeFormattedComponent("thutessentials.warps.noexists_use", null, false, homeName);
-            source.sendSuccess(message, true);
+            source.sendSuccess(() -> message, true);
             break;
         }
         return ret;

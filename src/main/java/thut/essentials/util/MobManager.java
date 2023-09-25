@@ -7,8 +7,7 @@ import com.google.common.collect.Sets;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.entity.EntityMobGriefingEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent.CheckSpawn;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent.SpecialSpawn;
+import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import thut.essentials.Essentials;
@@ -63,21 +62,21 @@ public class MobManager
     }
 
     @SubscribeEvent
-    public static void mobSpawning(final CheckSpawn evt)
+    public static void mobSpawning(final MobSpawnEvent.SpawnPlacementCheck evt)
     {
         if (evt.getResult() != Result.DEFAULT) return;
         if (Essentials.config.mobSpawnUsesWhitelist)
         {
-            final boolean valid = MobManager.spawnWhitelist.contains(RegHelper.getKey(evt.getEntity()));
+            final boolean valid = MobManager.spawnWhitelist.contains(RegHelper.getKey(evt.getEntityType()));
             evt.setResult(valid ? Result.DEFAULT : Result.DENY);
             return;
         }
-        final boolean valid = MobManager.spawnBlacklist.contains(RegHelper.getKey(evt.getEntity()));
+        final boolean valid = MobManager.spawnBlacklist.contains(RegHelper.getKey(evt.getEntityType()));
         evt.setResult(valid ? Result.DENY : Result.DEFAULT);
     }
 
     @SubscribeEvent
-    public static void mobSpawning(final SpecialSpawn evt)
+    public static void mobSpawning(final MobSpawnEvent.FinalizeSpawn evt)
     {
         if (evt.getResult() != Result.DEFAULT) return;
         if (Essentials.config.mobSpawnUsesWhitelist)

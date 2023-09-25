@@ -62,6 +62,6 @@ public class Create
 
     private static int execute(final CommandSourceStack source, final String warpName) throws CommandSyntaxException
     {
-        return Create.execute(source, warpName, new BlockPos(source.getPosition()), source.getLevel().dimension());
+        return Create.execute(source, warpName, BlockPos.containing(source.getPosition()), source.getLevel().dimension());
     }
 }

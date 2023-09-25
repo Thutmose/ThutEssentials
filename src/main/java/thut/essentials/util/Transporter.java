@@ -372,7 +372,7 @@ public class Transporter
         if (entity.getCommandSenderWorld() instanceof ServerLevel)
         {
             new InvulnTicker(entity);
-            if (dest.loc.getDimension() == entity.level.dimension())
+            if (dest.loc.getDimension() == entity.level().dimension())
             {
                 Transporter.moveMob(entity, dest);
                 return;

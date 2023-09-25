@@ -109,8 +109,8 @@ public class Unclaim
                 LandSaveHandler.saveTeam(team.teamName);
                 return;
             }
-            final int min = down ? player.getLevel().getMinSection() : y;
-            final int max = up ? player.getLevel().getMaxSection() : y;
+            final int min = down ? player.level().getMinSection() : y;
+            final int max = up ? player.level().getMaxSection() : y;
             boolean done = false;
             int claimnum = 0;
             int owned_other = 0;

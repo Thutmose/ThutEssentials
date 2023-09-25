@@ -38,7 +38,7 @@ public class InitSpawn
     private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
         Player player = source.getPlayerOrException();
-        ResourceKey<Level> registryKey = player.getLevel().dimension();
+        ResourceKey<Level> registryKey = player.level().dimension();
         KGobalPos pos = KGobalPos.getPosition(registryKey, player.getOnPos());
         Essentials.config.firstSpawn = CoordinateUtls.toString(pos);
         Essentials.config.write();

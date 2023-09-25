@@ -50,7 +50,8 @@ public class Claim
         if (Essentials.config.commandBlacklist.contains(name)) return;
         MinecraftForge.EVENT_BUS.register(Claim.class);
         String perm;
-        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+                "Can the player use /" + name);
         PermNodes.registerBooleanNode(Claim.BYPASSLIMIT, DefaultPermissionLevel.OP,
                 "Permission to bypass the land per player limit for a team.");
         PermNodes.registerBooleanNode(Claim.AUTOCLAIM, DefaultPermissionLevel.OP,
@@ -112,8 +113,8 @@ public class Claim
 
         BlockPos here;
         BlockPos old;
-        here = new BlockPos(player.xCloak, player.yCloak, player.zCloak);
-        old = new BlockPos(player.xCloakO, player.yCloakO, player.zCloakO);
+        here = BlockPos.containing(player.xCloak, player.yCloak, player.zCloak);
+        old = BlockPos.containing(player.xCloakO, player.yCloakO, player.zCloakO);
         final KGobalPos newChunk = CoordinateUtls
                 .chunkPos(KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), here));
         final KGobalPos oldChunk = CoordinateUtls

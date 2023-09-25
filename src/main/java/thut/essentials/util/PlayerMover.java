@@ -118,7 +118,7 @@ public class PlayerMover
     @SubscribeEvent
     public void playerTick(final LivingTickEvent tick)
     {
-        if (!(tick.getEntity().level instanceof ServerLevel) || !(tick.getEntity() instanceof ServerPlayer player))
+        if (!(tick.getEntity().level() instanceof ServerLevel) || !(tick.getEntity() instanceof ServerPlayer player))
             return;
         if (PlayerMover.toMove.containsKey(player.getUUID()))
         {

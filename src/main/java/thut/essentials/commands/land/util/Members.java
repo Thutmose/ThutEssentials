@@ -54,7 +54,7 @@ public class Members
             return 1;
         }
         Essentials.config.sendFeedback(source, "thutessentials.team.members", false, teamname);
-        source.sendSuccess(Members.getMembers(source.getServer(), team, true), false);
+        source.sendSuccess(() ->Members.getMembers(source.getServer(), team, true), false);
         return 0;
     }
 

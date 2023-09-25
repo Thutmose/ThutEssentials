@@ -2,7 +2,7 @@ package thut.essentials.util;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,7 +30,7 @@ public class NameManager
             final MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             final ServerPlayer player = (ServerPlayer) event.getEntity();
             server.getPlayerList().broadcastAll(
-                    new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.UPDATE_DISPLAY_NAME, player));
+                    new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, player));
         }
     }
 

@@ -31,8 +31,8 @@ public class Teams
                 "Can the player see the list of teams.");
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                .requires(cs -> CommandManager.hasPerm(cs, perm));
         // No target argument version
         command = command.executes(ctx -> Teams.execute(ctx.getSource()));
 
@@ -48,16 +48,17 @@ public class Teams
         {
             final LandTeam team = teamMap.get(s);
             String emptyTip = "";
-            final String lastSeenTip = "[" + (source.getServer().getNextTickTime() - team.lastSeen) / 1000 * 3600 + "h]";
+            final String lastSeenTip = "[" + (source.getServer().getNextTickTime() - team.lastSeen) / 1000 * 3600
+                    + "h]";
             if (team.member.size() == 0) emptyTip = "(EMPTY)";
-            final MutableComponent message = Component.literal(ChatFormatting.AQUA + "["
-                    + ChatFormatting.YELLOW + s + ChatFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
+            final MutableComponent message = Component.literal(ChatFormatting.AQUA + "[" + ChatFormatting.YELLOW + s
+                    + ChatFormatting.AQUA + "] " + emptyTip + " " + lastSeenTip);
 
             final ClickEvent event = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/team_members " + s);
             final MutableComponent tooltip = Members.getMembers(source.getServer(), team, false);
             final HoverEvent event2 = new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip);
             message.setStyle(message.getStyle().withClickEvent(event).withHoverEvent(event2));
-            source.sendSuccess(message, false);
+            source.sendSuccess(() -> message, false);
         }
         return 0;
     }

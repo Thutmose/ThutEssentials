@@ -21,11 +21,12 @@ public class RAM
         final String name = "ram";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP,
+                "Can the player use /" + name);
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                .requires(cs -> CommandManager.hasPerm(cs, perm));
         // Register the execution.
         command = command.executes(ctx -> RAM.execute(ctx.getSource()));
 
@@ -59,7 +60,7 @@ public class RAM
 
     private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
-        source.sendSuccess(Component.literal(RAM.memInfo()), false);
+        source.sendSuccess(() -> Component.literal(RAM.memInfo()), false);
         return 0;
     }
 

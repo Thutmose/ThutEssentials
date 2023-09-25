@@ -132,8 +132,8 @@ public class RTP
     {
         final BlockState state1 = world.getBlockState(pos);
         final BlockState state2 = world.getBlockState(pos.above());
-        final boolean valid1 = state1 == null || !state1.getMaterial().isSolid();
-        final boolean valid2 = state2 == null || !state2.getMaterial().isSolid();
+        final boolean valid1 = state1 == null || !state1.isSolid();
+        final boolean valid2 = state2 == null || !state2.isSolid();
         return valid1 && valid2;
     }
 }

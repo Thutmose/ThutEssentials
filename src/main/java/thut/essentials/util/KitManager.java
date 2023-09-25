@@ -12,7 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
@@ -177,7 +177,7 @@ public class KitManager
     public static boolean isSameStack(final ItemStack a, final ItemStack b, final boolean strict)
     {
         // TODO determine if to use the tags?
-        return ItemStack.isSameIgnoreDurability(a, b);
+        return ItemStack.isSameItemSameTags(a, b);
     }
 
     public static ItemStack getStack(final Map<QName, String> values)
@@ -195,7 +195,7 @@ public class KitManager
         Optional<Item> item = Optional.ofNullable(ForgeRegistries.ITEMS.getValue(loc));
         if (item.isEmpty())
         {
-            ITag<Item> tagged = ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, loc));
+            ITag<Item> tagged = ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registries.ITEM, loc));
             if (tagged != null)
             {
                 item = tagged.getRandomElement(RandomSource.create());

@@ -69,21 +69,22 @@ public class EconomyManager
             final ServerLevel world = (ServerLevel) player.getCommandSenderWorld();
             final Entity ent = world.getEntity(this.frameId);
             if (ent instanceof ItemFrame) stack = ((ItemFrame) ent).getItem();
-            final BlockEntity tile = player.level.getBlockEntity(this.location.getPos());
+            final BlockEntity tile = player.level().getBlockEntity(this.location.getPos());
             if (!(tile instanceof SignBlockEntity))
             {
                 EconomyManager.removeShop(this.location);
                 return false;
             }
             final SignBlockEntity sign = (SignBlockEntity) tile;
-            this.sell = Essentials.config.sellTags.contains(sign.messages[0].getString());
-            this.recycle = Essentials.config.recycleTags.contains(sign.messages[0].getString());
+            var comps = sign.getFrontText().getMessages(false);
+            this.sell = Essentials.config.sellTags.contains(comps[0].getString());
+            this.recycle = Essentials.config.recycleTags.contains(comps[0].getString());
             try
             {
-                this.number = Integer.parseInt(sign.messages[1].getString());
+                this.number = Integer.parseInt(comps[1].getString());
                 if (this.ignoreTag)
                 {
-                    if (this.number != 1) sign.messages[1] = Component.literal("1");
+                    if (this.number != 1) comps[1] = Component.literal("1");
                     this.number = 1;
                 }
             }
@@ -94,7 +95,7 @@ public class EconomyManager
             }
             try
             {
-                this.cost = Integer.parseInt(sign.messages[3].getString());
+                this.cost = Integer.parseInt(comps[3].getString());
             }
             catch (final NumberFormatException e)
             {
@@ -131,7 +132,7 @@ public class EconomyManager
                     final ItemStack test2 = stack.copy();
                     if (this.storage != null)
                     {
-                        final BlockEntity inventory = player.level.getBlockEntity(this.storage.getPos());
+                        final BlockEntity inventory = player.level().getBlockEntity(this.storage.getPos());
                         if (inventory instanceof Container)
                         {
                             inv = (Container) inventory;
@@ -235,7 +236,7 @@ public class EconomyManager
                                 CommandManager.makeFormattedComponent("thutessentials.econ.no_storage"));
                         return false;
                     }
-                    final BlockEntity te = player.level.getBlockEntity(this.storage.getPos());
+                    final BlockEntity te = player.level().getBlockEntity(this.storage.getPos());
                     if (te instanceof Container)
                     {
                         final Container inv = (Container) te;
@@ -244,7 +245,7 @@ public class EconomyManager
                         count = stack.getCount();
                         for (int i = 0; i < inv.getContainerSize(); i++)
                         {
-                            if (inv.getItem(i).isEmpty() || a.sameItem(inv.getItem(i)))
+                            if (inv.getItem(i).isEmpty() || ItemStack.isSameItemSameTags(a, inv.getItem(i)))
                             {
                                 int n = 0;
                                 if (!inv.getItem(i).isEmpty() && (n = inv.getItem(i).getCount() + a.getCount()) < 65)
@@ -479,9 +480,10 @@ public class EconomyManager
         if (!shop.infinite)
         {
             final BlockEntity down = owner.getCommandSenderWorld().getBlockEntity(location.getPos().below());
-            if (down instanceof SignBlockEntity)
+            if (down instanceof SignBlockEntity sign)
             {
-                final String[] var = ((SignBlockEntity) down).messages[0].getString().split(",");
+                var comps = sign.getFrontText().getMessages(false);
+                final String[] var = comps[0].getString().split(",");
                 final int dx = Integer.parseInt(var[0]);
                 final int dy = Integer.parseInt(var[1]);
                 final int dz = Integer.parseInt(var[2]);
@@ -562,7 +564,7 @@ public class EconomyManager
         final boolean flag = entityplayer.getInventory().add(itemstack);
         if (flag)
         {
-            entityplayer.level.playSound((ServerPlayer) null, entityplayer.getX(), entityplayer.getY(),
+            entityplayer.level().playSound((ServerPlayer) null, entityplayer.getX(), entityplayer.getY(),
                     entityplayer.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
                     ((entityplayer.getRandom().nextFloat() - entityplayer.getRandom().nextFloat()) * 0.7F + 1.0F)
                             * 2.0F);
@@ -574,7 +576,7 @@ public class EconomyManager
             if (entityitem != null)
             {
                 entityitem.setNoPickUpDelay();
-                entityitem.setOwner(entityplayer.getUUID());
+                entityitem.setTarget(entityplayer.getUUID());
             }
         }
     }

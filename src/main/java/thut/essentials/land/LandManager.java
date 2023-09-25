@@ -14,7 +14,7 @@ import com.mojang.authlib.GameProfile;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -111,7 +111,7 @@ public class LandManager
                 final String[] args = var.split("->");
                 final Integer i = Integer.parseInt(args[0]);
                 final ResourceLocation key = new ResourceLocation(args[1]);
-                final ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, key);
+                final ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION, key);
                 final MinecraftServer server = Essentials.server;
                 if (server.getLevel(dim) == null)
                 {

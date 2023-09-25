@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -19,12 +20,11 @@ import thut.essentials.Essentials;
 @Mixin(ServerLevel.class)
 public abstract class SeededServerWorld extends Level
 {
-
-    protected SeededServerWorld(WritableLevelData p_220352_, ResourceKey<Level> p_220353_,
-            Holder<DimensionType> p_220354_, Supplier<ProfilerFiller> p_220355_, boolean p_220356_, boolean p_220357_,
-            long p_220358_, int p_220359_)
+    protected SeededServerWorld(WritableLevelData p_270739_, ResourceKey<Level> p_270683_, RegistryAccess p_270200_,
+            Holder<DimensionType> p_270240_, Supplier<ProfilerFiller> p_270692_, boolean p_270904_, boolean p_270470_,
+            long p_270248_, int p_270466_)
     {
-        super(p_220352_, p_220353_, p_220354_, p_220355_, p_220356_, p_220357_, p_220358_, p_220359_);
+        super(p_270739_, p_270683_, p_270200_, p_270240_, p_270692_, p_270904_, p_270470_, p_270248_, p_270466_);
     }
 
     @Inject(method = "getSeed", at = @At(value = "RETURN"), cancellable = true)

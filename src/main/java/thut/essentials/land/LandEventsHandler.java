@@ -48,7 +48,7 @@ import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
@@ -501,8 +501,8 @@ public class LandEventsHandler
                     this.sendNearbyChunks(player);
                 BlockPos here;
                 BlockPos old;
-                here = new BlockPos(player.xCloak, player.yCloak, player.zCloak);
-                old = new BlockPos(player.xCloakO, player.yCloakO, player.zCloakO);
+                here = BlockPos.containing(player.xCloak, player.yCloak, player.zCloak);
+                old = BlockPos.containing(player.xCloakO, player.yCloakO, player.zCloakO);
 
                 if (old.equals(here)) return;
 
@@ -763,7 +763,7 @@ public class LandEventsHandler
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void spawn(final LivingSpawnEvent.SpecialSpawn evt)
+        public void spawn(final MobSpawnEvent.PositionCheck evt)
         {
             if (!Essentials.config.landEnabled) return;
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
@@ -778,7 +778,7 @@ public class LandEventsHandler
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void spawn(final LivingSpawnEvent.CheckSpawn evt)
+        public void spawn(final MobSpawnEvent.FinalizeSpawn evt)
         {
             if (!Essentials.config.landEnabled) return;
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;

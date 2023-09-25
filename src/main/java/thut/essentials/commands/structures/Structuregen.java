@@ -14,7 +14,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
@@ -34,7 +34,8 @@ public class Structuregen
     {
         final String name = "gen_structure";
         String perm;
-        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.OP,
+                "Can the player use /" + name);
         if (Essentials.config.commandBlacklist.contains(name)) return;
 
         LiteralArgumentBuilder<CommandSourceStack> command;
@@ -49,17 +50,15 @@ public class Structuregen
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command.then(Commands.argument("structure", StringArgumentType.greedyString()).suggests(
-                Structuregen.SUGGEST_NAMES).executes((ctx) -> Structuregen.execute_generate(ctx.getSource(),
+        command.then(Commands.argument("structure", StringArgumentType.greedyString())
+                .suggests(Structuregen.SUGGEST_NAMES).executes((ctx) -> Structuregen.execute_generate(ctx.getSource(),
                         StringArgumentType.getString(ctx, "structure"))));
         commandDispatcher.register(command);
     }
 
-    private static SuggestionProvider<CommandSourceStack> SUGGEST_NAMES = (ctx, sb) ->
-    {
+    private static SuggestionProvider<CommandSourceStack> SUGGEST_NAMES = (ctx, sb) -> {
         final List<String> opts = Lists.newArrayList();
-        for (final ResourceLocation loc : BuiltinRegistries.STRUCTURES.keySet())
-            opts.add(loc.toString());
+        for (final ResourceLocation loc : BuiltInRegistries.STRUCTURE_TYPE.keySet()) opts.add(loc.toString());
         return net.minecraft.commands.SharedSuggestionProvider.suggest(opts, sb);
     };
 
@@ -192,7 +191,7 @@ public class Structuregen
 //            manager.promoteChunkMap();
 //        }, true);
 
-        source.sendSuccess(Component.literal("Reset Scheduled"), false);
+        source.sendSuccess(() -> Component.literal("Reset Scheduled"), false);
         return 0;
     }
 

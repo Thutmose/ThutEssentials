@@ -2,7 +2,7 @@ package thut.essentials.util;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -85,7 +85,7 @@ public class CoordinateUtls
         {
             final BlockPos pos = new BlockPos(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(
                     args[2]));
-            final ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(
+            final ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(
                     args[3]));
             return KGobalPos.getPosition(dim, pos);
         }
