@@ -1,11 +1,11 @@
 package thut.essentials.util;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import thut.essentials.Essentials;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
@@ -14,9 +14,9 @@ public class PvPManager
 
     public static void init()
     {
-        MinecraftForge.EVENT_BUS.unregister(PvPManager.class);
+        NeoForge.EVENT_BUS.unregister(PvPManager.class);
         if (!Essentials.config.pvpPerms) return;
-        MinecraftForge.EVENT_BUS.register(PvPManager.class);
+        NeoForge.EVENT_BUS.register(PvPManager.class);
         PvPManager.registerPerms();
     }
 
@@ -37,10 +37,8 @@ public class PvPManager
     {
         if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.pvpPerms) return;
-        if (!(evt.getTarget() instanceof ServerPlayer)) return;
-        if (!(evt.getEntity() instanceof ServerPlayer)) return;
-        final ServerPlayer attacker = (ServerPlayer) evt.getEntity();
-        final ServerPlayer attacked = (ServerPlayer) evt.getTarget();
+        if (!(evt.getTarget() instanceof ServerPlayer attacked)) return;
+        if (!(evt.getEntity() instanceof ServerPlayer attacker)) return;
         if (PermNodes.getBooleanPerm(attacker, PvPManager.PERMPVP)
                 && PermNodes.getBooleanPerm(attacked, PvPManager.PERMPVP))
             return;
@@ -48,17 +46,15 @@ public class PvPManager
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void attack(final LivingAttackEvent evt)
+    public static void attack(final LivingDamageEvent.Pre evt)
     {
         if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.pvpPerms) return;
-        if (!(evt.getEntity() instanceof ServerPlayer)) return;
-        if (!(evt.getSource().getEntity() instanceof ServerPlayer)) return;
-        final ServerPlayer attacker = (ServerPlayer) evt.getSource().getEntity();
-        final ServerPlayer attacked = (ServerPlayer) evt.getEntity();
+        if (!(evt.getEntity() instanceof ServerPlayer attacked)) return;
+        if (!(evt.getSource().getEntity() instanceof ServerPlayer attacker)) return;
         if (PermNodes.getBooleanPerm(attacker, PvPManager.PERMPVP)
                 && PermNodes.getBooleanPerm(attacked, PvPManager.PERMPVP))
             return;
-        evt.setCanceled(true);
+        evt.setNewDamage(0);
     }
 }

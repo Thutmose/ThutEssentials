@@ -10,13 +10,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import thut.essentials.Essentials;
-import thut.essentials.land.LandManager.KGobalPos;
+import net.minecraft.core.GlobalPos;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
@@ -51,7 +50,7 @@ public class SpawnDefuzzer
     }
 
     @SubscribeEvent
-    public static void deFuzzRespawn(final PlayerRespawnEvent event)
+    public static void deFuzzRespawn(final PlayerEvent.PlayerRespawnEvent event)
     {
         if (!Essentials.config.defuzz) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
@@ -60,10 +59,10 @@ public class SpawnDefuzzer
         {
             final ServerLevel world = player.getServer().getLevel(Essentials.config.spawnDimension);
             BlockPos worldSpawn = world.getSharedSpawnPos();
-            KGobalPos spawn = KGobalPos.getPosition(Essentials.config.spawnDimension, worldSpawn);
+            GlobalPos spawn = GlobalPos.of(Essentials.config.spawnDimension, worldSpawn);
             if (mode == DefuzMode.INITIAL && !Essentials.config.firstSpawn.isBlank())
             {
-                final KGobalPos warp = CoordinateUtls.fromString(Essentials.config.firstSpawn);
+                final GlobalPos warp = CoordinateUtls.fromString(Essentials.config.firstSpawn);
                 if (warp != null) spawn = warp;
             }
             PlayerDataHandler.getCustomDataTag(player).putString("__defuzz_key__", Essentials.config.defuzzKey);
@@ -78,7 +77,7 @@ public class SpawnDefuzzer
      *
      * @param evt
      */
-    public static void EntityUpdate(final LivingTickEvent evt)
+    public static void EntityUpdate(final PlayerTickEvent.Post evt)
     {
         if (!Essentials.config.defuzz) return;
         if (SpawnDefuzzer.logins.contains(evt.getEntity().getUUID()) && evt.getEntity() instanceof ServerPlayer player)
@@ -89,10 +88,10 @@ public class SpawnDefuzzer
             {
                 final ServerLevel world = player.getServer().getLevel(Essentials.config.spawnDimension);
                 final BlockPos worldSpawn = world.getSharedSpawnPos();
-                KGobalPos spawn = KGobalPos.getPosition(Essentials.config.spawnDimension, worldSpawn);
+                GlobalPos spawn = GlobalPos.of(Essentials.config.spawnDimension, worldSpawn);
                 if (mode == DefuzMode.INITIAL && !Essentials.config.firstSpawn.isBlank())
                 {
-                    final KGobalPos warp = CoordinateUtls.fromString(Essentials.config.firstSpawn);
+                    final GlobalPos warp = CoordinateUtls.fromString(Essentials.config.firstSpawn);
                     if (warp != null) spawn = warp;
                 }
                 PlayerDataHandler.getCustomDataTag(player).putString("__defuzz_key__", Essentials.config.defuzzKey);
@@ -103,7 +102,7 @@ public class SpawnDefuzzer
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void deFuzzSpawn(final PlayerLoggedInEvent event)
+    public static void deFuzzSpawn(final PlayerEvent.PlayerLoggedInEvent event)
     {
         if (!Essentials.config.defuzz) return;
         if (event.getEntity() instanceof ServerPlayer player)

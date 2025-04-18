@@ -1,24 +1,24 @@
 package thut.essentials.util;
 
-import java.util.Set;
-
 import com.google.common.collect.Sets;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.event.entity.EntityMobGriefingEvent;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
-import net.minecraftforge.eventbus.api.Event.Result;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityMobGriefingEvent;
+import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
+import net.neoforged.neoforge.event.entity.living.MobSpawnEvent.PositionCheck;
+import net.neoforged.neoforge.event.entity.living.MobSpawnEvent.SpawnPlacementCheck.Result;
 import thut.essentials.Essentials;
+
+import java.util.Set;
 
 public class MobManager
 {
-    private static Set<ResourceLocation> griefWhitelist = Sets.newHashSet();
-    private static Set<ResourceLocation> griefBlacklist = Sets.newHashSet();
+    private static final Set<ResourceLocation> griefWhitelist = Sets.newHashSet();
+    private static final Set<ResourceLocation> griefBlacklist = Sets.newHashSet();
 
-    private static Set<ResourceLocation> spawnWhitelist = Sets.newHashSet();
-    private static Set<ResourceLocation> spawnBlacklist = Sets.newHashSet();
+    private static final Set<ResourceLocation> spawnWhitelist = Sets.newHashSet();
+    private static final Set<ResourceLocation> spawnBlacklist = Sets.newHashSet();
 
     public static void init()
     {
@@ -28,13 +28,13 @@ public class MobManager
         MobManager.spawnBlacklist.clear();
 
         for (final String s : Essentials.config.mobGriefAllowWhitelist)
-            MobManager.griefWhitelist.add(new ResourceLocation(s));
+            MobManager.griefWhitelist.add(ResourceLocation.parse(s));
         for (final String s : Essentials.config.mobGriefAllowBlacklist)
-            MobManager.griefBlacklist.add(new ResourceLocation(s));
+            MobManager.griefBlacklist.add(ResourceLocation.parse(s));
         for (final String s : Essentials.config.mobSpawnWhitelist)
-            MobManager.spawnWhitelist.add(new ResourceLocation(s));
+            MobManager.spawnWhitelist.add(ResourceLocation.parse(s));
         for (final String s : Essentials.config.mobSpawnBlacklist)
-            MobManager.spawnBlacklist.add(new ResourceLocation(s));
+            MobManager.spawnBlacklist.add(ResourceLocation.parse(s));
 
     }
 
@@ -49,15 +49,15 @@ public class MobManager
     {
         if (Essentials.config.mobGriefAllowUsesWhitelist)
         {
-            final boolean valid = evt.getEntity() != null
-                    && MobManager.griefWhitelist.contains(RegHelper.getKey(evt.getEntity()));
-            evt.setResult(valid ? Result.ALLOW : Result.DEFAULT);
+            final boolean valid =
+                    evt.getEntity() != null && MobManager.griefWhitelist.contains(RegHelper.getKey(evt.getEntity()));
+            evt.setCanGrief(!valid);
         }
         else
         {
-            final boolean valid = evt.getEntity() != null
-                    && MobManager.griefBlacklist.contains(RegHelper.getKey(evt.getEntity()));
-            evt.setResult(valid ? Result.DENY : Result.DEFAULT);
+            final boolean valid =
+                    evt.getEntity() != null && MobManager.griefBlacklist.contains(RegHelper.getKey(evt.getEntity()));
+            evt.setCanGrief(!valid);
         }
     }
 
@@ -68,24 +68,24 @@ public class MobManager
         if (Essentials.config.mobSpawnUsesWhitelist)
         {
             final boolean valid = MobManager.spawnWhitelist.contains(RegHelper.getKey(evt.getEntityType()));
-            evt.setResult(valid ? Result.DEFAULT : Result.DENY);
+            evt.setResult(valid ? Result.DEFAULT : Result.FAIL);
             return;
         }
         final boolean valid = MobManager.spawnBlacklist.contains(RegHelper.getKey(evt.getEntityType()));
-        evt.setResult(valid ? Result.DENY : Result.DEFAULT);
+        evt.setResult(valid ? Result.FAIL : Result.DEFAULT);
     }
 
     @SubscribeEvent
-    public static void mobSpawning(final MobSpawnEvent.FinalizeSpawn evt)
+    public static void mobSpawning(final PositionCheck evt)
     {
-        if (evt.getResult() != Result.DEFAULT) return;
+        if (evt.getResult() != PositionCheck.Result.DEFAULT) return;
         if (Essentials.config.mobSpawnUsesWhitelist)
         {
             final boolean valid = MobManager.spawnWhitelist.contains(RegHelper.getKey(evt.getEntity()));
-            evt.setResult(valid ? Result.DEFAULT : Result.DENY);
+            evt.setResult(valid ? PositionCheck.Result.DEFAULT : PositionCheck.Result.FAIL);
             return;
         }
         final boolean valid = MobManager.spawnBlacklist.contains(RegHelper.getKey(evt.getEntity()));
-        evt.setResult(valid ? Result.DENY : Result.DEFAULT);
+        evt.setResult(valid ? PositionCheck.Result.FAIL : PositionCheck.Result.DEFAULT);
     }
 }

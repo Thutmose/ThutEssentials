@@ -17,7 +17,7 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 import thut.essentials.Essentials;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.util.PermNodes;
@@ -30,45 +30,10 @@ public class CommandManager
         Optional<GameProfile> profile = null;
         // First check profile cache.
         if (id != null) profile = server.getProfileCache().get(id);
-        if (!profile.isPresent()) profile = Optional.of(new GameProfile(id, null));
+        if (profile.isEmpty()) profile = Optional.of(new GameProfile(id, null));
 
         // Try to fill profile via secure method.
         LandEventsHandler.TEAMMANAGER.queueUpdate(profile.get());
-        return profile.get();
-    }
-
-    public static GameProfile getProfile(final MinecraftServer server, final String arg)
-    {
-        UUID id = null;
-        String name = null;
-
-        // First check if arg is a UUID
-        try
-        {
-            id = UUID.fromString(arg);
-        }
-        catch (final Exception e)
-        {
-            // If not a UUID, arg is the name.
-            name = arg;
-        }
-
-        Optional<GameProfile> profile = null;
-
-        // First check profile cache.
-        if (id != null) profile = server.getProfileCache().get(id);
-        if (!profile.isPresent()) profile = Optional.of(new GameProfile(id, name));
-
-        // Try to fill profile via secure method.
-        LandEventsHandler.TEAMMANAGER.queueUpdate(profile.get());
-
-        // Temporarily update the UUID from server player list if possible
-        if (profile.get().getId() == null)
-        {
-            final Player player = server.getPlayerList().getPlayerByName(profile.get().getName());
-            profile = Optional.of(player.getGameProfile());
-        }
-
         return profile.get();
     }
 
@@ -94,7 +59,7 @@ public class CommandManager
     public static void register_commands(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         // We do this first, as commands might need it.
-        MinecraftForge.EVENT_BUS.register(new PlayerMover());
+        NeoForge.EVENT_BUS.register(new PlayerMover());
         // Register commands.
         thut.essentials.commands.economy.Balance.register(commandDispatcher);
         thut.essentials.commands.economy.Pay.register(commandDispatcher);

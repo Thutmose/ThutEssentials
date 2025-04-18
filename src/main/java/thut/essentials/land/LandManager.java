@@ -23,7 +23,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import thut.essentials.Essentials;
 import thut.essentials.land.ClaimedCapability.ClaimSegment;
 import thut.essentials.land.ClaimedCapability.IClaimed;
@@ -32,69 +31,6 @@ import thut.essentials.util.InventoryLogger;
 
 public class LandManager
 {
-    public static class KGobalPos implements Comparable<KGobalPos>
-    {
-        public static KGobalPos getPosition(final ResourceKey<Level> dimension, final BlockPos pos)
-        {
-            return new KGobalPos(GlobalPos.of(dimension, pos));
-        }
-
-        public final GlobalPos pos;
-
-        public KGobalPos(final GlobalPos pos)
-        {
-            this.pos = pos;
-        }
-
-        @Override
-        public boolean equals(final Object o)
-        {
-            if (this == o) return true;
-            if (o instanceof KGobalPos)
-            {
-                final GlobalPos other = ((KGobalPos) o).pos;
-                final boolean sameDim = this.pos.dimension().compareTo(other.dimension()) == 0;
-                return sameDim && other.pos().equals(this.pos.pos());
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return this.pos.pos().hashCode();
-        }
-
-        public boolean isValid()
-        {
-            return this.pos != null && this.pos.pos() != null && this.pos.dimension() != null;
-        }
-
-        @Override
-        public String toString()
-        {
-            if (this.pos == null || this.pos.dimension() == null) return "ERROR";
-            return this.pos.toString();
-        }
-
-        @Override
-        public int compareTo(final KGobalPos o)
-        {
-            return o.pos.pos().compareTo(this.pos.pos());
-        }
-
-        public BlockPos getPos()
-        {
-            return this.pos.pos();
-        }
-
-        public ResourceKey<Level> getDimension()
-        {
-            return this.pos.dimension();
-        }
-
-    }
-
     public static class Coordinate implements Comparable<Coordinate>
     {
         private static final Map<Integer, ResourceKey<Level>> _oldDim = Maps.newHashMap();
@@ -110,7 +46,7 @@ public class LandManager
             {
                 final String[] args = var.split("->");
                 final Integer i = Integer.parseInt(args[0]);
-                final ResourceLocation key = new ResourceLocation(args[1]);
+                final ResourceLocation key = ResourceLocation.parse(args[1]);
                 final ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION, key);
                 final MinecraftServer server = Essentials.server;
                 if (server.getLevel(dim) == null)
@@ -231,13 +167,13 @@ public class LandManager
         /** Maps of rank name to rank, this is what is actually stored. */
         public Map<String, PlayerRank> rankMap = Maps.newHashMap();
         /** List of public blocks for the team. */
-        public Set<KGobalPos> public_use = Sets.newHashSet();
+        public Set<GlobalPos> public_use = Sets.newHashSet();
         /** List of public blocks for the team. TODO implement this. */
-        public Set<KGobalPos> public_break = Sets.newHashSet();
+        public Set<GlobalPos> public_break = Sets.newHashSet();
         /** List of public blocks for the team. TODO implement this. */
-        public Set<KGobalPos> public_place = Sets.newHashSet();
+        public Set<GlobalPos> public_place = Sets.newHashSet();
         /** Home coordinate for the team, used for thome command. */
-        public KGobalPos team_home;
+        public GlobalPos team_home;
         /** Deprecated for further save compat. */
         @Deprecated
         public Coordinate home;
@@ -409,7 +345,7 @@ public class LandManager
          * @param player
          * @return
          */
-        public boolean canBreakBlock(final UUID player, final KGobalPos location)
+        public boolean canBreakBlock(final UUID player, final GlobalPos location)
         {
             if (this.anyBreak || this.public_break.contains(location)) return true;
             final LandTeam team = LandManager.getTeam(player);
@@ -425,7 +361,7 @@ public class LandManager
          * @param player
          * @return
          */
-        public boolean canPlaceBlock(final UUID player, final KGobalPos location)
+        public boolean canPlaceBlock(final UUID player, final GlobalPos location)
         {
             if (this.anyPlace || this.public_place.contains(location)) return true;
             final LandTeam team = LandManager.getTeam(player);
@@ -441,7 +377,7 @@ public class LandManager
          * @param player
          * @return
          */
-        public boolean canUseStuff(final UUID player, final KGobalPos location)
+        public boolean canUseStuff(final UUID player, final GlobalPos location)
         {
             if (this.allPublic || this.public_use.contains(location)) return true;
             final LandTeam team = LandManager.getTeam(player);
@@ -498,7 +434,7 @@ public class LandManager
 
         public UUID uuid = UUID.randomUUID();
 
-        public Set<KGobalPos> loaded = Sets.newHashSet();
+        public Set<GlobalPos> loaded = Sets.newHashSet();
 
         public HashSet<Coordinate> land = Sets.newHashSet();
 
@@ -509,7 +445,7 @@ public class LandManager
             return this.claimed;
         }
 
-        public Set<KGobalPos> getLoaded()
+        public Set<GlobalPos> getLoaded()
         {
             if (this.loaded == null) this.loaded = Sets.newHashSet();
             return this.loaded;
@@ -590,7 +526,7 @@ public class LandManager
     }
 
     public Map<String, LandTeam> _teamMap = Maps.newConcurrentMap();
-    public Map<KGobalPos, LandTeam> _landMap = Maps.newConcurrentMap();
+    public Map<GlobalPos, LandTeam> _landMap = Maps.newConcurrentMap();
     protected Map<UUID, LandTeam> _playerTeams = Maps.newConcurrentMap();
     protected Map<UUID, Invites> invites = Maps.newHashMap();
     protected Map<UUID, LandTeam> _protected_mobs = Maps.newConcurrentMap();
@@ -717,14 +653,14 @@ public class LandManager
         }
         if (seg.owner == null || !seg.owner.equals(t.land.uuid)) t.land.claimed++;
         seg.owner = t.land.uuid;
-        KGobalPos c;
-        if (chunkCoords) c = KGobalPos.getPosition(world.dimension(), pos);
+        GlobalPos c;
+        if (chunkCoords) c = GlobalPos.of(world.dimension(), pos);
         else
         {
-            final KGobalPos b = KGobalPos.getPosition(world.dimension(), pos);
+            final GlobalPos b = GlobalPos.of(world.dimension(), pos);
             c = CoordinateUtls.chunkPos(b);
         }
-        world.getChunk(c.getPos().getX(), c.getPos().getZ()).setUnsaved(true);
+        world.getChunk(c.pos().getX(), c.pos().getZ()).setUnsaved(true);
         InventoryLogger.log("claimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
     }
@@ -744,11 +680,11 @@ public class LandManager
             return;
         }
         // TODO remove legacy stuff
-        KGobalPos c;
-        if (chunkCoords) c = KGobalPos.getPosition(world.dimension(), pos);
+        GlobalPos c;
+        if (chunkCoords) c = GlobalPos.of(world.dimension(), pos);
         else
         {
-            final KGobalPos b = KGobalPos.getPosition(world.dimension(), pos);
+            final GlobalPos b = GlobalPos.of(world.dimension(), pos);
             c = CoordinateUtls.chunkPos(b);
         }
         final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
@@ -815,12 +751,7 @@ public class LandManager
         if (!world.hasChunk(cPos.x, cPos.z)) return null;
 
         final ChunkAccess chunk = world.getChunk(cPos.x, cPos.z);
-        if (chunk instanceof ICapabilityProvider caps)
-        {
-            final IClaimed claims = caps.getCapability(ClaimedCapability.CAPABILITY).orElse(null);
-            return claims;
-        }
-        return null;
+        return chunk.getData(ClaimedCapability.TYPE);
     }
 
     public LandTeam getLandOwner(final Level world, final BlockPos pos, final boolean chunkCoords)
@@ -828,11 +759,11 @@ public class LandManager
         LandTeam owner = LandManager.getWildTeam();
 
         // TODO remove legacy stuff
-        KGobalPos c;
-        if (chunkCoords) c = KGobalPos.getPosition(world.dimension(), pos);
+        GlobalPos c;
+        if (chunkCoords) c = GlobalPos.of(world.dimension(), pos);
         else
         {
-            final KGobalPos b = KGobalPos.getPosition(world.dimension(), pos);
+            final GlobalPos b = GlobalPos.of(world.dimension(), pos);
             c = CoordinateUtls.chunkPos(b);
         }
         owner = this.getLandOwner(c);
@@ -848,7 +779,7 @@ public class LandManager
         return owner;
     }
 
-    public LandTeam getLandOwner(final KGobalPos land)
+    public LandTeam getLandOwner(final GlobalPos land)
     {
         final LandTeam owner = this._landMap.get(land);
         if (owner == null) return LandManager.getWildTeam();
@@ -895,12 +826,12 @@ public class LandManager
         return team.isAdmin(member);
     }
 
-    public boolean isOwned(final KGobalPos land)
+    public boolean isOwned(final GlobalPos land)
     {
         return this._landMap.containsKey(land);
     }
 
-    public boolean isPublic(final KGobalPos c, final LandTeam team)
+    public boolean isPublic(final GlobalPos c, final LandTeam team)
     {
         return team.allPublic || team.public_use.contains(c);
     }
@@ -926,19 +857,19 @@ public class LandManager
         this.addToTeam(member, LandManager.getDefaultTeam().teamName);
     }
 
-    public void setPublic(final KGobalPos c, final LandTeam owner)
+    public void setPublic(final GlobalPos c, final LandTeam owner)
     {
         owner.public_use.add(c);
         LandSaveHandler.saveTeam(owner.teamName);
     }
 
-    public void unsetPublic(final KGobalPos c, final LandTeam owner)
+    public void unsetPublic(final GlobalPos c, final LandTeam owner)
     {
         if (!owner.public_use.remove(c)) return;
         LandSaveHandler.saveTeam(owner.teamName);
     }
 
-    public boolean loadLand(final KGobalPos chunk, final LandTeam team)
+    public boolean loadLand(final GlobalPos chunk, final LandTeam team)
     {
         if (LandEventsHandler.ChunkLoadHandler.addChunks(chunk))
         {
@@ -949,7 +880,7 @@ public class LandManager
         return false;
     }
 
-    public boolean unLoadLand(final KGobalPos chunk, final LandTeam team)
+    public boolean unLoadLand(final GlobalPos chunk, final LandTeam team)
     {
         if (LandEventsHandler.ChunkLoadHandler.removeChunks(chunk))
         {

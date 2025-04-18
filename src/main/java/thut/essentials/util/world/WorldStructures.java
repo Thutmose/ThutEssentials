@@ -1,37 +1,56 @@
 package thut.essentials.util.world;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.google.common.collect.Lists;
-
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 import thut.essentials.Essentials;
 
-public class WorldStructures implements IHasStructures, ICapabilitySerializable<ListTag>
+import java.util.Collection;
+import java.util.List;
+
+public class WorldStructures extends SavedData implements IHasStructures, INBTSerializable<ListTag>
 {
+    // Create new instance of saved data
+    public static WorldStructures create()
+    {
+        return new WorldStructures();
+    }
+
+    // Load existing instance of saved data
+    public static WorldStructures load(CompoundTag tag, HolderLookup.Provider lookupProvider)
+    {
+        WorldStructures data = WorldStructures.create();
+        // Load saved data
+        if (tag.contains("L")) data.deserializeNBT(lookupProvider, tag.getList("L", Tag.TAG_COMPOUND));
+        return data;
+    }
+
+    public static WorldStructures getForLevel(ServerLevel level)
+    {
+        return level.getDataStorage()
+                .get(new SavedData.Factory<>(WorldStructures::create, WorldStructures::load), "te_structures");
+    }
+
+    @Override
+    public CompoundTag save(CompoundTag compoundTag, HolderLookup.Provider provider)
+    {
+        compoundTag.put("L", this.serializeNBT(provider));
+        return compoundTag;
+    }
+
     public static class StructInfo implements INBTSerializable<CompoundTag>
     {
         ResourceLocation key;
-        BoundingBox      box;
+        BoundingBox box;
 
         public StructInfo(final ResourceLocation key, final BoundingBox box)
         {
@@ -41,11 +60,11 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
 
         public StructInfo(final CompoundTag tag)
         {
-            this.deserializeNBT(tag);
+            this.deserializeNBT(Essentials.server.registryAccess(), tag);
         }
 
         @Override
-        public CompoundTag serializeNBT()
+        public CompoundTag serializeNBT(HolderLookup.Provider var1)
         {
             final CompoundTag tag = new CompoundTag();
             tag.putString("key", this.key.toString());
@@ -54,16 +73,16 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
         }
 
         @Override
-        public void deserializeNBT(final CompoundTag nbt)
+        public void deserializeNBT(HolderLookup.Provider var1, final CompoundTag nbt)
         {
-            this.key = new ResourceLocation(nbt.getString("key"));
+            this.key = ResourceLocation.parse(nbt.getString("key"));
             this.box = this.read(nbt.getIntArray("box"));
         }
 
         private IntArrayTag write(final BoundingBox box)
         {
-            return new IntArrayTag(new int[] { box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box
-                    .maxZ() });
+            return new IntArrayTag(
+                    new int[] { box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ() });
         }
 
         private BoundingBox read(final int[] arr)
@@ -74,37 +93,17 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
 
     public static void setup()
     {
-        MinecraftForge.EVENT_BUS.addListener(WorldStructures::registerCapabilities);
-        MinecraftForge.EVENT_BUS.addGenericListener(Level.class, WorldStructures::attach);
     }
 
-    private static void registerCapabilities(final RegisterCapabilitiesEvent event)
-    {
-        event.register(IHasStructures.class);
-    }
-
-    private static void attach(final AttachCapabilitiesEvent<Level> event)
-    {
-        if (!(event.getObject() instanceof ServerLevel)) return;
-        if (event.getCapabilities().containsKey(WorldStructures.CAPTAG)) return;
-        event.addCapability(WorldStructures.CAPTAG, new WorldStructures());
-    }
-
-    private static final ResourceLocation CAPTAG = new ResourceLocation(Essentials.MODID, "genned_structures");
-
-    public static final Capability<IHasStructures> CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
-
-    private final LazyOptional<IHasStructures> holder = LazyOptional.of(() -> this);
-
-    List<StructInfo> structs = Lists.newArrayList();
+    final List<StructInfo> structs = Lists.newArrayList();
 
     @Override
     public void putStructure(final ResourceLocation key, final BoundingBox box)
     {
         synchronized (this.structs)
         {
-            this.structs.add(new StructInfo(key, new BoundingBox(box.minX(), box.minY(), box.minZ(), box.maxX(), box
-                    .maxY(), box.maxZ())));
+            this.structs.add(new StructInfo(key,
+                    new BoundingBox(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())));
         }
     }
 
@@ -130,22 +129,16 @@ public class WorldStructures implements IHasStructures, ICapabilitySerializable<
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> cap, final Direction side)
-    {
-        return WorldStructures.CAPABILITY.orEmpty(cap, this.holder);
-    }
-
-    @Override
-    public ListTag serializeNBT()
+    public ListTag serializeNBT(HolderLookup.Provider var1)
     {
         final ListTag list = new ListTag();
         for (final StructInfo i : this.structs)
-            list.add(i.serializeNBT());
+            list.add(i.serializeNBT(var1));
         return list;
     }
 
     @Override
-    public void deserializeNBT(final ListTag nbt)
+    public void deserializeNBT(HolderLookup.Provider var1, final ListTag nbt)
     {
         this.structs.clear();
         for (final Tag tag : nbt)

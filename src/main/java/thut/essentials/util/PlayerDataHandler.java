@@ -1,5 +1,20 @@
 package thut.essentials.util;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.storage.LevelResource;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import thut.essentials.Essentials;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -8,21 +23,6 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
-import io.netty.buffer.ByteBuf;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import thut.essentials.Essentials;
 
 public class PlayerDataHandler
 {
@@ -57,8 +57,8 @@ public class PlayerDataHandler
     }
 
     /**
-     * Generic data to store for each player, this gives another place besides
-     * in the player's entity data to store information.
+     * Generic data to store for each player, this gives another place besides in the player's entity data to store
+     * information.
      */
     public static class PlayerCustomData extends PlayerData
     {
@@ -101,9 +101,9 @@ public class PlayerDataHandler
 
     public static class PlayerDataManager
     {
-        Map<Class<? extends PlayerData>, PlayerData> data  = Maps.newHashMap();
-        Map<String, PlayerData>                      idMap = Maps.newHashMap();
-        final String                                 uuid;
+        Map<Class<? extends PlayerData>, PlayerData> data = Maps.newHashMap();
+        Map<String, PlayerData> idMap = Maps.newHashMap();
+        final String uuid;
 
         public PlayerDataManager(final String uuid)
         {
@@ -139,18 +139,19 @@ public class PlayerDataHandler
     {
         PlayerDataHandler.dataMap.add(PlayerCustomData.class);
     }
+
     private static PlayerDataHandler INSTANCESERVER;
 
     public static PlayerDataHandler getInstance()
     {
-        return PlayerDataHandler.INSTANCESERVER != null ? PlayerDataHandler.INSTANCESERVER
+        return PlayerDataHandler.INSTANCESERVER != null
+                ? PlayerDataHandler.INSTANCESERVER
                 : (PlayerDataHandler.INSTANCESERVER = new PlayerDataHandler());
     }
 
     public static void clear()
     {
-        if (PlayerDataHandler.INSTANCESERVER != null) MinecraftForge.EVENT_BUS.unregister(
-                PlayerDataHandler.INSTANCESERVER);
+        if (PlayerDataHandler.INSTANCESERVER != null) NeoForge.EVENT_BUS.unregister(PlayerDataHandler.INSTANCESERVER);
         PlayerDataHandler.INSTANCESERVER = null;
     }
 
@@ -201,7 +202,7 @@ public class PlayerDataHandler
 
     public PlayerDataHandler()
     {
-        MinecraftForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(this);
     }
 
     public PlayerDataManager getPlayerData(final Player player)
@@ -260,7 +261,8 @@ public class PlayerDataHandler
             if (file != null && file.exists()) try
             {
                 final FileInputStream fileinputstream = new FileInputStream(file);
-                final CompoundTag nbttagcompound = NbtIo.readCompressed(fileinputstream);
+                final CompoundTag nbttagcompound = NbtIo.readCompressed(fileinputstream,
+                        NbtAccounter.create(104857600L));
                 fileinputstream.close();
                 data.readFromNBT(nbttagcompound.getCompound("Data"));
             }

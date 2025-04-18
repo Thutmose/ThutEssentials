@@ -1,25 +1,23 @@
 package thut.essentials.land;
 
-import java.util.Set;
-import java.util.UUID;
-
 import com.google.common.collect.Sets;
-
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import thut.essentials.Essentials;
+
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 public class ClaimedCapability
 {
@@ -31,7 +29,7 @@ public class ClaimedCapability
         public Set<BlockPos> publicBlocks = Sets.newHashSet();
 
         @Override
-        public CompoundTag serializeNBT()
+        public CompoundTag serializeNBT(HolderLookup.Provider var1)
         {
             final CompoundTag tag = new CompoundTag();
             final ListTag mobListPub = new ListTag();
@@ -47,7 +45,7 @@ public class ClaimedCapability
         }
 
         @Override
-        public void deserializeNBT(final CompoundTag nbt)
+        public void deserializeNBT(HolderLookup.Provider var1, final CompoundTag nbt)
         {
 
         }
@@ -56,22 +54,21 @@ public class ClaimedCapability
     public static class ClaimSegment implements INBTSerializable<IntArrayTag>
     {
         /**
-         * This is the UUID of the TeamLand associated with this claim, not the
-         * Team, or the Player, this allows resetting team land without loading
-         * the chunks. When this is first initialized, it will check to see if
-         * any teams actually own here, via legacy means, and if so, will set
-         * owner to that. Otherwise, owner will be set to TeamLand._WILDUUID_
+         * This is the UUID of the TeamLand associated with this claim, not the Team, or the Player, this allows
+         * resetting team land without loading the chunks. When this is first initialized, it will check to see if any
+         * teams actually own here, via legacy means, and if so, will set owner to that. Otherwise, owner will be set to
+         * TeamLand._WILDUUID_
          */
         public UUID owner = null;
 
         @Override
-        public IntArrayTag serializeNBT()
+        public IntArrayTag serializeNBT(HolderLookup.Provider var1)
         {
             return NbtUtils.createUUID(this.owner);
         }
 
         @Override
-        public void deserializeNBT(final IntArrayTag nbt)
+        public void deserializeNBT(HolderLookup.Provider var1,final IntArrayTag nbt)
         {
             try
             {
@@ -84,33 +81,26 @@ public class ClaimedCapability
         }
     }
 
-    public static interface IClaimed
+    public static interface IClaimed extends INBTSerializable<CompoundTag>
     {
         ClaimSegment getSegment(int yIndex);
 
         ClaimInfo getInfo();
     }
 
-    public static final Capability<IClaimed> CAPABILITY = CapabilityManager.get(new CapabilityToken<>()
+    public static IClaimed makeProvider(final IAttachmentHolder in)
     {
-    });
-
-    private static final ResourceLocation CAPTAG = new ResourceLocation(Essentials.MODID, "claims");
-
-    public static void setup()
-    {
-        MinecraftForge.EVENT_BUS.addListener(ClaimedCapability::registerCapabilities);
-        MinecraftForge.EVENT_BUS.addGenericListener(LevelChunk.class, ClaimedCapability::attach);
+        if (!(in instanceof ChunkAccess chunk)) return null;
+        return new ChunkClaim();
     }
 
-    private static void registerCapabilities(final RegisterCapabilitiesEvent event)
-    {
-        event.register(IClaimed.class);
-    }
+    private static final ResourceLocation CAPTAG = ResourceLocation.fromNamespaceAndPath(Essentials.MODID, "claims");
 
-    private static void attach(final AttachCapabilitiesEvent<LevelChunk> event)
+    public static Supplier<AttachmentType<IClaimed>> TYPE;
+
+    public static void setup(DeferredRegister<AttachmentType<?>> registry)
     {
-        if (event.getCapabilities().containsKey(ClaimedCapability.CAPTAG)) return;
-        event.addCapability(ClaimedCapability.CAPTAG, new ChunkClaim());
+        TYPE = registry.register(CAPTAG.getPath(),
+                () -> AttachmentType.serializable(ClaimedCapability::makeProvider).build());
     }
 }

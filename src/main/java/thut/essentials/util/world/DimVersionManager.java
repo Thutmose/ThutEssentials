@@ -1,29 +1,21 @@
 package thut.essentials.util.world;
 
-import java.io.File;
-
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import thut.essentials.Essentials;
 import thut.essentials.events.TeleLoadEvent;
 import thut.essentials.util.ChatHelper;
-import thut.essentials.util.Transporter.TeleDest;
+import thut.essentials.util.teleporting.TeleDest;
+
+import java.io.File;
 
 public class DimVersionManager
 {
@@ -34,30 +26,40 @@ public class DimVersionManager
         void setVersion(int vers);
     }
 
-    public static class VersionHolder implements IVersioned, ICapabilitySerializable<IntTag>
+    public static class VersionHolder extends SavedData implements IVersioned
     {
-        private final LazyOptional<IVersioned> holder = LazyOptional.of(() -> this);
+        // Create new instance of saved data
+        public static VersionHolder create()
+        {
+            return new VersionHolder();
+        }
+
+        // Load existing instance of saved data
+        public static VersionHolder load(CompoundTag tag, HolderLookup.Provider lookupProvider)
+        {
+            VersionHolder data = VersionHolder.create();
+            // Load saved data
+            if (tag.contains("V")) data.vers = tag.getInt("V");
+            return data;
+        }
 
         int vers = 0;
 
         public VersionHolder()
-        {}
+        {
+            vers = Essentials.config.dim_verison;
+        }
+
+        @Override
+        public CompoundTag save(CompoundTag compoundTag, HolderLookup.Provider provider)
+        {
+            compoundTag.putInt("V", this.getVersion());
+            return compoundTag;
+        }
 
         public VersionHolder(final int vers)
         {
             this.vers = vers;
-        }
-
-        @Override
-        public IntTag serializeNBT()
-        {
-            return IntTag.valueOf(this.vers);
-        }
-
-        @Override
-        public void deserializeNBT(final IntTag nbt)
-        {
-            this.vers = nbt.getAsInt();
         }
 
         @Override
@@ -71,41 +73,13 @@ public class DimVersionManager
         {
             this.vers = vers;
         }
-
-        @Override
-        public <T> LazyOptional<T> getCapability(final Capability<T> cap, final Direction side)
-        {
-            return DimVersionManager.CAPABILITY.orEmpty(cap, this.holder);
-        }
     }
 
     public static void init()
     {
-        MinecraftForge.EVENT_BUS.addListener(DimVersionManager::registerCapabilities);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleTeleLoading);
-        MinecraftForge.EVENT_BUS.addGenericListener(Level.class, DimVersionManager::attach);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWorldLoad);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWarnPlayer);
-    }
-
-    private static final ResourceLocation CAPTAG = new ResourceLocation(Essentials.MODID, "version");
-
-    public static final Capability<IVersioned> CAPABILITY = CapabilityManager.get(new CapabilityToken<>()
-    {
-    });
-
-    private static void registerCapabilities(final RegisterCapabilitiesEvent event)
-    {
-        event.register(IVersioned.class);
-    }
-
-    private static void attach(final AttachCapabilitiesEvent<Level> event)
-    {
-        if (!(event.getObject() instanceof ServerLevel)) return;
-        final ServerLevel world = (ServerLevel) event.getObject();
-        if (!Essentials.config.versioned_dim_keys.contains(world.dimension().location())) return;
-        if (event.getCapabilities().containsKey(DimVersionManager.CAPTAG)) return;
-        event.addCapability(DimVersionManager.CAPTAG, new VersionHolder(Essentials.config.dim_verison));
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleTeleLoading);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWorldLoad);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, DimVersionManager::handleWarnPlayer);
     }
 
     private static void handleTeleLoading(final TeleLoadEvent event)
@@ -114,7 +88,7 @@ public class DimVersionManager
         if (dest == null) return;
         if (dest.version != Essentials.config.dim_verison)
         {
-            if (!Essentials.config.versioned_dim_keys.contains(dest.getPos().getDimension().location())) return;
+            if (!Essentials.config.versioned_dim_keys.contains(dest.getPos().dimension().location())) return;
             Essentials.LOGGER.info("Invalidating stale teledest {} ({})", dest.getName(), dest.getPos());
             event.setCanceled(true);
             event.setOverride(null);
@@ -123,9 +97,8 @@ public class DimVersionManager
 
     private static void handleWorldLoad(final LevelEvent.Load event)
     {
-        if (!(event.getLevel() instanceof ServerLevel)) return;
-        final ServerLevel world = (ServerLevel) event.getLevel();
-        final IVersioned vers = world.getCapability(DimVersionManager.CAPABILITY).orElse(null);
+        if (!(event.getLevel() instanceof ServerLevel world)) return;
+        final IVersioned vers = world.getDataStorage().get(new SavedData.Factory<>(VersionHolder::create, VersionHolder::load), "te_version");
         // Not all worlds will have this, only ones to track!
         if (vers == null) return;
         if (vers.getVersion() < Essentials.config.dim_verison)

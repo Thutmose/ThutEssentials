@@ -21,7 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.land.LandManager.KGobalPos;
+import net.minecraft.core.GlobalPos;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -59,7 +59,7 @@ public class Bed
             ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.tp.tosoon"));
             return 1;
         }
-        final KGobalPos spot = Bed.getBedSpot(player);
+        final GlobalPos spot = Bed.getBedSpot(player);
         if (spot != null)
         {
             final Predicate<Entity> callback = t ->
@@ -79,15 +79,15 @@ public class Bed
         return 1;
     }
 
-    private static KGobalPos getBedSpot(final ServerPlayer player)
+    private static GlobalPos getBedSpot(final ServerPlayer player)
     {
         if (player.getRespawnPosition() == null) return null;
-        final KGobalPos pos = KGobalPos.getPosition(player.getRespawnDimension(), player.getRespawnPosition());
-        final KGobalPos spot = pos;
+        final GlobalPos pos = GlobalPos.of(player.getRespawnDimension(), player.getRespawnPosition());
+        final GlobalPos spot = pos;
         final MinecraftServer server = Essentials.server;
-        final ServerLevel world = server.getLevel(pos.getDimension());
+        final ServerLevel world = server.getLevel(pos.dimension());
         if (world == null) return null;
-        final BlockPos check = pos.getPos();
+        final BlockPos check = pos.pos();
         if (Back.valid(check, world)) return spot;
         final int r = Essentials.config.backRangeCheck;
         final Stream<BlockPos> stream = BlockPos.betweenClosedStream(check.getX() - r, check.getY() - r, check.getZ() - r, check
@@ -99,6 +99,6 @@ public class Bed
             return Double.compare(d1, d2);
         });
         if (!opt.isPresent()) return null;
-        return KGobalPos.getPosition(pos.getDimension(), opt.get().immutable());
+        return GlobalPos.of(pos.dimension(), opt.get().immutable());
     }
 }

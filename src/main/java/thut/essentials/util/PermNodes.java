@@ -15,18 +15,18 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.server.ServerLifecycleHooks;
-import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.events.PermissionGatherEvent;
-import net.minecraftforge.server.permission.nodes.PermissionNode;
-import net.minecraftforge.server.permission.nodes.PermissionTypes;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
+import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 import thut.essentials.Essentials;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.land.LandEventsHandler;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class PermNodes
 {
     public static enum DefaultPermissionLevel
@@ -39,14 +39,8 @@ public class PermNodes
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             Optional<GameProfile> profile = server != null ? server.getProfileCache().get(player) : Optional.empty();
             boolean op = false;
-            if (profile.isPresent())
-            {
-                op = server.getPlayerList().isOp(profile.get());
-            }
-            else
-            {
-                op = server.getPlayerList().isOp(testProfile);
-            }
+            op = profile.map(gameProfile -> server.getPlayerList().isOp(gameProfile))
+                    .orElseGet(() -> server.getPlayerList().isOp(testProfile));
             return op ? true : this == ALL;
         }
     }

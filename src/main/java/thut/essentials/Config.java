@@ -1,15 +1,5 @@
 package thut.essentials;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -17,7 +7,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -27,7 +16,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 import thut.essentials.config.Config.ConfigData;
 import thut.essentials.config.Configure;
 import thut.essentials.land.LandEventsHandler;
@@ -37,6 +26,16 @@ import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerMover;
 import thut.essentials.util.PvPManager;
 import thut.essentials.util.RegHelper;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class Config extends ConfigData {
     public static final String LAND = "land";
@@ -309,7 +308,7 @@ public class Config extends ConfigData {
 
     @Override
     public void onUpdated() {
-        this.spawnDimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(this.spawnWorld));
+        this.spawnDimension = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(this.spawnWorld));
 
         final File file = this.configpath.resolve(this.lang_file).toFile();
         if (file.exists())
@@ -348,7 +347,7 @@ public class Config extends ConfigData {
             }
 
         this.versioned_dim_keys.clear();
-        this.versioned_dims.forEach(s -> this.versioned_dim_keys.add(new ResourceLocation(s)));
+        this.versioned_dims.forEach(s -> this.versioned_dim_keys.add(ResourceLocation.parse(s)));
 
         this.versioned_dim_seed_map.clear();
         this.versioned_dim_seeds.forEach(s -> {
@@ -359,7 +358,7 @@ public class Config extends ConfigData {
                 return;
             try {
                 final Long value = Long.parseLong(args[1], 36);
-                this.versioned_dim_seed_map.put(new ResourceLocation(args[0]), value);
+                this.versioned_dim_seed_map.put(ResourceLocation.parse(args[0]), value);
             } catch (final NumberFormatException e) {
                 return;
             }

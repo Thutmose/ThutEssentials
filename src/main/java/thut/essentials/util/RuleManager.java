@@ -39,7 +39,7 @@ public class RuleManager
         boolean done = false;
         int index = 0;
         final String arg = "\\n";
-        rule = rule.replace(arg, System.getProperty("line.separator"));
+        rule = rule.replace(arg, System.lineSeparator());
         index = rule.indexOf('&', index);
         while (!done && index < rule.length() && index >= 0)
             try
@@ -48,7 +48,7 @@ public class RuleManager
                 index = rule.indexOf('&', index);
                 if (index < rule.length() - 1 && index >= 0)
                 {
-                    if (index > 0 && rule.substring(index - 1, index).equals("\\"))
+                    if (index > 0 && rule.charAt(index - 1) == '\\')
                     {
                         index++;
                         continue;

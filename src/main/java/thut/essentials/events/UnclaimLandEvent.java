@@ -1,18 +1,17 @@
 package thut.essentials.events;
 
+import net.minecraft.core.GlobalPos;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
-import thut.essentials.land.LandManager.KGobalPos;
+import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
 
-@Cancelable
-public class UnclaimLandEvent extends Event
+public class UnclaimLandEvent extends Event implements ICancellableEvent
 {
-    public final KGobalPos    land;
-    public final String       team;
+    public final GlobalPos land;
+    public final String team;
     public final Player claimer;
 
-    public UnclaimLandEvent(final KGobalPos land, final Player claimer, final String team)
+    public UnclaimLandEvent(final GlobalPos land, final Player claimer, final String team)
     {
         this.land = land;
         this.team = team;

@@ -1,35 +1,36 @@
 package thut.essentials.commands.land.claims;
 
-import java.util.Set;
-
 import com.google.common.collect.Sets;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
+
+import java.util.Set;
 
 public class Deed
 {
@@ -38,7 +39,10 @@ public class Deed
     {
         if (!(evt.getEntity() instanceof ServerPlayer)) return;
         final ItemStack stack = evt.getItemStack();
-        if (!stack.hasTag() || !stack.getTag().getBoolean("isDeed")) return;
+        if (!stack.has(DataComponents.CUSTOM_DATA)) return;
+        var data = stack.get(DataComponents.CUSTOM_DATA);
+        var _tag = data.copyTag();
+        if (!_tag.getBoolean("isDeed")) return;
 
         final ServerPlayer player = (ServerPlayer) evt.getEntity();
         if (!PermNodes.getBooleanPerm(player, Deed.CANREDEEMDEEDS))
@@ -55,39 +59,41 @@ public class Deed
             return;
         }
 
-        final int num = stack.getTag().getInt("num");
+        final int num = _tag.getInt("num");
         int n = 0;
         int x = 0, z = 0;
         final Level world = player.getCommandSenderWorld();
         for (int i = 0; i < num; i++)
         {
-            final CompoundTag tag = stack.getTag().getCompound("" + i);
-            final KGobalPos c = CoordinateUtls.fromNBT(tag);
+            final CompoundTag tag = _tag.getCompound("" + i);
+            final GlobalPos c = CoordinateUtls.fromNBT(tag);
             if (c == null) continue;
-            if (c.getDimension() != world.dimension())
+            if (c.dimension() != world.dimension())
             {
                 ChatHelper.sendSystemMessage(player,
                         Essentials.config.getMessage("thutessentials.deed.notallowed.wrongdim"));
                 return;
             }
-            x = c.getPos().getX();
-            z = c.getPos().getZ();
+            x = c.pos().getX();
+            z = c.pos().getZ();
             // Unclaim from deed team first.
-            LandManager.getInstance().unclaimLand(Deed.DEEDTEAM, world, c.getPos(), true);
+            LandManager.getInstance().unclaimLand(Deed.DEEDTEAM, world, c.pos(), true);
             // Then claim for the new owner.
-            final int re = Claim.claim(world, c.getPos(), player, team, false,
+            final int re = Claim.claim(world, c.pos(), player, team, false,
                     PermNodes.getBooleanPerm(player, Deed.BYPASSLIMIT));
             if (re == 0)
             {
                 n++;
-                stack.getTag().remove("" + i);
+                _tag.remove("" + i);
             }
         }
-        stack.getTag().putInt("num", num - n);
+        _tag.putInt("num", num - n);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(_tag));
         ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.deed.claimed", n, team.teamName));
         if (n == num) stack.grow(-1);
-        else stack.setHoverName(Essentials.config.getMessage("thutessentials.deed.for", num - n, x << 4, z << 4));
+        else stack.set(DataComponents.CUSTOM_NAME,
+                Essentials.config.getMessage("thutessentials.deed.for", num - n, x << 4, z << 4));
     }
 
     private static final String BYPASSLIMIT = "thutessentials.land.deed.nolimit";
@@ -102,14 +108,15 @@ public class Deed
         final String name = "reclaim_deed";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+                "Can the player use /" + name);
         PermNodes.registerBooleanNode(Deed.BYPASSLIMIT, DefaultPermissionLevel.OP,
                 "Permission to bypass the land per player limit for a team using deeds.");
         PermNodes.registerBooleanNode(Deed.CANREDEEMDEEDS, DefaultPermissionLevel.ALL,
                 "Permission to use deeds to claim land.");
 
         // Register to bus
-        if (!Deed.registered) MinecraftForge.EVENT_BUS.register(Deed.class);
+        if (!Deed.registered) NeoForge.EVENT_BUS.register(Deed.class);
         Deed.registered = true;
 
         // Setup with name and permission
@@ -121,18 +128,18 @@ public class Deed
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command
-                .then(Commands.literal("up").executes(ctx -> Deed.execute(ctx.getSource(), true, false, false)));
+        command = command.then(
+                Commands.literal("up").executes(ctx -> Deed.execute(ctx.getSource(), true, false, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command
-                .then(Commands.literal("down").executes(ctx -> Deed.execute(ctx.getSource(), false, true, false)));
+        command = command.then(
+                Commands.literal("down").executes(ctx -> Deed.execute(ctx.getSource(), false, true, false)));
         commandDispatcher.register(command);
 
         command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs, perm));
-        command = command
-                .then(Commands.literal("here").executes(ctx -> Deed.execute(ctx.getSource(), false, false, true)));
+        command = command.then(
+                Commands.literal("here").executes(ctx -> Deed.execute(ctx.getSource(), false, false, true)));
         commandDispatcher.register(command);
     }
 
@@ -156,7 +163,7 @@ public class Deed
             final int y = player.blockPosition().getY() >> 4;
             final int z = player.blockPosition().getZ() >> 4;
 
-            final Set<KGobalPos> deeds = Sets.newHashSet();
+            final Set<GlobalPos> deeds = Sets.newHashSet();
 
             final ResourceKey<Level> dim = player.getCommandSenderWorld().dimension();
             boolean done = false;
@@ -165,7 +172,7 @@ public class Deed
                 final int ret = Deed.unclaim(x, y, z, player, team, true, canUnclaimAnything);
                 if (ret == 0)
                 {
-                    final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
+                    final GlobalPos chunk = GlobalPos.of(dim, new BlockPos(x, y, z));
                     done = true;
                     deeds.add(chunk);
                 }
@@ -183,7 +190,7 @@ public class Deed
                     final int check = Deed.unclaim(x, i, z, player, team, false, canUnclaimAnything);
                     if (check == 0)
                     {
-                        final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
+                        final GlobalPos chunk = GlobalPos.of(dim, new BlockPos(x, y, z));
                         deeds.add(chunk);
                         done = true;
                         claimnum++;
@@ -201,12 +208,15 @@ public class Deed
             if (!deeds.isEmpty())
             {
                 final ItemStack deed = new ItemStack(Items.PAPER);
-                deed.setTag(new CompoundTag());
-                deed.getTag().putInt("num", deeds.size());
-                deed.getTag().putBoolean("isDeed", true);
+                var _tag = deed.has(DataComponents.CUSTOM_DATA)
+                        ? deed.get(DataComponents.CUSTOM_DATA).copyTag()
+                        : new CompoundTag();
+                _tag.putInt("num", deeds.size());
+                _tag.putBoolean("isDeed", true);
                 int i = 0;
-                for (final KGobalPos c : deeds) deed.getTag().put("" + i++, CoordinateUtls.toNBT(c, "deed"));
-                deed.setHoverName(
+                for (final GlobalPos c : deeds) _tag.put("" + i++, CoordinateUtls.toNBT(c, "deed"));
+                deed.set(DataComponents.CUSTOM_DATA, CustomData.of(_tag));
+                deed.set(DataComponents.CUSTOM_NAME,
                         Essentials.config.getMessage("thutessentials.deed.for", deeds.size(), x << 4, z << 4));
                 if (!player.addItem(deed)) player.drop(deed, false);
             }
@@ -216,7 +226,7 @@ public class Deed
         return 0;
     }
 
-    private static int unclaim(final KGobalPos chunk, final Player player, final LandTeam team, final boolean messages,
+    private static int unclaim(final GlobalPos chunk, final Player player, final LandTeam team, final boolean messages,
             final boolean canUnclaimAnything)
     {
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
@@ -234,11 +244,11 @@ public class Deed
         }
 
         final Level world = player.getCommandSenderWorld();
-        LandManager.getInstance().unclaimLand(team.teamName, world, chunk.getPos(), true);
+        LandManager.getInstance().unclaimLand(team.teamName, world, chunk.pos(), true);
         // ensure the deed team exist, and that it is set to reserved.
         Deed.initDeedTeam();
         // Transfers the claim over to the "deed team"
-        LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.getPos(), true);
+        LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.pos(), true);
         if (messages) ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
 
@@ -255,7 +265,7 @@ public class Deed
             final boolean messages, final boolean canUnclaimAnything)
     {
         final ResourceKey<Level> dim = player.getCommandSenderWorld().dimension();
-        final KGobalPos chunk = KGobalPos.getPosition(dim, new BlockPos(x, y, z));
+        final GlobalPos chunk = GlobalPos.of(dim, new BlockPos(x, y, z));
         return Deed.unclaim(chunk, player, team, messages, canUnclaimAnything);
     }
 }

@@ -2,21 +2,16 @@ package thut.essentials.land;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.util.LazyOptional;
 import thut.essentials.Essentials;
 import thut.essentials.land.ClaimedCapability.ClaimInfo;
 import thut.essentials.land.ClaimedCapability.ClaimSegment;
 import thut.essentials.land.ClaimedCapability.IClaimed;
 
-public class ChunkClaim implements IClaimed, ICapabilitySerializable<CompoundTag>
+public class ChunkClaim implements IClaimed
 {
-    private final LazyOptional<IClaimed> holder = LazyOptional.of(() -> this);
-
     private final ClaimInfo info = new ClaimInfo();
 
     private final Int2ObjectArrayMap<ClaimSegment> claims = new Int2ObjectArrayMap<>(24);
@@ -39,39 +34,35 @@ public class ChunkClaim implements IClaimed, ICapabilitySerializable<CompoundTag
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> cap, final Direction side)
-    {
-        return ClaimedCapability.CAPABILITY.orEmpty(cap, this.holder);
-    }
-
-    @Override
-    public CompoundTag serializeNBT()
+    public CompoundTag serializeNBT(HolderLookup.Provider var1)
     {
         final CompoundTag tag = new CompoundTag();
-        tag.put("info", this.info.serializeNBT());
+        tag.put("info", this.info.serializeNBT(var1));
         for (final Entry<ClaimSegment> s : this.claims.int2ObjectEntrySet())
         {
             final ClaimSegment claim = s.getValue();
             if (!LandManager.isWild(LandManager.getInstance().getTeamForLand(claim.owner)))
-                tag.put("seg_" + s.getIntKey(), claim.serializeNBT());
+                tag.put("seg_" + s.getIntKey(), claim.serializeNBT(var1));
         }
         return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundTag nbt)
+    public void deserializeNBT(HolderLookup.Provider var1, final CompoundTag nbt)
     {
-        this.info.deserializeNBT(nbt.getCompound("info"));
-        for (final String key : nbt.getAllKeys()) if (key.startsWith("seg_")) try
-        {
-            final int i = Integer.parseInt(key.replace("seg_", ""));
-            final ClaimSegment claim = new ClaimSegment();
-            claim.deserializeNBT((IntArrayTag) nbt.get(key));
-            if (!LandManager.isWild(LandManager.getInstance().getTeamForLand(claim.owner))) this.claims.put(i, claim);
-        }
-        catch (final Exception e)
-        {
-            Essentials.LOGGER.error(e);
-        }
+        this.info.deserializeNBT(var1, nbt.getCompound("info"));
+        for (final String key : nbt.getAllKeys())
+            if (key.startsWith("seg_")) try
+            {
+                final int i = Integer.parseInt(key.replace("seg_", ""));
+                final ClaimSegment claim = new ClaimSegment();
+                claim.deserializeNBT(var1, (IntArrayTag) nbt.get(key));
+                if (!LandManager.isWild(LandManager.getInstance().getTeamForLand(claim.owner)))
+                    this.claims.put(i, claim);
+            }
+            catch (final Exception e)
+            {
+                Essentials.LOGGER.error(e);
+            }
     }
 }

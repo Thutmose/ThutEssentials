@@ -1,16 +1,12 @@
 package thut.essentials.commands.misc;
 
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -20,13 +16,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.MoveEvent;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PermNodes;
@@ -34,13 +29,17 @@ import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.PlayerMover;
 
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
 public class Back
 {
     @SubscribeEvent
     public static void move(final MoveEvent event)
     {
-        if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntity()
-                .getStringUUID()).put("backPos", CoordinateUtls.toNBT(event.getPos(), "backPos"));
+        if (Essentials.config.back_on_tp) PlayerDataHandler.getCustomDataTag(event.getEntity().getStringUUID())
+                .put("backPos", CoordinateUtls.toNBT(event.getPos(), "backPos"));
     }
 
     @SubscribeEvent
@@ -61,15 +60,16 @@ public class Back
         final String name = "back";
         if (Essentials.config.commandBlacklist.contains(name)) return;
         String perm;
-        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+        PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+                "Can the player use /" + name);
 
         // Register to bus
-        if (!Back.registered) MinecraftForge.EVENT_BUS.register(Back.class);
+        if (!Back.registered) NeoForge.EVENT_BUS.register(Back.class);
         Back.registered = true;
 
         // Setup with name and permission
-        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name).requires(cs -> CommandManager.hasPerm(cs,
-                perm));
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
+                .requires(cs -> CommandManager.hasPerm(cs, perm));
         // Register the execution.
         command = command.executes(ctx -> Back.execute(ctx.getSource()));
 
@@ -91,14 +91,13 @@ public class Back
         }
         if (tag.contains("backPos"))
         {
-            final KGobalPos spot = Back.getBackSpot(CoordinateUtls.fromNBT(tag.getCompound("backPos")));
+            final GlobalPos spot = Back.getBackSpot(CoordinateUtls.fromNBT(tag.getCompound("backPos")));
             if (spot == null)
             {
                 ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.back.noroom"));
                 return 1;
             }
-            final Predicate<Entity> callback = t ->
-            {
+            final Predicate<Entity> callback = t -> {
                 if (!(t instanceof Player)) return false;
                 PlayerDataHandler.getCustomDataTag(t.getStringUUID()).remove("prevPos");
                 tptag.putLong("backDelay", time + Essentials.config.backReUseDelay);
@@ -115,26 +114,25 @@ public class Back
         return 1;
     }
 
-    private static KGobalPos getBackSpot(final KGobalPos pos)
+    private static GlobalPos getBackSpot(final GlobalPos pos)
     {
-        final KGobalPos spot = pos;
+        final GlobalPos spot = pos;
         if (pos == null) return null;
         final MinecraftServer server = Essentials.server;
-        final ServerLevel world = server.getLevel(pos.getDimension());
+        final ServerLevel world = server.getLevel(pos.dimension());
         if (world == null) return null;
-        final BlockPos check = spot.getPos();
+        final BlockPos check = spot.pos();
         if (Back.valid(check, world)) return spot;
         final int r = Essentials.config.backRangeCheck;
-        final Stream<BlockPos> stream = BlockPos.betweenClosedStream(check.getX() - r, check.getY() - r, check.getZ() - r, check
-                .getX() + r, check.getY() + r, check.getZ() + r);
-        final Optional<BlockPos> opt = stream.filter(p -> Back.valid(p, world)).min((p1, p2) ->
-        {
+        final Stream<BlockPos> stream = BlockPos.betweenClosedStream(check.getX() - r, check.getY() - r,
+                check.getZ() - r, check.getX() + r, check.getY() + r, check.getZ() + r);
+        final Optional<BlockPos> opt = stream.filter(p -> Back.valid(p, world)).min((p1, p2) -> {
             final double d1 = p1.distSqr(check);
             final double d2 = p2.distSqr(check);
             return Double.compare(d1, d2);
         });
         if (!opt.isPresent()) return null;
-        return KGobalPos.getPosition(pos.getDimension(), opt.get().immutable());
+        return GlobalPos.of(pos.dimension(), opt.get().immutable());
     }
 
     static boolean valid(final BlockPos pos, final Level world)

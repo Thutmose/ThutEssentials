@@ -14,7 +14,7 @@ import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
-import thut.essentials.land.LandManager.KGobalPos;
+import net.minecraft.core.GlobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
@@ -57,7 +57,7 @@ public class Unload
         if (y < 0 || y > 15) return 1;
         final ResourceKey<Level> dim = player.getCommandSenderWorld().dimension();
         final BlockPos b = new BlockPos(x, 0, z);
-        final KGobalPos chunk = KGobalPos.getPosition(dim, b);
+        final GlobalPos chunk = GlobalPos.of(dim, b);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
 
         final int maxLoaded = team.maxLoaded != -1 ? team.maxLoaded : Essentials.config.maxChunkloads;

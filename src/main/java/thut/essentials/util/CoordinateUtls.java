@@ -10,50 +10,48 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.MinecraftForge;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import thut.essentials.Essentials;
 import thut.essentials.events.TeleLoadEvent;
-import thut.essentials.land.LandManager.KGobalPos;
-import thut.essentials.util.Transporter.TeleDest;
-import thut.essentials.util.Transporter.Vector3;
+import thut.essentials.util.teleporting.TeleDest;
 
 public class CoordinateUtls
 {
-    public static KGobalPos forMob(final Entity mob)
+    public static GlobalPos forMob(final Entity mob)
     {
-        return KGobalPos.getPosition(mob.getCommandSenderWorld().dimension(), mob.blockPosition());
+        return GlobalPos.of(mob.getCommandSenderWorld().dimension(), mob.blockPosition());
     }
 
-    public static KGobalPos chunkPos(final KGobalPos blockPos)
+    public static GlobalPos chunkPos(final GlobalPos blockPos)
     {
-        final BlockPos pos = new BlockPos(blockPos.getPos().getX() >> 4, blockPos.getPos().getY() >> 4, blockPos
-                .getPos().getZ() >> 4);
-        return KGobalPos.getPosition(blockPos.getDimension(), pos);
+        final BlockPos pos = new BlockPos(blockPos.pos().getX() >> 4, blockPos.pos().getY() >> 4,
+                blockPos.pos().getZ() >> 4);
+        return GlobalPos.of(blockPos.dimension(), pos);
     }
 
-    public static KGobalPos fromNBT(final CompoundTag tag)
+    public static GlobalPos fromNBT(final CompoundTag tag)
     {
         if (tag.contains("_v_"))
         {
             final CompoundTag nbt = tag;
-            final Vector3 loc = Vector3.readFromNBT(nbt, "v");
+            final Vec3 loc = TeleDest.readVec3FromNBT(nbt, "v");
             final String name = nbt.getString("name");
             final int index = nbt.getInt("i");
             final int version = nbt.getInt("_v_");
-            final KGobalPos pos = CoordinateUtls.fromNBT(nbt.getCompound("pos"));
+            final GlobalPos pos = CoordinateUtls.fromNBT(nbt.getCompound("pos"));
             if (pos == null) return null;
-            final TeleDest dest = new TeleDest().setLoc(pos, loc).setPos(pos).setName(name).setIndex(index).setVersion(
-                    version);
+            final TeleDest dest = new TeleDest().setLoc(pos, loc).setPos(pos).setName(name).setIndex(index)
+                    .setVersion(version);
             final TeleLoadEvent event = new TeleLoadEvent(dest);
             // This returns true if the event is cancelled.
-            if (MinecraftForge.EVENT_BUS.post(event)) return null;
+            if (NeoForge.EVENT_BUS.post(event).isCanceled()) return null;
             // The event can override the destination, it defaults to dest.
             return event.getOverride().loc;
         }
         try
         {
-            final GlobalPos pos = GlobalPos.CODEC.decode(NbtOps.INSTANCE, tag).result().get().getFirst();
-            return new KGobalPos(pos);
+            return GlobalPos.CODEC.decode(NbtOps.INSTANCE, tag).result().get().getFirst();
         }
         catch (final Exception e)
         {
@@ -63,12 +61,12 @@ public class CoordinateUtls
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Tag> T toNBT(final KGobalPos pos)
+    public static <T extends Tag> T toNBT(final GlobalPos pos)
     {
-        return (T) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos.pos).get().left().get();
+        return (T) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result().get();
     }
 
-    public static CompoundTag toNBT(final KGobalPos pos, final String name)
+    public static CompoundTag toNBT(final GlobalPos pos, final String name)
     {
         final TeleDest dest = new TeleDest().setName(name).setPos(pos).setVersion(Essentials.config.dim_verison);
         final CompoundTag nbt = new CompoundTag();
@@ -76,18 +74,17 @@ public class CoordinateUtls
         return nbt;
     }
 
-    public static KGobalPos fromString(String string)
+    public static GlobalPos fromString(String string)
     {
         if (string.contains("->")) string = string.split("->")[1];
         final String[] args = string.split(",");
         if (args.length != 4) return null;
         try
         {
-            final BlockPos pos = new BlockPos(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(
-                    args[2]));
-            final ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(
-                    args[3]));
-            return KGobalPos.getPosition(dim, pos);
+            final BlockPos pos = new BlockPos(Integer.parseInt(args[0]), Integer.parseInt(args[1]),
+                    Integer.parseInt(args[2]));
+            final ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(args[3]));
+            return GlobalPos.of(dim, pos);
         }
         catch (final NumberFormatException e)
         {
@@ -97,9 +94,9 @@ public class CoordinateUtls
         return null;
     }
 
-    public static String toString(final KGobalPos pos)
+    public static String toString(final GlobalPos pos)
     {
-        return pos.getPos().getX() + "," + pos.getPos().getY() + "," + pos.getPos().getZ() + "," + pos.getDimension()
+        return pos.pos().getX() + "," + pos.pos().getY() + "," + pos.pos().getZ() + "," + pos.dimension()
                 .location();
     }
 }

@@ -8,8 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.event.TickEvent.Phase;
-import net.minecraftforge.event.TickEvent.ServerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import thut.essentials.Essentials;
 
 public class CmdScheduler
@@ -47,9 +46,8 @@ public class CmdScheduler
         }
     }
 
-    public static void onTick(final ServerTickEvent event)
+    public static void onTick(final ServerTickEvent.Post event)
     {
-        if (event.phase != Phase.END) return;
         CmdScheduler.tick++;
         final MinecraftServer server = Essentials.server;
         for (final Cmd cmd : CmdScheduler.cmds) if (cmd._last_run + cmd.timer < CmdScheduler.tick)

@@ -1,20 +1,18 @@
 package thut.essentials.util.world;
 
+import com.google.common.collect.Lists;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.common.collect.Lists;
-
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.event.TickEvent.LevelTickEvent;
-import net.minecraftforge.event.TickEvent.Phase;
-
 public class TickScheduler
 {
-    private static final Map<ResourceKey<Level>, List<Runnable>> endTickRuns   = new ConcurrentHashMap<>();
+    private static final Map<ResourceKey<Level>, List<Runnable>> endTickRuns = new ConcurrentHashMap<>();
     private static final Map<ResourceKey<Level>, List<Runnable>> startTickRuns = new ConcurrentHashMap<>();
 
     public static class CustomRunnable implements Runnable
@@ -44,31 +42,46 @@ public class TickScheduler
 
     public static void Schedule(final ResourceKey<Level> key, final Runnable task, final boolean postTick)
     {
-        final Map<ResourceKey<Level>, List<Runnable>> map = postTick ? TickScheduler.endTickRuns
+        final Map<ResourceKey<Level>, List<Runnable>> map = postTick
+                ? TickScheduler.endTickRuns
                 : TickScheduler.startTickRuns;
         synchronized (map)
         {
-            List<Runnable> list = map.get(key);
-            if (list == null) map.put(key, list = Lists.newArrayList());
+            List<Runnable> list = map.computeIfAbsent(key, k -> Lists.newArrayList());
             list.add(task);
         }
     }
 
-    public static void onWorldTick(final LevelTickEvent event)
+    public static void onWorldTickPost(final LevelTickEvent.Post event)
     {
-        if (event.level instanceof ServerLevel)
+        if (event.getLevel() instanceof ServerLevel)
         {
-            final ResourceKey<Level> key = event.level.dimension();
-            final Map<ResourceKey<Level>, List<Runnable>> map = event.phase == Phase.END ? TickScheduler.endTickRuns
-                    : TickScheduler.startTickRuns;
+            final ResourceKey<Level> key = event.getLevel().dimension();
+            final Map<ResourceKey<Level>, List<Runnable>> map = TickScheduler.endTickRuns;
             synchronized (map)
             {
-                List<Runnable> list = map.get(key);
-                if (list == null) map.put(key, list = Lists.newArrayList());
-                list.removeIf(r ->
-                {
+                List<Runnable> list = map.computeIfAbsent(key, k -> Lists.newArrayList());
+                list.removeIf(r -> {
                     r.run();
-                    if (r instanceof CustomRunnable) if (!((CustomRunnable) r).isDone()) return false;
+                    if (r instanceof CustomRunnable) return ((CustomRunnable) r).isDone();
+                    return true;
+                });
+            }
+        }
+    }
+
+    public static void onWorldTickPre(final LevelTickEvent.Pre event)
+    {
+        if (event.getLevel() instanceof ServerLevel)
+        {
+            final ResourceKey<Level> key = event.getLevel().dimension();
+            final Map<ResourceKey<Level>, List<Runnable>> map = TickScheduler.startTickRuns;
+            synchronized (map)
+            {
+                List<Runnable> list = map.computeIfAbsent(key, k -> Lists.newArrayList());
+                list.removeIf(r -> {
+                    r.run();
+                    if (r instanceof CustomRunnable) return ((CustomRunnable) r).isDone();
                     return true;
                 });
             }

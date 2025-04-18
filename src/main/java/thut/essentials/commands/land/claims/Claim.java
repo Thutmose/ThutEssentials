@@ -13,20 +13,20 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.ClaimLandEvent;
 import thut.essentials.land.LandManager;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.ChatHelper;
@@ -42,13 +42,13 @@ public class Claim
 
     private static final Set<UUID> autoclaimers = Sets.newHashSet();
 
-    private static final Map<UUID, KGobalPos> claimstarts = Maps.newHashMap();
+    private static final Map<UUID, GlobalPos> claimstarts = Maps.newHashMap();
 
     public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {
         final String name = "claim";
         if (Essentials.config.commandBlacklist.contains(name)) return;
-        MinecraftForge.EVENT_BUS.register(Claim.class);
+        NeoForge.EVENT_BUS.register(Claim.class);
         String perm;
         PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
                 "Can the player use /" + name);
@@ -103,7 +103,7 @@ public class Claim
     }
 
     @SubscribeEvent
-    public static void livingUpdate(final LivingTickEvent evt)
+    public static void livingUpdate(final EntityTickEvent.Post evt)
     {
         if (!evt.getEntity().isAlive() || !Claim.autoclaimers.contains(evt.getEntity().getUUID())
                 || !(evt.getEntity() instanceof ServerPlayer))
@@ -115,10 +115,10 @@ public class Claim
         BlockPos old;
         here = BlockPos.containing(player.xCloak, player.yCloak, player.zCloak);
         old = BlockPos.containing(player.xCloakO, player.yCloakO, player.zCloakO);
-        final KGobalPos newChunk = CoordinateUtls
-                .chunkPos(KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), here));
-        final KGobalPos oldChunk = CoordinateUtls
-                .chunkPos(KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), old));
+        final GlobalPos newChunk = CoordinateUtls
+                .chunkPos(GlobalPos.of(player.getCommandSenderWorld().dimension(), here));
+        final GlobalPos oldChunk = CoordinateUtls
+                .chunkPos(GlobalPos.of(player.getCommandSenderWorld().dimension(), old));
         if (newChunk.equals(oldChunk)) return;
         final Level dim = player.getCommandSenderWorld();
 
@@ -134,7 +134,7 @@ public class Claim
     {
         Claim.autoclaimers.clear();
         Claim.claimstarts.clear();
-        MinecraftForge.EVENT_BUS.unregister(Claim.class);
+        NeoForge.EVENT_BUS.unregister(Claim.class);
     }
 
     private static int executeCheck(final CommandSourceStack source) throws CommandSyntaxException
@@ -159,7 +159,7 @@ public class Claim
                     Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return 1;
         }
-        final KGobalPos start = CoordinateUtls.forMob(player);
+        final GlobalPos start = CoordinateUtls.forMob(player);
         Claim.claimstarts.put(player.getUUID(), start);
         ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.claim.start.set", player.blockPosition()));
@@ -176,21 +176,21 @@ public class Claim
                     Essentials.config.getMessage("thutessentials.claim.notallowed.teamperms"));
             return 1;
         }
-        final KGobalPos end = CoordinateUtls.forMob(player);
-        final KGobalPos start = Claim.claimstarts.get(player.getUUID());
+        final GlobalPos end = CoordinateUtls.forMob(player);
+        final GlobalPos start = Claim.claimstarts.get(player.getUUID());
         if (start == null)
         {
             ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.claim.start.not_set"));
             return 1;
         }
-        if (end.getDimension() != start.getDimension())
+        if (end.dimension() != start.dimension())
         {
             ChatHelper.sendSystemMessage(player, Essentials.config.getMessage("thutessentials.claim.start.wrong_dim"));
             return 1;
         }
         player.getServer().execute(() -> { // easy way to sort the x, z
                                            // coordinates by min/max
-            final AABB box = new AABB(start.getPos(), end.getPos());
+            final AABB box = AABB.encapsulatingFullBlocks(start.pos(), end.pos());
             final boolean noLimit = PermNodes.getBooleanPerm(player, Claim.BYPASSLIMIT);
             final Level dim = player.getCommandSenderWorld();
             int n = 0;
@@ -305,9 +305,9 @@ public class Claim
                     Essentials.config.getMessage("thutessentials.claim.notallowed.needmoreland"));
             return 3;
         }
-        final KGobalPos pos = KGobalPos.getPosition(world.dimension(), chunkCoord);
+        final GlobalPos pos = GlobalPos.of(world.dimension(), chunkCoord);
         final ClaimLandEvent event = new ClaimLandEvent(pos, player, team.teamName);
-        MinecraftForge.EVENT_BUS.post(event);
+        NeoForge.EVENT_BUS.post(event);
         LandManager.getInstance().claimLand(team.teamName, world, chunkCoord, true);
         if (messages) ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.claim.claimed", team.teamName));

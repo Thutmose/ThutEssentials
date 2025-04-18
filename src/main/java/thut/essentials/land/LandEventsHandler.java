@@ -1,17 +1,13 @@
 package thut.essentials.land;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
-
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -35,40 +31,31 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult.Type;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.TickEvent.Phase;
-import net.minecraftforge.event.TickEvent.ServerTickEvent;
-import net.minecraftforge.event.entity.EntityMobGriefingEvent;
-import net.minecraftforge.event.entity.ProjectileImpactEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.FillBucketEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.event.level.BlockEvent.BreakEvent;
-import net.minecraftforge.event.level.BlockEvent.EntityPlaceEvent;
-import net.minecraftforge.event.level.BlockEvent.FarmlandTrampleEvent;
-import net.minecraftforge.event.level.ExplosionEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.eventbus.api.Event.Result;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.EntityMobGriefingEvent;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.events.DenyItemUseEvent;
 import thut.essentials.events.DenyItemUseEvent.UseType;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
@@ -80,6 +67,11 @@ import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.PlayerDataHandler;
 import thut.essentials.util.RegHelper;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public class LandEventsHandler
 {
@@ -105,15 +97,15 @@ public class LandEventsHandler
 
     public static Map<ResourceLocation, String[]> customMobPerms = Maps.newHashMap();
 
-    public static final String[] defaultMobPerms =
-    { LandEventsHandler.PERMUSEMOBWILD, LandEventsHandler.PERMUSEMOBOWN, LandEventsHandler.PERMUSEMOBOTHER };
+    public static final String[] defaultMobPerms = { LandEventsHandler.PERMUSEMOBWILD, LandEventsHandler.PERMUSEMOBOWN,
+            LandEventsHandler.PERMUSEMOBOTHER };
 
     public static void init()
     {
-        MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER);
-        MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.interact_handler);
-        MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.entity_handler);
-        MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.block_handler);
+        NeoForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER);
+        NeoForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.interact_handler);
+        NeoForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.entity_handler);
+        NeoForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER.block_handler);
 
         if (!Essentials.config.landEnabled) return;
 
@@ -122,29 +114,29 @@ public class LandEventsHandler
         {
             final String[] args = s.split("->");
             final String[] perms = args[1].split(",");
-            LandEventsHandler.customMobPerms.put(new ResourceLocation(args[0]), perms);
+            LandEventsHandler.customMobPerms.put(ResourceLocation.parse(args[0]), perms);
         }
 
         LandEventsHandler.itemUseWhitelist.clear();
         for (final String s : Essentials.config.itemUseWhitelist)
-            LandEventsHandler.itemUseWhitelist.add(new ResourceLocation(s));
+            LandEventsHandler.itemUseWhitelist.add(ResourceLocation.parse(s));
         LandEventsHandler.blockUseWhiteList.clear();
         for (final String s : Essentials.config.blockUseWhitelist)
-            LandEventsHandler.blockUseWhiteList.add(new ResourceLocation(s));
+            LandEventsHandler.blockUseWhiteList.add(ResourceLocation.parse(s));
         LandEventsHandler.blockBreakWhiteList.clear();
         for (final String s : Essentials.config.blockBreakWhitelist)
-            LandEventsHandler.blockBreakWhiteList.add(new ResourceLocation(s));
+            LandEventsHandler.blockBreakWhiteList.add(ResourceLocation.parse(s));
         LandEventsHandler.blockPlaceWhiteList.clear();
         for (final String s : Essentials.config.blockPlaceWhitelist)
-            LandEventsHandler.blockPlaceWhiteList.add(new ResourceLocation(s));
+            LandEventsHandler.blockPlaceWhiteList.add(ResourceLocation.parse(s));
         for (final String s : Essentials.config.mobUseWhitelist)
-            LandEventsHandler.mobUseWhitelist.add(new ResourceLocation(s));
-        MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
-        MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.interact_handler);
-        MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.entity_handler);
-        MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.block_handler);
+            LandEventsHandler.mobUseWhitelist.add(ResourceLocation.parse(s));
+        NeoForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
+        NeoForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.interact_handler);
+        NeoForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.entity_handler);
+        NeoForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER.block_handler);
         LandEventsHandler.invuln.clear();
-        for (final String s : Essentials.config.invulnMobs) LandEventsHandler.invuln.add(new ResourceLocation(s));
+        for (final String s : Essentials.config.invulnMobs) LandEventsHandler.invuln.add(ResourceLocation.parse(s));
     }
 
     private static boolean isPublicToggle(final ItemStack stack)
@@ -169,28 +161,26 @@ public class LandEventsHandler
 
     public static class BlockEventHandler
     {
-        public void checkPlace(final BlockEvent evt, final ServerPlayer player)
+        public boolean checkPlace(final BlockEvent evt, final ServerPlayer player)
         {
-            if (!(player instanceof ServerPlayer)) return;
+            if (!(player instanceof ServerPlayer)) return true;
             // check whitelist first.
-            if (LandEventsHandler.blockPlaceWhiteList
-                    .contains(RegHelper.getKey(evt.getLevel().getBlockState(evt.getPos()))))
-                return;
+            if (LandEventsHandler.blockPlaceWhiteList.contains(
+                    RegHelper.getKey(evt.getLevel().getBlockState(evt.getPos())))) return true;
 
             final Level world = player.getCommandSenderWorld();
             // Block coordinate
-            final KGobalPos b = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), evt.getPos());
+            final GlobalPos b = GlobalPos.of(player.getCommandSenderWorld().dimension(), evt.getPos());
             final LandTeam team = LandManager.getInstance().getLandOwner(world, evt.getPos());
 
             // Check permission for breaking wilderness, then return.
             if (team == null)
             {
-                if (PermNodes.getBooleanPerm(player, LandEventsHandler.PERMPLACEWILD)) return;
+                if (PermNodes.getBooleanPerm(player, LandEventsHandler.PERMPLACEWILD)) return true;
                 ChatHelper.sendSystemMessage(player,
                         CommandManager.makeFormattedComponent("msg.team.nowildperms.placeblock"));
-                evt.setCanceled(true);
                 player.inventoryMenu.sendAllDataToRemote();
-                return;
+                return false;
 
             }
             final boolean isFakePlayer = player instanceof FakePlayer;
@@ -205,49 +195,46 @@ public class LandEventsHandler
                 final boolean owns = team.canPlaceBlock(player.getUUID(), b);
                 if (owns && !PermNodes.getBooleanPerm(player, LandEventsHandler.PERMPLACEOWN))
                 {
-                    evt.setCanceled(true);
                     if (!isFakePlayer)
                     {
                         LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
                         player.inventoryMenu.sendAllDataToRemote();
                     }
-                    return;
+                    return false;
                 }
                 if (!owns && !PermNodes.getBooleanPerm(player, LandEventsHandler.PERMPLACEOTHER))
                 {
-                    evt.setCanceled(true);
                     if (!isFakePlayer)
                     {
                         LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
                         player.inventoryMenu.sendAllDataToRemote();
                     }
-                    return;
+                    return false;
                 }
             }
+            return true;
         }
 
-        public void checkBreak(final BlockEvent evt, final ServerPlayer player)
+        public boolean checkBreak(final BlockEvent evt, final ServerPlayer player)
         {
             if (Essentials.config.landEnabled && player != null)
             {
                 // check whitelist first.
-                if (LandEventsHandler.blockBreakWhiteList
-                        .contains(RegHelper.getKey(evt.getLevel().getBlockState(evt.getPos()))))
-                    return;
+                if (LandEventsHandler.blockBreakWhiteList.contains(
+                        RegHelper.getKey(evt.getLevel().getBlockState(evt.getPos())))) return true;
 
                 final Level world = player.getCommandSenderWorld();
                 // Block coordinate
-                final KGobalPos b = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), evt.getPos());
+                final GlobalPos b = GlobalPos.of(player.getCommandSenderWorld().dimension(), evt.getPos());
                 final LandTeam team = LandManager.getInstance().getLandOwner(world, evt.getPos());
 
                 // Check permission for breaking wilderness, then return.
                 if (team == null)
                 {
-                    if (PermNodes.getBooleanPerm(player, LandEventsHandler.PERMBREAKWILD)) return;
+                    if (PermNodes.getBooleanPerm(player, LandEventsHandler.PERMBREAKWILD)) return true;
                     ChatHelper.sendSystemMessage(player,
                             CommandManager.makeFormattedComponent("msg.team.nowildperms.breakblock"));
-                    evt.setCanceled(true);
-                    return;
+                    return false;
 
                 }
                 // Check if the team allows fakeplayers
@@ -262,108 +249,105 @@ public class LandEventsHandler
                     if (owns && !PermNodes.getBooleanPerm(player, LandEventsHandler.PERMBREAKOWN))
                     {
                         LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
-                        evt.setCanceled(true);
-                        return;
+                        return false;
                     }
                     if (!owns && !PermNodes.getBooleanPerm(player, LandEventsHandler.PERMBREAKOTHER))
                     {
                         LandEventsHandler.sendMessage(player, team, LandEventsHandler.DENY);
-                        evt.setCanceled(true);
-                        return;
+                        return false;
                     }
                 }
             }
+            return true;
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void trample(final FarmlandTrampleEvent evt)
+        public void trample(final BlockEvent.FarmlandTrampleEvent evt)
         {
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
             if (!Essentials.config.landEnabled) return;
             // Block coordinate
-            final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
-                    evt.getPos());
+            final GlobalPos b = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
             // Chunk Coordinate
-            final KGobalPos c = CoordinateUtls.chunkPos(b);
+            final GlobalPos c = CoordinateUtls.chunkPos(b);
             final Entity trampler = evt.getEntity();
-            final LandTeam team = LandManager.getInstance().getLandOwner(trampler.getCommandSenderWorld(),
-                    evt.getPos());
+            final LandTeam team = LandManager.getInstance()
+                    .getLandOwner(trampler.getCommandSenderWorld(), evt.getPos());
             if (team == null) return;
             ServerPlayer player = null;
             if (trampler instanceof ServerPlayer) player = (ServerPlayer) trampler;
             LivingEntity test;
             if ((test = OwnerManager.OWNERCHECK.getOwner(trampler)) instanceof ServerPlayer)
                 player = (ServerPlayer) test;
-            this.checkBreak(evt, player);
-            if (!evt.isCanceled() && Essentials.config.log_interactions) InventoryLogger.log("trample at {} by {} {}",
-                    c, evt.getPos(), trampler.getUUID(), trampler.getName().getString());
+            if (this.checkBreak(evt, player) && Essentials.config.log_interactions)
+                InventoryLogger.log("trample at {} by {} {}", c, evt.getPos(), trampler.getUUID(),
+                        trampler.getName().getString());
+            else evt.setCanceled(true);
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void placeBlocks(final EntityPlaceEvent evt)
+        public void placeBlocks(final BlockEvent.EntityPlaceEvent evt)
         {
             if (!(evt.getEntity() instanceof ServerPlayer)) return;
             if (!Essentials.config.landEnabled) return;
-            this.checkPlace(evt, (ServerPlayer) evt.getEntity());
-            if (!evt.isCanceled() && Essentials.config.log_interactions)
+            if (this.checkPlace(evt, (ServerPlayer) evt.getEntity()) && Essentials.config.log_interactions)
             {
                 // Block coordinate
-                final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
-                        evt.getPos());
+                final GlobalPos b = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
                 // Chunk Coordinate
-                final KGobalPos c = CoordinateUtls.chunkPos(b);
+                final GlobalPos c = CoordinateUtls.chunkPos(b);
                 InventoryLogger.log("place {} at {} on {} by {} {}", c, evt.getPlacedBlock(), evt.getPos(),
                         evt.getPlacedAgainst(), evt.getEntity().getUUID(), evt.getEntity().getName().getString());
             }
+            else evt.setCanceled(true);
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void BreakBlock(final BreakEvent evt)
+        public void BreakBlock(final BlockEvent.BreakEvent evt)
         {
             if (!(evt.getPlayer() instanceof ServerPlayer)) return;
             if (!Essentials.config.landEnabled) return;
             final Player player = evt.getPlayer();
-            this.checkBreak(evt, (ServerPlayer) player);
-            if (!evt.isCanceled() && Essentials.config.log_interactions)
+            if (this.checkBreak(evt, (ServerPlayer) player) && Essentials.config.log_interactions)
             {
                 // Block coordinate
-                final KGobalPos b = KGobalPos.getPosition(evt.getPlayer().getCommandSenderWorld().dimension(),
-                        evt.getPos());
+                final GlobalPos b = GlobalPos.of(evt.getPlayer().getCommandSenderWorld().dimension(), evt.getPos());
                 // Chunk Coordinate
-                final KGobalPos c = CoordinateUtls.chunkPos(b);
+                final GlobalPos c = CoordinateUtls.chunkPos(b);
                 InventoryLogger.log("break {} at {} by {} {}", c, evt.getState(), evt.getPos(),
                         evt.getPlayer().getUUID(), evt.getPlayer().getName().getString());
             }
+            else evt.setCanceled(true);
         }
-
-        @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void bucket(final FillBucketEvent event)
-        {
-            if (event.getEntity().getCommandSenderWorld().isClientSide) return;
-            if (!Essentials.config.landEnabled) return;
-            BlockPos pos = event.getEntity().blockPosition();
-            if (event.getTarget() instanceof BlockHitResult && event.getTarget().getType() != Type.MISS)
-            {
-                final BlockHitResult trace = (BlockHitResult) event.getTarget();
-                pos = trace.getBlockPos().relative(trace.getDirection());
-            }
-            final Player player = event.getEntity();
-            final BlockEvent evt = new BreakEvent(event.getLevel(), pos, event.getLevel().getBlockState(pos), player);
-            this.checkPlace(evt, (ServerPlayer) player);
-            this.checkBreak(evt, (ServerPlayer) player);
-            if (evt.isCanceled()) event.setCanceled(true);
-            else if (Essentials.config.log_interactions)
-            {
-                // Block coordinate
-                final KGobalPos b = KGobalPos.getPosition(event.getEntity().getCommandSenderWorld().dimension(),
-                        evt.getPos());
-                // Chunk Coordinate
-                final KGobalPos c = CoordinateUtls.chunkPos(b);
-
-                InventoryLogger.log("bucket {} -> {} at {} by {} {}", c, event.getEmptyBucket(),
-                        event.getFilledBucket(), pos, player.getUUID(), player.getName().getString());
-            }
-        }
+        //
+        //        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        //        public void bucket(final FillBucketEvent event)
+        //        {
+        //            if (event.getEntity().getCommandSenderWorld().isClientSide) return;
+        //            if (!Essentials.config.landEnabled) return;
+        //            BlockPos pos = event.getEntity().blockPosition();
+        //            if (event.getTarget() instanceof BlockHitResult && event.getTarget().getType() != Type.MISS)
+        //            {
+        //                final BlockHitResult trace = (BlockHitResult) event.getTarget();
+        //                pos = trace.getBlockPos().relative(trace.getDirection());
+        //            }
+        //            final Player player = event.getEntity();
+        //            final BlockEvent evt = new BlockEvent.BreakEvent(event.getLevel(), pos, event.getLevel().getBlockState(pos), player);
+        //            this.checkPlace(evt, (ServerPlayer) player);
+        //            this.checkBreak(evt, (ServerPlayer) player);
+        //            if (evt.isCanceled()) event.setCanceled(true);
+        //            else if (Essentials.config.log_interactions)
+        //            {
+        //                // Block coordinate
+        //                final GlobalPos b = GlobalPos.of(event.getEntity().getCommandSenderWorld().dimension(),
+        //                        evt.getPos());
+        //                // Chunk Coordinate
+        //                final GlobalPos c = CoordinateUtls.chunkPos(b);
+        //
+        //                InventoryLogger.log("bucket {} -> {} at {} by {} {}", c, event.getEmptyBucket(),
+        //                        event.getFilledBucket(), pos, player.getUUID(), player.getName().getString());
+        //            }
+        //        }
     }
 
     public static class EntityEventHandler
@@ -400,68 +384,72 @@ public class LandEventsHandler
             final int cx = SectionPos.blockToSectionCoord(player.getBlockX());
             final int cz = SectionPos.blockToSectionCoord(player.getBlockZ());
             final int cy = SectionPos.blockToSectionCoord(player.getBlockY());
-            for (int dx = -3; dx <= 3; dx++) for (int dz = -3; dz <= 3; dz++)
-            {
-                x = cx + dx;
-                z = cz + dz;
-                final KGobalPos c = KGobalPos.getPosition(dim, new BlockPos(x, 0, z));
-                y = cy;
-                final boolean cl = ChunkLoadHandler.allLoaded.contains(c);
-
-                for (int dy = -3; dy <= 3; dy++)
+            for (int dx = -3; dx <= 3; dx++)
+                for (int dz = -3; dz <= 3; dz++)
                 {
-                    y = cy + dy;
+                    x = cx + dx;
+                    z = cz + dz;
+                    final GlobalPos c = GlobalPos.of(dim, new BlockPos(x, 0, z));
+                    y = cy;
+                    final boolean cl = ChunkLoadHandler.allLoaded.contains(c);
 
-                    if (cl)
+                    for (int dy = -3; dy <= 3; dy++)
                     {
-                        show = chunkloaded;
-                        x1 = x * 16;
-                        y1 = y * 16;
-                        z1 = z * 16;
-                        for (int i1 = 3; i1 < 14; i1 += 4) for (int j1 = 3; j1 < 14; j1 += 4)
+                        y = cy + dy;
+
+                        if (cl)
                         {
-                            packet = new ClientboundLevelParticlesPacket(show, false, x1 + i1, y1 + j1, z1 + 3, 0, 0, 0,
-                                    0, 1);
-                            player.connection.send(packet);
-                            packet = new ClientboundLevelParticlesPacket(show, false, x1 + i1, y1 + j1, z1 + 13, 0, 0,
-                                    0, 0, 1);
-                            player.connection.send(packet);
-                            packet = new ClientboundLevelParticlesPacket(show, false, x1 + 3, y1 + j1, z1 + i1, 0, 0, 0,
-                                    0, 1);
-                            player.connection.send(packet);
-                            packet = new ClientboundLevelParticlesPacket(show, false, x1 + 13, y1 + j1, z1 + i1, 0, 0,
-                                    0, 0, 1);
-                            player.connection.send(packet);
+                            show = chunkloaded;
+                            x1 = x * 16;
+                            y1 = y * 16;
+                            z1 = z * 16;
+                            for (int i1 = 3; i1 < 14; i1 += 4)
+                                for (int j1 = 3; j1 < 14; j1 += 4)
+                                {
+                                    packet = new ClientboundLevelParticlesPacket(show, false, x1 + i1, y1 + j1, z1 + 3,
+                                            0, 0, 0, 0, 1);
+                                    player.connection.send(packet);
+                                    packet = new ClientboundLevelParticlesPacket(show, false, x1 + i1, y1 + j1, z1 + 13,
+                                            0, 0, 0, 0, 1);
+                                    player.connection.send(packet);
+                                    packet = new ClientboundLevelParticlesPacket(show, false, x1 + 3, y1 + j1, z1 + i1,
+                                            0, 0, 0, 0, 1);
+                                    player.connection.send(packet);
+                                    packet = new ClientboundLevelParticlesPacket(show, false, x1 + 13, y1 + j1, z1 + i1,
+                                            0, 0, 0, 0, 1);
+                                    player.connection.send(packet);
+                                }
                         }
-                    }
 
-                    final LandTeam team = LandManager.getInstance().getLandOwner(world, new BlockPos(x, y, z), true);
-                    show = team == null ? null : team == us ? owned : otherowned;
+                        final LandTeam team = LandManager.getInstance()
+                                .getLandOwner(world, new BlockPos(x, y, z), true);
+                        show = team == null ? null : team == us ? owned : otherowned;
 
-                    if (show != null && y >= world.getMinSection() && y < world.getMaxSection())
-                    {
-                        x1 = x * 16;
-                        y1 = y * 16;
-                        z1 = z * 16;
-
-                        for (int i1 = 1; i1 < 16; i1 += 4) for (int j1 = 1; j1 < 16; j1 += 4)
+                        if (show != null && y >= world.getMinSection() && y < world.getMaxSection())
                         {
-                            packet = new ClientboundLevelParticlesPacket(show, false, x1 + i1, y1 + j1, z1 + 1, 0, 0, 0,
-                                    0, 1);
-                            player.connection.send(packet);
-                            packet = new ClientboundLevelParticlesPacket(show, false, x1 + i1, y1 + j1, z1 + 15, 0, 0,
-                                    0, 0, 1);
-                            player.connection.send(packet);
-                            packet = new ClientboundLevelParticlesPacket(show, false, x1 + 1, y1 + j1, z1 + i1, 0, 0, 0,
-                                    0, 1);
-                            player.connection.send(packet);
-                            packet = new ClientboundLevelParticlesPacket(show, false, x1 + 15, y1 + j1, z1 + i1, 0, 0,
-                                    0, 0, 1);
-                            player.connection.send(packet);
+                            x1 = x * 16;
+                            y1 = y * 16;
+                            z1 = z * 16;
+
+                            for (int i1 = 1; i1 < 16; i1 += 4)
+                                for (int j1 = 1; j1 < 16; j1 += 4)
+                                {
+                                    packet = new ClientboundLevelParticlesPacket(show, false, x1 + i1, y1 + j1, z1 + 1,
+                                            0, 0, 0, 0, 1);
+                                    player.connection.send(packet);
+                                    packet = new ClientboundLevelParticlesPacket(show, false, x1 + i1, y1 + j1, z1 + 15,
+                                            0, 0, 0, 0, 1);
+                                    player.connection.send(packet);
+                                    packet = new ClientboundLevelParticlesPacket(show, false, x1 + 1, y1 + j1, z1 + i1,
+                                            0, 0, 0, 0, 1);
+                                    player.connection.send(packet);
+                                    packet = new ClientboundLevelParticlesPacket(show, false, x1 + 15, y1 + j1, z1 + i1,
+                                            0, 0, 0, 0, 1);
+                                    player.connection.send(packet);
+                                }
                         }
                     }
                 }
-            }
 
         }
 
@@ -490,7 +478,7 @@ public class LandEventsHandler
         }
 
         @SubscribeEvent
-        public void update(final LivingTickEvent evt)
+        public void update(final EntityTickEvent.Post evt)
         {
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
             if (!Essentials.config.landEnabled) return;
@@ -532,7 +520,7 @@ public class LandEventsHandler
                 }
                 else
                 {
-                    if (!entry_log.isEmpty()) entry_point = NbtUtils.readBlockPos(entry_log.getCompound("from"));
+                    if (!entry_log.isEmpty()) entry_point = NbtUtils.readBlockPos(entry_log, "from").get();
 
                     if (!LandEventsHandler.lastLeaveMessage.containsKey(evt.getEntity().getUUID()))
                         LandEventsHandler.lastLeaveMessage.put(evt.getEntity().getUUID(),
@@ -617,7 +605,7 @@ public class LandEventsHandler
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
             if (!Essentials.config.landEnabled) return;
             final Level world = evt.getEntity().getCommandSenderWorld();
-            final KGobalPos b = CoordinateUtls.forMob(evt.getTarget());
+            final GlobalPos b = CoordinateUtls.forMob(evt.getTarget());
             final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getTarget().blockPosition());
 
             if (!this.canTakeDamage(evt.getTarget(), owner))
@@ -657,24 +645,24 @@ public class LandEventsHandler
             if (!Essentials.config.landEnabled) return;
             if (!Essentials.config.noMobGriefing) return;
             if (MobManager.isWhitelistedForGriefing(evt.getEntity())) return;
-            final LandTeam owner = LandManager.getInstance().getLandOwner(evt.getEntity().getCommandSenderWorld(),
-                    evt.getEntity().blockPosition());
+            final LandTeam owner = LandManager.getInstance()
+                    .getLandOwner(evt.getEntity().getCommandSenderWorld(), evt.getEntity().blockPosition());
             if (LandManager.isWild(owner)) return;
             // Check if the team allows fakeplayers
             if (owner.fakePlayers && evt.getEntity() instanceof FakePlayer) return;
-            evt.setResult(Result.DENY);
+            evt.setCanGrief(false);
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void attack(final LivingAttackEvent evt)
+        public void attack(final LivingDamageEvent.Pre evt)
         {
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
             if (!Essentials.config.landEnabled) return;
-            final LandTeam owner = LandManager.getInstance().getLandOwner(evt.getEntity().getCommandSenderWorld(),
-                    evt.getEntity().blockPosition());
+            final LandTeam owner = LandManager.getInstance()
+                    .getLandOwner(evt.getEntity().getCommandSenderWorld(), evt.getEntity().blockPosition());
             if (!this.canTakeDamage(evt.getEntity(), owner))
             {
-                evt.setCanceled(true);
+                evt.setNewDamage(0);
                 return;
             }
 
@@ -690,7 +678,7 @@ public class LandEventsHandler
                     final Entity damageSource = evt.getSource().getEntity();
                     if (damageSource instanceof Player && LandEventsHandler.sameTeam(damageSource, evt.getEntity()))
                     {
-                        evt.setCanceled(true);
+                        evt.setNewDamage(0);
                         return;
                     }
                 }
@@ -702,8 +690,7 @@ public class LandEventsHandler
             // check if entity is protected by team
             if (owner.protected_mobs.contains(evt.getEntity().getUUID()))
             {
-                evt.setCanceled(true);
-                return;
+                evt.setNewDamage(0);
             }
         }
 
@@ -717,8 +704,8 @@ public class LandEventsHandler
             final EntityHitResult hit = (EntityHitResult) evt.getRayTraceResult();
 
             final Entity target = hit.getEntity();
-            final LandTeam owner = LandManager.getInstance().getLandOwner(target.getCommandSenderWorld(),
-                    target.blockPosition());
+            final LandTeam owner = LandManager.getInstance()
+                    .getLandOwner(target.getCommandSenderWorld(), target.blockPosition());
 
             if (!this.canTakeDamage(target, owner))
             {
@@ -739,56 +726,29 @@ public class LandEventsHandler
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void attack(final LivingHurtEvent evt)
-        {
-            if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
-            if (!Essentials.config.landEnabled) return;
-            final LandTeam owner = LandManager.getInstance().getLandOwner(evt.getEntity().getCommandSenderWorld(),
-                    evt.getEntity().blockPosition());
-            if (!this.canTakeDamage(evt.getEntity(), owner))
-            {
-                evt.setCanceled(true);
-                return;
-            }
-
-            // TODO maybe add a perm for combat in non-claimed land?
-            if (LandManager.isWild(owner)) return;
-
-            // check if entity is protected by team
-            if (owner.protected_mobs.contains(evt.getEntity().getUUID()))
-            {
-                evt.setCanceled(true);
-                return;
-            }
-        }
-
-        @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void spawn(final MobSpawnEvent.PositionCheck evt)
         {
             if (!Essentials.config.landEnabled) return;
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
-            final LandTeam owner = LandManager.getInstance().getLandOwner(evt.getEntity().getCommandSenderWorld(),
-                    evt.getEntity().blockPosition());
+            final LandTeam owner = LandManager.getInstance()
+                    .getLandOwner(evt.getEntity().getCommandSenderWorld(), evt.getEntity().blockPosition());
             if (LandManager.isWild(owner)) return;
             if (owner.noMobSpawn)
             {
-                evt.setResult(Result.DENY);
-                return;
+                evt.setResult(MobSpawnEvent.PositionCheck.Result.FAIL);
             }
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void spawn(final MobSpawnEvent.FinalizeSpawn evt)
+        public void spawn(final MobSpawnEvent.SpawnPlacementCheck evt)
         {
             if (!Essentials.config.landEnabled) return;
-            if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
-            final Level world = evt.getEntity().getCommandSenderWorld();
-            final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getEntity().blockPosition());
+            if (!(evt.getLevel() instanceof ServerLevel level)) return;
+            final LandTeam owner = LandManager.getInstance().getLandOwner(level, evt.getPos());
             if (LandManager.isWild(owner)) return;
             if (owner.noMobSpawn)
             {
-                evt.setResult(Result.DENY);
-                return;
+                evt.setResult(MobSpawnEvent.SpawnPlacementCheck.Result.FAIL);
             }
         }
 
@@ -804,7 +764,7 @@ public class LandEventsHandler
             final ServerPlayer player = (ServerPlayer) evt.getEntity();
             final Level world = player.getCommandSenderWorld();
             // Block coordinate
-            final KGobalPos b = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), evt.getPos());
+            final GlobalPos b = GlobalPos.of(player.getCommandSenderWorld().dimension(), evt.getPos());
             final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getPos());
             if (LandManager.isWild(owner))
             {
@@ -833,20 +793,20 @@ public class LandEventsHandler
                 return DenyReason.NONE;
 
             // See if is food and should be explicitly whitelisted
-            if (Essentials.config.foodWhitelisted && evt.getItemStack().isEdible()) return DenyReason.NONE;
+            if (Essentials.config.foodWhitelisted && evt.getItemStack().has(DataComponents.FOOD)) return DenyReason.NONE;
 
             // Check the tag for the item as well
             if (ItemList.is(LandEventsHandler.ITEMUSEWHTETAG, evt.getItemStack())) return DenyReason.NONE;
 
             // Check our specific event allowances
-            if (MinecraftForge.EVENT_BUS
-                    .post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(), UseType.RIGHTCLICKBLOCK)))
+            if (NeoForge.EVENT_BUS.post(
+                    new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(), UseType.RIGHTCLICKBLOCK)).isCanceled())
                 return DenyReason.NONE;
 
             final ServerPlayer player = (ServerPlayer) evt.getEntity();
             final Level world = player.getCommandSenderWorld();
             // Block coordinate
-            final KGobalPos b = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), evt.getPos());
+            final GlobalPos b = GlobalPos.of(player.getCommandSenderWorld().dimension(), evt.getPos());
             final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getPos());
             if (LandManager.isWild(owner))
             {
@@ -876,14 +836,14 @@ public class LandEventsHandler
                     LandEventsHandler.defaultMobPerms);
 
             // Check our specific event allowances
-            if (MinecraftForge.EVENT_BUS
-                    .post(new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(), UseType.RIGHTCLICKBLOCK)))
+            if (NeoForge.EVENT_BUS.post(
+                    new DenyItemUseEvent(evt.getEntity(), evt.getItemStack(), UseType.RIGHTCLICKBLOCK)).isCanceled())
                 return DenyReason.NONE;
 
             final ServerPlayer player = (ServerPlayer) evt.getEntity();
             final Level world = player.getCommandSenderWorld();
             // Block coordinate
-            final KGobalPos b = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), evt.getPos());
+            final GlobalPos b = GlobalPos.of(player.getCommandSenderWorld().dimension(), evt.getPos());
             final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getPos());
             if (LandManager.isWild(owner) || LandManager.getInstance().isPublicMob(evt.getEntity().getUUID()))
             {
@@ -915,10 +875,9 @@ public class LandEventsHandler
             {
                 final Level world = evt.getLevel();
                 // Block coordinate
-                final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
-                        evt.getPos());
+                final GlobalPos b = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
                 // Chunk Coordinate
-                final KGobalPos c = CoordinateUtls.chunkPos(b);
+                final GlobalPos c = CoordinateUtls.chunkPos(b);
                 final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getPos());
 
                 final boolean isFakePlayer = evt.getEntity() instanceof FakePlayer;
@@ -940,12 +899,12 @@ public class LandEventsHandler
                     }
                     player.inventoryMenu.sendAllDataToRemote();
                 }
-                if (Essentials.config.log_interactions) InventoryLogger.log("Cancelled Left Click at {} for {} {}", c,
-                        b.getPos(), evt.getEntity().getUUID(), evt.getEntity().getName().getString());
+                if (Essentials.config.log_interactions)
+                    InventoryLogger.log("Cancelled Left Click at {} for {} {}", c, b.pos(), evt.getEntity().getUUID(),
+                            evt.getEntity().getName().getString());
                 evt.setCanceled(true);
-                evt.setUseBlock(Result.DENY);
-                evt.setUseItem(Result.DENY);
-                return;
+                evt.setUseBlock(TriState.FALSE);
+                evt.setUseItem(TriState.FALSE);
             }
 
         }
@@ -961,10 +920,9 @@ public class LandEventsHandler
             {
                 final Level world = evt.getLevel();
                 // Block coordinate
-                final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
-                        evt.getPos());
+                final GlobalPos b = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
                 // Chunk Coordinate
-                final KGobalPos c = CoordinateUtls.chunkPos(b);
+                final GlobalPos c = CoordinateUtls.chunkPos(b);
                 final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getPos());
 
                 final boolean isFakePlayer = evt.getEntity() instanceof FakePlayer;
@@ -987,7 +945,7 @@ public class LandEventsHandler
                     player.inventoryMenu.sendAllDataToRemote();
                 }
                 if (Essentials.config.log_interactions)
-                    InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.getPos(),
+                    InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.pos(),
                             evt.getTarget().getName().getString(), evt.getEntity().getUUID(),
                             evt.getEntity().getName().getString());
                 evt.setCanceled(true);
@@ -1005,10 +963,9 @@ public class LandEventsHandler
 
             final Level world = evt.getLevel();
             // Block coordinate
-            final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
-                    evt.getPos());
+            final GlobalPos b = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
             // Chunk Coordinate
-            final KGobalPos c = CoordinateUtls.chunkPos(b);
+            final GlobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getPos());
             // First check if we do not have permission to act here.
             if (!rsult.test())
@@ -1033,7 +990,7 @@ public class LandEventsHandler
                     player.inventoryMenu.sendAllDataToRemote();
                 }
                 if (Essentials.config.log_interactions)
-                    InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.getPos(),
+                    InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.pos(),
                             evt.getTarget().getName().getString(), evt.getEntity().getUUID(),
                             evt.getEntity().getName().getString());
                 evt.setCanceled(true);
@@ -1065,15 +1022,15 @@ public class LandEventsHandler
                             Essentials.config.getMessage("msg.team.setmob.public." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
-                        InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.getPos(),
+                        InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.pos(),
                                 evt.getTarget().getName().getString(), evt.getEntity().getUUID(),
                                 evt.getEntity().getName().getString());
                     return;
                 }
                 // check if player is holding a protect toggle.
                 if (!evt.getLevel().isClientSide && LandEventsHandler.isProtectToggle(evt.getItemStack())
-                        && evt.getEntity().isCrouching()
-                        && PermNodes.getBooleanPerm((ServerPlayer) evt.getEntity(), LandEventsHandler.PERMPROTECTMOB))
+                        && evt.getEntity().isCrouching() && PermNodes.getBooleanPerm((ServerPlayer) evt.getEntity(),
+                        LandEventsHandler.PERMPROTECTMOB))
                 {
                     // If so, toggle whether the entity is protected.
                     final UUID id = evt.getTarget().getUUID();
@@ -1083,7 +1040,7 @@ public class LandEventsHandler
                             Essentials.config.getMessage("msg.team.setmob.protect." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
-                        InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.getPos(),
+                        InventoryLogger.log("Cancelled Mob Interact at {} with {} for {} {}", c, b.pos(),
                                 evt.getTarget().getName().getString(), evt.getEntity().getUUID(),
                                 evt.getEntity().getName().getString());
                     return;
@@ -1101,10 +1058,9 @@ public class LandEventsHandler
             {
                 final Level world = evt.getLevel();
                 // Block coordinate
-                final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
-                        evt.getPos());
+                final GlobalPos b = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
                 // Chunk Coordinate
-                final KGobalPos c = CoordinateUtls.chunkPos(b);
+                final GlobalPos c = CoordinateUtls.chunkPos(b);
                 final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getPos());
                 final boolean isFakePlayer = evt.getEntity() instanceof FakePlayer;
                 if (!isFakePlayer)
@@ -1126,7 +1082,7 @@ public class LandEventsHandler
                     player.inventoryMenu.sendAllDataToRemote();
                 }
                 if (Essentials.config.log_interactions)
-                    InventoryLogger.log("Cancelled Item Interact at {} with {} for {} {}", c, b.getPos(),
+                    InventoryLogger.log("Cancelled Item Interact at {} with {} for {} {}", c, b.pos(),
                             evt.getItemStack(), evt.getEntity().getUUID(), evt.getEntity().getName().getString());
                 evt.setCancellationResult(InteractionResult.FAIL);
                 evt.setCanceled(true);
@@ -1141,10 +1097,9 @@ public class LandEventsHandler
             if (!Essentials.config.landEnabled) return;
             final Level world = evt.getLevel();
             // Block coordinate
-            final KGobalPos b = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
-                    evt.getPos());
+            final GlobalPos b = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
             // Chunk Coordinate
-            final KGobalPos c = CoordinateUtls.chunkPos(b);
+            final GlobalPos c = CoordinateUtls.chunkPos(b);
             final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getPos());
             final DenyReason rsult = this.canUseBlock(evt);
             // First check if we do not have permission to act here.
@@ -1171,11 +1126,11 @@ public class LandEventsHandler
                     player.inventoryMenu.sendAllDataToRemote();
                 }
                 if (Essentials.config.log_interactions)
-                    InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.getPos(),
+                    InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.pos(),
                             evt.getItemStack(), evt.getEntity().getUUID(), evt.getEntity().getName().getString());
                 evt.setCanceled(true);
-                evt.setUseBlock(Result.DENY);
-                evt.setUseItem(Result.DENY);
+                evt.setUseBlock(TriState.FALSE);
+                evt.setUseItem(TriState.FALSE);
                 return;
             }
             // We don't care about anything else beyond here is unowned
@@ -1189,15 +1144,15 @@ public class LandEventsHandler
             // for this check.
             final boolean owns = owner.canUseStuff(player.getUUID(), b) || owner.canPlaceBlock(player.getUUID(), b);
             // Check if the block is public.
-            final KGobalPos blockLoc = b;
+            final GlobalPos blockLoc = b;
             // If we own this, we can return here, first check public toggle
             // though.
             if (owns)
             {
                 // Do stuff for toggling public
                 if (!evt.getLevel().isClientSide && LandEventsHandler.isPublicToggle(evt.getItemStack())
-                        && evt.getEntity().isCrouching() && !owner.allPublic
-                        && LandManager.getInstance().isAdmin(evt.getEntity().getUUID()))
+                        && evt.getEntity().isCrouching() && !owner.allPublic && LandManager.getInstance()
+                        .isAdmin(evt.getEntity().getUUID()))
                 {
                     final boolean isPublic = LandManager.getInstance().isPublic(blockLoc, owner);
                     if (isPublic) LandManager.getInstance().unsetPublic(blockLoc, owner);
@@ -1206,13 +1161,13 @@ public class LandEventsHandler
                             Essentials.config.getMessage("msg.team.setpublic.block." + !isPublic));
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
-                        InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.getPos(),
+                        InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.pos(),
                                 evt.getItemStack(), evt.getEntity().getUUID(), evt.getEntity().getName().getString());
                 }
                 // Do stuff for toggling break
                 if (!evt.getLevel().isClientSide && LandEventsHandler.isBreakToggle(evt.getItemStack())
-                        && evt.getEntity().isCrouching()
-                        && LandManager.getInstance().isAdmin(evt.getEntity().getUUID()))
+                        && evt.getEntity().isCrouching() && LandManager.getInstance()
+                        .isAdmin(evt.getEntity().getUUID()))
                 {
                     final boolean isPublic = owner.public_break.contains(blockLoc);
                     if (owner.public_break.contains(blockLoc)) owner.public_break.remove(blockLoc);
@@ -1222,13 +1177,13 @@ public class LandEventsHandler
                     LandSaveHandler.saveTeam(owner.teamName);
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
-                        InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.getPos(),
+                        InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.pos(),
                                 evt.getItemStack(), evt.getEntity().getUUID(), evt.getEntity().getName().getString());
                 }
                 // Do stuff for toggling place
                 if (!evt.getLevel().isClientSide && LandEventsHandler.isPlaceToggle(evt.getItemStack())
-                        && evt.getEntity().isCrouching()
-                        && LandManager.getInstance().isAdmin(evt.getEntity().getUUID()))
+                        && evt.getEntity().isCrouching() && LandManager.getInstance()
+                        .isAdmin(evt.getEntity().getUUID()))
                 {
                     final boolean isPublic = owner.public_place.contains(blockLoc);
                     if (owner.public_place.contains(blockLoc)) owner.public_place.remove(blockLoc);
@@ -1238,7 +1193,7 @@ public class LandEventsHandler
                     LandSaveHandler.saveTeam(owner.teamName);
                     evt.setCanceled(true);
                     if (Essentials.config.log_interactions)
-                        InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.getPos(),
+                        InventoryLogger.log("Cancelled Block Interact at {} with {} for {} {}", c, b.pos(),
                                 evt.getItemStack(), evt.getEntity().getUUID(), evt.getEntity().getName().getString());
                 }
                 return;
@@ -1252,7 +1207,7 @@ public class LandEventsHandler
 
         public static Set<ServerLevel> worlds = Sets.newConcurrentHashSet();
 
-        public static Set<KGobalPos> allLoaded = Sets.newConcurrentHashSet();
+        public static Set<GlobalPos> allLoaded = Sets.newConcurrentHashSet();
 
         @SubscribeEvent
         public static void ServerLoaded(final ServerStartedEvent event)
@@ -1260,34 +1215,32 @@ public class LandEventsHandler
             if (!Essentials.config.chunkLoading) return;
             ChunkLoadHandler.server.tell(new TickTask(1, () -> {
                 LandManager.getInstance()._teamMap.forEach((s, t) -> {
-                    for (final KGobalPos c : t.land.getLoaded()) ChunkLoadHandler.addChunks(c);
+                    for (final GlobalPos c : t.land.getLoaded()) ChunkLoadHandler.addChunks(c);
                 });
             }));
         }
 
-        public static boolean removeChunks(KGobalPos location)
+        public static boolean removeChunks(GlobalPos location)
         {
             if (!Essentials.config.chunkLoading) return false;
-            final ServerLevel world = ChunkLoadHandler.server.getLevel(location.getDimension());
+            final ServerLevel world = ChunkLoadHandler.server.getLevel(location.dimension());
             if (world == null) return false;
-            if (location.getPos().getY() != 0) location = KGobalPos.getPosition(location.getDimension(),
-                    location.getPos().below(location.getPos().getY()));
+            if (location.pos().getY() != 0)
+                location = GlobalPos.of(location.dimension(), location.pos().below(location.pos().getY()));
             if (!ChunkLoadHandler.allLoaded.remove(location)) return false;
-            world.getChunkSource().updateChunkForced(new ChunkPos(location.getPos().getX(), location.getPos().getZ()),
-                    false);
+            world.getChunkSource().updateChunkForced(new ChunkPos(location.pos().getX(), location.pos().getZ()), false);
             return true;
         }
 
-        public static boolean addChunks(KGobalPos location)
+        public static boolean addChunks(GlobalPos location)
         {
             if (!Essentials.config.chunkLoading) return false;
-            final ServerLevel world = ChunkLoadHandler.server.getLevel(location.getDimension());
+            final ServerLevel world = ChunkLoadHandler.server.getLevel(location.dimension());
             if (world == null) return false;
-            if (location.getPos().getY() != 0) location = KGobalPos.getPosition(location.getDimension(),
-                    location.getPos().below(location.getPos().getY()));
+            if (location.pos().getY() != 0)
+                location = GlobalPos.of(location.dimension(), location.pos().below(location.pos().getY()));
             if (!ChunkLoadHandler.allLoaded.add(location)) return false;
-            world.getChunkSource().updateChunkForced(new ChunkPos(location.getPos().getX(), location.getPos().getZ()),
-                    true);
+            world.getChunkSource().updateChunkForced(new ChunkPos(location.pos().getX(), location.pos().getZ()), true);
             return true;
         }
     }
@@ -1297,7 +1250,8 @@ public class LandEventsHandler
         return LandManager.getTeam(a) == LandManager.getTeam(b);
     }
 
-    public static final ResourceLocation ITEMUSEWHTETAG = new ResourceLocation(Essentials.MODID, "land_whitelist");
+    public static final ResourceLocation ITEMUSEWHTETAG = ResourceLocation.fromNamespaceAndPath(Essentials.MODID,
+            "land_whitelist");
 
     public static final String PERMBREAKWILD = "land.break.unowned";
     public static final String PERMBREAKOWN = "land.break.owned.self";
@@ -1411,15 +1365,15 @@ public class LandEventsHandler
     }
 
     @SubscribeEvent
-    public void tick(final ServerTickEvent event)
+    public void tick(final ServerTickEvent.Post event)
     {
-        if (this.toCheck.isEmpty() || event.phase != Phase.END) return;
+        if (this.toCheck.isEmpty()) return;
         final MinecraftServer server = Essentials.server;
         if (server.getNextTickTime() % 200 != 0) return;
-        GameProfile profile = this.toCheck.get(0);
+        GameProfile profile = this.toCheck.getFirst();
         try
         {
-            profile = server.getSessionService().fillProfileProperties(profile, true);
+            profile = server.getSessionService().fetchProfile(profile.getId(), true).profile();
             if (profile.getName() == null || profile.getId() == null) return;
             server.getProfileCache().add(profile);
         }
@@ -1427,12 +1381,12 @@ public class LandEventsHandler
         {
             return;
         }
-        this.toCheck.remove(0);
+        this.toCheck.removeFirst();
         if (profile.getId() != null) this.checked.add(profile.getId());
     }
 
     @SubscribeEvent
-    public void login(final PlayerLoggedInEvent evt)
+    public void login(final PlayerEvent.PlayerLoggedInEvent evt)
     {
         final Player entityPlayer = evt.getEntity();
         final LandTeam team = LandManager.getTeam(entityPlayer);
@@ -1441,7 +1395,7 @@ public class LandEventsHandler
     }
 
     @SubscribeEvent
-    public void logout(final PlayerLoggedOutEvent evt)
+    public void logout(final PlayerEvent.PlayerLoggedOutEvent evt)
     {
         final Player entityPlayer = evt.getEntity();
         final LandTeam team = LandManager.getTeam(entityPlayer);
@@ -1481,9 +1435,9 @@ public class LandEventsHandler
     private static final byte ENTER = 1;
     private static final byte EXIT = 2;
 
-    private static Map<UUID, Long> denyFloodControl = Maps.newHashMap();
-    private static Map<UUID, Long> enterFloodControl = Maps.newHashMap();
-    private static Map<UUID, Long> exitFloodControl = Maps.newHashMap();
+    private static final Map<UUID, Long> denyFloodControl = Maps.newHashMap();
+    private static final Map<UUID, Long> enterFloodControl = Maps.newHashMap();
+    private static final Map<UUID, Long> exitFloodControl = Maps.newHashMap();
 
     private static long getTime(final Entity player)
     {

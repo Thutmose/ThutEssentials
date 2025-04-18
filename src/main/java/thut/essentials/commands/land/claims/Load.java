@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -14,7 +15,6 @@ import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
@@ -63,7 +63,7 @@ public class Load
         if (y < 0 || y > 15) return 1;
         final ResourceKey<Level> dim = player.getCommandSenderWorld().dimension();
         final BlockPos b = new BlockPos(x, 0, z);
-        final KGobalPos chunk = KGobalPos.getPosition(dim, b);
+        final GlobalPos chunk = GlobalPos.of(dim, b);
         final LandTeam owner = LandManager.getInstance().getLandOwner(chunk);
 
         if (owner == team && !team.land.getLoaded().contains(chunk) && LandManager.getInstance().loadLand(chunk, team))

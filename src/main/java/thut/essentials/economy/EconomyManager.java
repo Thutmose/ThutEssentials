@@ -1,16 +1,9 @@
 package thut.essentials.economy;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Predicate;
-
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,20 +19,24 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult.Type;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.ProjectileImpactEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent.BreakEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.land.LandSaveHandler;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Predicate;
 
 public class EconomyManager
 {
@@ -48,13 +45,13 @@ public class EconomyManager
         int balance;
         Set<Shop> shops = Sets.newHashSet();
         UUID _id;
-        Map<KGobalPos, Shop> _shopMap = Maps.newHashMap();
+        Map<GlobalPos, Shop> _shopMap = Maps.newHashMap();
     }
 
     public static class Shop
     {
-        KGobalPos location;
-        KGobalPos storage;
+        GlobalPos location;
+        GlobalPos storage;
         UUID frameId;
         boolean infinite = false;
         boolean ignoreTag = false;
@@ -69,7 +66,7 @@ public class EconomyManager
             final ServerLevel world = (ServerLevel) player.getCommandSenderWorld();
             final Entity ent = world.getEntity(this.frameId);
             if (ent instanceof ItemFrame) stack = ((ItemFrame) ent).getItem();
-            final BlockEntity tile = player.level().getBlockEntity(this.location.getPos());
+            final BlockEntity tile = player.level().getBlockEntity(this.location.pos());
             if (!(tile instanceof SignBlockEntity))
             {
                 EconomyManager.removeShop(this.location);
@@ -129,23 +126,23 @@ public class EconomyManager
                 {
                     int count = 0;
                     Container inv = null;
-                    final ItemStack test2 = stack.copy();
+                    ItemStack test2 = stack.copy();
+                    if (this.ignoreTag) test2 = new ItemStack(test2.getItem());
                     if (this.storage != null)
                     {
-                        final BlockEntity inventory = player.level().getBlockEntity(this.storage.getPos());
+                        final BlockEntity inventory = player.level().getBlockEntity(this.storage.pos());
                         if (inventory instanceof Container)
                         {
                             inv = (Container) inventory;
-                            if (this.ignoreTag) test2.setTag(new CompoundTag());
                             for (int i = 0; i < inv.getContainerSize(); i++)
                             {
                                 final ItemStack item = inv.getItem(i);
                                 if (!item.isEmpty())
                                 {
-                                    final ItemStack test = item.copy();
-                                    if (this.ignoreTag) test.setTag(new CompoundTag());
+                                    ItemStack test = item.copy();
+                                    if (this.ignoreTag) test = new ItemStack(test.getItem());
                                     test.setCount(this.number);
-                                    if (ItemStack.matches(test, test2)) count += item.getCount();
+                                    if (ItemStack.isSameItemSameComponents(test, test2)) count += item.getCount();
                                 }
                             }
                         }
@@ -158,20 +155,22 @@ public class EconomyManager
                         return false;
                     }
                     int i = 0;
-                    final Item itemIn = test2.getItem();
+                    Item itemIn = test2.getItem();
                     final int removeCount = this.number;
-                    final CompoundTag itemNBT = this.ignoreTag ? null : test2.getTag();
                     for (int j = 0; j < inv.getContainerSize(); ++j)
                     {
                         final ItemStack itemstack = inv.getItem(j);
-                        if (!itemstack.isEmpty() && itemstack.getItem() == itemIn
-                                && (itemNBT == null || NbtUtils.compareNbt(itemNBT, itemstack.getTag(), true)))
+                        if (itemstack.isEmpty()) continue;
+                        ItemStack test1 = itemstack.copy();
+                        if (this.ignoreTag) test1 = new ItemStack(test1.getItem());
+                        if (ItemStack.isSameItemSameComponents(test1, test2))
                         {
 
-                            final int k = removeCount <= 0 ? itemstack.getCount()
+                            final int k = removeCount <= 0
+                                    ? itemstack.getCount()
                                     : Math.min(removeCount - i, itemstack.getCount());
                             i += k;
-                            if (this.number == 1) stack.setTag(itemstack.getTag());
+                            if (this.number == 1) stack = itemstack.copy();
                             if (removeCount != 0)
                             {
                                 itemstack.shrink(k);
@@ -184,8 +183,9 @@ public class EconomyManager
                 EconomyManager.giveItem(player, stack);
                 EconomyManager.addBalance(shopAccount._id, this.cost);
                 EconomyManager.addBalance(player, -this.cost);
-                ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent(
-                        "thutessentials.econ.balance.remaining", null, false, EconomyManager.getBalance(player)));
+                ChatHelper.sendSystemMessage(player,
+                        CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null, false,
+                                EconomyManager.getBalance(player)));
             }
             else
             {
@@ -236,7 +236,7 @@ public class EconomyManager
                                 CommandManager.makeFormattedComponent("thutessentials.econ.no_storage"));
                         return false;
                     }
-                    final BlockEntity te = player.level().getBlockEntity(this.storage.getPos());
+                    final BlockEntity te = player.level().getBlockEntity(this.storage.pos());
                     if (te instanceof Container)
                     {
                         final Container inv = (Container) te;
@@ -245,7 +245,7 @@ public class EconomyManager
                         count = stack.getCount();
                         for (int i = 0; i < inv.getContainerSize(); i++)
                         {
-                            if (inv.getItem(i).isEmpty() || ItemStack.isSameItemSameTags(a, inv.getItem(i)))
+                            if (inv.getItem(i).isEmpty() || ItemStack.isSameItemSameComponents(a, inv.getItem(i)))
                             {
                                 int n = 0;
                                 if (!inv.getItem(i).isEmpty() && (n = inv.getItem(i).getCount() + a.getCount()) < 65)
@@ -264,13 +264,14 @@ public class EconomyManager
                         }
                     }
                 }
-                player.getInventory().clearOrCountMatchingItems(valid, this.number,
-                        player.inventoryMenu.getCraftSlots());
+                player.getInventory()
+                        .clearOrCountMatchingItems(valid, this.number, player.inventoryMenu.getCraftSlots());
                 player.inventoryMenu.broadcastChanges();
                 EconomyManager.addBalance(shopAccount._id, -this.cost);
                 EconomyManager.addBalance(player, this.cost);
-                ChatHelper.sendSystemMessage(player, CommandManager.makeFormattedComponent(
-                        "thutessentials.econ.balance.remaining", null, false, EconomyManager.getBalance(player)));
+                ChatHelper.sendSystemMessage(player,
+                        CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null, false,
+                                EconomyManager.getBalance(player)));
             }
             return false;
         }
@@ -292,7 +293,7 @@ public class EconomyManager
     public int initial = 1000;
 
     public Map<UUID, Account> bank = Maps.newHashMap();
-    public Map<KGobalPos, Account> _shopMap = Maps.newHashMap();
+    public Map<GlobalPos, Account> _shopMap = Maps.newHashMap();
     public Map<Account, UUID> _revBank = Maps.newHashMap();
 
     public static void clearInstance()
@@ -300,7 +301,7 @@ public class EconomyManager
         if (EconomyManager.instance != null)
         {
             LandSaveHandler.saveGlobalData();
-            MinecraftForge.EVENT_BUS.unregister(EconomyManager.instance);
+            NeoForge.EVENT_BUS.unregister(EconomyManager.instance);
         }
         EconomyManager.instance = null;
     }
@@ -311,7 +312,7 @@ public class EconomyManager
         {
             EconomySaveHandler.loadGlobalData();
             EconomyManager.instance.initial = Essentials.config.initialBalance;
-            MinecraftForge.EVENT_BUS.register(EconomyManager.instance);
+            NeoForge.EVENT_BUS.register(EconomyManager.instance);
         }
         return EconomyManager.instance;
     }
@@ -331,7 +332,7 @@ public class EconomyManager
 
     public EconomyManager()
     {
-        MinecraftForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(this);
         final Account master = new Account();
         master.balance = Integer.MAX_VALUE;
         this.bank.put(EconomyManager.DEFAULT_ID, master);
@@ -344,13 +345,12 @@ public class EconomyManager
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrame)
         {
-            final KGobalPos c = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(),
-                    evt.getPos().below());
+            final GlobalPos c = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos().below());
             Shop shop = EconomyManager.getShop(c);
-            final BlockEntity tile = evt.getLevel().getBlockEntity(c.getPos());
-            if (evt.getItemStack() != null && tile instanceof SignBlockEntity && shop == null
-                    && (evt.getItemStack().getHoverName().getString().contains("Shop")
-                            || evt.getItemStack().getHoverName().getString().contains("InfShop")))
+            final BlockEntity tile = evt.getLevel().getBlockEntity(c.pos());
+            if (evt.getItemStack() != null && tile instanceof SignBlockEntity && shop == null && (
+                    evt.getItemStack().getHoverName().getString().contains("Shop") || evt.getItemStack().getHoverName()
+                            .getString().contains("InfShop")))
             {
                 final boolean infinite = evt.getItemStack().getHoverName().getString().contains("InfShop");
                 final String permission = infinite ? EconomyManager.PERMMAKEINFSHOP : EconomyManager.PERMMAKESHOP;
@@ -391,7 +391,7 @@ public class EconomyManager
         final Entity target = hit.getEntity();
         if (target instanceof ItemFrame)
         {
-            final KGobalPos c = KGobalPos.getPosition(target.getCommandSenderWorld().dimension(),
+            final GlobalPos c = GlobalPos.of(target.getCommandSenderWorld().dimension(),
                     target.blockPosition().below());
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null) evt.setCanceled(true);
@@ -405,7 +405,7 @@ public class EconomyManager
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getTarget() instanceof ItemFrame)
         {
-            final KGobalPos c = KGobalPos.getPosition(evt.getTarget().getCommandSenderWorld().dimension(),
+            final GlobalPos c = GlobalPos.of(evt.getTarget().getCommandSenderWorld().dimension(),
                     evt.getTarget().blockPosition().below());
             final Shop shop = EconomyManager.getShop(c);
             if (shop != null)
@@ -413,7 +413,8 @@ public class EconomyManager
                 evt.setCanceled(true);
                 final Account account = this._shopMap.get(c);
                 final UUID owner = this._revBank.get(account);
-                final String perm = evt.getEntity().getUUID().equals(owner) ? EconomyManager.PERMKILLSHOP
+                final String perm = evt.getEntity().getUUID().equals(owner)
+                        ? EconomyManager.PERMKILLSHOP
                         : EconomyManager.PERMKILLSHOPOTHER;
                 if (PermNodes.getBooleanPerm((ServerPlayer) evt.getEntity(), perm))
                 {
@@ -436,7 +437,7 @@ public class EconomyManager
     public void interactRightClickBlock(final PlayerInteractEvent.RightClickBlock evt)
     {
         if (!(evt.getEntity() instanceof ServerPlayer) || !Essentials.config.shopsEnabled) return;
-        final KGobalPos c = KGobalPos.getPosition(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
+        final GlobalPos c = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos());
         final Shop shop = EconomyManager.getShop(c);
         if (shop != null)
         {
@@ -463,7 +464,7 @@ public class EconomyManager
         return this.getAccount(player.getUUID());
     }
 
-    public static Shop addShop(final ServerPlayer owner, final ItemFrame frame, final KGobalPos location,
+    public static Shop addShop(final ServerPlayer owner, final ItemFrame frame, final GlobalPos location,
             final boolean infinite, final boolean noTag)
     {
         final Shop shop = new Shop();
@@ -479,7 +480,7 @@ public class EconomyManager
         EconomyManager.getInstance()._shopMap.put(location, account);
         if (!shop.infinite)
         {
-            final BlockEntity down = owner.getCommandSenderWorld().getBlockEntity(location.getPos().below());
+            final BlockEntity down = owner.getCommandSenderWorld().getBlockEntity(location.pos().below());
             if (down instanceof SignBlockEntity sign)
             {
                 var comps = sign.getFrontText().getMessages(false);
@@ -488,11 +489,11 @@ public class EconomyManager
                 final int dy = Integer.parseInt(var[1]);
                 final int dz = Integer.parseInt(var[2]);
 
-                final BlockPos pos = new BlockPos(location.getPos().getX() + dx, location.getPos().getY() + dy,
-                        location.getPos().getZ() + dz);
-                final BreakEvent event = new BreakEvent(owner.getCommandSenderWorld(), pos,
+                final BlockPos pos = new BlockPos(location.pos().getX() + dx, location.pos().getY() + dy,
+                        location.pos().getZ() + dz);
+                final BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(owner.getCommandSenderWorld(), pos,
                         owner.getCommandSenderWorld().getBlockState(pos), owner);
-                MinecraftForge.EVENT_BUS.post(event);
+                NeoForge.EVENT_BUS.post(event);
                 if (event.isCanceled())
                 {
                     ChatHelper.sendSystemMessage(owner,
@@ -500,15 +501,15 @@ public class EconomyManager
                     return null;
                 }
 
-                shop.storage = KGobalPos.getPosition(location.getDimension(), pos.below());
+                shop.storage = GlobalPos.of(location.dimension(), pos.below());
             }
-            else shop.storage = KGobalPos.getPosition(location.getDimension(), location.getPos().below());
+            else shop.storage = GlobalPos.of(location.dimension(), location.pos().below());
         }
         EconomySaveHandler.saveGlobalData();
         return shop;
     }
 
-    public static void removeShop(final KGobalPos location)
+    public static void removeShop(final GlobalPos location)
     {
         final Account account = EconomyManager.getInstance()._shopMap.remove(location);
         if (account != null)
@@ -518,7 +519,7 @@ public class EconomyManager
         }
     }
 
-    public static Shop getShop(final KGobalPos location)
+    public static Shop getShop(final GlobalPos location)
     {
         final Account account = EconomyManager.getInstance()._shopMap.get(location);
         if (account == null) return null;
@@ -564,10 +565,11 @@ public class EconomyManager
         final boolean flag = entityplayer.getInventory().add(itemstack);
         if (flag)
         {
-            entityplayer.level().playSound((ServerPlayer) null, entityplayer.getX(), entityplayer.getY(),
-                    entityplayer.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
-                    ((entityplayer.getRandom().nextFloat() - entityplayer.getRandom().nextFloat()) * 0.7F + 1.0F)
-                            * 2.0F);
+            entityplayer.level()
+                    .playSound((ServerPlayer) null, entityplayer.getX(), entityplayer.getY(), entityplayer.getZ(),
+                            SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
+                            ((entityplayer.getRandom().nextFloat() - entityplayer.getRandom().nextFloat()) * 0.7F
+                                    + 1.0F) * 2.0F);
             entityplayer.inventoryMenu.broadcastChanges();
         }
         else

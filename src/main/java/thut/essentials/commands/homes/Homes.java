@@ -7,13 +7,13 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.HomeManager;
 import thut.essentials.util.PermNodes;
@@ -74,7 +74,7 @@ public class Homes
         if (homeName == null) homeName = "Home";
 
         final ServerPlayer player = source.getPlayerOrException();
-        final KGobalPos home = HomeManager.getHome(player, homeName);
+        final GlobalPos home = HomeManager.getHome(player, homeName);
         if (home == null)
         {
             final Component message = CommandManager.makeFormattedComponent("thutessentials.homes.noexists", null,

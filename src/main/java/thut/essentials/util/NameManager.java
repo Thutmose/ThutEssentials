@@ -5,14 +5,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.PlayerEvent.NameFormat;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 public class NameManager
 {
 
-    private static void onPlayerDisplayName(final NameFormat event)
+    private static void onPlayerDisplayName(final PlayerEvent.NameFormat event)
     {
         final CompoundTag tag = PlayerDataHandler.getCustomDataTag(event.getEntity());
         String nick = tag.getString("nick");
@@ -25,10 +25,9 @@ public class NameManager
         if (nick.length() > 16) nick = nick.substring(0, 16);
         final Component comp = Component.literal(RuleManager.format(nick));
         event.setDisplayname(comp);
-        if (event.getEntity() instanceof ServerPlayer && !old.equals(nick))
+        if (event.getEntity() instanceof ServerPlayer player && !old.equals(nick))
         {
             final MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            final ServerPlayer player = (ServerPlayer) event.getEntity();
             server.getPlayerList().broadcastAll(
                     new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, player));
         }
@@ -36,6 +35,6 @@ public class NameManager
 
     public static void init()
     {
-        MinecraftForge.EVENT_BUS.addListener(NameManager::onPlayerDisplayName);
+        NeoForge.EVENT_BUS.addListener(NameManager::onPlayerDisplayName);
     }
 }

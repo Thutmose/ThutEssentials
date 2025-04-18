@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.land.LandManager.KGobalPos;
+import net.minecraft.core.GlobalPos;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -44,7 +44,7 @@ public class Create
             final ResourceKey<Level> registryKey) throws CommandSyntaxException
     {
         final ServerPlayer player = source.getPlayerOrException();
-        final int ret = WarpManager.setWarp(KGobalPos.getPosition(registryKey, center), warpName);
+        final int ret = WarpManager.setWarp(GlobalPos.of(registryKey, center), warpName);
         Component message;
         switch (ret)
         {

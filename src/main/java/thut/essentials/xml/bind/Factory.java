@@ -37,12 +37,12 @@ import thut.essentials.xml.bind.annotation.XmlRootElement;
 public class Factory<T>
 {
 
-    private static Map<Class<?>, Map<String, Field>> knownElemMappins = Maps.newHashMap();
-    private static Map<Class<?>, Map<String, Field>> knownAttrMappins = Maps.newHashMap();
+    private static final Map<Class<?>, Map<String, Field>> knownElemMappins = Maps.newHashMap();
+    private static final Map<Class<?>, Map<String, Field>> knownAttrMappins = Maps.newHashMap();
 
-    private static Map<Class<?>, Field> knownAnyAtrMappins = Maps.newHashMap();
+    private static final Map<Class<?>, Field> knownAnyAtrMappins = Maps.newHashMap();
 
-    private static Map<String, String> trimmed = Maps.newConcurrentMap();
+    private static final Map<String, String> trimmed = Maps.newConcurrentMap();
 
     public static String trim(final String name)
     {

@@ -6,12 +6,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.land.LandManager.KGobalPos;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -39,7 +39,7 @@ public class InitSpawn
     {
         Player player = source.getPlayerOrException();
         ResourceKey<Level> registryKey = player.level().dimension();
-        KGobalPos pos = KGobalPos.getPosition(registryKey, player.getOnPos());
+        GlobalPos pos = GlobalPos.of(registryKey, player.getOnPos());
         Essentials.config.firstSpawn = CoordinateUtls.toString(pos);
         Essentials.config.write();
         return 0;

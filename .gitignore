@@ -20,5 +20,7 @@ build
 # other
 eclipse
 run
-/.apt_generated_tests/
-/.apt_generated/
+runs
+run-data
+
+repo

@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.land.LandManager.KGobalPos;
+import net.minecraft.core.GlobalPos;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -54,7 +54,7 @@ public class Spawn
             return 1;
         }
         final MinecraftServer server = player.getServer();
-        final KGobalPos spawn = KGobalPos.getPosition(Essentials.config.spawnDimension, server
+        final GlobalPos spawn = GlobalPos.of(Essentials.config.spawnDimension, server
                 .getLevel(Essentials.config.spawnDimension).getSharedSpawnPos());
         final Component teleMess = CommandManager.makeFormattedComponent("thutessentials.spawn.succeed");
         PlayerMover.setMove(player, Essentials.config.spawnActivateDelay, spawn, teleMess, PlayerMover.INTERUPTED);

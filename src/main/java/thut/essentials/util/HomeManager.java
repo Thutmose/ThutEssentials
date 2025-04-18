@@ -1,6 +1,7 @@
 package thut.essentials.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
@@ -10,13 +11,12 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.nodes.PermissionNode;
-import net.minecraftforge.server.permission.nodes.PermissionTypes;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.land.LandManager;
-import thut.essentials.land.LandManager.KGobalPos;
 
 public class HomeManager
 {
@@ -37,7 +37,7 @@ public class HomeManager
         return index < homes;
     }
 
-    public static KGobalPos getHome(final ServerPlayer player, String home)
+    public static GlobalPos getHome(final ServerPlayer player, String home)
     {
         if (home == null) home = "Home";
         final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
@@ -50,7 +50,7 @@ public class HomeManager
             {
                 final BlockPos b = new BlockPos(pos[0], pos[1], pos[2]);
                 final ResourceKey<Level> dim = LandManager.Coordinate.fromOld(pos[3]);
-                return KGobalPos.getPosition(dim, b);
+                return GlobalPos.of(dim, b);
             }
             return null;
         }
@@ -71,7 +71,7 @@ public class HomeManager
         if (!HomeManager.canAddHome(player, num)) return 2;
         // Already exists
         if (homes.contains(home)) return 3;
-        final KGobalPos loc = KGobalPos.getPosition(player.getCommandSenderWorld().dimension(), pos);
+        final GlobalPos loc = GlobalPos.of(player.getCommandSenderWorld().dimension(), pos);
         homes.put(home, CoordinateUtls.toNBT(loc, home));
         tag.put("homes", homes);
         ChatHelper.sendSystemMessage(player, Component.literal("set " + home));

@@ -1,31 +1,25 @@
 package thut.essentials;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
+import net.minecraft.server.MinecraftServer;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.appender.FileAppender;
-
-import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.IExtensionPoint;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.network.NetworkConstants;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
@@ -39,6 +33,12 @@ import thut.essentials.util.world.DimVersionManager;
 import thut.essentials.util.world.TickScheduler;
 import thut.essentials.util.world.WorldStructures;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Mod(Essentials.MODID)
 public class Essentials
 {
@@ -49,10 +49,13 @@ public class Essentials
 
     public static MinecraftServer server = null;
 
-    public Essentials()
+    public static final DeferredRegister<AttachmentType<?>> ATTACHMENTS = DeferredRegister.create(
+            NeoForgeRegistries.Keys.ATTACHMENT_TYPES, MODID);
+
+    public Essentials(IEventBus bus, ModContainer container)
     {
-        MinecraftForge.EVENT_BUS.register(this);
-        thut.essentials.config.Config.setupConfigs(Essentials.config, Essentials.MODID, Essentials.MODID);
+        NeoForge.EVENT_BUS.register(this);
+        thut.essentials.config.Config.setupConfigs(container, Essentials.config, Essentials.MODID, Essentials.MODID);
         final String log = Essentials.MODID;
         final File logfile = FMLPaths.GAMEDIR.get().resolve("logs").resolve(log + ".log").toFile();
         if (logfile.exists())
@@ -62,8 +65,9 @@ public class Essentials
             {
                 final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
                 Files.move(FMLPaths.GAMEDIR.get().resolve("logs").resolve(log + ".log"),
-                        FMLPaths.GAMEDIR.get().resolve("logs").resolve("old").resolve(String.format("%s_%s%s", log,
-                                LocalDateTime.now().format(dtf).replace(":", "-"), ".log")));
+                        FMLPaths.GAMEDIR.get().resolve("logs").resolve("old").resolve(
+                                String.format("%s_%s%s", log, LocalDateTime.now().format(dtf).replace(":", "-"),
+                                        ".log")));
             }
             catch (final IOException e)
             {
@@ -77,31 +81,29 @@ public class Essentials
         appender.start();
 
         // This won't actually do anything unless config is enabled.
-        MinecraftForge.EVENT_BUS.register(ChunkLoadHandler.class);
+        NeoForge.EVENT_BUS.register(ChunkLoadHandler.class);
 
         // Register the mob grief preventer
-        MinecraftForge.EVENT_BUS.register(MobManager.class);
+        NeoForge.EVENT_BUS.register(MobManager.class);
 
         if (Essentials.config.defuzz)
         {
             Essentials.LOGGER.info("Registering Defuzzer!");
-            MinecraftForge.EVENT_BUS.register(SpawnDefuzzer.class);
+            NeoForge.EVENT_BUS.register(SpawnDefuzzer.class);
         }
+        ClaimedCapability.setup(ATTACHMENTS);
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-
-        ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class,
-                () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (ver, remote) -> true));
+        bus.addListener(this::setup);
     }
 
     public void setup(final FMLCommonSetupEvent event)
     {
         // Initialize the world structure tracker
         WorldStructures.setup();
-        ClaimedCapability.setup();
         DimVersionManager.init();
-        MinecraftForge.EVENT_BUS.addListener(TickScheduler::onWorldTick);
-        MinecraftForge.EVENT_BUS.addListener(CmdScheduler::onTick);
+        NeoForge.EVENT_BUS.addListener(TickScheduler::onWorldTickPost);
+        NeoForge.EVENT_BUS.addListener(TickScheduler::onWorldTickPre);
+        NeoForge.EVENT_BUS.addListener(CmdScheduler::onTick);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -113,7 +115,7 @@ public class Essentials
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void serverStarting(final ServerStartingEvent event)
     {
-        if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
+        if (Essentials.config.landEnabled) NeoForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.getInstance();
         LandEventsHandler.ChunkLoadHandler.server = event.getServer();
         Essentials.LOGGER.info("Server Started");
@@ -122,7 +124,7 @@ public class Essentials
     @SubscribeEvent
     public void serverStarted(final ServerStartedEvent event)
     {
-        if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
+        if (Essentials.config.landEnabled) NeoForge.EVENT_BUS.register(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.getInstance();
         LandEventsHandler.TEAMMANAGER.onServerStarted();
     }
@@ -136,7 +138,7 @@ public class Essentials
     @SubscribeEvent
     public void serverUnload(final ServerStoppingEvent evt)
     {
-        if (Essentials.config.landEnabled) MinecraftForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER);
+        if (Essentials.config.landEnabled) NeoForge.EVENT_BUS.unregister(LandEventsHandler.TEAMMANAGER);
         if (Essentials.config.shopsEnabled) EconomyManager.clearInstance();
         LandEventsHandler.TEAMMANAGER.onServerStopped();
         PlayerDataHandler.saveAll();

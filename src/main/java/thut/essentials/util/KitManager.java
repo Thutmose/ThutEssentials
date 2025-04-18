@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.ClickEvent;
@@ -23,9 +24,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.tags.ITag;
+import net.neoforged.fml.loading.FMLPaths;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
@@ -177,7 +176,7 @@ public class KitManager
     public static boolean isSameStack(final ItemStack a, final ItemStack b, final boolean strict)
     {
         // TODO determine if to use the tags?
-        return ItemStack.isSameItemSameTags(a, b);
+        return ItemStack.isSameItemSameComponents(a, b);
     }
 
     public static ItemStack getStack(final Map<QName, String> values)
@@ -188,31 +187,13 @@ public class KitManager
 
         for (final QName key : values.keySet()) if (key.toString().equals("id")) id = values.get(key);
         else if (key.toString().equals("n")) size = Integer.parseInt(values.get(key));
-        else if (key.toString().equals("tag")) tag = values.get(key).trim();
         if (id.isEmpty()) return ItemStack.EMPTY;
-        final ResourceLocation loc = new ResourceLocation(id);
+        final ResourceLocation loc = ResourceLocation.parse(id);
         ItemStack stack = ItemStack.EMPTY;
-        Optional<Item> item = Optional.ofNullable(ForgeRegistries.ITEMS.getValue(loc));
-        if (item.isEmpty())
-        {
-            ITag<Item> tagged = ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registries.ITEM, loc));
-            if (tagged != null)
-            {
-                item = tagged.getRandomElement(RandomSource.create());
-                if (!item.isEmpty()) return new ItemStack(item.get());
-            }
-        }
-        if (item.isEmpty()) return ItemStack.EMPTY;
+        Optional<Item> item = Optional.of(BuiltInRegistries.ITEM.get(loc));
         if (stack.isEmpty()) stack = new ItemStack(item.get(), 1);
         stack.setCount(size);
-        if (!tag.isEmpty()) try
-        {
-            stack.setTag(TagParser.parseTag(tag));
-        }
-        catch (final CommandSyntaxException e)
-        {
-            Essentials.LOGGER.error("Error parsing items for " + values, e);
-        }
+        // TODO support components and tags
         return stack;
     }
 

@@ -4,15 +4,14 @@ import javax.annotation.Nullable;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.eventbus.api.Cancelable;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.neoforge.event.entity.EntityEvent;
 
-@Cancelable
 /**
  * Cancel this event to allow the item to be used. These events are only called
  * in the case where these items are about to be denied of use
  */
-public class DenyItemUseEvent extends EntityEvent
+public class DenyItemUseEvent extends EntityEvent implements ICancellableEvent
 {
     private final ItemStack toUse;
 

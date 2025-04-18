@@ -1,8 +1,7 @@
-package thut.essentials.events;
+package thut.essentials.util.teleporting;
 
 import net.neoforged.bus.api.Event;
 import net.neoforged.bus.api.ICancellableEvent;
-import thut.essentials.util.teleporting.TeleDest;
 
 public class TeleLoadEvent extends Event implements ICancellableEvent
 {
