@@ -91,6 +91,7 @@ public class Essentials
             Essentials.LOGGER.info("Registering Defuzzer!");
             NeoForge.EVENT_BUS.register(SpawnDefuzzer.class);
         }
+        ATTACHMENTS.register(bus);
         ClaimedCapability.setup(ATTACHMENTS);
 
         bus.addListener(this::setup);
