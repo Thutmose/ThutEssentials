@@ -1,11 +1,8 @@
 package thut.essentials.commands.land.management;
 
-import java.util.List;
-
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -19,6 +16,8 @@ import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
+import java.util.List;
+
 public class Invite
 {
 
@@ -28,7 +27,8 @@ public class Invite
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+                    "Can the player use /" + name);
 
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
                     .requires(cs -> CommandManager.hasPerm(cs, perm));
@@ -40,7 +40,8 @@ public class Invite
         if (!Essentials.config.commandBlacklist.contains(name))
         {
             String perm;
-            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL, "Can the player use /" + name);
+            PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
+                    "Can the player use /" + name);
 
             LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal(name)
                     .requires(cs -> CommandManager.hasPerm(cs, perm));
@@ -66,7 +67,7 @@ public class Invite
         {
             final String command = "/" + cmd + " " + element;
             final Component message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link",
-                    command, null, false, c);
+                    command, c);
             ChatHelper.sendSystemMessage(player, message);
         }
         return 0;
@@ -86,8 +87,9 @@ public class Invite
         final LandTeam oldTeam = LandManager.getTeam(invitee);
         if (landTeam == oldTeam)
         {
-            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyin", null,
-                    false, invitee.getDisplayName().getString()));
+            source.sendFailure(
+                    CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyin", null, false,
+                            invitee.getDisplayName().getString()));
             return 1;
         }
         if (!landTeam.hasRankPerm(inviter.getUUID(), LandTeam.INVITE))
@@ -98,8 +100,9 @@ public class Invite
         final String team = landTeam.teamName;
         if (LandManager.getInstance().hasInvite(invitee.getUUID(), team))
         {
-            source.sendFailure(CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyinvited", null,
-                    false, invitee.getDisplayName().getString()));
+            source.sendFailure(
+                    CommandManager.makeFormattedComponent("thutessentials.team.invite.alreadyinvited", null, false,
+                            invitee.getDisplayName().getString()));
             return 1;
         }
         final boolean invite = LandManager.getInstance().invite(inviter.getUUID(), invitee.getUUID());
@@ -114,11 +117,12 @@ public class Invite
         final Component header = CommandManager.makeFormattedComponent("thutessentials.team.invite.invited_recieve",
                 null, false, landTeam.teamName, inviter.getDisplayName());
         final Component message = CommandManager.makeFormattedCommandLink("thutessentials.team.invite.link", command,
-                null, false, landTeam.teamName);
+                landTeam.teamName);
         ChatHelper.sendSystemMessage(invitee, header);
         ChatHelper.sendSystemMessage(invitee, message);
-        ChatHelper.sendSystemMessage(inviter, CommandManager.makeFormattedComponent(
-                "thutessentials.team.invite.invited_sent", null, false, invitee.getDisplayName().getString()));
+        ChatHelper.sendSystemMessage(inviter,
+                CommandManager.makeFormattedComponent("thutessentials.team.invite.invited_sent", null, false,
+                        invitee.getDisplayName().getString()));
 
         return 0;
     }
