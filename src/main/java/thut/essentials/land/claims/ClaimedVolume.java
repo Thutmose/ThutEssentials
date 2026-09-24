@@ -8,7 +8,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.common.util.INBTSerializable;
-import thut.essentials.land.ClaimedCapability.ClaimInfo;
 import thut.essentials.land.claims.NamedVolumes.INamedVolume;
 
 import java.util.ArrayList;
