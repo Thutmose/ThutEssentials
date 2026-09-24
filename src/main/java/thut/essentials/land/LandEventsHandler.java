@@ -374,7 +374,7 @@ public class LandEventsHandler
             final ParticleOptions otherowned = ParticleTypes.ANGRY_VILLAGER;
             final ParticleOptions owned = ParticleTypes.HAPPY_VILLAGER;
             final ParticleOptions chunkloaded = ParticleTypes.HEART;
-            ParticleOptions show = null;
+            ParticleOptions show;
             final LandTeam us = LandManager.getTeam(player);
             int x, y, z;
             int x1, y1, z1;
@@ -390,7 +390,6 @@ public class LandEventsHandler
                     x = cx + dx;
                     z = cz + dz;
                     final GlobalPos c = GlobalPos.of(dim, new BlockPos(x, 0, z));
-                    y = cy;
                     final boolean cl = ChunkLoadHandler.allLoaded.contains(c);
 
                     for (int dy = -3; dy <= 3; dy++)
@@ -504,7 +503,6 @@ public class LandEventsHandler
                 final boolean isOldOwned = !LandManager.isWild(oldClaimer);
 
                 final boolean isWild = !isNewOwned;
-                final boolean notLoaded = newClaimer == LandManager.getNotLoaded();
 
                 final CompoundTag tag = PlayerDataHandler.getCustomDataTag(player);
                 final CompoundTag entry_log = tag.getCompound("last_entered_chunk");
@@ -561,7 +559,7 @@ public class LandEventsHandler
 
                     messages:
                     {
-                        if (newClaimer != null && !isWild && !notLoaded)
+                        if (newClaimer != null && !isWild)
                         {
                             if (newClaimer.equals(oldClaimer)) break messages;
                             if (oldClaimer != null)

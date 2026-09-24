@@ -68,8 +68,7 @@ public class LandManager
         @Override
         public boolean equals(final Object obj)
         {
-            if (!(obj instanceof Coordinate)) return false;
-            final Coordinate BlockPos = (Coordinate) obj;
+            if (!(obj instanceof Coordinate BlockPos)) return false;
             return this.x == BlockPos.x && this.y == BlockPos.y && this.z == BlockPos.z && this.dim == BlockPos.dim;
         }
 
@@ -482,18 +481,6 @@ public class LandManager
         return LandManager.getTeam(player.getUUID());
     }
 
-    public static LandTeam getNotLoaded()
-    {
-        LandTeam not_loaded = LandManager.getInstance().getTeam("__not_a_chunk__", false);
-        if (not_loaded == null)
-        {
-            not_loaded = LandManager.getInstance().getTeam("__not_a_chunk__", true);
-            not_loaded.reserved = true;
-            not_loaded.allPublic = false;
-        }
-        return not_loaded;
-    }
-
     public static LandTeam getDefaultTeam()
     {
         return LandManager.getInstance().getTeam(Essentials.config.defaultTeamName, true);
@@ -624,7 +611,6 @@ public class LandManager
         if (claims != null)
         {
             // Already claimed
-            System.out.println("Already Claimed!");
             return;
         }
         final LandTeam t = this._teamMap.get(team);
@@ -804,12 +790,11 @@ public class LandManager
 
     public LandTeam getLandOwner(final Level world, final BlockPos pos, final boolean chunkCoords)
     {
-        // TODO remove legacy stuff
         GlobalPos c = GlobalPos.of(world.dimension(), pos);
         var owner = this.getLandOwner(c);
         var claims = this.getClaimer(world, pos, chunkCoords);
         if (claims != null) owner = this.getTeamForLand(claims.info.owner);
-        else return LandManager.getNotLoaded();
+        else return LandManager.getWildTeam();
         return owner;
     }
 
