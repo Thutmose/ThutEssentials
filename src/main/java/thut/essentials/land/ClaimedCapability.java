@@ -40,6 +40,7 @@ public class ClaimedCapability
             final ListTag pubBlocks = new ListTag();
             this.publicBlocks.forEach(b -> pubBlocks.add(NbtUtils.writeBlockPos(b)));
             tag.put("public_blocks", pubBlocks);
+            if (owner != null) tag.put("owner", NbtUtils.createUUID(owner));
             return tag;
         }
 

@@ -620,7 +620,7 @@ public class LandManager
             return;
         }
         int minY = SectionPos.sectionToBlockCoord(pos.getY(), 0),
-                maxY = SectionPos.sectionToBlockCoord(pos.getY(), 15);
+                maxY = SectionPos.sectionToBlockCoord(pos.getY(), 16);
         ClaimedVolume claim = new ClaimedVolume(new ChunkPos(pos.getX(), pos.getZ()), minY, maxY);
         claim.info.owner = t.land.uuid;
         t.land.claimed++;

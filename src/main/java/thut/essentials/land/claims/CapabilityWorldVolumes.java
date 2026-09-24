@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import thut.essentials.land.LandManager;
 import thut.essentials.land.claims.NamedVolumes.INamedVolume;
 
 public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
@@ -73,6 +74,8 @@ public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
                 var volume = NamedVolumes.loadVolume(registries, comp);
                 if (volume != null)
                 {
+                    // || !LandManager.getInstance()._team_land.containsKey(v.info.owner))
+                    if (volume instanceof ClaimedVolume v && (v.info.owner == null)) return;
                     this.volumes.add(volume);
                 }
             }
