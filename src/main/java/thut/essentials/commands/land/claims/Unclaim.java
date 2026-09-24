@@ -112,9 +112,9 @@ public class Unclaim
             }
             final int min = down ? player.level().getMinSection() : y;
             final int max = up ? player.level().getMaxSection() : y;
-            boolean done = false;
-            int claimnum = 0;
-            int owned_other = 0;
+            boolean done;
+            int claimnum;
+            int owned_other;
             for (int i = min; i < max; i++)
                 Unclaim.unclaim(x, i, z, player, team, false, canUnclaimAnything, worked, other, ready);
 
@@ -156,7 +156,7 @@ public class Unclaim
         }
         final UnclaimLandEvent event = new UnclaimLandEvent(chunk, player, team.teamName);
         NeoForge.EVENT_BUS.post(event);
-        LandManager.getInstance().unclaimLand(team.teamName, player.getCommandSenderWorld(), chunk.pos(), true);
+        LandManager.getInstance().unclaimLand(team.teamName, player.getCommandSenderWorld(), chunk.pos());
         worked.getAndIncrement();
         ready.getAndSet(true);
         if (messages) ChatHelper.sendSystemMessage(player,

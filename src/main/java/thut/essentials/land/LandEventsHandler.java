@@ -39,12 +39,12 @@ import net.neoforged.fml.LogicalSide;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
 import net.neoforged.neoforge.event.entity.EntityMobGriefingEvent;
 import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
-import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -482,9 +482,8 @@ public class LandEventsHandler
         {
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
             if (!Essentials.config.landEnabled) return;
-            if (evt.getEntity() instanceof ServerPlayer && evt.getEntity().tickCount > 10)
+            if (evt.getEntity() instanceof ServerPlayer player && evt.getEntity().tickCount > 10)
             {
-                final ServerPlayer player = (ServerPlayer) evt.getEntity();
                 if (EntityEventHandler.showLandSet.contains(player.getUUID()) && player.tickCount % 20 == 0)
                     this.sendNearbyChunks(player);
                 BlockPos here;
@@ -514,7 +513,6 @@ public class LandEventsHandler
 
                 if (!(isNewOwned || isOldOwned))
                 {
-                    entry_point = old;
                     entry_log.put("from", NbtUtils.writeBlockPos(entry_point));
                     entry_log.putString("owner", "");
                 }
@@ -600,39 +598,41 @@ public class LandEventsHandler
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)
-        public void attack(final AttackEntityEvent evt)
+        public void attack(final EntityInvulnerabilityCheckEvent evt)
         {
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
             if (!Essentials.config.landEnabled) return;
             final Level world = evt.getEntity().getCommandSenderWorld();
-            final GlobalPos b = CoordinateUtls.forMob(evt.getTarget());
-            final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getTarget().blockPosition());
+            final GlobalPos b = CoordinateUtls.forMob(evt.getEntity());
+            final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getEntity().blockPosition());
 
-            if (!this.canTakeDamage(evt.getTarget(), owner))
+            if (!this.canTakeDamage(evt.getEntity(), owner))
             {
-                evt.setCanceled(true);
+                evt.setInvulnerable(true);
                 return;
+            }
+
+            // If mob is protected, do not allow the attack, even if by owner.
+            if (owner!=null && owner.protected_mobs.contains(evt.getEntity().getUUID()))
+            {
+                evt.setInvulnerable(true);
             }
 
             // TODO possible perms for attacking things in unclaimed land?
             if (LandManager.isWild(owner)) return;
 
-            final Player attacker = evt.getEntity();
+            Player attacker = null;
+            if (evt.getSource().getEntity() instanceof Player p) attacker = p;
+            else if (evt.getSource().getDirectEntity() instanceof Player p) attacker = p;
 
             // Check if the team allows fakeplayers
             if (owner.fakePlayers && evt.getEntity() instanceof FakePlayer) return;
 
             // Check if item frame
-            if (evt.getTarget() instanceof ItemFrame && !owner.canBreakBlock(attacker.getUUID(), b))
+            if (evt.getEntity() instanceof ItemFrame && (attacker == null || !owner.canBreakBlock(attacker.getUUID(),
+                    b)))
             {
-                evt.setCanceled(true);
-                return;
-            }
-
-            // If mob is protected, do not allow the attack, even if by owner.
-            if (owner.protected_mobs.contains(evt.getTarget().getUUID()))
-            {
-                evt.setCanceled(true);
+                evt.setInvulnerable(true);
                 return;
             }
         }
@@ -640,7 +640,6 @@ public class LandEventsHandler
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void mobGriefing(final EntityMobGriefingEvent evt)
         {
-            if (evt.getEntity() == null) return;
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
             if (!Essentials.config.landEnabled) return;
             if (!Essentials.config.noMobGriefing) return;
@@ -700,8 +699,7 @@ public class LandEventsHandler
             if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
             if (!Essentials.config.landEnabled) return;
             if (evt.getRayTraceResult().getType() == Type.MISS) return;
-            if (!(evt.getRayTraceResult() instanceof EntityHitResult)) return;
-            final EntityHitResult hit = (EntityHitResult) evt.getRayTraceResult();
+            if (!(evt.getRayTraceResult() instanceof EntityHitResult hit)) return;
 
             final Entity target = hit.getEntity();
             final LandTeam owner = LandManager.getInstance()
@@ -793,7 +791,8 @@ public class LandEventsHandler
                 return DenyReason.NONE;
 
             // See if is food and should be explicitly whitelisted
-            if (Essentials.config.foodWhitelisted && evt.getItemStack().has(DataComponents.FOOD)) return DenyReason.NONE;
+            if (Essentials.config.foodWhitelisted && evt.getItemStack().has(DataComponents.FOOD))
+                return DenyReason.NONE;
 
             // Check the tag for the item as well
             if (ItemList.is(LandEventsHandler.ITEMUSEWHTETAG, evt.getItemStack())) return DenyReason.NONE;
@@ -1144,7 +1143,6 @@ public class LandEventsHandler
             // for this check.
             final boolean owns = owner.canUseStuff(player.getUUID(), b) || owner.canPlaceBlock(player.getUUID(), b);
             // Check if the block is public.
-            final GlobalPos blockLoc = b;
             // If we own this, we can return here, first check public toggle
             // though.
             if (owns)
@@ -1154,9 +1152,9 @@ public class LandEventsHandler
                         && evt.getEntity().isCrouching() && !owner.allPublic && LandManager.getInstance()
                         .isAdmin(evt.getEntity().getUUID()))
                 {
-                    final boolean isPublic = LandManager.getInstance().isPublic(blockLoc, owner);
-                    if (isPublic) LandManager.getInstance().unsetPublic(blockLoc, owner);
-                    else LandManager.getInstance().setPublic(blockLoc, owner);
+                    final boolean isPublic = LandManager.getInstance().isPublic(b, owner);
+                    if (isPublic) LandManager.getInstance().unsetPublic(b, owner);
+                    else LandManager.getInstance().setPublic(b, owner);
                     ChatHelper.sendSystemMessage(evt.getEntity(),
                             Essentials.config.getMessage("msg.team.setpublic.block." + !isPublic));
                     evt.setCanceled(true);
@@ -1169,9 +1167,9 @@ public class LandEventsHandler
                         && evt.getEntity().isCrouching() && LandManager.getInstance()
                         .isAdmin(evt.getEntity().getUUID()))
                 {
-                    final boolean isPublic = owner.public_break.contains(blockLoc);
-                    if (owner.public_break.contains(blockLoc)) owner.public_break.remove(blockLoc);
-                    else owner.public_break.add(blockLoc);
+                    final boolean isPublic = owner.public_break.contains(b);
+                    if (owner.public_break.contains(b)) owner.public_break.remove(b);
+                    else owner.public_break.add(b);
                     ChatHelper.sendSystemMessage(evt.getEntity(),
                             Essentials.config.getMessage("msg.team.setbreak.block." + !isPublic));
                     LandSaveHandler.saveTeam(owner.teamName);
@@ -1185,9 +1183,9 @@ public class LandEventsHandler
                         && evt.getEntity().isCrouching() && LandManager.getInstance()
                         .isAdmin(evt.getEntity().getUUID()))
                 {
-                    final boolean isPublic = owner.public_place.contains(blockLoc);
-                    if (owner.public_place.contains(blockLoc)) owner.public_place.remove(blockLoc);
-                    else owner.public_place.add(blockLoc);
+                    final boolean isPublic = owner.public_place.contains(b);
+                    if (owner.public_place.contains(b)) owner.public_place.remove(b);
+                    else owner.public_place.add(b);
                     ChatHelper.sendSystemMessage(evt.getEntity(),
                             Essentials.config.getMessage("msg.team.setplace.block." + !isPublic));
                     LandSaveHandler.saveTeam(owner.teamName);

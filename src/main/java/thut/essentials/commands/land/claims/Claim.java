@@ -106,9 +106,8 @@ public class Claim
     public static void livingUpdate(final EntityTickEvent.Post evt)
     {
         if (!evt.getEntity().isAlive() || !Claim.autoclaimers.contains(evt.getEntity().getUUID())
-                || !(evt.getEntity() instanceof ServerPlayer))
+                || !(evt.getEntity() instanceof ServerPlayer player))
             return;
-        final ServerPlayer player = (ServerPlayer) evt.getEntity();
         final LandTeam team = LandManager.getTeam(player);
 
         BlockPos here;
@@ -289,7 +288,7 @@ public class Claim
     public static int claim(final Level world, final BlockPos chunkCoord, final Player player, final LandTeam team,
             final boolean messages, final boolean noLimit)
     {
-        final LandTeam owner = LandManager.getInstance().getLandOwner(world, chunkCoord, true);
+        final LandTeam owner = LandManager.getInstance().getLandOwner(world, chunkCoord);
         if (!LandManager.isWild(owner))
         {
             if (messages) ChatHelper.sendSystemMessage(player,
@@ -308,7 +307,7 @@ public class Claim
         final GlobalPos pos = GlobalPos.of(world.dimension(), chunkCoord);
         final ClaimLandEvent event = new ClaimLandEvent(pos, player, team.teamName);
         NeoForge.EVENT_BUS.post(event);
-        LandManager.getInstance().claimLand(team.teamName, world, chunkCoord, true);
+        LandManager.getInstance().claimLand(team.teamName, world, chunkCoord);
         if (messages) ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.claim.claimed", team.teamName));
         return 0;

@@ -47,7 +47,7 @@ public class LandSaveHandler
         for (final String s : teamMap.keySet())
         {
             final LandTeam team = teamMap.get(s);
-            if (team.member.size() == 0 && !team.reserved && team != LandManager.getDefaultTeam()) toRemove.add(s);
+            if (team.member.isEmpty() && !team.reserved && team != LandManager.getDefaultTeam()) toRemove.add(s);
         }
         for (final String s : toRemove)
             LandManager.getInstance().removeTeam(s);

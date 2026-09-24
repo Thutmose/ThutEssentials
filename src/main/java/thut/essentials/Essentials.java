@@ -23,9 +23,9 @@ import org.apache.logging.log4j.core.appender.FileAppender;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
-import thut.essentials.land.ClaimedCapability;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
+import thut.essentials.land.claims.CapabilityWorldVolumes;
 import thut.essentials.util.CmdScheduler;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerDataHandler;
@@ -92,7 +92,8 @@ public class Essentials
             NeoForge.EVENT_BUS.register(SpawnDefuzzer.class);
         }
         ATTACHMENTS.register(bus);
-        ClaimedCapability.setup(ATTACHMENTS);
+//        ClaimedCapability.setup(ATTACHMENTS);
+        CapabilityWorldVolumes.registerAttachment(ATTACHMENTS);
 
         bus.addListener(this::setup);
     }

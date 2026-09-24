@@ -37,14 +37,13 @@ public class Deed
     @SubscribeEvent(receiveCanceled = true)
     public static void interact(final PlayerInteractEvent.RightClickItem evt)
     {
-        if (!(evt.getEntity() instanceof ServerPlayer)) return;
+        if (!(evt.getEntity() instanceof ServerPlayer player)) return;
         final ItemStack stack = evt.getItemStack();
         if (!stack.has(DataComponents.CUSTOM_DATA)) return;
         var data = stack.get(DataComponents.CUSTOM_DATA);
         var _tag = data.copyTag();
         if (!_tag.getBoolean("isDeed")) return;
 
-        final ServerPlayer player = (ServerPlayer) evt.getEntity();
         if (!PermNodes.getBooleanPerm(player, Deed.CANREDEEMDEEDS))
         {
             ChatHelper.sendSystemMessage(player,
@@ -77,7 +76,7 @@ public class Deed
             x = c.pos().getX();
             z = c.pos().getZ();
             // Unclaim from deed team first.
-            LandManager.getInstance().unclaimLand(Deed.DEEDTEAM, world, c.pos(), true);
+            LandManager.getInstance().unclaimLand(Deed.DEEDTEAM, world, c.pos());
             // Then claim for the new owner.
             final int re = Claim.claim(world, c.pos(), player, team, false,
                     PermNodes.getBooleanPerm(player, Deed.BYPASSLIMIT));
@@ -173,7 +172,6 @@ public class Deed
                 if (ret == 0)
                 {
                     final GlobalPos chunk = GlobalPos.of(dim, new BlockPos(x, y, z));
-                    done = true;
                     deeds.add(chunk);
                 }
                 else return;
@@ -244,11 +242,11 @@ public class Deed
         }
 
         final Level world = player.getCommandSenderWorld();
-        LandManager.getInstance().unclaimLand(team.teamName, world, chunk.pos(), true);
+        LandManager.getInstance().unclaimLand(team.teamName, world, chunk.pos());
         // ensure the deed team exist, and that it is set to reserved.
         Deed.initDeedTeam();
         // Transfers the claim over to the "deed team"
-        LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.pos(), true);
+        LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.pos());
         if (messages) ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
 

@@ -14,6 +14,7 @@ import com.mojang.authlib.GameProfile;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -22,11 +23,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.ChunkAccess;
 import thut.essentials.Essentials;
-import thut.essentials.land.ClaimedCapability.ClaimSegment;
-import thut.essentials.land.ClaimedCapability.IClaimed;
-import thut.essentials.util.CoordinateUtls;
+import thut.essentials.land.claims.CapabilityWorldVolumes;
+import thut.essentials.land.claims.ClaimedVolume;
+import thut.essentials.land.claims.NamedVolumes;
+import thut.essentials.land.claims.StructureManager;
 import thut.essentials.util.InventoryLogger;
 
 public class LandManager
@@ -341,9 +342,6 @@ public class LandManager
         /**
          * This is for checking whether the player is in a team with a relation
          * that allows breaking blocks in our land.
-         *
-         * @param player
-         * @return
          */
         public boolean canBreakBlock(final UUID player, final GlobalPos location)
         {
@@ -357,9 +355,6 @@ public class LandManager
         /**
          * This is for checking whether the player is in a team with a relation
          * that allows placing blocks in our land.
-         *
-         * @param player
-         * @return
          */
         public boolean canPlaceBlock(final UUID player, final GlobalPos location)
         {
@@ -373,9 +368,6 @@ public class LandManager
         /**
          * This is for checking whether the player is in a team with a relation
          * that allows using any random thing in our land.
-         *
-         * @param player
-         * @return
          */
         public boolean canUseStuff(final UUID player, final GlobalPos location)
         {
@@ -541,7 +533,7 @@ public class LandManager
     {
         if (landId == null) return LandManager.getWildTeam();
         final LandTeam team = this._team_land.getOrDefault(landId, LandManager.getWildTeam());
-        if (team == LandManager.getDefaultTeam()) return LandManager.getWildTeam();
+        if (team == LandManager.getDefaultTeam()||team==null) return LandManager.getWildTeam();
         return team;
     }
 
@@ -626,12 +618,13 @@ public class LandManager
         LandSaveHandler.deleteTeam(teamName);
     }
 
-    public void claimLand(final String team, final Level world, final BlockPos pos, final boolean chunkCoords)
+    public void claimLand(final String team, final Level world, final BlockPos pos)
     {
-        final IClaimed claims = this.getClaimer(world, pos, chunkCoords);
-        if (claims == null)
+        var claims = this.getClaimer(world, pos, true);
+        if (claims != null)
         {
-            Thread.dumpStack();
+            // Already claimed
+            System.out.println("Already Claimed!");
             return;
         }
         final LandTeam t = this._teamMap.get(team);
@@ -640,34 +633,101 @@ public class LandManager
             Thread.dumpStack();
             return;
         }
-        final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
-        final ClaimSegment seg = claims.getSegment(y);
-        if (seg.owner != null)
+        int minY = SectionPos.sectionToBlockCoord(pos.getY(), 0),
+                maxY = SectionPos.sectionToBlockCoord(pos.getY(), 15);
+        ClaimedVolume claim = new ClaimedVolume(new ChunkPos(pos.getX(), pos.getZ()), minY, maxY);
+        claim.info.owner = t.land.uuid;
+        t.land.claimed++;
+        List<ClaimedVolume> toRemove = new ArrayList<>();
+
+        // Now try to merge in with other neearby claims
+        var bounds = claim.getTotalBounds();
+        var test = new BlockPos(bounds.minX() - 1, bounds.minY(), bounds.minZ());
+        claims = getClaimer(world, test, false);
+        if (claims != null)
         {
-            final LandTeam prev = this._team_land.getOrDefault(seg.owner, LandManager.getWildTeam());
-            if (!LandManager.isWild(prev))
+            var doMerge = claims.shouldMerge(claim);
+            if (doMerge != null)
             {
-                Thread.dumpStack();
-                return;
+                toRemove.add(claims);
+                claims.info.mergeFrom(claim.info);
+                claim = new ClaimedVolume(doMerge, claims.info);
             }
         }
-        if (seg.owner == null || !seg.owner.equals(t.land.uuid)) t.land.claimed++;
-        seg.owner = t.land.uuid;
-        GlobalPos c;
-        if (chunkCoords) c = GlobalPos.of(world.dimension(), pos);
-        else
+        test = new BlockPos(bounds.minX(), bounds.minY() - 1, bounds.minZ());
+        claims = getClaimer(world, test, false);
+        if (claims != null)
         {
-            final GlobalPos b = GlobalPos.of(world.dimension(), pos);
-            c = CoordinateUtls.chunkPos(b);
+            var doMerge = claims.shouldMerge(claim);
+            if (doMerge != null)
+            {
+                toRemove.add(claims);
+                claims.info.mergeFrom(claim.info);
+                claim = new ClaimedVolume(doMerge, claims.info);
+            }
         }
-        world.getChunk(c.pos().getX(), c.pos().getZ()).setUnsaved(true);
+        test = new BlockPos(bounds.minX(), bounds.minY(), bounds.minZ() - 1);
+        claims = getClaimer(world, test, false);
+        if (claims != null)
+        {
+            var doMerge = claims.shouldMerge(claim);
+            if (doMerge != null)
+            {
+                toRemove.add(claims);
+                claims.info.mergeFrom(claim.info);
+                claim = new ClaimedVolume(doMerge, claims.info);
+            }
+        }
+        test = new BlockPos(bounds.maxX() + 1, bounds.maxY(), bounds.maxZ());
+        claims = getClaimer(world, test, false);
+        if (claims != null)
+        {
+            var doMerge = claims.shouldMerge(claim);
+            if (doMerge != null)
+            {
+                toRemove.add(claims);
+                claims.info.mergeFrom(claim.info);
+                claim = new ClaimedVolume(doMerge, claims.info);
+            }
+        }
+        test = new BlockPos(bounds.maxX(), bounds.maxY() + 1, bounds.maxZ());
+        claims = getClaimer(world, test, false);
+        if (claims != null)
+        {
+            var doMerge = claims.shouldMerge(claim);
+            if (doMerge != null)
+            {
+                toRemove.add(claims);
+                claims.info.mergeFrom(claim.info);
+                claim = new ClaimedVolume(doMerge, claims.info);
+            }
+        }
+        test = new BlockPos(bounds.maxX(), bounds.maxY(), bounds.maxZ() + 1);
+        claims = getClaimer(world, test, false);
+        if (claims != null)
+        {
+            var doMerge = claims.shouldMerge(claim);
+            if (doMerge != null)
+            {
+                toRemove.add(claims);
+                claims.info.mergeFrom(claim.info);
+                claim = new ClaimedVolume(doMerge, claims.info);
+            }
+        }
+
+        var volumes = CapabilityWorldVolumes.get(world);
+        volumes.addVolume(claim);
+        toRemove.forEach(volumes::removeVolume);
+
+        GlobalPos c;
+        c = GlobalPos.of(world.dimension(), pos);
         InventoryLogger.log("claimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
     }
 
-    public void unclaimLand(final String team, final Level world, final BlockPos pos, final boolean chunkCoords)
+    public void unclaimLand(final String team, final Level world, final BlockPos pos)
     {
-        final IClaimed claims = this.getClaimer(world, pos, chunkCoords);
+        var claims = this.getClaimer(world, pos, true);
         if (claims == null)
         {
             Thread.dumpStack();
@@ -679,18 +739,8 @@ public class LandManager
             Thread.dumpStack();
             return;
         }
-        // TODO remove legacy stuff
-        GlobalPos c;
-        if (chunkCoords) c = GlobalPos.of(world.dimension(), pos);
-        else
-        {
-            final GlobalPos b = GlobalPos.of(world.dimension(), pos);
-            c = CoordinateUtls.chunkPos(b);
-        }
-        final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
-        final ClaimSegment seg = claims.getSegment(y);
-        if (seg.owner != null && seg.owner.equals(t.land.uuid)) t.land.claimed--;
-        seg.owner = null;
+        // TODO unclaiming
+        GlobalPos c = GlobalPos.of(world.dimension(), pos);
         InventoryLogger.log("unclaimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
     }
@@ -743,38 +793,22 @@ public class LandManager
         return this.getLandOwner(world, pos, false);
     }
 
-    private IClaimed getClaimer(final Level world, final BlockPos pos, final boolean chunkCoords)
+    private ClaimedVolume getClaimer(final Level world, final BlockPos pos, boolean chunkCoords)
     {
-        final ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
-
-        if (!world.getServer().isSameThread()) return null;
-        if (!world.hasChunk(cPos.x, cPos.z)) return null;
-
-        final ChunkAccess chunk = world.getChunk(cPos.x, cPos.z);
-        return chunk.getData(ClaimedCapability.TYPE);
+        ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
+        List<NamedVolumes.INamedVolume> volumes = StructureManager.getFor(world.dimension(),
+                cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(pos.getY())));
+        volumes.removeIf(e -> !(e instanceof ClaimedVolume));
+        return volumes.isEmpty() ? null : (ClaimedVolume) volumes.getFirst();
     }
 
     public LandTeam getLandOwner(final Level world, final BlockPos pos, final boolean chunkCoords)
     {
-        LandTeam owner = LandManager.getWildTeam();
-
         // TODO remove legacy stuff
-        GlobalPos c;
-        if (chunkCoords) c = GlobalPos.of(world.dimension(), pos);
-        else
-        {
-            final GlobalPos b = GlobalPos.of(world.dimension(), pos);
-            c = CoordinateUtls.chunkPos(b);
-        }
-        owner = this.getLandOwner(c);
-
-        final IClaimed claims = this.getClaimer(world, pos, chunkCoords);
-        if (claims != null)
-        {
-            final int y = chunkCoords ? pos.getY() : pos.getY() >> 4;
-            final ClaimSegment seg = claims.getSegment(y);
-            owner = this.getTeamForLand(seg.owner);
-        }
+        GlobalPos c = GlobalPos.of(world.dimension(), pos);
+        var owner = this.getLandOwner(c);
+        var claims = this.getClaimer(world, pos, chunkCoords);
+        if (claims != null) owner = this.getTeamForLand(claims.info.owner);
         else return LandManager.getNotLoaded();
         return owner;
     }
