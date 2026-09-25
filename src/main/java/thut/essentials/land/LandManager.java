@@ -782,8 +782,9 @@ public class LandManager
     private ClaimedVolume getClaimer(final Level world, final BlockPos pos, boolean chunkCoords)
     {
         ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
+        int y = chunkCoords ? pos.getY() : SectionPos.blockToSectionCoord(pos.getY());
         List<NamedVolumes.INamedVolume> volumes = StructureManager.getFor(world.dimension(),
-                cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(pos.getY())));
+                cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(y)));
         volumes.removeIf(e -> !(e instanceof ClaimedVolume));
         return volumes.isEmpty() ? null : (ClaimedVolume) volumes.getFirst();
     }

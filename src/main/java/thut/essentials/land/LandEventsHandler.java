@@ -485,12 +485,17 @@ public class LandEventsHandler
             {
                 if (EntityEventHandler.showLandSet.contains(player.getUUID()) && player.tickCount % 20 == 0)
                     this.sendNearbyChunks(player);
-                BlockPos here;
-                BlockPos old;
+                BlockPos here, cHere;
+                BlockPos old, cOld;
                 here = BlockPos.containing(player.xCloak, player.yCloak, player.zCloak);
                 old = BlockPos.containing(player.xCloakO, player.yCloakO, player.zCloakO);
 
-                if (old.equals(here)) return;
+                cHere = new BlockPos(SectionPos.blockToSectionCoord(here.getX()),
+                        SectionPos.blockToSectionCoord(here.getY()), SectionPos.blockToSectionCoord(here.getZ()));
+                cOld = new BlockPos(SectionPos.blockToSectionCoord(old.getX()),
+                        SectionPos.blockToSectionCoord(old.getY()), SectionPos.blockToSectionCoord(old.getZ()));
+
+                if (cOld.equals(cHere)) return;
 
                 final Level world = player.getCommandSenderWorld();
 
