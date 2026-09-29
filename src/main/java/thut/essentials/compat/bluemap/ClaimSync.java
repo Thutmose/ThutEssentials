@@ -11,6 +11,7 @@ import de.bluecolored.bluemap.api.math.Shape;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -29,18 +30,19 @@ public class ClaimSync
 
     private static Marker forVolume(ClaimedVolume volume)
     {
-        var bounds = volume.getTotalBounds();
-        int yMin = bounds.minY();
-        int yMax = bounds.maxY();
+        var bounds = AABB.of(volume.getTotalBounds());
+        double yMin = bounds.minY;
+        double yMax = bounds.maxY;
         List<Vector2d> points = new ArrayList<>();
-        points.add(new Vector2d(bounds.minX(), bounds.minZ()));
-        points.add(new Vector2d(bounds.maxX(), bounds.minZ()));
-        points.add(new Vector2d(bounds.maxX(), bounds.maxZ()));
-        points.add(new Vector2d(bounds.minX(), bounds.maxZ()));
+        points.add(new Vector2d(bounds.minX, bounds.minZ));
+        points.add(new Vector2d(bounds.maxX, bounds.minZ));
+        points.add(new Vector2d(bounds.maxX, bounds.maxZ));
+        points.add(new Vector2d(bounds.minX, bounds.maxZ));
         Color cFill = new Color(volume.getColour(), 0.3f);
         Color cLine = new Color(volume.getColour(), 0.9f);
         var builder = ExtrudeMarker.builder().label(volume.getName())
-                .shape(Shape.builder().addPoints(points).build(), yMin, yMax).fillColor(cFill).lineColor(cLine);
+                .shape(Shape.builder().addPoints(points).build(), (float) yMin, (float) yMax).fillColor(cFill)
+                .lineColor(cLine);
         return builder.build();
     }
 
