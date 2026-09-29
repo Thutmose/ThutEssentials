@@ -358,15 +358,17 @@ public class LandEventsHandler
         {
             if (LandManager.isWild(land_owner))
             {
-                if (in != null && LandEventsHandler.invuln.contains(RegHelper.getKey(in))) return false;
-                return true;
+                return in == null || !LandEventsHandler.invuln.contains(RegHelper.getKey(in));
             }
             if (LandManager.getInstance().isPublicMob(in.getUUID())) return false;
             if (LandManager.getInstance().isProtectedMob(in.getUUID())) return false;
-            if (in instanceof ServerPlayer) return !land_owner.noPlayerDamage;
-            if (in instanceof Npc) return !land_owner.noNPCDamage;
-            if (in instanceof ItemFrame) return !land_owner.protectFrames;
-            return true;
+            return switch (in)
+            {
+                case ServerPlayer serverPlayer -> !land_owner.noPlayerDamage;
+                case Npc npc -> !land_owner.noNPCDamage;
+                case ItemFrame itemFrame -> !land_owner.protectFrames;
+                default -> true;
+            };
         }
 
         private void sendNearbyChunks(final ServerPlayer player)
@@ -869,7 +871,7 @@ public class LandEventsHandler
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void interact(final PlayerInteractEvent.LeftClickBlock evt)
         {
-            if (!(evt.getEntity() instanceof ServerPlayer)) return;
+            if (!(evt.getEntity() instanceof ServerPlayer player)) return;
             if (!Essentials.config.landEnabled) return;
             final DenyReason rsult = this.canUseBlock(evt);
             // First check if we do not have permission to act here.
@@ -885,7 +887,6 @@ public class LandEventsHandler
                 final boolean isFakePlayer = evt.getEntity() instanceof FakePlayer;
                 if (!isFakePlayer)
                 {
-                    final ServerPlayer player = (ServerPlayer) evt.getEntity();
                     switch (rsult)
                     {
                     case OTHER:
@@ -1053,7 +1054,7 @@ public class LandEventsHandler
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void interact(final PlayerInteractEvent.RightClickItem evt)
         {
-            if (!(evt.getEntity() instanceof ServerPlayer)) return;
+            if (!(evt.getEntity() instanceof ServerPlayer player)) return;
             final DenyReason rsult = this.canUseItem(evt);
             // First check if we do not have permission to act here.
             if (!rsult.test())
@@ -1067,7 +1068,6 @@ public class LandEventsHandler
                 final boolean isFakePlayer = evt.getEntity() instanceof FakePlayer;
                 if (!isFakePlayer)
                 {
-                    final ServerPlayer player = (ServerPlayer) evt.getEntity();
                     switch (rsult)
                     {
                     case OTHER:
@@ -1095,7 +1095,7 @@ public class LandEventsHandler
         @SubscribeEvent(priority = EventPriority.HIGHEST)
         public void interact(final PlayerInteractEvent.RightClickBlock evt)
         {
-            if (!(evt.getEntity() instanceof ServerPlayer)) return;
+            if (!(evt.getEntity() instanceof ServerPlayer player)) return;
             if (!Essentials.config.landEnabled) return;
             final Level world = evt.getLevel();
             // Block coordinate
@@ -1110,7 +1110,6 @@ public class LandEventsHandler
                 final boolean isFakePlayer = evt.getEntity() instanceof FakePlayer;
                 if (!isFakePlayer)
                 {
-                    final ServerPlayer player = (ServerPlayer) evt.getEntity();
 
                     switch (rsult)
                     {
@@ -1137,8 +1136,6 @@ public class LandEventsHandler
             }
             // We don't care about anything else beyond here is unowned
             if (LandManager.isWild(owner)) return;
-
-            final Player player = evt.getEntity();
 
             // Don't allow fake players to act below
             if (evt.getEntity() instanceof FakePlayer) return;
