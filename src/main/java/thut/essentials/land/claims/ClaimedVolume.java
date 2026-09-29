@@ -5,7 +5,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import thut.essentials.land.claims.NamedVolumes.INamedVolume;
 
@@ -13,7 +15,8 @@ import java.util.List;
 
 public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag>
 {
-    BoundingBox bounds;
+    AABB aabb;
+    private BoundingBox bounds;
     public final ClaimInfo info;
     public String extraKey = "";
 
@@ -25,15 +28,15 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
     public ClaimedVolume(BoundingBox bounds, ClaimInfo info)
     {
         this.info = info;
-        this.bounds = bounds;
+        this.setBounds(bounds);
     }
 
-    public ClaimedVolume(ChunkPos chunk, int minY, int maxY)
+    public ClaimedVolume(ChunkPos chunk, Level level, ClaimInfo info)
     {
-        var lower = new BlockPos(chunk.getMinBlockX(), minY, chunk.getMinBlockZ());
-        var upper = new BlockPos(chunk.getMaxBlockX() + 1, maxY, chunk.getMaxBlockZ() + 1);
-        this.bounds = BoundingBox.fromCorners(upper, lower);
-        this.info = new ClaimInfo();
+        this.info = info;
+        var bounds = new BoundingBox(chunk.getMinBlockX(), level.getMinBuildHeight(), chunk.getMinBlockZ(),
+                chunk.getMaxBlockX(), level.getMaxBuildHeight(), chunk.getMaxBlockZ());
+        this.setBounds(bounds);
     }
 
     public BoundingBox shouldMerge(ClaimedVolume other)
@@ -41,14 +44,14 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
         if (other == this) return null;
         if (!other.info.owner.equals(this.info.owner)) return null;
         var otherBounds = other.getTotalBounds();
-        var vO = NamedVolumes.computeVolume(otherBounds);
-        var vU = NamedVolumes.computeVolume(bounds);
+        var vO = other.computeVolume();
+        var vU = this.computeVolume();
         var boundList = List.of(otherBounds, bounds);
         var tBounds = BoundingBox.encapsulatingBoxes(boundList);
         if (tBounds.isPresent())
         {
             otherBounds = tBounds.get();
-            var vT1 = NamedVolumes.computeVolume(otherBounds);
+            var vT1 = NamedVolumes.computeVolume(AABB.of(otherBounds));
             return vT1 == vO + vU ? otherBounds : null;
         }
         return null;
@@ -97,8 +100,20 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
     @Override
     public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt)
     {
-        bounds = BoundingBox.CODEC.decode(NbtOps.INSTANCE, nbt.get("bounds")).result().get().getFirst();
+        this.setBounds(BoundingBox.CODEC.decode(NbtOps.INSTANCE, nbt.get("bounds")).result().get().getFirst());
         this.info.deserializeNBT(provider, nbt.getCompound("info"));
+    }
+
+    private void setBounds(BoundingBox box)
+    {
+        this.bounds = box;
+        this.aabb = AABB.of(box);
+    }
+
+    @Override
+    public long computeVolume()
+    {
+        return (long) NamedVolumes.computeVolume(aabb);
     }
 
     public int getColour()

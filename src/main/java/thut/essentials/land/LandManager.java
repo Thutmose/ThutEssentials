@@ -607,9 +607,9 @@ public class LandManager
     public long claimChunk(String team, boolean checkSize, Level world, ChunkPos chunk, int minY, int maxY)
     {
         int x0 = chunk.getMinBlockX();
-        int x1 = chunk.getMaxBlockX() + 1;
+        int x1 = chunk.getMaxBlockX();
         int z0 = chunk.getMinBlockX();
-        int z1 = chunk.getMaxBlockX() + 1;
+        int z1 = chunk.getMaxBlockX();
         BoundingBox box = new BoundingBox(x0, minY, z0, x1, maxY, z1);
         return claimVolume(team, checkSize, world, box);
     }
@@ -646,114 +646,38 @@ public class LandManager
         else return -3;
     }
 
-    public void claimLand(final String team, final Level world, final BlockPos pos)
+    public long unclaimBox(final String team, Level world, BoundingBox box)
     {
-        var claims = this.getClaimer(world, pos, true);
-        if (claims != null)
-        {
-            // Already claimed
-            return;
-        }
         final LandTeam t = this._teamMap.get(team);
         if (t == null)
         {
             Thread.dumpStack();
-            return;
+            return -1;
         }
-        int minY = SectionPos.sectionToBlockCoord(pos.getY(), 0), maxY = SectionPos.sectionToBlockCoord(pos.getY(), 16);
-        ClaimedVolume claim = new ClaimedVolume(new ChunkPos(pos.getX(), pos.getZ()), minY, maxY);
-        claim.info.initFrom(t);
-        List<ClaimedVolume> toRemove = new ArrayList<>();
-
-        // Now try to merge in with other neearby claims
-        var bounds = claim.getTotalBounds();
-        var test = new BlockPos(bounds.minX() - 1, bounds.minY(), bounds.minZ());
-        claims = getClaimer(world, test, false);
-        if (claims != null)
+        ClaimInfo info = new ClaimInfo();
+        info.initFrom(t);
+        var claim = new ClaimedVolume(box, info);
+        var conflicts = StructureManager.getColliding(world.dimension(), claim);
+        conflicts.removeIf(
+                i -> !(i instanceof ClaimedVolume v) || v.info.owner == null || !v.info.owner.equals(claim.info.owner));
+        if (conflicts.isEmpty())
         {
-            var doMerge = claims.shouldMerge(claim);
-            if (doMerge != null)
-            {
-                toRemove.add(claims);
-                claims.info.mergeFrom(claim.info);
-                claim = new ClaimedVolume(doMerge, claims.info);
-            }
+            return -2;
         }
-        test = new BlockPos(bounds.minX(), bounds.minY() - 1, bounds.minZ());
-        claims = getClaimer(world, test, false);
-        if (claims != null)
-        {
-            var doMerge = claims.shouldMerge(claim);
-            if (doMerge != null)
-            {
-                toRemove.add(claims);
-                claims.info.mergeFrom(claim.info);
-                claim = new ClaimedVolume(doMerge, claims.info);
-            }
-        }
-        test = new BlockPos(bounds.minX(), bounds.minY(), bounds.minZ() - 1);
-        claims = getClaimer(world, test, false);
-        if (claims != null)
-        {
-            var doMerge = claims.shouldMerge(claim);
-            if (doMerge != null)
-            {
-                toRemove.add(claims);
-                claims.info.mergeFrom(claim.info);
-                claim = new ClaimedVolume(doMerge, claims.info);
-            }
-        }
-        test = new BlockPos(bounds.maxX() + 1, bounds.maxY(), bounds.maxZ());
-        claims = getClaimer(world, test, false);
-        if (claims != null)
-        {
-            var doMerge = claims.shouldMerge(claim);
-            if (doMerge != null)
-            {
-                toRemove.add(claims);
-                claims.info.mergeFrom(claim.info);
-                claim = new ClaimedVolume(doMerge, claims.info);
-            }
-        }
-        test = new BlockPos(bounds.maxX(), bounds.maxY() + 1, bounds.maxZ());
-        claims = getClaimer(world, test, false);
-        if (claims != null)
-        {
-            var doMerge = claims.shouldMerge(claim);
-            if (doMerge != null)
-            {
-                toRemove.add(claims);
-                claims.info.mergeFrom(claim.info);
-                claim = new ClaimedVolume(doMerge, claims.info);
-            }
-        }
-        test = new BlockPos(bounds.maxX(), bounds.maxY(), bounds.maxZ() + 1);
-        claims = getClaimer(world, test, false);
-        if (claims != null)
-        {
-            var doMerge = claims.shouldMerge(claim);
-            if (doMerge != null)
-            {
-                toRemove.add(claims);
-                claims.info.mergeFrom(claim.info);
-                claim = new ClaimedVolume(doMerge, claims.info);
-            }
-        }
-
-        for (var v : toRemove) t.land.claimed -= v.computeVolume();
-        t.land.claimed += claim.computeVolume();
-
+        long vol = 0;
         var volumes = CapabilityWorldVolumes.get(world);
-        toRemove.forEach(volumes::removeVolume);
-        volumes.addVolume(claim);
-
-        GlobalPos c;
-        c = GlobalPos.of(world.dimension(), pos);
-        InventoryLogger.log("claimed for team: {}", c, team);
+        for (var v : conflicts)
+        {
+            if (volumes.getVolumes().contains(v))
+            {
+                vol += v.computeVolume();
+                volumes.removeVolume(v);
+            }
+        }
+        t.land.claimed -= vol;
+        GlobalPos c = GlobalPos.of(world.dimension(), box.getCenter());
+        InventoryLogger.log("unclaimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
-    }
-
-    public long unclaimBox(final String team, Level world, BoundingBox box){
         return 0;
     }
 

@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 
@@ -58,21 +58,14 @@ public class StructureManager
         var here = forVolume(volume, dim);
         var opts = new HashSet<INamedVolume>();
         var ourB = volume.getTotalBounds();
-        var vU = NamedVolumes.computeVolume(ourB);
+        AABB aabbUs = AABB.of(ourB);
         here.forEach(p -> opts.addAll(getFor(dim, p.pos)));
         var ret = opts.stream().filter(b -> {
             var otherB = b.getTotalBounds();
-            if (!otherB.intersects(ourB)) return false;
-            var vO = NamedVolumes.computeVolume(otherB);
-            var boundList = List.of(ourB, otherB);
-            var tBounds = BoundingBox.encapsulatingBoxes(boundList);
-            if (tBounds.isPresent())
-            {
-                otherB = tBounds.get();
-                var vT1 = NamedVolumes.computeVolume(otherB);
-                return vT1 >= vO + vU;
-            }
-            return true;
+            AABB otherBB = AABB.of(otherB);
+            if (!aabbUs.intersects(otherBB)) return false;
+            var aabbI = aabbUs.intersect(otherBB);
+            return NamedVolumes.computeVolume(aabbI) == 0;
         });
         return ret.toList();
     }

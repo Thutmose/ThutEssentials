@@ -26,7 +26,6 @@ public class Claim
     {
         final String name = "claim";
         if (Essentials.config.commandBlacklist.contains(name)) return;
-//        NeoForge.EVENT_BUS.register(Claim.class);
         String perm;
         PermNodes.registerBooleanNode(perm = "command." + name, DefaultPermissionLevel.ALL,
                 "Can the player use /" + name);
@@ -101,8 +100,8 @@ public class Claim
         int max = up ? dim.getMaxBuildHeight() : y * 16 + 16;
         int x0 = pos.getMinBlockX();
         int x1 = pos.getMaxBlockX() + 1;
-        int z0 = pos.getMinBlockX();
-        int z1 = pos.getMaxBlockX() + 1;
+        int z0 = pos.getMinBlockZ();
+        int z1 = pos.getMaxBlockZ() + 1;
         BoundingBox box = new BoundingBox(x0, min, z0, x1, max, z1);
         claimBox(player, box);
     }

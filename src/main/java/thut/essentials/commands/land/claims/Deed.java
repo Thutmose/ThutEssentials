@@ -247,7 +247,7 @@ public class Deed
         // ensure the deed team exist, and that it is set to reserved.
         Deed.initDeedTeam();
         // Transfers the claim over to the "deed team"
-        LandManager.getInstance().claimLand(Deed.DEEDTEAM, world, chunk.pos());
+        // TODO deed claiming
         if (messages) ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
 

@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import java.util.HashMap;
@@ -13,11 +14,16 @@ import java.util.function.Supplier;
 
 public class NamedVolumes
 {
+    public static double computeVolume(AABB box)
+    {
+        return box.getXsize() * box.getYsize() * box.getZsize();
+    }
+
     public static long computeVolume(BoundingBox box)
     {
-        int dx = box.getXSpan() - 1;
-        int dy = box.getYSpan() - 1;
-        int dz = box.getZSpan() - 1;
+        int dx = box.getXSpan();
+        int dy = box.getYSpan();
+        int dz = box.getZSpan();
         return (long) dx * dy * dz;
     }
 
@@ -84,11 +90,7 @@ public class NamedVolumes
             return false;
         }
 
-        default long computeVolume()
-        {
-            // TODO also compute for parts?
-            return NamedVolumes.computeVolume(this.getTotalBounds());
-        }
+        long computeVolume();
     }
 
     private static BoundingBox inflate(final BoundingBox other, final int amt)
