@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import thut.essentials.land.LandManager;
 import thut.essentials.land.claims.ClaimedVolume;
 import thut.essentials.land.claims.NamedVolumes;
 import thut.essentials.land.claims.StructureManager;
@@ -22,7 +23,7 @@ public class HighlightHandler extends ChunkHighlighter
     private String cachedForCustomName;
     private int cachedForClaimsColor;
     private ResourceLocation cachedForDimensionId;
-    NamedVolumes.INamedVolume vols_cache;
+    Object vols_cache;
 
     public HighlightHandler()
     {
@@ -58,12 +59,12 @@ public class HighlightHandler extends ChunkHighlighter
         int claimColorFormatted = (colour & 255) << 24 | (colour >> 8 & 255) << 16 | (colour >> 16 & 255) << 8;
         int fillOpacity = 0x0F;
         int borderOpacity = 0xF0;
-        int centerColor = claimColorFormatted | 255 * fillOpacity / 100;
-        int sideColor = claimColorFormatted | 255 * borderOpacity / 100;
-        var topClaim = getClaim(dimension, chunkX, chunkZ-1);
-        var rightClaim = getClaim(dimension, chunkX+1, chunkZ);
-        var bottomClaim = getClaim(dimension, chunkX, chunkZ+1);
-        var leftClaim = getClaim(dimension, chunkX-1, chunkZ);
+        int centerColor = claimColorFormatted | fillOpacity;
+        int sideColor = claimColorFormatted | borderOpacity;
+        var topClaim = getClaim(dimension, chunkX, chunkZ - 1);
+        var rightClaim = getClaim(dimension, chunkX + 1, chunkZ);
+        var bottomClaim = getClaim(dimension, chunkX, chunkZ + 1);
+        var leftClaim = getClaim(dimension, chunkX - 1, chunkZ);
         this.resultStore[0] = centerColor;
         this.resultStore[1] = topClaim != vol ? sideColor : centerColor;
         this.resultStore[2] = rightClaim != vol ? sideColor : centerColor;
@@ -73,18 +74,20 @@ public class HighlightHandler extends ChunkHighlighter
     }
 
     @Override
-    public int calculateRegionHash(ResourceKey<Level> dimension, int regionX, int regionZ) {
+    public int calculateRegionHash(ResourceKey<Level> dimension, int regionX, int regionZ)
+    {
         long accumulator = 0L;
         for (int i = 0; i < 32; ++i)
         {
-            for(int j = 0; j < 32; ++j) {
+            for (int j = 0; j < 32; ++j)
+            {
                 int x = regionX * 32 + i;
                 int z = regionZ * 32 + j;
                 var vol = getClaim(dimension, x, z);
                 accumulator = this.accountClaim(accumulator, vol);
             }
         }
-        return (int)(accumulator >> 32) * 37 + (int)(accumulator & -1L);
+        return (int) (accumulator >> 32) * 37 + (int) (accumulator & -1L);
     }
 
     private long accountClaim(long accumulator, NamedVolumes.INamedVolume volume)
@@ -120,15 +123,21 @@ public class HighlightHandler extends ChunkHighlighter
             var dimid = dimension.location();
             String customName = this.getClaimsCustomName(vol);
             int actualClaimsColor = this.getClaimsColor(vol);
-            int claimsColor = actualClaimsColor | -16777216;
-            if (!Objects.equals(vol, this.vols_cache) || this.cachedForClaimsColor != claimsColor || !Objects.equals(
+            int claimsColor = actualClaimsColor | 0xFF000000;
+            var id = vol instanceof ClaimedVolume v ? v.info.owner : null;
+            if (!Objects.equals(vols_cache, id) || this.cachedForClaimsColor != claimsColor || !Objects.equals(
                     customName, this.cachedForCustomName) || !dimid.equals(this.cachedForDimensionId))
             {
                 this.cachedTooltip = Component.literal("□ ").withStyle((s) -> s.withColor(claimsColor));
+                if (id != null)
+                {
+                    var team = LandManager.getInstance()._team_land.get(id);
+                    customName = team != null ? team.teamName : customName;
+                }
                 this.cachedTooltip.getSiblings().add(Component.literal(customName).withStyle(ChatFormatting.WHITE));
                 this.cachedForCustomName = customName;
                 this.cachedForClaimsColor = claimsColor;
-                this.vols_cache = vol;
+                this.vols_cache = id;
                 this.cachedForDimensionId = dimid;
             }
             return this.cachedTooltip;
@@ -151,6 +160,8 @@ public class HighlightHandler extends ChunkHighlighter
 
     private int getClaimsColor(NamedVolumes.INamedVolume volume)
     {
-        return volume.getName().hashCode() | 0xFF000000;
+        var name = volume.getName();
+        if (volume instanceof ClaimedVolume claim) name = claim.info.owner.toString();
+        return name.hashCode() | 0xFF000000;
     }
 }
