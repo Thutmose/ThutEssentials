@@ -8,6 +8,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.common.util.INBTSerializable;
+import thut.essentials.land.LandManager;
 import thut.essentials.land.claims.NamedVolumes.INamedVolume;
 
 import java.util.ArrayList;
@@ -73,9 +74,14 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
         return null;
     }
 
+    private LandManager.LandTeam _team = null;
+
     @Override
     public String getName()
     {
+        if (_team != null) return _team.teamName;
+        if (LandManager.getInstance()._team_land.containsKey(info.owner))
+            return (_team = LandManager.getInstance()._team_land.get(info.owner)).teamName;
         return "claim";
     }
 

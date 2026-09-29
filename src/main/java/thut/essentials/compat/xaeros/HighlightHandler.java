@@ -8,7 +8,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import thut.essentials.land.LandManager;
 import thut.essentials.land.claims.ClaimedVolume;
 import thut.essentials.land.claims.NamedVolumes;
 import thut.essentials.land.claims.StructureManager;
@@ -52,9 +51,10 @@ public class HighlightHandler extends ChunkHighlighter
     }
 
     @Override
-    protected int[] getColors(ResourceKey<Level> dimension, int chunkX, int chunkZ) {
+    protected int[] getColors(ResourceKey<Level> dimension, int chunkX, int chunkZ)
+    {
         var vol = getClaim(dimension, chunkX, chunkZ);
-        if(vol==null) return null;
+        if (vol == null) return null;
         int colour = this.getClaimsColor(vol);
         int claimColorFormatted = (colour & 255) << 24 | (colour >> 8 & 255) << 16 | (colour >> 16 & 255) << 8;
         int fillOpacity = 0x0F;
@@ -66,10 +66,10 @@ public class HighlightHandler extends ChunkHighlighter
         var bottomClaim = getClaim(dimension, chunkX, chunkZ + 1);
         var leftClaim = getClaim(dimension, chunkX - 1, chunkZ);
         this.resultStore[0] = centerColor;
-        this.resultStore[1] = topClaim != vol ? sideColor : centerColor;
-        this.resultStore[2] = rightClaim != vol ? sideColor : centerColor;
-        this.resultStore[3] = bottomClaim != vol ? sideColor : centerColor;
-        this.resultStore[4] = leftClaim != vol ? sideColor : centerColor;
+        this.resultStore[1] = sameClaimer(topClaim, vol) ? centerColor : sideColor;
+        this.resultStore[2] = sameClaimer(rightClaim, vol) ? centerColor : sideColor;
+        this.resultStore[3] = sameClaimer(bottomClaim, vol) ? centerColor : sideColor;
+        this.resultStore[4] = sameClaimer(leftClaim, vol) ? centerColor : sideColor;
         return this.resultStore;
     }
 
@@ -106,7 +106,8 @@ public class HighlightHandler extends ChunkHighlighter
     }
 
     @Override
-    public boolean chunkIsHighlit(ResourceKey<Level> dimension, int chunkX, int chunkZ) {
+    public boolean chunkIsHighlit(ResourceKey<Level> dimension, int chunkX, int chunkZ)
+    {
         return this.getClaim(dimension, chunkX, chunkZ) != null;
     }
 
@@ -129,11 +130,6 @@ public class HighlightHandler extends ChunkHighlighter
                     customName, this.cachedForCustomName) || !dimid.equals(this.cachedForDimensionId))
             {
                 this.cachedTooltip = Component.literal("□ ").withStyle((s) -> s.withColor(claimsColor));
-                if (id != null)
-                {
-                    var team = LandManager.getInstance()._team_land.get(id);
-                    customName = team != null ? team.teamName : customName;
-                }
                 this.cachedTooltip.getSiblings().add(Component.literal(customName).withStyle(ChatFormatting.WHITE));
                 this.cachedForCustomName = customName;
                 this.cachedForClaimsColor = claimsColor;
@@ -145,12 +141,22 @@ public class HighlightHandler extends ChunkHighlighter
     }
 
     @Override
-    public Component getChunkHighlightBluntTooltip(ResourceKey<Level> dimension, int chunkX, int chunkZ) {
+    public Component getChunkHighlightBluntTooltip(ResourceKey<Level> dimension, int chunkX, int chunkZ)
+    {
         return null;
     }
 
     @Override
-    public void addMinimapBlockHighlightTooltips(List<Component> list, ResourceKey<Level> dimension, int blockX, int blockZ, int width) {
+    public void addMinimapBlockHighlightTooltips(List<Component> list, ResourceKey<Level> dimension, int blockX,
+            int blockZ, int width)
+    {
+    }
+
+    private boolean sameClaimer(NamedVolumes.INamedVolume a, NamedVolumes.INamedVolume b)
+    {
+        if (a == null || b == null) return false;
+        if (!(a instanceof ClaimedVolume v && b instanceof ClaimedVolume u)) return false;
+        return v.info.owner.equals(u.info.owner);
     }
 
     private String getClaimsCustomName(NamedVolumes.INamedVolume volume)
@@ -160,8 +166,6 @@ public class HighlightHandler extends ChunkHighlighter
 
     private int getClaimsColor(NamedVolumes.INamedVolume volume)
     {
-        var name = volume.getName();
-        if (volume instanceof ClaimedVolume claim) name = claim.info.owner.toString();
-        return name.hashCode() | 0xFF000000;
+        return volume.getName().hashCode() | 0xFF000000;
     }
 }
