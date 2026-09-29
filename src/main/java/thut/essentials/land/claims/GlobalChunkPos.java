@@ -8,8 +8,8 @@ import java.util.Objects;
 
 public class GlobalChunkPos
 {
-    private final ResourceKey<Level> world;
-    private final ChunkPos pos;
+    public final ResourceKey<Level> world;
+    public final ChunkPos pos;
 
     private final int hash;
 

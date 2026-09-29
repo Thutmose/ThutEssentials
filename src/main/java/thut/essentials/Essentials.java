@@ -21,11 +21,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.appender.FileAppender;
 import thut.essentials.commands.CommandManager;
+import thut.essentials.compat.Compat;
 import thut.essentials.defuzz.SpawnDefuzzer;
 import thut.essentials.economy.EconomyManager;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
+import thut.essentials.network.PacketHandler;
 import thut.essentials.util.CmdScheduler;
 import thut.essentials.util.MobManager;
 import thut.essentials.util.PlayerDataHandler;
@@ -51,6 +53,10 @@ public class Essentials
 
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENTS = DeferredRegister.create(
             NeoForgeRegistries.Keys.ATTACHMENT_TYPES, MODID);
+
+    private static final String NETVERSION = "1.0.0";
+
+    public static final PacketHandler packets = new PacketHandler(Essentials.NETVERSION);
 
     public Essentials(IEventBus bus, ModContainer container)
     {
@@ -92,7 +98,6 @@ public class Essentials
             NeoForge.EVENT_BUS.register(SpawnDefuzzer.class);
         }
         ATTACHMENTS.register(bus);
-//        ClaimedCapability.setup(ATTACHMENTS);
         CapabilityWorldVolumes.registerAttachment(ATTACHMENTS);
 
         bus.addListener(this::setup);
@@ -103,6 +108,8 @@ public class Essentials
         // Initialize the world structure tracker
         WorldStructures.setup();
         DimVersionManager.init();
+        Compat.init();
+
         NeoForge.EVENT_BUS.addListener(TickScheduler::onWorldTickPost);
         NeoForge.EVENT_BUS.addListener(TickScheduler::onWorldTickPre);
         NeoForge.EVENT_BUS.addListener(CmdScheduler::onTick);

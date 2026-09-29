@@ -619,8 +619,7 @@ public class LandManager
             Thread.dumpStack();
             return;
         }
-        int minY = SectionPos.sectionToBlockCoord(pos.getY(), 0),
-                maxY = SectionPos.sectionToBlockCoord(pos.getY(), 16);
+        int minY = SectionPos.sectionToBlockCoord(pos.getY(), 0), maxY = SectionPos.sectionToBlockCoord(pos.getY(), 16);
         ClaimedVolume claim = new ClaimedVolume(new ChunkPos(pos.getX(), pos.getZ()), minY, maxY);
         claim.info.owner = t.land.uuid;
         t.land.claimed++;
@@ -725,7 +724,11 @@ public class LandManager
             Thread.dumpStack();
             return;
         }
-        // TODO unclaiming
+
+        var volumes = CapabilityWorldVolumes.get(world);
+        // TODO instead split the claim up into bits, and then re-add those.
+        volumes.removeVolume(claims);
+
         GlobalPos c = GlobalPos.of(world.dimension(), pos);
         InventoryLogger.log("unclaimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
@@ -784,9 +787,22 @@ public class LandManager
         ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
         int y = chunkCoords ? pos.getY() : SectionPos.blockToSectionCoord(pos.getY());
         List<NamedVolumes.INamedVolume> volumes = StructureManager.getFor(world.dimension(),
-                cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(y)));
+                cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(y) + 8));
         volumes.removeIf(e -> !(e instanceof ClaimedVolume));
-        return volumes.isEmpty() ? null : (ClaimedVolume) volumes.getFirst();
+        ClaimedVolume ret = null;
+        var _volumes = CapabilityWorldVolumes.get(world);
+        for (var v : volumes)
+        {
+            if (v instanceof ClaimedVolume vol)
+            {
+                if (!_team_land.containsKey(vol.info.owner))
+                {
+                    _volumes.removeVolume(vol);
+                }
+                else if (ret == null) ret = vol;
+            }
+        }
+        return ret;
     }
 
     public LandTeam getLandOwner(final Level world, final BlockPos pos, final boolean chunkCoords)

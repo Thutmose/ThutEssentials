@@ -1,0 +1,133 @@
+package thut.essentials.network;
+
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import thut.essentials.Essentials;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class PacketHandler
+{
+    private final String version;
+
+    private final List<Class<Packet>> TO_SERVER = new ArrayList<>();
+    private final List<Class<Packet>> TO_CLIENT = new ArrayList<>();
+    private final List<Class<Packet>> TO_BOTHCS = new ArrayList<>();
+
+    public PacketHandler(final String version)
+    {
+        this.version = version;
+        final IEventBus modEventBus = ModLoadingContext.get().getActiveContainer().getEventBus();
+        modEventBus.addListener(this::onPayloadRegister);
+    }
+
+    private void onPayloadRegister(RegisterPayloadHandlersEvent event)
+    {
+        var reg = event.registrar(version);
+        if (FMLEnvironment.dist == Dist.CLIENT) reg = reg.optional();
+        var registery = reg;
+
+        TO_SERVER.forEach((packet) -> {
+            try
+            {
+                var inst = packet.getConstructor().newInstance();
+                @SuppressWarnings("unchecked")
+                CustomPacketPayload.Type<Packet> type = (CustomPacketPayload.Type<Packet>) inst.type();
+                registery.commonToServer(type, inst, inst);
+
+            }
+            catch (Exception e)
+            {
+                Essentials.LOGGER.error(e);
+            }
+        });
+
+        TO_CLIENT.forEach((packet) -> {
+            try
+            {
+                var inst = packet.getConstructor().newInstance();
+                @SuppressWarnings("unchecked")
+                CustomPacketPayload.Type<Packet> type = (CustomPacketPayload.Type<Packet>) inst.type();
+                registery.commonToClient(type, inst, inst);
+
+            }
+            catch (Exception e)
+            {
+                Essentials.LOGGER.error(e);
+            }
+        });
+
+        TO_BOTHCS.forEach((packet) -> {
+            try
+            {
+                var inst = packet.getConstructor().newInstance();
+                @SuppressWarnings("unchecked")
+                CustomPacketPayload.Type<Packet> type = (CustomPacketPayload.Type<Packet>) inst.type();
+                registery.commonBidirectional(type, inst, inst);
+
+            }
+            catch (Exception e)
+            {
+                Essentials.LOGGER.error(e);
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    public <MSG extends Packet> void registerToClientMessage(Class<MSG> clazz)
+    {
+        TO_CLIENT.add((Class<Packet>) clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <MSG extends Packet> void registerToServerMessage(Class<MSG> clazz)
+    {
+        TO_SERVER.add((Class<Packet>) clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <MSG extends Packet> void registerBiDirectionalMessage(Class<MSG> clazz)
+    {
+        TO_BOTHCS.add((Class<Packet>) clazz);
+    }
+
+    public void sendTo(final Packet message, final ServerPlayer target)
+    {
+        PacketDistributor.sendToPlayer(target, message);
+    }
+
+    public void sendToServer(final Packet message)
+    {
+        PacketDistributor.sendToServer(message);
+    }
+
+    public void sendToTracking(final Packet message, final Entity tracked)
+    {
+        if(tracked instanceof ServerPlayer) PacketDistributor.sendToPlayersTrackingEntityAndSelf(tracked, message);
+        else PacketDistributor.sendToPlayersTrackingEntity(tracked, message);
+    }
+
+    public void sendToTrackingAndSelf(final Packet message, final Entity tracked)
+    {
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(tracked, message);
+    }
+
+    public void sendToTracking(final Packet message, final ChunkAccess tracked)
+    {
+        if (tracked instanceof LevelChunk)
+        {
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) tracked.getLevel(), tracked.getPos(), message);
+        }
+    }
+}

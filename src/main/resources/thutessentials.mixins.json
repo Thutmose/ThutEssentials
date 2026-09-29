@@ -2,14 +2,16 @@
 {
   "required": true,
   "package": "thut.essentials.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "refmap": "thutessentials.refmap.json",
   "mixins": [
-    "SeededServerWorld",
+    "MixinChunkManager",
     "MixinServerPlayerEntity",
-    "MixinChunkManager"
+    "SeededServerWorld"
   ],
   "client": [
+    "xaeros.XaerosGuiMap",
+    "xaeros.XareosHighlightRegistry"
   ],
   "injectors": {
     "defaultRequire": 1

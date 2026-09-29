@@ -37,7 +37,7 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
     public ClaimedVolume(ChunkPos chunk, int minY, int maxY)
     {
         var lower = new BlockPos(chunk.getMinBlockX(), minY, chunk.getMinBlockZ());
-        var upper = new BlockPos(chunk.getMaxBlockX(), maxY, chunk.getMaxBlockZ());
+        var upper = new BlockPos(chunk.getMaxBlockX() + 1, maxY, chunk.getMaxBlockZ() + 1);
         this.bounds = BoundingBox.fromCorners(upper, lower);
         this.info = new ClaimInfo();
     }
@@ -51,14 +51,23 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
     {
         if (!other.info.owner.equals(this.info.owner)) return null;
         var otherBounds = other.getTotalBounds();
-        var vO = otherBounds.getXSpan() * otherBounds.getYSpan() * otherBounds.getZSpan();
-        var vU = bounds.getXSpan() * bounds.getYSpan() * bounds.getZSpan();
+        int dx = otherBounds.getXSpan() - 1;
+        int dy = otherBounds.getYSpan() - 1;
+        int dz = otherBounds.getZSpan() - 1;
+        var vO = dx * dy * dz;
+        dx = bounds.getXSpan() - 1;
+        dy = bounds.getYSpan() - 1;
+        dz = bounds.getZSpan() - 1;
+        var vU = dx * dy * dz;
         var boundList = List.of(otherBounds, bounds);
         var tBounds = BoundingBox.encapsulatingBoxes(boundList);
         if (tBounds.isPresent())
         {
             otherBounds = tBounds.get();
-            var vT1 = otherBounds.getXSpan() * otherBounds.getYSpan() * otherBounds.getZSpan();
+            dx = otherBounds.getXSpan() - 1;
+            dy = otherBounds.getYSpan() - 1;
+            dz = otherBounds.getZSpan() - 1;
+            var vT1 = dx * dy * dz;
             return vT1 == vO + vU ? otherBounds : null;
         }
         return null;

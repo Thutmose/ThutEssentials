@@ -5,7 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.common.util.INBTSerializable;
@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import thut.essentials.land.LandManager;
 import thut.essentials.land.claims.NamedVolumes.INamedVolume;
 
 public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
@@ -27,9 +26,9 @@ public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
     }
 
     private final List<INamedVolume> volumes = new ArrayList<>();
-    private final ServerLevel level;
+    private final Level level;
 
-    public CapabilityWorldVolumes(ServerLevel level)
+    public CapabilityWorldVolumes(Level level)
     {
         this.level = level;
     }
@@ -85,7 +84,7 @@ public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
 
     public static CapabilityWorldVolumes makeProvider(final IAttachmentHolder in)
     {
-        if (!(in instanceof ServerLevel level)) return null;
+        if (!(in instanceof Level level)) return null;
         return new CapabilityWorldVolumes(level);
     }
 
