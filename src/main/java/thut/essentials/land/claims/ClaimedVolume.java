@@ -12,6 +12,7 @@ import net.neoforged.neoforge.common.util.INBTSerializable;
 import thut.essentials.land.claims.NamedVolumes.INamedVolume;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag>
 {
@@ -119,5 +120,18 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
     public int getColour()
     {
         return info.colour;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (!(o instanceof ClaimedVolume that)) return false;
+        return Objects.equals(bounds, that.bounds) && Objects.equals(info, that.info);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(bounds, info);
     }
 }

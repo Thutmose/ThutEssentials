@@ -113,6 +113,7 @@ dependencies {
     // Xaeros for showing claims
     implementation "xaero.map:xaeroworldmap-neoforge-1.21.1:1.46.0"
 
+    // bluemap for also claims
     compileOnly 'de.bluecolored:bluemap-api:2.7.7'
 }
 

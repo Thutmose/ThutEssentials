@@ -20,7 +20,7 @@ import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 public class Claim
 {
-    private static final String BYPASSLIMIT = "thutessentials.land.claim.nolimit";
+    public static final String BYPASSLIMIT = "thutessentials.land.claim.nolimit";
 
     public static void register(final CommandDispatcher<CommandSourceStack> commandDispatcher)
     {

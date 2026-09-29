@@ -146,16 +146,42 @@ public class ClaimSync
                     }
                 });
         }
-        if (!claims.isEmpty()) options.add(new RightClickOption("thutessentials.xaeros.unclaim", options.size(), us)
+        if (!claims.isEmpty())
         {
-            @Override
-            public void onAction(Screen screen)
+            boolean canMerge = claims.size() > 1;
+            if(canMerge)
             {
-                int yMin = level.getMinBuildHeight();
-                int yMax = level.getMaxBuildHeight();
-                BoundingBox box = new BoundingBox(xMin, yMin, zMin, xMax, yMax, zMax);
-                ClaimSyncPacket.tryUnclaim(box);
+                options.add(new RightClickOption("thutessentials.xaeros.merge", options.size(), us)
+                {
+                    @Override
+                    public void onAction(Screen screen)
+                    {
+                        int yMin = level.getMinBuildHeight();
+                        int yMax = level.getMaxBuildHeight();
+                        BoundingBox box = new BoundingBox(xMin, yMin, zMin, xMax, yMax, zMax);
+                        ClaimSyncPacket.tryMerge(box);
+                    }
+                });
             }
-        });
+            options.add(new RightClickOption("", options.size(), us)
+            {
+                @Override
+                public void onAction(Screen screen)
+                {
+                    // NO-OP, this is a gap between unclaim
+                }
+            });
+            options.add(new RightClickOption("thutessentials.xaeros.unclaim", options.size(), us)
+            {
+                @Override
+                public void onAction(Screen screen)
+                {
+                    int yMin = level.getMinBuildHeight();
+                    int yMax = level.getMaxBuildHeight();
+                    BoundingBox box = new BoundingBox(xMin, yMin, zMin, xMax, yMax, zMax);
+                    ClaimSyncPacket.tryUnclaim(box);
+                }
+            });
+        }
     }
 }

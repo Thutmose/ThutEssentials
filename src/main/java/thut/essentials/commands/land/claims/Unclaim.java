@@ -159,7 +159,14 @@ public class Unclaim
                     Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"));
             return;
         }
-
+        var dim = player.serverLevel();
+        long resp = LandManager.getInstance().unclaimBox(team.teamName, dim, bounds);
+        if (resp == -2) ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner"));
+        if (resp > 0) ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.unclaim.done.num", resp, team.teamName));
+        else ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.unclaim.done.failed", resp, team.teamName));
     }
 
     private static int unclaim(final GlobalPos chunk, final Player player, final LandTeam team, final boolean messages,

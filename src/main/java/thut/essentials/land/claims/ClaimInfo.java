@@ -9,6 +9,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import thut.essentials.land.LandManager;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -82,5 +83,18 @@ public class ClaimInfo implements INBTSerializable<CompoundTag>
         this.colour = t.colour;
         this.name = t.teamName;
         this.owner = t.land.uuid;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (!(o instanceof ClaimInfo claimInfo)) return false;
+        return Objects.equals(owner, claimInfo.owner) && Objects.equals(name, claimInfo.name);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(owner, name);
     }
 }

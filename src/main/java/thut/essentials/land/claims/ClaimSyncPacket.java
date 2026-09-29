@@ -19,11 +19,17 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.land.claims.Claim;
 import thut.essentials.commands.land.claims.Unclaim;
+import thut.essentials.land.LandManager;
 import thut.essentials.network.Packet;
 import thut.essentials.network.nbtpacket.NBTPacket;
 import thut.essentials.network.nbtpacket.PacketAssembly;
+import thut.essentials.util.PermNodes;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -71,6 +77,13 @@ public class ClaimSyncPacket extends NBTPacket
     {
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("claim", false);
+        tag.put("bounds", BoundingBox.CODEC.encodeStart(NbtOps.INSTANCE, box).getOrThrow());
+        ASSEMBLER.sendToServer(tag);
+    }
+
+    public static void tryMerge(BoundingBox box) {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("merge", true);
         tag.put("bounds", BoundingBox.CODEC.encodeStart(NbtOps.INSTANCE, box).getOrThrow());
         ASSEMBLER.sendToServer(tag);
     }
@@ -160,6 +173,8 @@ public class ClaimSyncPacket extends NBTPacket
         {
             KNOWN_RECIEVERS.add(id);
         }
+        var level = player.level();
+        var dim = level.dimension();
         // Sync claims to the player
         if (tag.isEmpty()) syncClaims(player);
         else
@@ -171,14 +186,76 @@ public class ClaimSyncPacket extends NBTPacket
                 try
                 {
                     var bounds = BoundingBox.CODEC.decode(NbtOps.INSTANCE, tag.get("bounds")).result().get().getFirst();
+                    if (bounds.getXSpan() > 256 || bounds.getZSpan() > 256)
+                    {
+                        // TODO error message about too big?
+                        return;
+                    }
                     if (claiming)
                     {
-                        System.out.println(bounds);
+                        boolean noLimit = PermNodes.getBooleanPerm(player, Claim.BYPASSLIMIT);
+                        if (!noLimit && player.distanceToSqr(bounds.getCenter().getCenter()) > 128 * 128)
+                        {
+                            // TODO error message about too far?
+                            return;
+                        }
                         Claim.claimBox(player, bounds);
                     }
                     else
                     {
                         Unclaim.unclaimBox(player, bounds);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Essentials.LOGGER.error(e);
+                }
+            }
+            else if (tag.getBoolean("merge"))
+            {
+                try
+                {
+                    var bounds = BoundingBox.CODEC.decode(NbtOps.INSTANCE, tag.get("bounds")).result().get().getFirst();
+                    if (bounds.getXSpan() > 256 || bounds.getZSpan() > 256)
+                    {
+                        // TODO error message about too big?
+                        return;
+                    }
+                    var testVol = new ClaimedVolume(bounds, new ClaimInfo());
+                    var claims = StructureManager.getColliding(dim, testVol);
+                    if (!claims.isEmpty())
+                    {
+                        Map<UUID, List<ClaimedVolume>> byGroup = new HashMap<>();
+                        claims.forEach(v -> {
+                            if (v instanceof ClaimedVolume b)
+                                byGroup.computeIfAbsent(b.info.owner, k -> new ArrayList<>()).add(b);
+                        });
+                        var team = LandManager.getTeam(player);
+                        var teamID = team.land.uuid;
+                        if (byGroup.containsKey(teamID))
+                        {
+                            var mergeSet = byGroup.get(teamID);
+                            // Try iteratively merging them together?
+                            long totalV = mergeSet.stream().mapToLong(ClaimedVolume::computeVolume).sum();
+                            List<BoundingBox> allBoxes = new ArrayList<>(
+                                    mergeSet.stream().map(ClaimedVolume::getTotalBounds).toList());
+                            // try simple merge
+                            var bOpt = BoundingBox.encapsulatingBoxes(allBoxes);
+                            if (bOpt.isPresent())
+                            {
+                                var vB = NamedVolumes.computeVolume(bOpt.get());
+                                if (vB == totalV)
+                                {
+                                    // Yay, they all merge!
+                                    ClaimInfo info = mergeSet.removeFirst().info;
+                                    mergeSet.forEach(i -> info.mergeFrom(i.info));
+                                    ClaimedVolume sum = new ClaimedVolume(bOpt.get(), info);
+                                    var volumes = CapabilityWorldVolumes.get(level);
+                                    mergeSet.forEach(volumes::removeVolume);
+                                    volumes.addVolume(sum);
+                                }
+                            }
+                        }
                     }
                 }
                 catch (Exception e)

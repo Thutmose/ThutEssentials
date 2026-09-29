@@ -65,9 +65,9 @@ public class StructureManager
             AABB otherBB = AABB.of(otherB);
             if (!aabbUs.intersects(otherBB)) return false;
             var aabbI = aabbUs.intersect(otherBB);
-            return NamedVolumes.computeVolume(aabbI) == 0;
+            return NamedVolumes.computeVolume(aabbI) != 0;
         });
-        return ret.toList();
+        return new ArrayList<>(ret.toList());
     }
 
     public static List<GlobalChunkPos> forVolume(INamedVolume volume, ResourceKey<Level> level)

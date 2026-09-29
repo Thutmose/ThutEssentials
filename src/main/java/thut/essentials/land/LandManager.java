@@ -678,7 +678,7 @@ public class LandManager
         GlobalPos c = GlobalPos.of(world.dimension(), box.getCenter());
         InventoryLogger.log("unclaimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
-        return 0;
+        return vol;
     }
 
     public long unclaimLand(final String team, final Level world, final BlockPos pos)
