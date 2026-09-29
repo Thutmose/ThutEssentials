@@ -27,6 +27,7 @@ import thut.essentials.economy.EconomyManager;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
+import thut.essentials.land.claims.ClaimSyncPacket;
 import thut.essentials.land.claims.StructureManager;
 import thut.essentials.network.PacketHandler;
 import thut.essentials.util.CmdScheduler;
@@ -110,6 +111,9 @@ public class Essentials
         WorldStructures.setup();
         DimVersionManager.init();
         Compat.init();
+
+        // Register the sync packet
+        Essentials.packets.registerBiDirectionalMessage(ClaimSyncPacket.class);
 
         NeoForge.EVENT_BUS.addListener(TickScheduler::onWorldTickPost);
         NeoForge.EVENT_BUS.addListener(TickScheduler::onWorldTickPre);
