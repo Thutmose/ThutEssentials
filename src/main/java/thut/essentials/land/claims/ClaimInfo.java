@@ -7,13 +7,17 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.neoforged.neoforge.common.util.INBTSerializable;
+import thut.essentials.land.LandManager;
 
 import java.util.Set;
 import java.util.UUID;
 
 public class ClaimInfo implements INBTSerializable<CompoundTag>
 {
+    public static int NOCOLOUR = 0x00000001;
+
     public UUID owner;
+    public int colour = NOCOLOUR;
     public String name;
     public Set<UUID> publicMobs = Sets.newHashSet();
     public Set<UUID> protectedMobs = Sets.newHashSet();
@@ -32,6 +36,7 @@ public class ClaimInfo implements INBTSerializable<CompoundTag>
         final CompoundTag tag = new CompoundTag();
         final ListTag mobListPub = new ListTag();
         if (this.name != null && !this.name.isBlank()) tag.putString("name", this.name);
+        if (this.colour != NOCOLOUR) tag.putInt("colour", this.colour);
         this.publicMobs.forEach(uuid -> mobListPub.add(NbtUtils.createUUID(uuid)));
         tag.put("public_mobs", mobListPub);
         final ListTag mobListProt = new ListTag();
@@ -49,6 +54,7 @@ public class ClaimInfo implements INBTSerializable<CompoundTag>
     {
         if (nbt.contains("owner")) owner = NbtUtils.loadUUID(nbt.get("owner"));
         if (nbt.contains("name")) this.name = nbt.getString("name");
+        if (nbt.contains("colour")) this.colour = nbt.getInt("colour");
         if (nbt.contains("public_mobs"))
         {
             ListTag list = (ListTag) nbt.get("public_mobs");
@@ -68,5 +74,13 @@ public class ClaimInfo implements INBTSerializable<CompoundTag>
                 NbtUtils.readBlockPos(posTag, "p").ifPresent(publicBlocks::add);
             });
         }
+    }
+
+    public void initFrom(LandManager.LandTeam t)
+    {
+        if (t.colour == ClaimInfo.NOCOLOUR) t.colour = t.teamName.hashCode() | 0xFF000000;
+        this.colour = t.colour;
+        this.name = t.teamName;
+        this.owner = t.land.uuid;
     }
 }

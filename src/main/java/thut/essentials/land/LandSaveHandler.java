@@ -21,6 +21,7 @@ import net.minecraft.world.level.storage.LevelResource;
 import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
+import thut.essentials.land.claims.ClaimInfo;
 import thut.essentials.land.claims.ClaimedVolume;
 import thut.essentials.land.claims.NamedVolumes;
 
@@ -68,7 +69,7 @@ public class LandSaveHandler
                         if (!(volume instanceof ClaimedVolume claim)) return false;
                         if (claim.info.owner == null) return true;
                         var team = LandManager.getInstance()._team_land.get(claim.info.owner);
-                        if (team != null) claim.info.name = team.teamName;
+                        if (team != null) claim.info.initFrom(team);
                         return team == null;
                     };
                     volumes.removeVolumes(invalid);

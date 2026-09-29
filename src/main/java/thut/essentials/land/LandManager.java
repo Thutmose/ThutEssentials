@@ -146,6 +146,7 @@ public class LandManager
 
         public TeamLand land = new TeamLand();
         public String teamName;
+        public int colour = ClaimInfo.NOCOLOUR;
         /** Admins of this team. */
         public Set<UUID> admin = Sets.newHashSet();
         /** UUIDs of members of this team. */
@@ -622,8 +623,7 @@ public class LandManager
             return -1;
         }
         ClaimInfo info = new ClaimInfo();
-        info.name = t.teamName;
-        info.owner = t.land.uuid;
+        info.initFrom(t);
         var claim = new ClaimedVolume(box, info);
         var volume = claim.computeVolume();
         if (checkSize)
@@ -662,8 +662,7 @@ public class LandManager
         }
         int minY = SectionPos.sectionToBlockCoord(pos.getY(), 0), maxY = SectionPos.sectionToBlockCoord(pos.getY(), 16);
         ClaimedVolume claim = new ClaimedVolume(new ChunkPos(pos.getX(), pos.getZ()), minY, maxY);
-        claim.info.owner = t.land.uuid;
-        claim.info.name = t.teamName;
+        claim.info.initFrom(t);
         List<ClaimedVolume> toRemove = new ArrayList<>();
 
         // Now try to merge in with other neearby claims

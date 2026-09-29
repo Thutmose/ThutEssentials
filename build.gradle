@@ -23,6 +23,7 @@ repositories {
         url "https://chocolateminecraft.com/maven"
         name "Xaero's Maven"
     }
+    maven { url 'https://repo.bluecolored.de/releases' }
     mavenLocal()
 }
 
@@ -111,6 +112,8 @@ dependencies {
 
     // Xaeros for showing claims
     implementation "xaero.map:xaeroworldmap-neoforge-1.21.1:1.46.0"
+
+    compileOnly 'de.bluecolored:bluemap-api:2.7.7'
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

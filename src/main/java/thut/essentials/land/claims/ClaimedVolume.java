@@ -15,6 +15,7 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
 {
     BoundingBox bounds;
     public final ClaimInfo info;
+    public String extraKey = "";
 
     public ClaimedVolume()
     {
@@ -98,5 +99,10 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
     {
         bounds = BoundingBox.CODEC.decode(NbtOps.INSTANCE, nbt.get("bounds")).result().get().getFirst();
         this.info.deserializeNBT(provider, nbt.getCompound("info"));
+    }
+
+    public int getColour()
+    {
+        return info.colour;
     }
 }

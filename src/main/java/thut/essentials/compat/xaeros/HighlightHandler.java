@@ -166,6 +166,7 @@ public class HighlightHandler extends ChunkHighlighter
 
     private int getClaimsColor(NamedVolumes.INamedVolume volume)
     {
+        if (volume instanceof ClaimedVolume v) return v.getColour();
         return volume.getName().hashCode() | 0xFF000000;
     }
 }
