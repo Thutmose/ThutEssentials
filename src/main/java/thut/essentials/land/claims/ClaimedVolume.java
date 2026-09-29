@@ -5,13 +5,10 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.common.util.INBTSerializable;
-import thut.essentials.land.LandManager;
 import thut.essentials.land.claims.NamedVolumes.INamedVolume;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag>
@@ -30,11 +27,6 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
         this.bounds = bounds;
     }
 
-    public ClaimedVolume(ChunkPos chunk, Level level)
-    {
-        this(chunk, level.getMinBuildHeight(), level.getMaxBuildHeight());
-    }
-
     public ClaimedVolume(ChunkPos chunk, int minY, int maxY)
     {
         var lower = new BlockPos(chunk.getMinBlockX(), minY, chunk.getMinBlockZ());
@@ -43,46 +35,29 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
         this.info = new ClaimInfo();
     }
 
-    public List<ClaimedVolume> removeSection(BlockPos chunkPos)
-    {
-        return new ArrayList<>();
-    }
-
     public BoundingBox shouldMerge(ClaimedVolume other)
     {
+        if (other == this) return null;
         if (!other.info.owner.equals(this.info.owner)) return null;
         var otherBounds = other.getTotalBounds();
-        int dx = otherBounds.getXSpan() - 1;
-        int dy = otherBounds.getYSpan() - 1;
-        int dz = otherBounds.getZSpan() - 1;
-        var vO = dx * dy * dz;
-        dx = bounds.getXSpan() - 1;
-        dy = bounds.getYSpan() - 1;
-        dz = bounds.getZSpan() - 1;
-        var vU = dx * dy * dz;
+        var vO = NamedVolumes.computeVolume(otherBounds);
+        var vU = NamedVolumes.computeVolume(bounds);
         var boundList = List.of(otherBounds, bounds);
         var tBounds = BoundingBox.encapsulatingBoxes(boundList);
         if (tBounds.isPresent())
         {
             otherBounds = tBounds.get();
-            dx = otherBounds.getXSpan() - 1;
-            dy = otherBounds.getYSpan() - 1;
-            dz = otherBounds.getZSpan() - 1;
-            var vT1 = dx * dy * dz;
+            var vT1 = NamedVolumes.computeVolume(otherBounds);
             return vT1 == vO + vU ? otherBounds : null;
         }
         return null;
     }
 
-    private LandManager.LandTeam _team = null;
-
     @Override
     public String getName()
     {
-        if (_team != null) return _team.teamName;
-        if (LandManager.getInstance()._team_land.containsKey(info.owner))
-            return (_team = LandManager.getInstance()._team_land.get(info.owner)).teamName;
-        return "claim";
+        if(info.name.isBlank()) info.name = "claim";
+        return info.name;
     }
 
     @Override

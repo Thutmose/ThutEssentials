@@ -14,6 +14,7 @@ import java.util.UUID;
 public class ClaimInfo implements INBTSerializable<CompoundTag>
 {
     public UUID owner;
+    public String name;
     public Set<UUID> publicMobs = Sets.newHashSet();
     public Set<UUID> protectedMobs = Sets.newHashSet();
     public Set<BlockPos> publicBlocks = Sets.newHashSet();
@@ -30,6 +31,7 @@ public class ClaimInfo implements INBTSerializable<CompoundTag>
     {
         final CompoundTag tag = new CompoundTag();
         final ListTag mobListPub = new ListTag();
+        if (this.name != null && !this.name.isBlank()) tag.putString("name", this.name);
         this.publicMobs.forEach(uuid -> mobListPub.add(NbtUtils.createUUID(uuid)));
         tag.put("public_mobs", mobListPub);
         final ListTag mobListProt = new ListTag();
@@ -46,6 +48,7 @@ public class ClaimInfo implements INBTSerializable<CompoundTag>
     public void deserializeNBT(HolderLookup.Provider var1, final CompoundTag nbt)
     {
         if (nbt.contains("owner")) owner = NbtUtils.loadUUID(nbt.get("owner"));
+        if (nbt.contains("name")) this.name = nbt.getString("name");
         if (nbt.contains("public_mobs"))
         {
             ListTag list = (ListTag) nbt.get("public_mobs");

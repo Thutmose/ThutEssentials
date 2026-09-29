@@ -78,8 +78,9 @@ public class Deed
             // Unclaim from deed team first.
             LandManager.getInstance().unclaimLand(Deed.DEEDTEAM, world, c.pos());
             // Then claim for the new owner.
-            final int re = Claim.claim(world, c.pos(), player, team, false,
-                    PermNodes.getBooleanPerm(player, Deed.BYPASSLIMIT));
+            final int re = 0;
+//                    Claim.claim(world, c.pos(), player, team, false,
+//                    PermNodes.getBooleanPerm(player, Deed.BYPASSLIMIT));
             if (re == 0)
             {
                 n++;

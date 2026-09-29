@@ -31,13 +31,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class Config extends ConfigData {
+public class Config extends ConfigData
+{
     public static final String LAND = "land";
     public static final String MISC = "misc";
     public static final String HOME = "homes";
@@ -58,7 +60,7 @@ public class Config extends ConfigData {
     @Configure(category = Config.LAND)
     public boolean denyExplosions = true;
     @Configure(category = Config.LAND)
-    public boolean chunkLoading = true;
+    public boolean chunkLoading = false;
     @Configure(category = Config.LAND)
     public boolean landEnabled = true;
     @Configure(category = Config.LAND)
@@ -72,7 +74,7 @@ public class Config extends ConfigData {
     @Configure(category = Config.LAND)
     public boolean logTeamChat = true;
     @Configure(category = Config.LAND)
-    public int teamLandPerPlayer = 125;
+    public long teamBlocksPerPlayer = 125 * 4096;
     @Configure(category = Config.LAND)
     public int prefixLength = 12;
     @Configure(category = Config.LAND)
@@ -93,7 +95,7 @@ public class Config extends ConfigData {
 
     @Configure(category = Config.LAND)
     public List<String> customMobUsePerms = Lists.newArrayList(
-    //@formatter:off
+            //@formatter:off
             "minecraft:armor_stand->"
             + "thutessentials.land.useblock.unowned,"
             + "thutessentials.land.useblock.owned.self,"
@@ -114,7 +116,7 @@ public class Config extends ConfigData {
     );
     @Configure(category = Config.LAND)
     public List<String> legacyDimMap = Lists.newArrayList(
-    //@formatter:off
+            //@formatter:off
             "0->overworld",
             "-1->the_nether",
             "1->the_end"
@@ -283,92 +285,100 @@ public class Config extends ConfigData {
 
     private final Path configpath;
 
-    public Config() {
+    public Config()
+    {
         super(Essentials.MODID);
         this.configpath = FMLPaths.CONFIGDIR.get().resolve(Essentials.MODID);
     }
 
     private final Map<String, String> lang_overrides_map = Maps.newHashMap();
 
-    public MutableComponent getMessage(final String key, final Object... args) {
+    public MutableComponent getMessage(final String key, final Object... args)
+    {
         if (this.lang_overrides_map.containsKey(key))
             return Component.literal(String.format(this.lang_overrides_map.get(key), args));
-        else
-            return Component.translatable(key, args);
+        else return Component.translatable(key, args);
     }
 
-    public void sendFeedback(final CommandSourceStack target, final String key, final boolean log,
-            final Object... args) {
-        target.sendSuccess(()->this.getMessage(key, args), log);
+    public void sendFeedback(final CommandSourceStack target, final String key, final boolean log, final Object... args)
+    {
+        target.sendSuccess(() -> this.getMessage(key, args), log);
     }
 
-    public void sendError(final CommandSourceStack target, final String key, final Object... args) {
+    public void sendError(final CommandSourceStack target, final String key, final Object... args)
+    {
         target.sendFailure(this.getMessage(key, args));
     }
 
     @Override
-    public void onUpdated() {
+    public void onUpdated()
+    {
         this.spawnDimension = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(this.spawnWorld));
 
         final File file = this.configpath.resolve(this.lang_file).toFile();
-        if (file.exists())
-            try {
-                final BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
-                final Gson gson = new GsonBuilder().create();
-                final JsonObject o = gson.fromJson(in, JsonObject.class);
-                for (final Entry<String, JsonElement> entry : o.entrySet())
-                    try {
-                        final String key = entry.getKey();
-                        final String value = entry.getValue().getAsString();
-                        this.lang_overrides_map.put(key, value);
-                    } catch (final Exception e) {
-                        Essentials.LOGGER.error("Error with keypair {}, {}", entry.getKey(), entry.getValue());
-                    }
-            } catch (final Exception e) {
-                Essentials.LOGGER.error("Error loading lang json from config!", e);
-            }
+        if (file.exists()) try
+        {
+            final BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file),
+                    StandardCharsets.UTF_8));
+            final Gson gson = new GsonBuilder().create();
+            final JsonObject o = gson.fromJson(in, JsonObject.class);
+            for (final Entry<String, JsonElement> entry : o.entrySet())
+                try
+                {
+                    final String key = entry.getKey();
+                    final String value = entry.getValue().getAsString();
+                    this.lang_overrides_map.put(key, value);
+                }
+                catch (final Exception e)
+                {
+                    Essentials.LOGGER.error("Error with keypair {}, {}", entry.getKey(), entry.getValue());
+                }
+        }
+        catch (final Exception e)
+        {
+            Essentials.LOGGER.error("Error loading lang json from config!", e);
+        }
 
-        if (this.log_inventory_use)
-            InventoryLogger.enable();
-        else
-            InventoryLogger.disable();
+        if (this.log_inventory_use) InventoryLogger.enable();
+        else InventoryLogger.disable();
 
-        if (this.rtpSpawnCentred)
+        if (this.rtpSpawnCentred) thut.essentials.commands.misc.RTP.centre = null;
+        else try
+        {
+            final String[] args = this.rtpCentre.split(",");
+            final int x = Integer.parseInt(args[0]);
+            final int z = Integer.parseInt(args[1]);
+            thut.essentials.commands.misc.RTP.centre = new BlockPos(x, 0, z);
+        }
+        catch (final Exception e)
+        {
+            Essentials.LOGGER.error("Error with value in rtpCentre, defaulting to spawn centred!");
             thut.essentials.commands.misc.RTP.centre = null;
-        else
-            try {
-                final String[] args = this.rtpCentre.split(",");
-                final int x = Integer.parseInt(args[0]);
-                final int z = Integer.parseInt(args[1]);
-                thut.essentials.commands.misc.RTP.centre = new BlockPos(x, 0, z);
-            } catch (final Exception e) {
-                Essentials.LOGGER.error("Error with value in rtpCentre, defaulting to spawn centred!");
-                thut.essentials.commands.misc.RTP.centre = null;
-            }
+        }
 
         this.versioned_dim_keys.clear();
         this.versioned_dims.forEach(s -> this.versioned_dim_keys.add(ResourceLocation.parse(s)));
 
         this.versioned_dim_seed_map.clear();
         this.versioned_dim_seeds.forEach(s -> {
-            if (!s.contains("->"))
-                return;
+            if (!s.contains("->")) return;
             final String[] args = s.split("->");
-            if (args.length < 2)
-                return;
-            try {
+            if (args.length < 2) return;
+            try
+            {
                 final Long value = Long.parseLong(args[1], 36);
                 this.versioned_dim_seed_map.put(ResourceLocation.parse(args[0]), value);
-            } catch (final NumberFormatException e) {
-                return;
+            }
+            catch (final NumberFormatException ignored)
+            {
             }
         });
 
-        Essentials.LOGGER.info("" + this.versioned_dims);
-        Essentials.LOGGER.info("" + this.versioned_dim_seeds);
+        Essentials.LOGGER.info("{}", this.versioned_dims);
+        Essentials.LOGGER.info("{}", this.versioned_dim_seeds);
 
-        Essentials.LOGGER.info("" + this.versioned_dim_keys);
-        Essentials.LOGGER.info("" + this.versioned_dim_seed_map);
+        Essentials.LOGGER.info("{}", this.versioned_dim_keys);
+        Essentials.LOGGER.info("{}", this.versioned_dim_seed_map);
 
         MobManager.init();
         PlayerMover.INTERUPTED = this.getMessage("thutessentials.tp.standstill");

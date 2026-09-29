@@ -116,9 +116,9 @@ public class CommandManager
         thut.essentials.commands.land.claims.Claim.register(commandDispatcher);
         thut.essentials.commands.land.claims.Owner.register(commandDispatcher);
         thut.essentials.commands.land.claims.Unclaim.register(commandDispatcher);
-        thut.essentials.commands.land.claims.Deed.register(commandDispatcher);
-        thut.essentials.commands.land.claims.Load.register(commandDispatcher);
-        thut.essentials.commands.land.claims.Unload.register(commandDispatcher);
+//        thut.essentials.commands.land.claims.Deed.register(commandDispatcher);
+//        thut.essentials.commands.land.claims.Load.register(commandDispatcher);
+//        thut.essentials.commands.land.claims.Unload.register(commandDispatcher);
 
         thut.essentials.commands.util.Fly.register(commandDispatcher);
     }

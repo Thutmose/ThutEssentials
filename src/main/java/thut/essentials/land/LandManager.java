@@ -23,8 +23,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import thut.essentials.Essentials;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
+import thut.essentials.land.claims.ClaimInfo;
 import thut.essentials.land.claims.ClaimedVolume;
 import thut.essentials.land.claims.NamedVolumes;
 import thut.essentials.land.claims.StructureManager;
@@ -131,10 +133,6 @@ public class LandManager
         public static final String INVITE = "invite";
         /** Can kick people */
         public static final String KICK = "kick";
-        /** Can chunkload. */
-        public static final String LOADPERM = "cload";
-        /** Can chunkload. */
-        public static final String UNLOADPERM = "uncload";
 
         // These are perms checked for relations
         /** Can interact with things freely */
@@ -223,7 +221,7 @@ public class LandManager
          * Override of maximum land allowed for the team, if this is not -1, it
          * will be used instead.
          */
-        public int maxLand = -1;
+        public long maxLand = -1;
         /**
          * Override of maximum land allowed for the team, if this is not -1, it
          * will be used instead.
@@ -334,7 +332,7 @@ public class LandManager
             }
             catch (final Exception e)
             {
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
         }
 
@@ -429,9 +427,9 @@ public class LandManager
 
         public HashSet<Coordinate> land = Sets.newHashSet();
 
-        public int claimed = 0;
+        public long claimed = 0;
 
-        public int countLand()
+        public long countLand()
         {
             return this.claimed;
         }
@@ -443,7 +441,7 @@ public class LandManager
         }
     }
 
-    static LandManager instance;
+    public static LandManager instance;
 
     public static final int VERSION = 1;
 
@@ -596,13 +594,56 @@ public class LandManager
             }
             catch (final Exception e)
             {
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
         }
         this._team_land.remove(team.land.uuid);
         LandSaveHandler.saveTeam(_default.teamName);
         for (final Invites i : this.invites.values()) i.teams.remove(teamName);
         LandSaveHandler.deleteTeam(teamName);
+    }
+
+    public long claimChunk(String team, boolean checkSize, Level world, ChunkPos chunk, int minY, int maxY)
+    {
+        int x0 = chunk.getMinBlockX();
+        int x1 = chunk.getMaxBlockX() + 1;
+        int z0 = chunk.getMinBlockX();
+        int z1 = chunk.getMaxBlockX() + 1;
+        BoundingBox box = new BoundingBox(x0, minY, z0, x1, maxY, z1);
+        return claimVolume(team, checkSize, world, box);
+    }
+
+    public long claimVolume(String team, boolean checkSize, Level world, BoundingBox box)
+    {
+        final LandTeam t = this._teamMap.get(team);
+        if (t == null)
+        {
+            Thread.dumpStack();
+            return -1;
+        }
+        ClaimInfo info = new ClaimInfo();
+        info.name = t.teamName;
+        info.owner = t.land.uuid;
+        var claim = new ClaimedVolume(box, info);
+        var volume = claim.computeVolume();
+        if (checkSize)
+        {
+            final int teamCount = t.member.size();
+            final long maxLand = t.maxLand < 0 ? teamCount * Essentials.config.teamBlocksPerPlayer : t.maxLand;
+            if (t.land.claimed + volume > maxLand)
+            {
+                return -2;
+            }
+        }
+        var conflicts = StructureManager.getColliding(world.dimension(), claim);
+        if (conflicts.isEmpty())
+        {
+            var volumes = CapabilityWorldVolumes.get(world);
+            volumes.addVolume(claim);
+            t.land.claimed += volume;
+            return volume;
+        }
+        else return -3;
     }
 
     public void claimLand(final String team, final Level world, final BlockPos pos)
@@ -622,7 +663,7 @@ public class LandManager
         int minY = SectionPos.sectionToBlockCoord(pos.getY(), 0), maxY = SectionPos.sectionToBlockCoord(pos.getY(), 16);
         ClaimedVolume claim = new ClaimedVolume(new ChunkPos(pos.getX(), pos.getZ()), minY, maxY);
         claim.info.owner = t.land.uuid;
-        t.land.claimed++;
+        claim.info.name = t.teamName;
         List<ClaimedVolume> toRemove = new ArrayList<>();
 
         // Now try to merge in with other neearby claims
@@ -700,9 +741,12 @@ public class LandManager
             }
         }
 
+        for (var v : toRemove) t.land.claimed -= v.computeVolume();
+        t.land.claimed += claim.computeVolume();
+
         var volumes = CapabilityWorldVolumes.get(world);
-        volumes.addVolume(claim);
         toRemove.forEach(volumes::removeVolume);
+        volumes.addVolume(claim);
 
         GlobalPos c;
         c = GlobalPos.of(world.dimension(), pos);
@@ -710,28 +754,38 @@ public class LandManager
         LandSaveHandler.saveTeam(team);
     }
 
-    public void unclaimLand(final String team, final Level world, final BlockPos pos)
+    public long unclaimBox(final String team, Level world, BoundingBox box){
+        return 0;
+    }
+
+    public long unclaimLand(final String team, final Level world, final BlockPos pos)
     {
         var claims = this.getClaimer(world, pos, true);
         if (claims == null)
         {
             Thread.dumpStack();
-            return;
+            return 0;
         }
         final LandTeam t = this._teamMap.get(team);
         if (t == null)
         {
             Thread.dumpStack();
-            return;
+            return 0;
         }
-
         var volumes = CapabilityWorldVolumes.get(world);
+        if (!volumes.getVolumes().contains(claims))
+        {
+            return 0;
+        }
+        long volume = claims.computeVolume();
         // TODO instead split the claim up into bits, and then re-add those.
         volumes.removeVolume(claims);
+        t.land.claimed -= volume;
 
         GlobalPos c = GlobalPos.of(world.dimension(), pos);
         InventoryLogger.log("unclaimed for team: {}", c, team);
         LandSaveHandler.saveTeam(team);
+        return volume;
     }
 
     public void addAdmin(final UUID admin, final String team)
@@ -747,7 +801,7 @@ public class LandManager
         t.addMember(member);
     }
 
-    public int countLand(final String team)
+    public long countLand(final String team)
     {
         final LandTeam t = this._teamMap.get(team);
         if (t != null) return t.land.countLand();
@@ -786,8 +840,8 @@ public class LandManager
     {
         ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
         int y = chunkCoords ? pos.getY() : SectionPos.blockToSectionCoord(pos.getY());
-        List<NamedVolumes.INamedVolume> volumes = StructureManager.getFor(world.dimension(),
-                cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(y) + 8));
+        var bPos = cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(y) + 8);
+        List<NamedVolumes.INamedVolume> volumes = StructureManager.getFor(world.dimension(), bPos);
         volumes.removeIf(e -> !(e instanceof ClaimedVolume));
         ClaimedVolume ret = null;
         var _volumes = CapabilityWorldVolumes.get(world);

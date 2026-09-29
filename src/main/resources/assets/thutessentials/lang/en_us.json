@@ -223,9 +223,9 @@
     "thutessentials.claim.notallowed.alreadyclaimedby": "§cThis land is already claimed by §6%s",
     "thutessentials.claim.warn.alreadyclaimed": "§6%s§c of these chunk segments were already claimed!",
     "thutessentials.claim.claimed": "§aYou claimed this land for §6%s",
-    "thutessentials.claim.claimed.num": "§aYou claimed §6%s§a chunk segments for §6%s",
+    "thutessentials.claim.claimed.num": "§aYou claimed §6%s§a blocks for §6%s",
     "thutessentials.claim.claimed.failed": "§cYou were unable to claim that land.",
-    "thutessentials.claim.claimed.count": "§aYour team has claimed §6%s§a chunk segments, with a maximum of §6%s§a",
+    "thutessentials.claim.claimed.count": "§aYour team has claimed §6%s§a blocks, with a maximum of §6%s§a",
     
     "thutessentials.claim.loaded": "§aYou marked this chunk for chunkloading, §6%s§a remaining.",
     "thutessentials.claim.unloaded": "§aYou unmarked this chunk for chunkloading, §6%s§a remaining.",
@@ -244,6 +244,15 @@
     "thutessentials.unclaim.done": "§aYou unclaimed this land for §6%s",
     "thutessentials.unclaim.done.num": "§aYou unclaimed §6%s§a chunk segments for §6%s",
     "thutessentials.unclaim.done.failed": "§cYou were unable to unclaim that land.",
+
+    "thutessentials.xaeros.claim": "Claim",
+    "thutessentials.xaeros.claim.here": "Claim Here",
+    "thutessentials.xaeros.claim.here.up": "Claim Here Up",
+
+    "thutessentials.xaeros.unclaim": "Unclaim",
+
+    "thutessentials.claim.autooff": "Auto Claiming Off",
+    "thutessentials.claim.autoon": "Auto Claiming On",
     
     "_comment": "Misc",
     

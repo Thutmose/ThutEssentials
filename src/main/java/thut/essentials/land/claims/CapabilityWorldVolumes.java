@@ -8,14 +8,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import thut.essentials.land.LandManager;
 import thut.essentials.land.claims.NamedVolumes.INamedVolume;
 
 public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
@@ -23,6 +26,11 @@ public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
     static
     {
         NamedVolumes.VOLUMES_FACTORY_REGISTRY.put("thutessentials:claim", ClaimedVolume::new);
+    }
+
+    public List<INamedVolume> getVolumes()
+    {
+        return volumes;
     }
 
     private final List<INamedVolume> volumes = new ArrayList<>();
@@ -38,8 +46,12 @@ public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
         if (!this.volumes.contains(volume))
         {
             this.volumes.add(volume);
-            StructureManager.addStructure(level.dimension(), volume);
             StructureManager.addVolume(volume, this.level);
+            if (volume instanceof ClaimedVolume claim)
+            {
+                ClaimEvent.Claim event = new ClaimEvent.Claim(claim, this.level);
+                NeoForge.EVENT_BUS.post(event);
+            }
         }
     }
 
@@ -47,6 +59,17 @@ public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
     {
         this.volumes.remove(volume);
         StructureManager.removeVolume(volume, this.level);
+        if (volume instanceof ClaimedVolume claim)
+        {
+            ClaimEvent.Unclaim event = new ClaimEvent.Unclaim(claim, this.level);
+            NeoForge.EVENT_BUS.post(event);
+        }
+    }
+
+    public void removeVolumes(Predicate<INamedVolume> matcher)
+    {
+        List<INamedVolume> matched = this.volumes.stream().filter(matcher).toList();
+        matched.forEach(this::removeVolume);
     }
 
     @Override
@@ -55,8 +78,15 @@ public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
         CompoundTag tag = new CompoundTag();
         ListTag list = new ListTag();
         this.volumes.forEach(b -> {
+            if (b instanceof ClaimedVolume v)
+            {
+                if (v.info == null) return;
+                if (v.info.owner == null) return;
+                if (LandManager.instance != null && !LandManager.getInstance()._team_land.containsKey(v.info.owner))
+                    return;
+            }
             var _tag = NamedVolumes.saveVolumeOrPart(registries, b);
-            if(!_tag.isEmpty()) list.add(_tag);
+            if (!_tag.isEmpty()) list.add(_tag);
         });
         tag.put("volumes", list);
         return tag;
@@ -73,7 +103,6 @@ public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
                 var volume = NamedVolumes.loadVolume(registries, comp);
                 if (volume != null)
                 {
-                    // || !LandManager.getInstance()._team_land.containsKey(v.info.owner))
                     if (volume instanceof ClaimedVolume v && (v.info.owner == null)) return;
                     this.volumes.add(volume);
                 }

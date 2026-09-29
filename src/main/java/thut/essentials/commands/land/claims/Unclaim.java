@@ -11,7 +11,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.common.NeoForge;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
@@ -20,12 +22,14 @@ import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandManager.TeamLand;
 import thut.essentials.land.LandSaveHandler;
+import thut.essentials.land.claims.ClaimSyncPacket;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Unclaim
 {
@@ -86,54 +90,80 @@ public class Unclaim
 
         if (all)
         {
-            final int num = team.land.countLand();
+            final long num = team.land.countLand();
             LandManager.getInstance()._team_land.remove(team.land.uuid);
             team.land = new TeamLand();
             LandManager.getInstance()._team_land.put(team.land.uuid, team);
             LandSaveHandler.saveTeam(team.teamName);
+            ClaimSyncPacket.resendAll(source.getServer());
             ChatHelper.sendSystemMessage(player,
                     Essentials.config.getMessage("thutessentials.unclaim.done.num", num, team.teamName));
             return 0;
         }
         player.getServer().execute(() -> {
-            final int x = Mth.floor(player.blockPosition().getX() >> 4);
             final int y = Mth.floor(player.blockPosition().getY() >> 4);
-            final int z = Mth.floor(player.blockPosition().getZ() >> 4);
-
-            final AtomicInteger worked = new AtomicInteger();
-            final AtomicInteger other = new AtomicInteger();
-            final AtomicBoolean ready = new AtomicBoolean();
-
             if (here)
             {
+                final int x = Mth.floor(player.blockPosition().getX() >> 4);
+                final int z = Mth.floor(player.blockPosition().getZ() >> 4);
+                final AtomicLong worked = new AtomicLong();
+                final AtomicInteger other = new AtomicInteger();
+                final AtomicBoolean ready = new AtomicBoolean();
                 Unclaim.unclaim(x, y, z, player, team, true, canUnclaimAnything, worked, other, ready);
-                LandSaveHandler.saveTeam(team.teamName);
                 return;
             }
-            final int min = down ? player.level().getMinSection() : y;
-            final int max = up ? player.level().getMaxSection() : y;
-            boolean done;
-            int claimnum;
-            int owned_other;
-            for (int i = min; i < max; i++)
-                Unclaim.unclaim(x, i, z, player, team, false, canUnclaimAnything, worked, other, ready);
-
-            claimnum = worked.get();
-            owned_other = other.get();
-            done = claimnum != 0;
-            if (owned_other > 0) ChatHelper.sendSystemMessage(player,
-                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owned_other));
-            if (done) ChatHelper.sendSystemMessage(player,
-                    Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum, team.teamName));
-            else ChatHelper.sendSystemMessage(player,
-                    Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum, team.teamName));
-            LandSaveHandler.saveTeam(team.teamName);
+            unclaimChunk(player, up, down, player.chunkPosition(), y);
         });
         return 0;
     }
+    public static void unclaimChunk(ServerPlayer player, boolean up, boolean down, ChunkPos pos, int y)
+    {
+        final LandTeam team = LandManager.getTeam(player);
+        final boolean canUnclaimAnything = PermNodes.getBooleanPerm(player, Unclaim.GLOBALPERM);
+        if (!canUnclaimAnything && !team.hasRankPerm(player.getUUID(), LandTeam.UNCLAIMPERM))
+        {
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"));
+            return;
+        }
+        final AtomicLong worked = new AtomicLong();
+        final AtomicInteger other = new AtomicInteger();
+        final AtomicBoolean ready = new AtomicBoolean();
+        int x = pos.x;
+        int z = pos.z;
+        final int min = down ? player.level().getMinSection() : y;
+        final int max = up ? player.level().getMaxSection() : y;
+        boolean done;
+        long claimnum;
+        int owned_other;
+        for (int i = min; i < max; i++)
+            Unclaim.unclaim(x, i, z, player, team, false, canUnclaimAnything, worked, other, ready);
+
+        claimnum = worked.get();
+        owned_other = other.get();
+        done = claimnum != 0;
+        if (owned_other > 0) ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.unclaim.notallowed.notowner", owned_other));
+        if (done) ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.unclaim.done.num", claimnum, team.teamName));
+        else ChatHelper.sendSystemMessage(player,
+                Essentials.config.getMessage("thutessentials.unclaim.done.failed", claimnum, team.teamName));
+    }
+
+    public static void unclaimBox(ServerPlayer player, BoundingBox bounds) {
+        final LandTeam team = LandManager.getTeam(player);
+        final boolean canUnclaimAnything = PermNodes.getBooleanPerm(player, Unclaim.GLOBALPERM);
+        if (!canUnclaimAnything && !team.hasRankPerm(player.getUUID(), LandTeam.UNCLAIMPERM))
+        {
+            ChatHelper.sendSystemMessage(player,
+                    Essentials.config.getMessage("thutessentials.unclaim.notallowed.teamperms"));
+            return;
+        }
+
+    }
 
     private static int unclaim(final GlobalPos chunk, final Player player, final LandTeam team, final boolean messages,
-            final boolean canUnclaimAnything, final AtomicInteger worked, final AtomicInteger other,
+            final boolean canUnclaimAnything, final AtomicLong worked, final AtomicInteger other,
             final AtomicBoolean ready)
     {
 
@@ -156,8 +186,7 @@ public class Unclaim
         }
         final UnclaimLandEvent event = new UnclaimLandEvent(chunk, player, team.teamName);
         NeoForge.EVENT_BUS.post(event);
-        LandManager.getInstance().unclaimLand(team.teamName, player.getCommandSenderWorld(), chunk.pos());
-        worked.getAndIncrement();
+        worked.getAndAdd(LandManager.getInstance().unclaimLand(team.teamName, player.getCommandSenderWorld(), chunk.pos()));
         ready.getAndSet(true);
         if (messages) ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.unclaim.done", team.teamName));
@@ -166,7 +195,7 @@ public class Unclaim
     }
 
     private static int unclaim(final int x, final int y, final int z, final Player player, final LandTeam team,
-            final boolean messages, final boolean canUnclaimAnything, final AtomicInteger worked,
+            final boolean messages, final boolean canUnclaimAnything, final AtomicLong worked,
             final AtomicInteger other, final AtomicBoolean ready)
     {
         final ResourceKey<Level> dim = player.getCommandSenderWorld().dimension();

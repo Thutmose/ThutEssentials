@@ -13,6 +13,14 @@ import java.util.function.Supplier;
 
 public class NamedVolumes
 {
+    public static long computeVolume(BoundingBox box)
+    {
+        int dx = box.getXSpan() - 1;
+        int dy = box.getYSpan() - 1;
+        int dz = box.getZSpan() - 1;
+        return (long) dx * dy * dz;
+    }
+
     public static interface INamedPart
     {
         /**
@@ -74,6 +82,12 @@ public class NamedVolumes
                     if (insideBox(inflate(p1.getBounds(), distance), pos)) return true;
             }
             return false;
+        }
+
+        default long computeVolume()
+        {
+            // TODO also compute for parts?
+            return NamedVolumes.computeVolume(this.getTotalBounds());
         }
     }
 

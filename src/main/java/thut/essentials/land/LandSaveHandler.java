@@ -6,7 +6,9 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.io.FileUtils;
 
 import com.google.gson.ExclusionStrategy;
@@ -18,6 +20,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.LandTeam;
+import thut.essentials.land.claims.CapabilityWorldVolumes;
+import thut.essentials.land.claims.ClaimedVolume;
+import thut.essentials.land.claims.NamedVolumes;
 
 public class LandSaveHandler
 {
@@ -51,6 +56,25 @@ public class LandSaveHandler
         }
         for (final String s : toRemove)
             LandManager.getInstance().removeTeam(s);
+        // Now cleanup any server claims that may be invalid
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server != null)
+        {
+            server.getAllLevels().forEach(level -> {
+                if (level.hasData(CapabilityWorldVolumes.TYPE_SAVE))
+                {
+                    var volumes = CapabilityWorldVolumes.get(level);
+                    Predicate<NamedVolumes.INamedVolume> invalid = volume -> {
+                        if (!(volume instanceof ClaimedVolume claim)) return false;
+                        if (claim.info.owner == null) return true;
+                        var team = LandManager.getInstance()._team_land.get(claim.info.owner);
+                        if (team != null) claim.info.name = team.teamName;
+                        return team == null;
+                    };
+                    volumes.removeVolumes(invalid);
+                }
+            });
+        }
     }
 
     public static File getGlobalFolder()
@@ -82,7 +106,7 @@ public class LandSaveHandler
         }
         catch (final IOException e)
         {
-            e.printStackTrace();
+            Essentials.LOGGER.error(e);
         }
     }
 
@@ -102,7 +126,7 @@ public class LandSaveHandler
             }
             catch (final Exception e)
             {
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
             if (LandManager.instance == null) LandManager.instance = new LandManager();
             LandSaveHandler.loadTeams();
@@ -132,11 +156,11 @@ public class LandSaveHandler
                 final LandTeam team = LandSaveHandler.LOAD_GSON.fromJson(json, LandTeam.class);
                 LandManager.getInstance()._teamMap.put(team.teamName, team);
                 team.init(server);
-                if (Essentials.config.debug) Essentials.LOGGER.info("Processed " + team.teamName);
+                if (Essentials.config.debug) Essentials.LOGGER.info("Processed {}", team.teamName);
             }
             catch (final Exception e)
             {
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
         if (Essentials.config.debug) Essentials.LOGGER.info("Cleaning Up Teams");
         // Remove any teams that were loaded with no members, and not reserved.
@@ -160,7 +184,7 @@ public class LandSaveHandler
             }
             catch (final IOException e)
             {
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
         }
     }

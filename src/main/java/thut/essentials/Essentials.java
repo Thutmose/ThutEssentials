@@ -27,6 +27,7 @@ import thut.essentials.economy.EconomyManager;
 import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
+import thut.essentials.land.claims.StructureManager;
 import thut.essentials.network.PacketHandler;
 import thut.essentials.util.CmdScheduler;
 import thut.essentials.util.MobManager;
@@ -119,6 +120,8 @@ public class Essentials
     public void serverAboutStart(final ServerAboutToStartEvent event)
     {
         server = event.getServer();
+        // Clear this here so that it is cleared for when in single player re-joining worlds
+        StructureManager.clear();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
