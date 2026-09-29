@@ -6,10 +6,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModLoadingContext;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import thut.essentials.Essentials;
@@ -35,7 +33,7 @@ public class PacketHandler
     private void onPayloadRegister(RegisterPayloadHandlersEvent event)
     {
         var reg = event.registrar(version);
-        if (FMLEnvironment.dist == Dist.CLIENT) reg = reg.optional();
+        reg = reg.optional();
         var registery = reg;
 
         TO_SERVER.forEach((packet) -> {
