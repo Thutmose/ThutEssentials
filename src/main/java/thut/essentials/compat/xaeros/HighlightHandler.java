@@ -57,7 +57,7 @@ public class HighlightHandler extends ChunkHighlighter
         if (vol == null) return null;
         int colour = this.getClaimsColor(vol);
         int claimColorFormatted = (colour & 255) << 24 | (colour >> 8 & 255) << 16 | (colour >> 16 & 255) << 8;
-        int fillOpacity = 0x0F;
+        int fillOpacity = 0x55;
         int borderOpacity = 0xF0;
         int centerColor = claimColorFormatted | fillOpacity;
         int sideColor = claimColorFormatted | borderOpacity;

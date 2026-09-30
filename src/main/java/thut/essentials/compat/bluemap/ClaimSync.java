@@ -38,7 +38,7 @@ public class ClaimSync
         points.add(new Vector2d(bounds.maxX, bounds.minZ));
         points.add(new Vector2d(bounds.maxX, bounds.maxZ));
         points.add(new Vector2d(bounds.minX, bounds.maxZ));
-        Color cFill = new Color(volume.getColour(), 0.3f);
+        Color cFill = new Color(volume.getColour(), 0.5f);
         Color cLine = new Color(volume.getColour(), 0.9f);
         var builder = ExtrudeMarker.builder().label(volume.getName())
                 .shape(Shape.builder().addPoints(points).build(), (float) yMin, (float) yMax).fillColor(cFill)
