@@ -763,7 +763,7 @@ public class LandManager
     {
         ChunkPos cPos = chunkCoords ? new ChunkPos(pos.getX(), pos.getZ()) : new ChunkPos(pos);
         int y = chunkCoords ? pos.getY() : SectionPos.blockToSectionCoord(pos.getY());
-        var bPos = cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(y) + 8);
+        var bPos = chunkCoords ? cPos.getMiddleBlockPosition(SectionPos.sectionToBlockCoord(y) + 8) : pos;
         List<NamedVolumes.INamedVolume> volumes = StructureManager.getFor(world.dimension(), bPos);
         volumes.removeIf(e -> !(e instanceof ClaimedVolume));
         ClaimedVolume ret = null;
