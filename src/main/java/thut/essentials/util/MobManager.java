@@ -47,18 +47,16 @@ public class MobManager
     @SubscribeEvent
     public static void mobGriefing(final EntityMobGriefingEvent evt)
     {
+        final boolean valid;
         if (Essentials.config.mobGriefAllowUsesWhitelist)
         {
-            final boolean valid =
-                    evt.getEntity() != null && MobManager.griefWhitelist.contains(RegHelper.getKey(evt.getEntity()));
-            evt.setCanGrief(!valid);
+            valid = evt.getEntity() != null && MobManager.griefWhitelist.contains(RegHelper.getKey(evt.getEntity()));
         }
         else
         {
-            final boolean valid =
-                    evt.getEntity() != null && MobManager.griefBlacklist.contains(RegHelper.getKey(evt.getEntity()));
-            evt.setCanGrief(!valid);
+            valid = evt.getEntity() != null && MobManager.griefBlacklist.contains(RegHelper.getKey(evt.getEntity()));
         }
+        evt.setCanGrief(!valid);
     }
 
     @SubscribeEvent

@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -38,10 +39,9 @@ public class PermNodes
             if (this == NONE) return false;
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             Optional<GameProfile> profile = server != null ? server.getProfileCache().get(player) : Optional.empty();
-            boolean op = false;
-            op = profile.map(gameProfile -> server.getPlayerList().isOp(gameProfile))
+            boolean op = profile.map(gameProfile -> server.getPlayerList().isOp(gameProfile))
                     .orElseGet(() -> server.getPlayerList().isOp(testProfile));
-            return op ? true : this == ALL;
+            return op || this == ALL;
         }
     }
 
@@ -50,7 +50,7 @@ public class PermNodes
         private static class StringSetCache
         {
             private String value = "";
-            private Set<String> values = Sets.newHashSet();
+            private final Set<String> values = Sets.newHashSet();
 
             public boolean contains(String input)
             {
@@ -73,7 +73,7 @@ public class PermNodes
                 .build(new CacheLoader<>()
                 {
                     @Override
-                    public StringSetCache load(ServerPlayer key) throws Exception
+                    public StringSetCache load(ServerPlayer key)
                     {
                         PermissionNode<String> node = PermNodes.getStringNode(StringSetPermCache.this.key);
                         StringSetCache ret = new StringSetCache();
@@ -103,7 +103,7 @@ public class PermNodes
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
             return false;
         }
@@ -184,7 +184,7 @@ public class PermNodes
     @SubscribeEvent
     public static void gatherPerms(PermissionGatherEvent.Nodes event)
     {
-        StringSetPermCache.CACHES.forEach(e -> e.invalidateAll());
+        StringSetPermCache.CACHES.forEach(Cache::invalidateAll);
         HomeManager.registerPerms();
         KitManager.registerPerms();
         WarpManager.registerPerms();
@@ -197,9 +197,8 @@ public class PermNodes
         {
             event.addNodes(node);
         }
-        catch (Exception e)
+        catch (Exception ignored)
         {
-            continue;
         }
     }
 }

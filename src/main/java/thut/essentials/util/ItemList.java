@@ -23,9 +23,9 @@ public class ItemList extends Items
 
     // Cache maps so we don't keep creating new tag keys everytime TagKey.create
     // is called, and clogging up GC.
-    private static Map<ResourceLocation, TagKey<EntityType<?>>> E_TAGS = Maps.newConcurrentMap();
-    private static Map<ResourceLocation, TagKey<Item>> I_TAGS = Maps.newConcurrentMap();
-    private static Map<ResourceLocation, TagKey<Block>> B_TAGS = Maps.newConcurrentMap();
+    private static final Map<ResourceLocation, TagKey<EntityType<?>>> E_TAGS = Maps.newConcurrentMap();
+    private static final Map<ResourceLocation, TagKey<Item>> I_TAGS = Maps.newConcurrentMap();
+    private static final Map<ResourceLocation, TagKey<Block>> B_TAGS = Maps.newConcurrentMap();
 
     public static boolean is(final ResourceLocation tag, final EntityType<?> type)
     {

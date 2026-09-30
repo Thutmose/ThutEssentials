@@ -131,7 +131,6 @@ public class PlayerMover
             {
                 if (mover.failMess != null) ChatHelper.sendSystemMessage(player, mover.failMess);
                 PlayerMover.toMove.remove(player.getUUID());
-                return;
             }
         }
     }

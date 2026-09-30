@@ -44,7 +44,6 @@ public class Config extends ConfigData
     public static final String MISC = "misc";
     public static final String HOME = "homes";
     public static final String WARP = "warps";
-    public static final String KITS = "kits";
     public static final String BACK = "back";
     public static final String BED = "bed";
     public static final String ECON = "economy";

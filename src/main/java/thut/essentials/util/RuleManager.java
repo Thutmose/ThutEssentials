@@ -25,12 +25,12 @@ public class RuleManager
                 }
                 catch (final Exception e)
                 {
-                    e.printStackTrace();
+                    Essentials.LOGGER.error(e);
                 }
         }
         catch (final Exception e)
         {
-            e.printStackTrace();
+            Essentials.LOGGER.error(e);
         }
     }
 
@@ -64,7 +64,7 @@ public class RuleManager
             catch (final Exception e)
             {
                 done = true;
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
         return rule;
     }

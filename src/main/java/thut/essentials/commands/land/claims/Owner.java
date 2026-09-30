@@ -40,13 +40,11 @@ public class Owner
     private static int execute(final CommandSourceStack source) throws CommandSyntaxException
     {
         final Player player = source.getPlayerOrException();
-        final int x = Mth.floor(player.blockPosition().getX() >> 4);
         final int y = Mth.floor(player.blockPosition().getY() >> 4);
-        final int z = Mth.floor(player.blockPosition().getZ() >> 4);
         final Level dim = player.getCommandSenderWorld();
         if (y < dim.getMinSection() || y > dim.getMaxSection()) return 1;
-        final BlockPos b = new BlockPos(x, y, z);
-        final LandTeam owner = LandManager.getInstance().getLandOwner(dim, b, true);
+        final BlockPos b = player.blockPosition();
+        final LandTeam owner = LandManager.getInstance().getLandOwner(dim, b, false);
 
         if (!LandManager.isWild(owner)) ChatHelper.sendSystemMessage(player,
                 Essentials.config.getMessage("thutessentials.claim.ownedby", owner.teamName));

@@ -254,7 +254,7 @@ public class PlayerDataHandler
             {
                 file = PlayerDataHandler.getFileForUUID(uuid, fileName);
             }
-            catch (final Exception e)
+            catch (final Exception ignored)
             {
 
             }
@@ -268,7 +268,7 @@ public class PlayerDataHandler
             }
             catch (final IOException e)
             {
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
         }
         this.data.put(uuid, manager);
@@ -297,7 +297,7 @@ public class PlayerDataHandler
                 }
                 catch (final IOException e)
                 {
-                    e.printStackTrace();
+                    Essentials.LOGGER.error(e);
                 }
             }
         }
@@ -324,7 +324,7 @@ public class PlayerDataHandler
                 }
                 catch (final IOException e)
                 {
-                    e.printStackTrace();
+                    Essentials.LOGGER.error(e);
                 }
             }
         }

@@ -10,18 +10,13 @@ import javax.xml.namespace.QName;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.ClickEvent.Action;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.TagKey;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.loading.FMLPaths;
@@ -105,7 +100,7 @@ public class KitManager
             }
             catch (final Exception e1)
             {
-                e1.printStackTrace();
+                Essentials.LOGGER.error(e1);
             }
 
             for (final XMLStarterItems items : database.kits) if (items.values.containsKey(ident))
@@ -141,7 +136,7 @@ public class KitManager
         }
         catch (final Exception e)
         {
-            e.printStackTrace();
+            Essentials.LOGGER.error(e);
         }
         if (!newKits)
         {
@@ -166,17 +161,6 @@ public class KitManager
             values.put(name, d.tag);
         }
         return KitManager.getStack(d.values);
-    }
-
-    public static boolean isSameStack(final ItemStack a, final ItemStack b)
-    {
-        return KitManager.isSameStack(a, b, false);
-    }
-
-    public static boolean isSameStack(final ItemStack a, final ItemStack b, final boolean strict)
-    {
-        // TODO determine if to use the tags?
-        return ItemStack.isSameItemSameComponents(a, b);
     }
 
     public static ItemStack getStack(final Map<QName, String> values)

@@ -38,7 +38,7 @@ public class WarpManager
         }
         catch (SecurityException | NoSuchFieldException e)
         {
-            e.printStackTrace();
+            Essentials.LOGGER.error(e);
         }
         warpsField = temp;
     }
@@ -68,14 +68,6 @@ public class WarpManager
             if (warp != null) WarpManager.warpLocs.put(args[0], warp);
         }
         PermNodes.registerStringNode(NO_WARP, DefaultPermissionLevel.ALL, "Cannot use these warps", "");
-    }
-
-    static int[] getInt(final String val)
-    {
-        final String[] args = val.split(" ");
-        final int dim = args.length == 4 ? Integer.parseInt(args[3]) : 0;
-        return new int[]
-        { Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]), dim };
     }
 
     public static int setWarp(final GlobalPos pos, final String name)
