@@ -9,8 +9,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.util.INBTSerializable;
-import thut.essentials.api.level.NamedVolumes;
-import thut.essentials.api.level.NamedVolumes.INamedVolume;
+import thut.api.level.structures.NamedVolumes;
+import thut.api.level.structures.NamedVolumes.INamedVolume;
 
 import java.util.List;
 import java.util.Objects;

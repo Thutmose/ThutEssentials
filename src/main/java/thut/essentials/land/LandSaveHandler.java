@@ -22,7 +22,7 @@ import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
 import thut.essentials.land.claims.ClaimedVolume;
-import thut.essentials.api.level.NamedVolumes;
+import thut.api.level.structures.NamedVolumes;
 
 public class LandSaveHandler
 {

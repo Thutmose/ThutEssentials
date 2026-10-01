@@ -18,11 +18,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import thut.api.level.structures.NamedVolumes;
+import thut.api.level.structures.NamedVolumes.INamedVolume;
+import thut.api.level.structures.StructureManager;
 import thut.essentials.api.events.ClaimEvent;
-import thut.essentials.api.level.NamedVolumes;
-import thut.essentials.api.level.StructureManager;
 import thut.essentials.land.LandManager;
-import thut.essentials.api.level.NamedVolumes.INamedVolume;
 
 public class CapabilityWorldVolumes implements INBTSerializable<CompoundTag>
 {
