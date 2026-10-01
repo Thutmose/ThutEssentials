@@ -21,9 +21,8 @@ import net.minecraft.world.level.storage.LevelResource;
 import thut.essentials.Essentials;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
-import thut.essentials.land.claims.ClaimInfo;
 import thut.essentials.land.claims.ClaimedVolume;
-import thut.essentials.land.claims.NamedVolumes;
+import thut.essentials.api.level.NamedVolumes;
 
 public class LandSaveHandler
 {

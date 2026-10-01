@@ -1,4 +1,4 @@
-package thut.essentials.events;
+package thut.essentials.api.events;
 
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.Event;

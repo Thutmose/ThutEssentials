@@ -13,7 +13,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
@@ -60,19 +59,18 @@ public class EconomyManager
         int cost;
         int number;
 
-        public boolean transact(final ServerPlayer player, final ItemStack heldStack, final Account shopAccount)
+        public void transact(final ServerPlayer player, final ItemStack heldStack, final Account shopAccount)
         {
             ItemStack stack = ItemStack.EMPTY;
             final ServerLevel world = (ServerLevel) player.getCommandSenderWorld();
             final Entity ent = world.getEntity(this.frameId);
             if (ent instanceof ItemFrame) stack = ((ItemFrame) ent).getItem();
             final BlockEntity tile = player.level().getBlockEntity(this.location.pos());
-            if (!(tile instanceof SignBlockEntity))
+            if (!(tile instanceof SignBlockEntity sign))
             {
                 EconomyManager.removeShop(this.location);
-                return false;
+                return;
             }
-            final SignBlockEntity sign = (SignBlockEntity) tile;
             var comps = sign.getFrontText().getMessages(false);
             this.sell = Essentials.config.sellTags.contains(comps[0].getString());
             this.recycle = Essentials.config.recycleTags.contains(comps[0].getString());
@@ -87,8 +85,8 @@ public class EconomyManager
             }
             catch (final NumberFormatException e)
             {
-                e.printStackTrace();
-                return false;
+                Essentials.LOGGER.error(e);
+                return;
             }
             try
             {
@@ -96,29 +94,30 @@ public class EconomyManager
             }
             catch (final NumberFormatException e)
             {
-                e.printStackTrace();
-                return false;
+                Essentials.LOGGER.error(e);
+                return;
             }
 
             if (this.recycle && heldStack.isEmpty())
             {
                 ChatHelper.sendSystemMessage(player,
                         CommandManager.makeFormattedComponent("thutessentials.econ.no_recycle"));
-                return false;
+                return;
             }
             else if (stack.isEmpty())
             {
                 EconomyManager.removeShop(this.location);
-                return false;
+                return;
             }
+            final int balance;
             if (this.sell)
             {
-                final int balance = EconomyManager.getBalance(player);
+                balance = EconomyManager.getBalance(player);
                 if (balance < this.cost)
                 {
                     ChatHelper.sendSystemMessage(player,
                             CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_you"));
-                    return false;
+                    return;
                 }
                 stack = stack.copy();
                 stack.setCount(this.number);
@@ -149,13 +148,12 @@ public class EconomyManager
                     }
                     if (count < this.number || inv == null)
                     {
-                        Essentials.LOGGER.debug(this.number + " " + count + " " + this.storage);
+                        Essentials.LOGGER.debug("{} {} {}", this.number, count, this.storage);
                         ChatHelper.sendSystemMessage(player,
                                 CommandManager.makeFormattedComponent("thutessentials.econ.no_items_shop"));
-                        return false;
+                        return;
                     }
                     int i = 0;
-                    Item itemIn = test2.getItem();
                     final int removeCount = this.number;
                     for (int j = 0; j < inv.getContainerSize(); ++j)
                     {
@@ -183,18 +181,15 @@ public class EconomyManager
                 EconomyManager.giveItem(player, stack);
                 EconomyManager.addBalance(shopAccount._id, this.cost);
                 EconomyManager.addBalance(player, -this.cost);
-                ChatHelper.sendSystemMessage(player,
-                        CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null, false,
-                                EconomyManager.getBalance(player)));
             }
             else
             {
-                final int balance = this.infinite ? Integer.MAX_VALUE : shopAccount.balance;
+                balance = this.infinite ? Integer.MAX_VALUE : shopAccount.balance;
                 if (balance < this.cost)
                 {
                     ChatHelper.sendSystemMessage(player,
                             CommandManager.makeFormattedComponent("thutessentials.econ.no_funds_shop"));
-                    return false;
+                    return;
                 }
                 int count = 0;
                 final ItemStack toTest = stack.copy();
@@ -211,7 +206,7 @@ public class EconomyManager
                     {
                         ChatHelper.sendSystemMessage(player,
                                 CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
-                        return false;
+                        return;
                     }
                     stack = heldStack;
                 }
@@ -225,7 +220,7 @@ public class EconomyManager
                     {
                         ChatHelper.sendSystemMessage(player,
                                 CommandManager.makeFormattedComponent("thutessentials.econ.no_items_you"));
-                        return false;
+                        return;
                     }
                 }
                 if (!this.infinite)
@@ -234,30 +229,27 @@ public class EconomyManager
                     {
                         ChatHelper.sendSystemMessage(player,
                                 CommandManager.makeFormattedComponent("thutessentials.econ.no_storage"));
-                        return false;
+                        return;
                     }
                     final BlockEntity te = player.level().getBlockEntity(this.storage.pos());
-                    if (te instanceof Container)
+                    if (te instanceof Container inv)
                     {
-                        final Container inv = (Container) te;
-                        count = 0;
-                        final ItemStack a = stack;
                         count = stack.getCount();
                         for (int i = 0; i < inv.getContainerSize(); i++)
                         {
-                            if (inv.getItem(i).isEmpty() || ItemStack.isSameItemSameComponents(a, inv.getItem(i)))
+                            if (inv.getItem(i).isEmpty() || ItemStack.isSameItemSameComponents(stack, inv.getItem(i)))
                             {
-                                int n = 0;
-                                if (!inv.getItem(i).isEmpty() && (n = inv.getItem(i).getCount() + a.getCount()) < 65)
+                                int n;
+                                if (!inv.getItem(i).isEmpty() && (n = inv.getItem(i).getCount() + stack.getCount()) < 65)
                                 {
-                                    a.setCount(n);
+                                    stack.setCount(n);
                                     count = 0;
-                                    inv.setItem(i, a.copy());
+                                    inv.setItem(i, stack.copy());
                                 }
                                 else if (inv.getItem(i).isEmpty())
                                 {
                                     count = 0;
-                                    inv.setItem(i, a.copy());
+                                    inv.setItem(i, stack.copy());
                                 }
                             }
                             if (count == 0) break;
@@ -269,11 +261,10 @@ public class EconomyManager
                 player.inventoryMenu.broadcastChanges();
                 EconomyManager.addBalance(shopAccount._id, -this.cost);
                 EconomyManager.addBalance(player, this.cost);
-                ChatHelper.sendSystemMessage(player,
-                        CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null, false,
-                                EconomyManager.getBalance(player)));
             }
-            return false;
+            ChatHelper.sendSystemMessage(player,
+                    CommandManager.makeFormattedComponent("thutessentials.econ.balance.remaining", null, false,
+                            EconomyManager.getBalance(player)));
         }
     }
 
@@ -348,7 +339,7 @@ public class EconomyManager
             final GlobalPos c = GlobalPos.of(evt.getEntity().getCommandSenderWorld().dimension(), evt.getPos().below());
             Shop shop = EconomyManager.getShop(c);
             final BlockEntity tile = evt.getLevel().getBlockEntity(c.pos());
-            if (evt.getItemStack() != null && tile instanceof SignBlockEntity && shop == null && (
+            if (!evt.getItemStack().isEmpty() && tile instanceof SignBlockEntity && shop == null && (
                     evt.getItemStack().getHoverName().getString().contains("Shop") || evt.getItemStack().getHoverName()
                             .getString().contains("InfShop")))
             {
@@ -386,8 +377,7 @@ public class EconomyManager
         if (evt.getEntity().getCommandSenderWorld().isClientSide) return;
         if (!Essentials.config.shopsEnabled) return;
         if (evt.getRayTraceResult().getType() == Type.MISS) return;
-        if (!(evt.getRayTraceResult() instanceof EntityHitResult)) return;
-        final EntityHitResult hit = (EntityHitResult) evt.getRayTraceResult();
+        if (!(evt.getRayTraceResult() instanceof EntityHitResult hit)) return;
         final Entity target = hit.getEntity();
         if (target instanceof ItemFrame)
         {
@@ -430,8 +420,6 @@ public class EconomyManager
 
     /**
      * Uses player interact here to also prevent opening of inventories.
-     *
-     * @param evt
      */
     @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGH)
     public void interactRightClickBlock(final PlayerInteractEvent.RightClickBlock evt)
@@ -457,11 +445,6 @@ public class EconomyManager
             EconomySaveHandler.saveGlobalData();
         }
         return account;
-    }
-
-    public Account getAccount(final ServerPlayer player)
-    {
-        return this.getAccount(player.getUUID());
     }
 
     public static Shop addShop(final ServerPlayer owner, final ItemFrame frame, final GlobalPos location,
@@ -531,11 +514,6 @@ public class EconomyManager
         return EconomyManager.getBalance(player.getUUID());
     }
 
-    public static void setBalance(final ServerPlayer player, final int amount)
-    {
-        EconomyManager.setBalance(player.getUUID(), amount);
-    }
-
     public static void addBalance(final ServerPlayer player, final int amount)
     {
         EconomyManager.addBalance(player.getUUID(), amount);
@@ -544,13 +522,6 @@ public class EconomyManager
     public static int getBalance(final UUID player)
     {
         return EconomyManager.getInstance().getAccount(player).balance;
-    }
-
-    public static void setBalance(final UUID player, final int amount)
-    {
-        final Account account = EconomyManager.getInstance().getAccount(player);
-        account.balance = amount;
-        EconomySaveHandler.saveGlobalData();
     }
 
     public static void addBalance(final UUID player, final int amount)
@@ -566,7 +537,7 @@ public class EconomyManager
         if (flag)
         {
             entityplayer.level()
-                    .playSound((ServerPlayer) null, entityplayer.getX(), entityplayer.getY(), entityplayer.getZ(),
+                    .playSound(null, entityplayer.getX(), entityplayer.getY(), entityplayer.getZ(),
                             SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
                             ((entityplayer.getRandom().nextFloat() - entityplayer.getRandom().nextFloat()) * 0.7F
                                     + 1.0F) * 2.0F);

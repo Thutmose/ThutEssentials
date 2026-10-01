@@ -1,4 +1,4 @@
-package thut.essentials.land.claims;
+package thut.essentials.api.level;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import thut.essentials.land.claims.NamedVolumes.INamedVolume;
+import thut.essentials.api.level.NamedVolumes.INamedVolume;
 
 public class StructureManager
 {
@@ -80,7 +80,7 @@ public class StructureManager
         return list;
     }
 
-    protected static void addVolume(INamedVolume volume, Level level)
+    public static void addVolume(INamedVolume volume, Level level)
     {
         List<GlobalChunkPos> list = StructureManager.forVolume(volume, level.dimension());
         list.forEach(pos -> {
@@ -93,7 +93,7 @@ public class StructureManager
         });
     }
 
-    protected static void removeVolume(INamedVolume volume, Level level)
+    public static void removeVolume(INamedVolume volume, Level level)
     {
         List<GlobalChunkPos> list = forVolume(volume, level.dimension());
         list.forEach(pos-> {

@@ -1,7 +1,8 @@
-package thut.essentials.land.claims;
+package thut.essentials.api.events;
 
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.Event;
+import thut.essentials.land.claims.ClaimedVolume;
 
 public abstract class ClaimEvent extends Event
 {
@@ -14,7 +15,7 @@ public abstract class ClaimEvent extends Event
 
     public static class Claim extends ClaimEvent
     {
-        protected Claim(ClaimedVolume volume, Level level)
+        public Claim(ClaimedVolume volume, Level level)
         {
             super(volume, level);
         }
@@ -22,7 +23,7 @@ public abstract class ClaimEvent extends Event
 
     public static class Unclaim extends ClaimEvent
     {
-        protected Unclaim(ClaimedVolume volume, Level level)
+        public Unclaim(ClaimedVolume volume, Level level)
         {
             super(volume, level);
         }

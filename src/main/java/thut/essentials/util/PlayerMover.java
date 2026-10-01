@@ -12,7 +12,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import thut.essentials.Essentials;
-import thut.essentials.events.MoveEvent;
+import thut.essentials.api.events.MoveEvent;
 import thut.essentials.util.teleporting.TeleDest;
 import thut.essentials.util.teleporting.ThutTeleporter;
 

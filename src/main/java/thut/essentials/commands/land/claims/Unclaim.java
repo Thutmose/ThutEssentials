@@ -17,7 +17,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.common.NeoForge;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.events.UnclaimLandEvent;
+import thut.essentials.api.events.UnclaimLandEvent;
 import thut.essentials.land.LandManager;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.land.LandManager.TeamLand;

@@ -53,27 +53,29 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.events.DenyItemUseEvent;
-import thut.essentials.events.DenyItemUseEvent.UseType;
+import thut.essentials.api.events.DenyItemUseEvent;
+import thut.essentials.api.events.DenyItemUseEvent.UseType;
 import thut.essentials.land.LandManager.LandTeam;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.InventoryLogger;
 import thut.essentials.util.ItemList;
 import thut.essentials.util.MobManager;
-import thut.essentials.util.OwnerManager;
+import thut.essentials.api.claims.OwnerManager;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.RegHelper;
 import thut.essentials.util.teleporting.TeleDest;
 import thut.essentials.util.teleporting.ThutTeleporter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiFunction;
 
 public class LandEventsHandler
 {
@@ -346,22 +348,30 @@ public class LandEventsHandler
     public static class EntityEventHandler
     {
         public static Set<UUID> showLandSet = new HashSet<>();
+        public static List<BiFunction<Entity, LandTeam, Boolean>> IS_PROTECTED = new ArrayList<>();
 
-        private boolean canTakeDamage(final Entity in, final LandTeam land_owner)
+        static
         {
-            if (LandManager.isWild(land_owner))
-            {
-                return in == null || !LandEventsHandler.invuln.contains(RegHelper.getKey(in));
-            }
-            if (LandManager.getInstance().isPublicMob(in.getUUID())) return false;
-            if (LandManager.getInstance().isProtectedMob(in.getUUID())) return false;
-            return switch (in)
-            {
-                case ServerPlayer ignored -> !land_owner.noPlayerDamage;
-                case Npc ignored -> !land_owner.noNPCDamage;
-                case ItemFrame ignored -> !land_owner.protectFrames;
-                default -> true;
-            };
+            IS_PROTECTED.add((in, land_owner) -> {
+                if (in == null) return false;
+                if (LandManager.getInstance().isPublicMob(in.getUUID())) return true;
+                if (LandManager.getInstance().isProtectedMob(in.getUUID())) return true;
+                if (LandEventsHandler.invuln.contains(RegHelper.getKey(in))) return true;
+                if (land_owner == null) return false;
+                return switch (in)
+                {
+                    case ServerPlayer ignored -> land_owner.noPlayerDamage;
+                    case Npc ignored -> land_owner.noNPCDamage;
+                    case ItemFrame ignored -> land_owner.protectFrames;
+                    default -> false;
+                };
+            });
+        }
+
+        private boolean isProtected(final Entity in, final LandTeam land_owner)
+        {
+            for (var v : IS_PROTECTED) if (v.apply(in, land_owner)) return true;
+            return false;
         }
 
         private void sendNearbyChunks(final ServerPlayer player)
@@ -566,16 +576,10 @@ public class LandEventsHandler
             final GlobalPos b = CoordinateUtls.forMob(evt.getEntity());
             final LandTeam owner = LandManager.getInstance().getLandOwner(world, evt.getEntity().blockPosition());
 
-            if (!this.canTakeDamage(evt.getEntity(), owner))
+            if (this.isProtected(evt.getEntity(), owner))
             {
                 evt.setInvulnerable(true);
                 return;
-            }
-
-            // If mob is protected, do not allow the attack, even if by owner.
-            if (owner != null && owner.protected_mobs.contains(evt.getEntity().getUUID()))
-            {
-                evt.setInvulnerable(true);
             }
 
             // TODO possible perms for attacking things in unclaimed land?
@@ -618,7 +622,7 @@ public class LandEventsHandler
             if (!Essentials.config.landEnabled) return;
             final LandTeam owner = LandManager.getInstance()
                     .getLandOwner(evt.getEntity().getCommandSenderWorld(), evt.getEntity().blockPosition());
-            if (!this.canTakeDamage(evt.getEntity(), owner))
+            if (this.isProtected(evt.getEntity(), owner))
             {
                 evt.setNewDamage(0);
                 return;
@@ -637,18 +641,8 @@ public class LandEventsHandler
                     if (damageSource instanceof Player && LandEventsHandler.sameTeam(damageSource, evt.getEntity()))
                     {
                         evt.setNewDamage(0);
-                        return;
                     }
                 }
-            }
-
-            // Check if the team allows fakeplayers
-            if (owner.fakePlayers && evt.getSource().getEntity() instanceof FakePlayer) return;
-
-            // check if entity is protected by team
-            if (owner.protected_mobs.contains(evt.getEntity().getUUID()))
-            {
-                evt.setNewDamage(0);
             }
         }
 
@@ -664,21 +658,10 @@ public class LandEventsHandler
             final LandTeam owner = LandManager.getInstance()
                     .getLandOwner(target.getCommandSenderWorld(), target.blockPosition());
 
-            if (!this.canTakeDamage(target, owner))
-            {
-                evt.setCanceled(true);
-                return;
-            }
-
-            // TODO maybe add a perm for combat in non-claimed land?
-            if (LandManager.isWild(owner)) return;
-
-            // check if entity is protected by team
-            if (owner.protected_mobs.contains(target.getUUID()))
+            if (this.isProtected(target, owner))
             {
                 evt.setCanceled(true);
             }
-
         }
 
         @SubscribeEvent(priority = EventPriority.HIGHEST)

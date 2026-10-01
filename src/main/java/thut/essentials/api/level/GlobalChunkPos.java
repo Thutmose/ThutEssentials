@@ -1,4 +1,4 @@
-package thut.essentials.land.claims;
+package thut.essentials.api.level;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;

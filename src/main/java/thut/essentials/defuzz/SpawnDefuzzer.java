@@ -71,12 +71,10 @@ public class SpawnDefuzzer
         }
     }
 
-    @SubscribeEvent
     /**
      * This is to handle the initial connection of the player to the server.
-     *
-     * @param evt
      */
+    @SubscribeEvent
     public static void EntityUpdate(final PlayerTickEvent.Post evt)
     {
         if (!Essentials.config.defuzz) return;

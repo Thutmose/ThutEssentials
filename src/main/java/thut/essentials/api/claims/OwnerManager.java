@@ -1,4 +1,4 @@
-package thut.essentials.util;
+package thut.essentials.api.claims;
 
 import javax.annotation.Nullable;
 

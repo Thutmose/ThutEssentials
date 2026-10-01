@@ -63,7 +63,7 @@ public class EconomySaveHandler
         }
         catch (final IOException e)
         {
-            e.printStackTrace();
+            Essentials.LOGGER.error(e);
         }
     }
 
@@ -102,7 +102,7 @@ public class EconomySaveHandler
             }
             catch (final Exception e)
             {
-                e.printStackTrace();
+                Essentials.LOGGER.error(e);
             }
         }
         if (EconomyManager.instance == null) EconomyManager.instance = new EconomyManager();

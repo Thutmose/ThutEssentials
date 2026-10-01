@@ -3,6 +3,7 @@ package thut.essentials.config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.config.ModConfig;
@@ -20,12 +21,17 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class Config
 {
+    public static Predicate<String> VALID_RESOURCE = s-> ResourceLocation.tryParse(s)!=null;
+    public static Predicate<String> VALID_RESOURCE_OR_TAG = s->VALID_RESOURCE.test(s.startsWith("#")?s.substring(1):s);
+
     public static abstract class ConfigData
     {
         public final String MODID;
@@ -119,7 +125,7 @@ public class Config
                 }
                 catch (final Exception e)
                 {
-                    Essentials.LOGGER.error("Error updating config value for " + f);
+                    Essentials.LOGGER.error("Error updating config value for {}", f);
                 }
             return changed;
         }
@@ -163,7 +169,7 @@ public class Config
                     final String[] vars = update instanceof String s
                             ? s.split("``")
                             : update instanceof String[] s ? s : null;
-                    int[] toSet = null;
+                    int[] toSet;
                     if (vars == null) toSet = (int[]) update;
                     else
                     {
@@ -263,9 +269,32 @@ public class Config
         Config.build(SERVER_BUILDER, serverList, holder, ModConfig.Type.SERVER);
         Config.build(CLIENT_BUILDER, clientList, holder, ModConfig.Type.CLIENT);
 
-        final ModConfigSpec COMMON_CONFIG_SPEC = commonList.isEmpty() ? null : COMMON_BUILDER.pop().build();
-        final ModConfigSpec CLIENT_CONFIG_SPEC = clientList.isEmpty() ? null : CLIENT_BUILDER.pop().build();
-        final ModConfigSpec SERVER_CONFIG_SPEC = serverList.isEmpty() ? null : SERVER_BUILDER.pop().build();
+        // Try to pop off the header value, not all will have this, if they don't use sub categories
+        try
+        {
+            COMMON_BUILDER.pop();
+        }
+        catch (Throwable ignored)
+        {
+        }
+        try
+        {
+            CLIENT_BUILDER.pop();
+        }
+        catch (Throwable ignored)
+        {
+        }
+        try
+        {
+            SERVER_BUILDER.pop();
+        }
+        catch (Throwable ignored)
+        {
+        }
+
+        final ModConfigSpec COMMON_CONFIG_SPEC = commonList.isEmpty() ? null : COMMON_BUILDER.build();
+        final ModConfigSpec CLIENT_CONFIG_SPEC = clientList.isEmpty() ? null : CLIENT_BUILDER.build();
+        final ModConfigSpec SERVER_CONFIG_SPEC = serverList.isEmpty() ? null : SERVER_BUILDER.build();
 
         return new ModConfigSpec[] { COMMON_CONFIG_SPEC, CLIENT_CONFIG_SPEC, SERVER_CONFIG_SPEC };
     }
@@ -306,7 +335,7 @@ public class Config
             }
             catch (final Exception e)
             {
-                Essentials.LOGGER.error("Error getting field " + field, e);
+                Essentials.LOGGER.error("Error getting field {}", field, e);
             }
         }
         String cat = "";
@@ -318,23 +347,39 @@ public class Config
                 if (!cat.equals(conf.category()))
                 {
                     // Empty the first time, otherwise we pop off
-                    if (!cat.isEmpty()) builder.pop();
+                    if (!cat.isEmpty())
+                    {
+                        try
+                        {
+                            builder.pop();
+                        }
+                        catch (Throwable ignored)
+                        {
+                            System.out.println("oops");
+                        }
+                    }
                     cat = conf.category();
                     // Push the category
-                    builder.push(cat);
-                    builder.translation(ModLoadingContext.get().getActiveNamespace() + ".config." + cat);
-                    if (cat_comments.containsKey(cat)) Config.addComment(builder, cat_comments.get(cat));
+                    if(!cat.isEmpty())
+                    {
+                        builder.push(cat);
+                        if (cat_comments.containsKey(cat)) Config.addComment(builder, cat_comments.get(cat));
+                        builder.translation(ModLoadingContext.get().getActiveNamespace() + ".config." + cat);
+                    }
                 }
                 if (!conf.comment().isEmpty()) Config.addComment(builder, conf.comment());
                 else Config.addComment(builder, "sets " + field.getName());
+                if(conf.gameRestart()) builder.gameRestart();
+                if(conf.worldRestart()) builder.worldRestart();
                 builder.translation(
-                        ModLoadingContext.get().getActiveNamespace() + ".config." + field.getName() + ".tooltip");
+                        ModLoadingContext.get().getActiveNamespace() + ".config." + field.getName());
                 final Object o = field.get(holder);
-                holder.init(type, field, builder.define(field.getName(), o));
+                ModConfigSpec.ConfigValue<?> spec = makeValue(field, cat, holder.MODID, builder, o);
+                holder.init(type, field, spec);
             }
             catch (final Exception e)
             {
-                Essentials.LOGGER.error("Error getting field " + field, e);
+                Essentials.LOGGER.error("Error getting field {}", field, e);
             }
     }
 
@@ -378,5 +423,69 @@ public class Config
         // This ensures the values are initialized, this onUpdated is never
         // called unless the config is different
         holder.onUpdated();
+    }
+
+    private static final Map<String, Predicate<Object>> VALIDATORS = new HashMap<>();
+    private static final Map<String, Integer> MIN_RANGES_INT = new HashMap<>();
+    private static final Map<String, Integer> MAX_RANGES_INT = new HashMap<>();
+    private static final Map<String, Double> MIN_RANGES_DBL = new HashMap<>();
+    private static final Map<String, Double> MAX_RANGES_DBL = new HashMap<>();
+
+    /**
+     * Registers a validator for testing whether a string is valid for entry in the list
+     * @param key - format should be `[modid].[category].[fieldname]`
+     * @param validator - Returns true if format is correct
+     */
+    public static void registerStringValidator(String key, Predicate<String> validator)
+    {
+        VALIDATORS.put(key, o-> o instanceof String s && validator.test(s));
+    }
+
+    public static void registerGenericValidator(String key, Predicate<Object> validator)
+    {
+        VALIDATORS.put(key, validator);
+    }
+
+    /**
+     * Registers valid range of inputs
+     * @param key - format should be `[modid].[category].[fieldname]`
+     */
+    public static void registerRange(String key, int min, int max)
+    {
+        MIN_RANGES_INT.put(key, min);
+        MAX_RANGES_INT.put(key, max);
+    }
+
+    /**
+     * Registers valid range of inputs
+     * @param key - format should be `[modid].[category].[fieldname]`
+     */
+    public static void registerRange(String key, double min, double max)
+    {
+        MIN_RANGES_DBL.put(key, min);
+        MAX_RANGES_DBL.put(key, max);
+    }
+
+    private static ModConfigSpec.ConfigValue<?> makeValue(Field field, String cat, String modid, Builder builder, Object o)
+    {
+        String key = cat.isEmpty() ? modid + "." + field.getName() : modid + "." + cat + "." + field.getName();
+        return switch (o)
+        {
+            case Boolean b -> builder.define(field.getName(), (boolean) b);
+            case Integer i -> {
+                if(MIN_RANGES_INT.containsKey(key)){
+                    yield builder.defineInRange(field.getName(), i, MIN_RANGES_INT.get(key), MAX_RANGES_INT.get(key));
+                }
+                else yield builder.define(field.getName(), i);
+            }
+            case Double v -> {
+                if(MIN_RANGES_DBL.containsKey(key)){
+                    yield builder.defineInRange(field.getName(), v, MIN_RANGES_DBL.get(key), MAX_RANGES_DBL.get(key));
+                }
+                else yield builder.define(field.getName(), v);
+            }
+            case List<?> l-> builder.defineListAllowEmpty(field.getName(), l, ()->l.isEmpty()?"":l.getLast(), VALIDATORS.getOrDefault(key, o1->true));
+            case null, default -> builder.define(field.getName(), o, VALIDATORS.getOrDefault(key, o1->true));
+        };
     }
 }

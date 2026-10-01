@@ -13,7 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import thut.essentials.Essentials;
-import thut.essentials.events.TeleLoadEvent;
+import thut.essentials.api.events.TeleLoadEvent;
 import thut.essentials.util.teleporting.TeleDest;
 
 public class CoordinateUtls
@@ -34,12 +34,11 @@ public class CoordinateUtls
     {
         if (tag.contains("_v_"))
         {
-            final CompoundTag nbt = tag;
-            final Vec3 loc = TeleDest.readVec3FromNBT(nbt, "v");
-            final String name = nbt.getString("name");
-            final int index = nbt.getInt("i");
-            final int version = nbt.getInt("_v_");
-            final GlobalPos pos = CoordinateUtls.fromNBT(nbt.getCompound("pos"));
+            final Vec3 loc = TeleDest.readVec3FromNBT(tag, "v");
+            final String name = tag.getString("name");
+            final int index = tag.getInt("i");
+            final int version = tag.getInt("_v_");
+            final GlobalPos pos = CoordinateUtls.fromNBT(tag.getCompound("pos"));
             if (pos == null) return null;
             final TeleDest dest = new TeleDest().setLoc(pos, loc).setPos(pos).setName(name).setIndex(index)
                     .setVersion(version);
@@ -88,8 +87,7 @@ public class CoordinateUtls
         }
         catch (final NumberFormatException e)
         {
-            Essentials.LOGGER.error("Error loading warp for {}", string);
-            e.printStackTrace();
+            Essentials.LOGGER.error("Error loading coordinate for {}", string, e);
         }
         return null;
     }

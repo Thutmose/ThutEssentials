@@ -9,8 +9,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import thut.essentials.land.claims.ClaimedVolume;
-import thut.essentials.land.claims.NamedVolumes;
-import thut.essentials.land.claims.StructureManager;
+import thut.essentials.api.level.NamedVolumes;
+import thut.essentials.api.level.StructureManager;
 import xaero.map.highlight.ChunkHighlighter;
 
 import java.util.List;

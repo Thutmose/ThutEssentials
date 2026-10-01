@@ -28,7 +28,7 @@ import thut.essentials.land.LandEventsHandler;
 import thut.essentials.land.LandEventsHandler.ChunkLoadHandler;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
 import thut.essentials.land.claims.ClaimSyncPacket;
-import thut.essentials.land.claims.StructureManager;
+import thut.essentials.api.level.StructureManager;
 import thut.essentials.network.PacketHandler;
 import thut.essentials.util.CmdScheduler;
 import thut.essentials.util.MobManager;

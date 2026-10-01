@@ -117,7 +117,7 @@ public class PlayerDataHandler
                 }
                 catch (final Exception e)
                 {
-                    e.printStackTrace();
+                    Essentials.LOGGER.error(e);
                 }
         }
 
@@ -217,11 +217,6 @@ public class PlayerDataHandler
         return manager;
     }
 
-    public PlayerDataManager getPlayerData(final UUID uniqueID)
-    {
-        return this.getPlayerData(uniqueID.toString());
-    }
-
     @SubscribeEvent
     public void cleanupOfflineData(final LevelEvent.Save event)
     {
@@ -283,22 +278,19 @@ public class PlayerDataHandler
             if (!data.getIdentifier().equals(dataType)) continue;
             final String fileName = data.dataFileName();
             final File file = PlayerDataHandler.getFileForUUID(uuid, fileName);
-            if (file != null)
+            final CompoundTag nbttagcompound = new CompoundTag();
+            data.writeToNBT(nbttagcompound);
+            final CompoundTag nbttagcompound1 = new CompoundTag();
+            nbttagcompound1.put("Data", nbttagcompound);
+            try
             {
-                final CompoundTag nbttagcompound = new CompoundTag();
-                data.writeToNBT(nbttagcompound);
-                final CompoundTag nbttagcompound1 = new CompoundTag();
-                nbttagcompound1.put("Data", nbttagcompound);
-                try
-                {
-                    final FileOutputStream fileoutputstream = new FileOutputStream(file);
-                    NbtIo.writeCompressed(nbttagcompound1, fileoutputstream);
-                    fileoutputstream.close();
-                }
-                catch (final IOException e)
-                {
-                    Essentials.LOGGER.error(e);
-                }
+                final FileOutputStream fileoutputstream = new FileOutputStream(file);
+                NbtIo.writeCompressed(nbttagcompound1, fileoutputstream);
+                fileoutputstream.close();
+            }
+            catch (final IOException e)
+            {
+                Essentials.LOGGER.error(e);
             }
         }
     }
@@ -310,22 +302,19 @@ public class PlayerDataHandler
         {
             final String fileName = data.dataFileName();
             final File file = PlayerDataHandler.getFileForUUID(uuid, fileName);
-            if (file != null)
+            final CompoundTag nbttagcompound = new CompoundTag();
+            data.writeToNBT(nbttagcompound);
+            final CompoundTag nbttagcompound1 = new CompoundTag();
+            nbttagcompound1.put("Data", nbttagcompound);
+            try
             {
-                final CompoundTag nbttagcompound = new CompoundTag();
-                data.writeToNBT(nbttagcompound);
-                final CompoundTag nbttagcompound1 = new CompoundTag();
-                nbttagcompound1.put("Data", nbttagcompound);
-                try
-                {
-                    final FileOutputStream fileoutputstream = new FileOutputStream(file);
-                    NbtIo.writeCompressed(nbttagcompound1, fileoutputstream);
-                    fileoutputstream.close();
-                }
-                catch (final IOException e)
-                {
-                    Essentials.LOGGER.error(e);
-                }
+                final FileOutputStream fileoutputstream = new FileOutputStream(file);
+                NbtIo.writeCompressed(nbttagcompound1, fileoutputstream);
+                fileoutputstream.close();
+            }
+            catch (final IOException e)
+            {
+                Essentials.LOGGER.error(e);
             }
         }
     }

@@ -1,4 +1,4 @@
-package thut.essentials.land.claims;
+package thut.essentials.api.level;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;

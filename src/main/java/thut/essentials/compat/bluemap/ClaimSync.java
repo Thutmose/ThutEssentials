@@ -16,7 +16,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
-import thut.essentials.land.claims.ClaimEvent;
+import thut.essentials.api.events.ClaimEvent;
 import thut.essentials.land.claims.ClaimedVolume;
 
 import java.util.ArrayList;

@@ -21,7 +21,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
-import thut.essentials.events.MoveEvent;
+import thut.essentials.api.events.MoveEvent;
 import thut.essentials.util.ChatHelper;
 import thut.essentials.util.CoordinateUtls;
 import thut.essentials.util.PermNodes;
