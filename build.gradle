@@ -100,6 +100,13 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
+repositories {
+    // Adds the 'libs' folder in the project directory as a flat directory
+    flatDir {
+        dir 'libs'
+    }
+}
+
 dependencies {
     // Specify the version of Minecraft to use.
     // Depending on the plugin applied there are several options. We will assume you applied the userdev plugin as shown above.
@@ -114,6 +121,14 @@ dependencies {
 
     // bluemap for also claims
     compileOnly 'de.bluecolored:bluemap-api:2.7.7'
+
+    // Include ThutAPI
+    jarJar(implementation('thut.api:thutapi-1.0.0')) {
+        version {
+            // Version used in your workspace and bundled in mod jar
+            prefer '1.0'
+        }
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -20,6 +20,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.appender.FileAppender;
+import thut.api.ThutAPI;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.compat.Compat;
 import thut.essentials.defuzz.SpawnDefuzzer;
@@ -103,6 +104,8 @@ public class Essentials
         CapabilityWorldVolumes.registerAttachment(ATTACHMENTS);
 
         bus.addListener(this::setup);
+
+        ThutAPI.initAPI(false, false, false, false);
     }
 
     public void setup(final FMLCommonSetupEvent event)
