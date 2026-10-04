@@ -123,10 +123,10 @@ dependencies {
     compileOnly 'de.bluecolored:bluemap-api:2.7.7'
 
     // Include ThutAPI
-    jarJar(implementation('thut.api:thutapi-1.0.0')) {
+    jarJar(implementation("thut.api:thutapi-${version_thutapi}")) {
         version {
             // Version used in your workspace and bundled in mod jar
-            prefer '1.0'
+            prefer "${version_thutapi}"
         }
     }
 }

@@ -32,6 +32,10 @@ public class HighlightHandler extends ChunkHighlighter
     @Override
     public boolean regionHasHighlights(ResourceKey<Level> dimension, int regionX, int regionZ)
     {
+        var pos2 = Minecraft.getInstance().player.chunkPosition();
+        var regionPX = pos2.getRegionX();
+        var regionPZ = pos2.getRegionZ();
+        if (Math.abs(regionPX - regionX) > 1 || Math.abs(regionZ - regionPZ) > 1) return false;
         // For now, just show if it is in the chunk middle at sea level?
         return StructureManager.hasVolumes(dimension, regionX, regionZ);
     }
@@ -44,6 +48,14 @@ public class HighlightHandler extends ChunkHighlighter
         {
             posY = (int) player.getY();
         }
+        var cpos = new ChunkPos(chunkX, chunkZ);
+        var regionCX = cpos.getRegionX();
+        var regionCZ = cpos.getRegionZ();
+        var pos2 = player.chunkPosition();
+        var regionPX = pos2.getRegionX();
+        var regionPZ = pos2.getRegionZ();
+        if (Math.abs(regionPX - regionCX) > 1 || Math.abs(regionCZ - regionPZ) > 1) return null;
+
         BlockPos pos = new ChunkPos(chunkX, chunkZ).getBlockAt(8, posY, 8);
         var vols = StructureManager.getFor(dimension, pos);
         if (vols.isEmpty()) return null;
@@ -121,6 +133,15 @@ public class HighlightHandler extends ChunkHighlighter
         }
         else
         {
+            // Only show claims within the current region the player is in?
+            var pos = new ChunkPos(chunkX, chunkZ);
+            var regionCX = pos.getRegionX();
+            var regionCZ = pos.getRegionZ();
+            var pos2 = Minecraft.getInstance().player.chunkPosition();
+            var regionPX = pos2.getRegionX();
+            var regionPZ = pos2.getRegionZ();
+            if (Math.abs(regionPX - regionCX) > 1 || Math.abs(regionCZ - regionPZ) > 1) return null;
+
             var dimid = dimension.location();
             String customName = this.getClaimsCustomName(vol);
             int actualClaimsColor = this.getClaimsColor(vol);

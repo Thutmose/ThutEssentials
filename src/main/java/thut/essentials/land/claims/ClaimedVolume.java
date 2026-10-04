@@ -11,6 +11,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import thut.api.level.structures.NamedVolumes;
 import thut.api.level.structures.NamedVolumes.INamedVolume;
+import thut.essentials.land.LandManager;
 
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +22,7 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
     private BoundingBox bounds;
     public final ClaimInfo info;
     public String extraKey = "";
+    public Boolean showOverride = null;
 
     public ClaimedVolume()
     {
@@ -57,6 +59,16 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
             return vT1 == vO + vU ? otherBounds : null;
         }
         return null;
+    }
+
+    public boolean shouldShowOnMap()
+    {
+        return showOverride != null ? showOverride : this.getTeam().showOnMap;
+    }
+
+    public LandManager.LandTeam getTeam()
+    {
+        return this.info.getTeam();
     }
 
     @Override

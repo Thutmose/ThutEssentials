@@ -15,6 +15,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import thut.essentials.land.LandManager;
 import thut.essentials.land.claims.CapabilityWorldVolumes;
 import thut.essentials.api.events.ClaimEvent;
 import thut.essentials.land.claims.ClaimedVolume;
@@ -95,6 +96,7 @@ public class ClaimSync
     {
         if (!(event.level instanceof ServerLevel level)) return;
         var volume = event.volume;
+        if (volume instanceof ClaimedVolume claim && !claim.shouldShowOnMap()) return;
         var set = SETS.get(level.dimension());
         if (set == null)
         {

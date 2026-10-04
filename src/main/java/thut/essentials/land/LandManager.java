@@ -190,7 +190,7 @@ public class LandManager
          */
         public boolean reserved = false;
         /** If this is player specific, currently not used. */
-        public boolean players = false;
+        public boolean showOnMap = false;
         /** If true, players cannot take damage here. */
         public boolean noPlayerDamage = false;
         /** If true, INPCs cannot take damage here. */

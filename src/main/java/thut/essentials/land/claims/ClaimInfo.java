@@ -97,4 +97,9 @@ public class ClaimInfo implements INBTSerializable<CompoundTag>
     {
         return Objects.hash(owner, name);
     }
+
+    public LandManager.LandTeam getTeam()
+    {
+        return LandManager.getInstance()._team_land.get(this.owner);
+    }
 }

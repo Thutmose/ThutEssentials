@@ -1,6 +1,7 @@
 package thut.essentials.land.claims;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -14,8 +15,10 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.event.entity.EntityEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import thut.api.ThutAPI;
 import thut.essentials.Essentials;
 import thut.essentials.api.events.ClaimEvent;
 import thut.api.level.structures.NamedVolumes;
@@ -61,10 +64,20 @@ public class ClaimSyncPacket extends NBTPacket
         {
             if (!KNOWN_RECIEVERS.contains(id)) return;
         }
-        var volumes = CapabilityWorldVolumes.get(player.level());
         CompoundTag tag = new CompoundTag();
-        tag.putBoolean("partial", false);
-        tag.put("data", volumes.serializeNBT(player.level().registryAccess()));
+        var list = new ListTag();
+        var pos2 = player.chunkPosition();
+        var regionPX = pos2.getRegionX();
+        var regionPZ = pos2.getRegionZ();
+        Set<NamedVolumes.INamedVolume> found = new HashSet<>();
+        for (int i = -1; i <= 1; i++)
+            for (int j = -1; j <= 1; j++)
+            {
+                found.addAll(StructureManager.forRegion(player.level.dimension(), regionPX + i, regionPZ + j));
+            }
+        for (var v : found)
+            if (v instanceof ClaimedVolume claim) list.add(claim.serializeNBT(ThutAPI.getRegistries()));
+        tag.put("list", list);
         ASSEMBLER.sendTo(tag, player);
     }
 
@@ -117,6 +130,17 @@ public class ClaimSyncPacket extends NBTPacket
         }
     }
 
+    @SubscribeEvent
+    public static void onEnterChunk(EntityEvent.EnteringSection event)
+    {
+        if (event.getEntity() instanceof ServerPlayer player)
+        {
+            if (event.getOldPos().chunk().getRegionX() != event.getNewPos().chunk().getRegionX()
+                    || event.getOldPos().chunk().getRegionZ() != event.getNewPos().chunk().getRegionZ())
+                syncClaims(player);
+        }
+    }
+
     public static void resendAll(MinecraftServer server)
     {
         server.getPlayerList().getPlayers().forEach(ClaimSyncPacket::syncClaims);
@@ -148,22 +172,25 @@ public class ClaimSyncPacket extends NBTPacket
     protected void onCompleteClient(Player player)
     {
         var tag = this.getTag();
-        if (tag.contains("partial"))
+        var volumes = CapabilityWorldVolumes.get(player.level());
+        if (tag.contains("data"))
         {
-            boolean partial = tag.getBoolean("partial");
-            var volumes = CapabilityWorldVolumes.get(player.level());
-            if (partial)
+            if (tag.contains("data"))
             {
                 var v = new ClaimedVolume();
                 v.deserializeNBT(player.level().registryAccess(), tag.getCompound("data"));
                 if (tag.getBoolean("add")) volumes.addVolume(v);
                 else volumes.removeVolume(v);
             }
-            else
-            {
-                StructureManager.clear();
-                volumes.deserializeNBT(player.level().registryAccess(), tag.getCompound("data"));
-            }
+        }
+        else if (tag.contains("list"))
+        {
+            ListTag list = tag.getList("list", CompoundTag.TAG_COMPOUND);
+            list.forEach(nbt -> {
+                var v = new ClaimedVolume();
+                v.deserializeNBT(player.level().registryAccess(), (CompoundTag) nbt);
+                volumes.addVolume(v);
+            });
         }
     }
 
