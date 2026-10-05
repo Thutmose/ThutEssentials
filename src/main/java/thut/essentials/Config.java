@@ -296,7 +296,7 @@ public class Config extends ConfigData
     {
         if (this.lang_overrides_map.containsKey(key))
             return Component.literal(String.format(this.lang_overrides_map.get(key), args));
-        else return Component.translatable(key, args);
+        else return Component.translatableEscape(key, args);
     }
 
     public void sendFeedback(final CommandSourceStack target, final String key, final boolean log, final Object... args)
