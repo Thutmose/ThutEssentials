@@ -11,10 +11,10 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import thut.api.entity.teleporting.TeleDest;
+import thut.api.entity.teleporting.ThutTeleporter;
 import thut.essentials.Essentials;
 import thut.essentials.api.events.MoveEvent;
-import thut.essentials.util.teleporting.TeleDest;
-import thut.essentials.util.teleporting.ThutTeleporter;
 
 import java.util.Map;
 import java.util.UUID;
@@ -59,8 +59,7 @@ public class PlayerMover
                 InventoryLogger.log("Teleport from {} {} to {} {} for {} {}", CoordinateUtls.chunkPos(this.start),
                         this.start.dimension().location(), this.start.pos(), this.moveTo.dimension().location(),
                         this.moveTo.pos(), this.player.getUUID(), this.player.getName().getString());
-            final TeleDest dest = new TeleDest();
-            dest.setLoc(this.moveTo, this.moveTo.pos().getCenter());
+            final TeleDest dest = new TeleDest().setPos(this.moveTo);
             try
             {
                 ThutTeleporter.transferTo(this.player, dest);

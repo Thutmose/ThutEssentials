@@ -31,7 +31,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult.Type;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
@@ -51,6 +50,8 @@ import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import thut.api.entity.teleporting.TeleDest;
+import thut.api.entity.teleporting.ThutTeleporter;
 import thut.essentials.Essentials;
 import thut.essentials.commands.CommandManager;
 import thut.essentials.api.events.DenyItemUseEvent;
@@ -65,8 +66,6 @@ import thut.essentials.api.claims.OwnerManager;
 import thut.essentials.util.PermNodes;
 import thut.essentials.util.PermNodes.DefaultPermissionLevel;
 import thut.essentials.util.RegHelper;
-import thut.essentials.util.teleporting.TeleDest;
-import thut.essentials.util.teleporting.ThutTeleporter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -522,7 +521,7 @@ public class LandEventsHandler
                 if (message != null)
                 {
                     TeleDest dest = new TeleDest();
-                    dest.setLoc(old, new Vec3(0.5, 0, 0.5));
+                    dest.setPos(old);
                     ThutTeleporter.transferTo(player, dest);
                     // Then re-update the cached location
                     PLAYER_LOCATIONS.put(id, new PlayerLocation(old, old, oldClaimer, oldClaimer));

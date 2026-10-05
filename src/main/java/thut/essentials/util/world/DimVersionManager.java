@@ -10,10 +10,10 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import thut.api.entity.teleporting.TeleDest;
 import thut.essentials.Essentials;
 import thut.essentials.api.events.TeleLoadEvent;
 import thut.essentials.util.ChatHelper;
-import thut.essentials.util.teleporting.TeleDest;
 
 import java.io.File;
 

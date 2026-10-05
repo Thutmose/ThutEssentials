@@ -116,13 +116,12 @@ public class Back
 
     private static GlobalPos getBackSpot(final GlobalPos pos)
     {
-        final GlobalPos spot = pos;
         if (pos == null) return null;
         final MinecraftServer server = Essentials.server;
         final ServerLevel world = server.getLevel(pos.dimension());
         if (world == null) return null;
-        final BlockPos check = spot.pos();
-        if (Back.valid(check, world)) return spot;
+        final BlockPos check = pos.pos();
+        if (Back.valid(check, world)) return pos;
         final int r = Essentials.config.backRangeCheck;
         final Stream<BlockPos> stream = BlockPos.betweenClosedStream(check.getX() - r, check.getY() - r,
                 check.getZ() - r, check.getX() + r, check.getY() + r, check.getZ() + r);
@@ -131,8 +130,7 @@ public class Back
             final double d2 = p2.distSqr(check);
             return Double.compare(d1, d2);
         });
-        if (!opt.isPresent()) return null;
-        return GlobalPos.of(pos.dimension(), opt.get().immutable());
+        return opt.map(blockPos -> GlobalPos.of(pos.dimension(), blockPos.immutable())).orElse(null);
     }
 
     static boolean valid(final BlockPos pos, final Level world)

@@ -10,11 +10,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
+import thut.api.entity.teleporting.TeleDest;
 import thut.essentials.Essentials;
 import thut.essentials.api.events.TeleLoadEvent;
-import thut.essentials.util.teleporting.TeleDest;
 
 public class CoordinateUtls
 {
@@ -34,14 +33,7 @@ public class CoordinateUtls
     {
         if (tag.contains("_v_"))
         {
-            final Vec3 loc = TeleDest.readVec3FromNBT(tag, "v");
-            final String name = tag.getString("name");
-            final int index = tag.getInt("i");
-            final int version = tag.getInt("_v_");
-            final GlobalPos pos = CoordinateUtls.fromNBT(tag.getCompound("pos"));
-            if (pos == null) return null;
-            final TeleDest dest = new TeleDest().setLoc(pos, loc).setPos(pos).setName(name).setIndex(index)
-                    .setVersion(version);
+            var dest = TeleDest.readFromNBT(tag);
             final TeleLoadEvent event = new TeleLoadEvent(dest);
             // This returns true if the event is cancelled.
             if (NeoForge.EVENT_BUS.post(event).isCanceled()) return null;
