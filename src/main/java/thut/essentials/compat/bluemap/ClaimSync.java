@@ -64,7 +64,7 @@ public class ClaimSync
                             SETS.put(level.dimension(), markerSet);
                             var volumes = CapabilityWorldVolumes.get(level);
                             volumes.getVolumes().forEach(volume -> {
-                                if (volume instanceof ClaimedVolume v)
+                                if (volume instanceof ClaimedVolume v && v.shouldShowOnMap())
                                 {
                                     var m = forVolume(v);
                                     v.extraKey = v.getName() + " " + v.getTotalBounds();

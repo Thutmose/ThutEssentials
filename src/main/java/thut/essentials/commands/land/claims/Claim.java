@@ -99,9 +99,9 @@ public class Claim
         int min = down ? dim.getMinBuildHeight() : y * 16;
         int max = up ? dim.getMaxBuildHeight() : y * 16 + 16;
         int x0 = pos.getMinBlockX();
-        int x1 = pos.getMaxBlockX() + 1;
+        int x1 = pos.getMaxBlockX();
         int z0 = pos.getMinBlockZ();
-        int z1 = pos.getMaxBlockZ() + 1;
+        int z1 = pos.getMaxBlockZ();
         BoundingBox box = new BoundingBox(x0, min, z0, x1, max, z1);
         claimBox(player, box);
     }
