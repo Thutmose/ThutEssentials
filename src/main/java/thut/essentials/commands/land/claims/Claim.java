@@ -97,7 +97,7 @@ public class Claim
     {
         var dim = player.serverLevel();
         int min = down ? dim.getMinBuildHeight() : y * 16;
-        int max = up ? dim.getMaxBuildHeight() : y * 16 + 16;
+        int max = up ? dim.getMaxBuildHeight() : y * 16 + 15;
         int x0 = pos.getMinBlockX();
         int x1 = pos.getMaxBlockX();
         int z0 = pos.getMinBlockZ();
