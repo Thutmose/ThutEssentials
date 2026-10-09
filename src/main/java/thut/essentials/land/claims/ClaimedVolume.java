@@ -63,7 +63,9 @@ public class ClaimedVolume implements INamedVolume, INBTSerializable<CompoundTag
 
     public boolean shouldShowOnMap()
     {
-        return showOverride != null ? showOverride : this.getTeam().showOnMap;
+        var team = this.getTeam();
+        if (team == null) return false; // null in the case where unclaim everything was called
+        return showOverride != null ? showOverride : team.showOnMap;
     }
 
     public LandManager.LandTeam getTeam()
